@@ -1224,7 +1224,7 @@ final class ProtoService: ProtoServiceCore {
                 hasAckBeenDelegated = true
                 // we are acking the message here - what if we fail to reset the session properly
                 feedDelegate.halloService(self, didRerequestGroupFeedItem: rerequest.id, contentType: rerequest.contentType, from: userID, ack: ack)
-            case .UNRECOGNIZED, .unknown:
+            case .UNRECOGNIZED, .unknown, .messageReaction:
                 return
             }
 

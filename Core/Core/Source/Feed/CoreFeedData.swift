@@ -1363,7 +1363,7 @@ open class CoreFeedData: NSObject {
                     }
                 }
 
-            case .postReaction, .message, .unknown, .UNRECOGNIZED:
+            case .postReaction, .message, .unknown, .messageReaction, .UNRECOGNIZED:
                 //TODO: handle postReaction and commentReaction cases
                 completion(.failure(.aborted))
             }

@@ -199,6 +199,14 @@ public struct Server_EventData {
     set {_uniqueStorage()._edata = .homeDecryptionReport(newValue)}
   }
 
+  public var inviteRequestResult: Server_InviteRequestResult {
+    get {
+      if case .inviteRequestResult(let v)? = _storage._edata {return v}
+      return Server_InviteRequestResult()
+    }
+    set {_uniqueStorage()._edata = .inviteRequestResult(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Edata: Equatable {
@@ -214,6 +222,7 @@ public struct Server_EventData {
     case fabAction(Server_FabAction)
     case groupHistoryReport(Server_GroupHistoryReport)
     case homeDecryptionReport(Server_HomeDecryptionReport)
+    case inviteRequestResult(Server_InviteRequestResult)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_EventData.OneOf_Edata, rhs: Server_EventData.OneOf_Edata) -> Bool {
@@ -267,6 +276,10 @@ public struct Server_EventData {
       }()
       case (.homeDecryptionReport, .homeDecryptionReport): return {
         guard case .homeDecryptionReport(let l) = lhs, case .homeDecryptionReport(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.inviteRequestResult, .inviteRequestResult): return {
+        guard case .inviteRequestResult(let l) = lhs, case .inviteRequestResult(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -980,6 +993,7 @@ public struct Server_GroupDecryptionReport {
     case postReaction // = 4
     case commentReaction // = 5
     case chat // = 6
+    case chatReaction // = 7
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -995,6 +1009,7 @@ public struct Server_GroupDecryptionReport {
       case 4: self = .postReaction
       case 5: self = .commentReaction
       case 6: self = .chat
+      case 7: self = .chatReaction
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -1008,6 +1023,7 @@ public struct Server_GroupDecryptionReport {
       case .postReaction: return 4
       case .commentReaction: return 5
       case .chat: return 6
+      case .chatReaction: return 7
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -1066,6 +1082,7 @@ extension Server_GroupDecryptionReport.ItemType: CaseIterable {
     .postReaction,
     .commentReaction,
     .chat,
+    .chatReaction,
   ]
 }
 
@@ -1939,6 +1956,68 @@ extension Server_FabAction.FabActionType: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+public struct Server_InviteRequestResult {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var type: Server_InviteRequestResult.TypeEnum = .unknown
+
+  public var invitedPhone: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum TypeEnum: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknown // = 0
+    case cancelled // = 1
+    case sent // = 2
+    case failed // = 3
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknown
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknown
+      case 1: self = .cancelled
+      case 2: self = .sent
+      case 3: self = .failed
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknown: return 0
+      case .cancelled: return 1
+      case .sent: return 2
+      case .failed: return 3
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_InviteRequestResult.TypeEnum: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_InviteRequestResult.TypeEnum] = [
+    .unknown,
+    .cancelled,
+    .sent,
+    .failed,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 #if swift(>=5.5) && canImport(_Concurrency)
 extension Server_Platform: @unchecked Sendable {}
 extension Server_EventData: @unchecked Sendable {}
@@ -1987,6 +2066,8 @@ extension Server_CandidatePairStats.CandidateType: @unchecked Sendable {}
 extension Server_CandidatePairStats.CandidatePairState: @unchecked Sendable {}
 extension Server_FabAction: @unchecked Sendable {}
 extension Server_FabAction.FabActionType: @unchecked Sendable {}
+extension Server_InviteRequestResult: @unchecked Sendable {}
+extension Server_InviteRequestResult.TypeEnum: @unchecked Sendable {}
 #endif  // swift(>=5.5) && canImport(_Concurrency)
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
@@ -2021,6 +2102,7 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     19: .standard(proto: "fab_action"),
     20: .standard(proto: "group_history_report"),
     21: .standard(proto: "home_decryption_report"),
+    22: .standard(proto: "invite_request_result"),
   ]
 
   fileprivate class _StorageClass {
@@ -2221,6 +2303,19 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
             _storage._edata = .homeDecryptionReport(v)
           }
         }()
+        case 22: try {
+          var v: Server_InviteRequestResult?
+          var hadOneofValue = false
+          if let current = _storage._edata {
+            hadOneofValue = true
+            if case .inviteRequestResult(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._edata = .inviteRequestResult(v)
+          }
+        }()
         default: break
         }
       }
@@ -2296,6 +2391,10 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       case .homeDecryptionReport?: try {
         guard case .homeDecryptionReport(let v)? = _storage._edata else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 21)
+      }()
+      case .inviteRequestResult?: try {
+        guard case .inviteRequestResult(let v)? = _storage._edata else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 22)
       }()
       case nil: break
       }
@@ -2943,6 +3042,7 @@ extension Server_GroupDecryptionReport.ItemType: SwiftProtobuf._ProtoNameProvidi
     4: .same(proto: "POST_REACTION"),
     5: .same(proto: "COMMENT_REACTION"),
     6: .same(proto: "CHAT"),
+    7: .same(proto: "CHAT_REACTION"),
   ]
 }
 
@@ -3797,5 +3897,52 @@ extension Server_FabAction.FabActionType: SwiftProtobuf._ProtoNameProviding {
     2: .same(proto: "AUDIO"),
     3: .same(proto: "TEXT"),
     4: .same(proto: "CAMERA"),
+  ]
+}
+
+extension Server_InviteRequestResult: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".InviteRequestResult"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "type"),
+    2: .standard(proto: "invited_phone"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.type) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.invitedPhone) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.type != .unknown {
+      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 1)
+    }
+    if !self.invitedPhone.isEmpty {
+      try visitor.visitSingularStringField(value: self.invitedPhone, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_InviteRequestResult, rhs: Server_InviteRequestResult) -> Bool {
+    if lhs.type != rhs.type {return false}
+    if lhs.invitedPhone != rhs.invitedPhone {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_InviteRequestResult.TypeEnum: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN"),
+    1: .same(proto: "CANCELLED"),
+    2: .same(proto: "SENT"),
+    3: .same(proto: "FAILED"),
   ]
 }

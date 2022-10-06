@@ -5853,6 +5853,7 @@ public struct Server_GroupFeedRerequest {
     case postReaction // = 4
     case commentReaction // = 5
     case message // = 6
+    case messageReaction // = 7
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -5868,6 +5869,7 @@ public struct Server_GroupFeedRerequest {
       case 4: self = .postReaction
       case 5: self = .commentReaction
       case 6: self = .message
+      case 7: self = .messageReaction
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -5881,6 +5883,7 @@ public struct Server_GroupFeedRerequest {
       case .postReaction: return 4
       case .commentReaction: return 5
       case .message: return 6
+      case .messageReaction: return 7
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -5910,6 +5913,7 @@ extension Server_GroupFeedRerequest.ContentType: CaseIterable {
     .postReaction,
     .commentReaction,
     .message,
+    .messageReaction,
   ]
 }
 
@@ -15116,6 +15120,7 @@ extension Server_GroupFeedRerequest.ContentType: SwiftProtobuf._ProtoNameProvidi
     4: .same(proto: "POST_REACTION"),
     5: .same(proto: "COMMENT_REACTION"),
     6: .same(proto: "MESSAGE"),
+    7: .same(proto: "MESSAGE_REACTION"),
   ]
 }
 
