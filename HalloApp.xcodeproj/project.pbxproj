@@ -38,7 +38,6 @@
 		3250C60A27D0120D0032FEC4 /* VerificationCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3250C60727D0120D0032FEC4 /* VerificationCodeViewController.swift */; };
 		3250C60B27D0120D0032FEC4 /* Localizations+Registration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3250C60827D0120D0032FEC4 /* Localizations+Registration.swift */; };
 		325A0D772863BA9A00223611 /* NewGroupChatHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 325A0D762863BA9A00223611 /* NewGroupChatHeaderView.swift */; };
-		325F2E8A28906C4800F8E014 /* DestinationPickerMoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 325F2E8928906C4800F8E014 /* DestinationPickerMoreView.swift */; };
 		326823802886245700AB459A /* DestinationTrayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3268237F2886245700AB459A /* DestinationTrayView.swift */; };
 		32682383288F19F600AB459A /* DestinationTrayViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32682382288F19F600AB459A /* DestinationTrayViewCell.swift */; };
 		326A757D28400B500058DFAA /* BlockedContactSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 326A757C28400B500058DFAA /* BlockedContactSheetViewController.swift */; };
@@ -701,7 +700,6 @@
 		3250C60727D0120D0032FEC4 /* VerificationCodeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VerificationCodeViewController.swift; sourceTree = "<group>"; };
 		3250C60827D0120D0032FEC4 /* Localizations+Registration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Localizations+Registration.swift"; sourceTree = "<group>"; };
 		325A0D762863BA9A00223611 /* NewGroupChatHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGroupChatHeaderView.swift; sourceTree = "<group>"; };
-		325F2E8928906C4800F8E014 /* DestinationPickerMoreView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DestinationPickerMoreView.swift; sourceTree = "<group>"; };
 		3268237F2886245700AB459A /* DestinationTrayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DestinationTrayView.swift; sourceTree = "<group>"; };
 		32682382288F19F600AB459A /* DestinationTrayViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DestinationTrayViewCell.swift; sourceTree = "<group>"; };
 		326A757C28400B500058DFAA /* BlockedContactSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedContactSheetViewController.swift; sourceTree = "<group>"; };
@@ -1446,7 +1444,6 @@
 		32682381288F19B100AB459A /* DestinationPicker */ = {
 			isa = PBXGroup;
 			children = (
-				325F2E8928906C4800F8E014 /* DestinationPickerMoreView.swift */,
 				3295A55A28808EC1007642B5 /* DestinationPickerViewController.swift */,
 				3295A55C28809491007642B5 /* DestinationCell.swift */,
 				3295A55E2880DDD8007642B5 /* DestinationBackgroundDecorationView.swift */,
@@ -3188,7 +3185,6 @@
 				3250C60527D010370032FEC4 /* Localizations+Registration.swift in Sources */,
 				6832F4FD24FEE97800A9C202 /* ProtoService.swift in Sources */,
 				A1562B1928D0EED40082F1E5 /* CaptureRequest.swift in Sources */,
-				325F2E8A28906C4800F8E014 /* DestinationPickerMoreView.swift in Sources */,
 				E55B6099268B80C800A322DC /* ExportDataModel.swift in Sources */,
 				E5CB831B26A0F17100C18ACA /* ActivityCenter.swift in Sources */,
 				A1C18C7C27A1EC9100A76102 /* HalloCode.swift in Sources */,

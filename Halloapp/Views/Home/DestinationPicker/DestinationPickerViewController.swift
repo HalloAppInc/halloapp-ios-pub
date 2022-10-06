@@ -13,18 +13,6 @@ import CoreData
 import UIKit
 
 private extension Localizations {
-    static var contactsHeader: String {
-        return NSLocalizedString("post.privacy.title",
-                                 value: "Contacts",
-                                 comment: "Header when selecting contacts to share with")
-    }
-
-    static var groupsHeader: String {
-        return NSLocalizedString("post.privacy.header.groups",
-                                 value: "Your Groups",
-                                 comment: "Header when selecting destinations to forward a message, this header appears above the groups section")
-    }
-
     static var feedsHeader: String {
         return NSLocalizedString("post.privacy.header.feeds",
                                  value: "Feeds",
@@ -34,7 +22,13 @@ private extension Localizations {
     static var frequentlyContactedHeader: String {
         return NSLocalizedString("post.privacy.header.frequentlyContacted",
                                  value: "Frequently Contacted",
-                                 comment: "Header when selecting destinations to forward a message, this header appears above the feeds section")
+                                 comment: "Header when selecting destinations to forward a message, this header appears above the frequently contacted section")
+    }
+
+    static var recentHeader: String {
+        return NSLocalizedString("post.privacy.header.recent",
+                                 value: "Recent",
+                                 comment: "Header when selecting destinations to forward a message, this header appears above the recent section")
     }
 }
 
@@ -44,9 +38,6 @@ enum DestinationPickerConfig {
 
 class DestinationPickerViewController: UIViewController, NSFetchedResultsControllerDelegate {
     static let rowHeight = CGFloat(54)
-    static let maxGroupsToShowOnLaunch = 3//6
-    private var showAllGroups: Bool = false
-    private var hasMoreGroups: Bool = false
     private var selectedDestinations: [ShareDestination] = []
     let feedPrivacyTypes = [PrivacyListType.all, PrivacyListType.whitelist]
 
@@ -54,13 +45,16 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
 
     private lazy var frequentlyContactedDataSource = FrequentlyContactedDataSource()
 
-    private lazy var fetchedResultsController: NSFetchedResultsController<ChatThread> = {
+    private lazy var recentFetchedResultsController: NSFetchedResultsController<ChatThread> = {
         let request = ChatThread.fetchRequest()
         request.sortDescriptors = [
             NSSortDescriptor(key: "lastTimestamp", ascending: false),
             NSSortDescriptor(key: "title", ascending: true)
         ]
-        request.predicate = NSPredicate(format: "groupID != nil")
+
+        if config == .forwarding {
+            request.predicate = NSPredicate(format: "userID != nil")
+        }
         
         let fetchedResultsController = NSFetchedResultsController<ChatThread>(fetchRequest: request,
                                                                               managedObjectContext: MainAppContext.shared.chatData.viewContext,
@@ -96,9 +90,6 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
             let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
             let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerSize, elementKind: DestinationPickerHeaderView.elementKind, alignment: .top)
 
-            let footerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
-            let sectionFooter = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: footerSize, elementKind: DestinationPickerMoreView.elementKind, alignment: .bottom)
-
             let section = NSCollectionLayoutSection(group: group)
             section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
 
@@ -108,13 +99,6 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
 
             // For the groups section, if there are > maxGroupsToShowOnLaunch groups, show the "Show More.." footer
             section.boundarySupplementaryItems = [sectionHeader]
-            if let self = self {
-                let sections = self.dataSource.snapshot().sectionIdentifiers
-                if sectionIndex < sections.count, sections[sectionIndex] == DestinationSection.groups, !self.showAllGroups, self.hasMoreGroups, !self.isFiltering {
-                    section.boundarySupplementaryItems = [sectionHeader, sectionFooter]
-                    backgroundDecoration.contentInsets.bottom = 44
-                }
-            }
 
             section.decorationItems = [backgroundDecoration]
 
@@ -129,7 +113,6 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 16, right: 0)
         collectionView.register(DestinationCell.self, forCellWithReuseIdentifier: DestinationCell.reuseIdentifier)
         collectionView.register(DestinationPickerHeaderView.self, forSupplementaryViewOfKind: DestinationPickerHeaderView.elementKind, withReuseIdentifier: DestinationPickerHeaderView.elementKind)
-        collectionView.register(DestinationPickerMoreView.self, forSupplementaryViewOfKind: DestinationPickerMoreView.elementKind, withReuseIdentifier: DestinationPickerMoreView.elementKind)
         collectionView.delegate = self
         collectionView.keyboardDismissMode = .interactive
 
@@ -210,26 +193,18 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         }
 
         source.supplementaryViewProvider = { [weak self] (collectionView, kind, indexPath) in
-            switch kind {
-            case DestinationPickerMoreView.elementKind:
-                let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: DestinationPickerMoreView.elementKind, for: indexPath)
+            let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: DestinationPickerHeaderView.elementKind, for: indexPath)
 
-                if let view = view as? DestinationPickerMoreView {
-                    view.delegate = self
-                }
-                return view
-            default:
-                let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: DestinationPickerHeaderView.elementKind, for: indexPath)
+            if let self = self, let headerView = view as? DestinationPickerHeaderView {
+                let sections = self.dataSource.snapshot().sectionIdentifiers
 
-                if let self = self, let headerView = view as? DestinationPickerHeaderView {
-                    let sections = self.dataSource.snapshot().sectionIdentifiers
-                    if indexPath.section < sections.count {
-                        let section = sections[indexPath.section]
-                        headerView.text = self.sectionHeader(destinationSection: section)
-                    }
+                if indexPath.section < sections.count {
+                    let section = sections[indexPath.section]
+                    headerView.text = self.sectionHeader(destinationSection: section)
                 }
-                return view
             }
+
+            return view
         }
         return source
     }()
@@ -248,10 +223,8 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
             return Localizations.feedsHeader
         case .frequentlyContacted:
             return Localizations.frequentlyContactedHeader
-        case .groups:
-            return Localizations.groupsHeader
-        case .contacts:
-            return Localizations.contactsHeader
+        case .recent:
+            return Localizations.recentHeader
         }
     }
 
@@ -321,7 +294,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
     }
 
     enum DestinationSection {
-        case main, frequentlyContacted, groups, contacts
+        case main, frequentlyContacted, recent
     }
 
     // Use section to allow differentiation between duplicate groups / contacts
@@ -378,9 +351,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
             bottomConstraint,
         ])
 
-        if config == .composer {
-            try? fetchedResultsController.performFetch()
-        }
+        try? recentFetchedResultsController.performFetch()
         try? contactsFetchedResultsController.performFetch()
         frequentlyContactedDataSource.performFetch()
 
@@ -393,65 +364,40 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
 
     private func updateData(searchString: String? = nil) {
         var snapshot = NSDiffableDataSourceSnapshot<DestinationSection, DestinationPickerDestination>()
-        var allGroups:[ChatThread] = []
-        if config == .composer {
-            allGroups = fetchedResultsController.fetchedObjects ?? []
-        }
-        
-        hasMoreGroups = allGroups.count > DestinationPickerViewController.maxGroupsToShowOnLaunch
-
+        var recentItems = recentFetchedResultsController.fetchedObjects ?? []
         var contacts = contactsFetchedResultsController.fetchedObjects ?? []
         contacts = ABContact.contactsWithUniquePhoneNumbers(allContacts: contacts)
+
+        var phoneNumbers: [String: String] = [:]
+        for contact in contacts {
+            guard let userID = contact.userId else { continue }
+            phoneNumbers[userID] = contact.phoneNumber
+        }
         
         if let searchString = searchString?.trimmingCharacters(in: CharacterSet.whitespaces).lowercased(), !searchString.isEmpty {
             let searchItems = searchString.components(separatedBy: " ")
-            // Add filtered groups
-            allGroups.forEach {
-                guard let groupID = $0.groupID, let groupTitle = $0.title else { return }
-                let groupTitleLowercased = groupTitle.lowercased()
-                for searchItem in searchItems {
-                    if groupTitleLowercased.contains(searchItem) {
-                        if !snapshot.sectionIdentifiers.contains(DestinationSection.groups) {
-                            snapshot.appendSections([DestinationSection.groups])
-                        }
-                        let destination = DestinationPickerDestination(section: .groups, shareDestination: .group(id: groupID, name: groupTitle))
-                        snapshot.appendItems([destination], toSection: DestinationSection.groups)
-                    }
-                }
-            }
-            // Add filtered contacts
-            contacts.forEach {
-                // We support search on firtname and phone number
-                let fullName = $0.fullName?.lowercased() ?? ""
-                let phoneNumber = $0.phoneNumber ?? ""
-                let searchItems = searchString.components(separatedBy: " ")
-                for searchItem in searchItems {
-                    guard let destination = ShareDestination.destination(from: $0) else { continue }
 
-                    if fullName.contains(searchItem) || phoneNumber.contains(searchItem) {
-                        if !snapshot.sectionIdentifiers.contains(DestinationSection.contacts) {
-                            snapshot.appendSections([DestinationSection.contacts])
+            recentItems = recentItems.filter { item in
+                if let userID = item.userID, let name = item.title?.lowercased() {
+                    let number = phoneNumbers[userID] ?? ""
+
+                    for term in searchItems {
+                        if name.contains(term) || number.contains(term) {
+                            return true
                         }
-                        snapshot.appendItems([DestinationPickerDestination(section: .contacts, shareDestination: destination)], toSection: DestinationSection.contacts)
+                    }
+                } else if item.groupID != nil, let title = item.title?.lowercased() {
+                    for term in searchItems {
+                        if title.contains(term) {
+                            return true
+                        }
                     }
                 }
+
+                return false
             }
         } else {
             // No Search in progress
-
-            if hasMoreGroups, !showAllGroups {
-                let maxGroups = DestinationPickerViewController.maxGroupsToShowOnLaunch
-                var groups = [ChatThread](allGroups[..<maxGroups])
-
-                for group in allGroups[maxGroups...] {
-                    if selectedDestinations.contains(.group(id: group.groupID ?? "", name: group.title ?? "")) {
-                        groups.append(group)
-                    }
-                }
-
-                showAllGroups = allGroups.count == groups.count
-                allGroups = groups
-            }
 
             if config == .composer {
                 snapshot.appendSections([DestinationSection.main])
@@ -479,19 +425,19 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
                     }
                 snapshot.appendItems(frequentlyContactedDestinations, toSection: .frequentlyContacted)
             }
+        }
 
-            if allGroups.count > 0 {
-                snapshot.appendSections([DestinationSection.groups])
-                snapshot.appendItems(allGroups.compactMap {
-                    guard let groupID = $0.groupID, let title = $0.title else { return nil }
-                    return DestinationPickerDestination(section: .groups, shareDestination: .group(id: groupID, name: title))
-                }, toSection: DestinationSection.groups)
-            }
-            if contacts.count > 0 {
-                snapshot.appendSections([DestinationSection.contacts])
-                snapshot.appendItems(contacts.compactMap { contact in
-                    return ShareDestination.destination(from: contact).flatMap { DestinationPickerDestination(section: .contacts, shareDestination: $0) }
-                }, toSection: DestinationSection.contacts)
+        if recentItems.count > 0 {
+            snapshot.appendSections([DestinationSection.recent])
+
+            for item in recentItems {
+                if let userID = item.userID, let name = item.title {
+                    let destination: ShareDestination = .contact(id: userID, name: name, phone: phoneNumbers[userID])
+                    snapshot.appendItems([DestinationPickerDestination(section: .recent, shareDestination: destination)], toSection: .recent)
+                } else if let groupID = item.groupID, let title = item.title {
+                    let destination: ShareDestination = .group(id: groupID, name: title)
+                    snapshot.appendItems([DestinationPickerDestination(section: .recent, shareDestination: destination)], toSection: .recent)
+                }
             }
         }
 
@@ -614,23 +560,11 @@ extension DestinationPickerViewController: UICollectionViewDelegate {
 
         completion(self, [])
     }
-
-    @objc func moreAction() {
-        showAllGroups = true
-        updateData(searchString: nil)
-    }
 }
 
 // MARK: UISearchResultsUpdating
 extension DestinationPickerViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
         updateData(searchString: searchController.searchBar.text)
-    }
-}
-
-// MARK: DestinationPickerMoreViewDelegate
-extension DestinationPickerViewController: DestinationPickerMoreViewDelegate {
-    func moreAction(_ view: DestinationPickerMoreView) {
-        moreAction()
     }
 }
