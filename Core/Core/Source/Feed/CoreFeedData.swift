@@ -653,6 +653,22 @@ open class CoreFeedData: NSObject {
         return self.commonReactions(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
     }
 
+    public func commonReaction(from userID: UserID, on commentID: FeedPostCommentID, in managedObjectContext: NSManagedObjectContext) -> CommonReaction? {
+        let fetchRequest: NSFetchRequest<CommonReaction> = CommonReaction.fetchRequest()
+
+        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(format: "fromUserID == %@ && comment.id == %@", userID, commentID)
+        ])
+        fetchRequest.returnsObjectsAsFaults = false
+        do {
+            let reactions = try managedObjectContext.fetch(fetchRequest)
+            return reactions.first
+        } catch {
+            DDLogError("NotificationProtoService/fetch-posts/error  [\(error)]")
+            fatalError("Failed to fetch reactions.")
+        }
+    }
+
     private func commonReactions(predicate: NSPredicate? = nil,
                                  sortDescriptors: [NSSortDescriptor]? = nil,
                                  limit: Int? = nil,
@@ -970,6 +986,14 @@ open class CoreFeedData: NSObject {
                 case .error, .incoming, .retracted:
                     DDLogError("CoreFeedData/process/already-exists/error [\(existingCommonReaction.incomingStatus)] [\(xmppReaction.id)]")
                     return
+                }
+            }
+
+            // Remove reaction from the same author on the same content if any.
+            if let parentId = xmppReaction.parentId {
+                if let duplicateReaction = self.commonReaction(from: xmppReaction.userId, on: parentId, in: managedObjectContext) {
+                    managedObjectContext.delete(duplicateReaction)
+                    DDLogInfo("CoreFeedData/process/saveReactionData/remove-old-reaction/reactionID [\(duplicateReaction.id)]")
                 }
             }
 

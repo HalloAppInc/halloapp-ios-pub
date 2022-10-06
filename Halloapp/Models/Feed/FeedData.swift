@@ -1563,6 +1563,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }
 
+            // Remove reaction from the same author on the same content if any.
+            if let parentId = xmppReaction.parentId {
+                if let duplicateReaction = self.coreFeedData.commonReaction(from: xmppReaction.userId, on: parentId, in: managedObjectContext) {
+                    managedObjectContext.delete(duplicateReaction)
+                    DDLogInfo("CoreFeedData/process/saveReactionData/remove-old-reaction/reactionID [\(duplicateReaction.id)]")
+                }
+            }
+
             // Find reaction's post.
             let feedPost: FeedPost
             if let post = posts[xmppReaction.feedPostId] {

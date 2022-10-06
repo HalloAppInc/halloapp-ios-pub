@@ -3905,6 +3905,11 @@ extension ChatData {
             DDLogError("ChatData/processInboundReaction content not reaction type")
         }
         if let chatReplyMsgId = xmppReaction.context.chatReplyMessageID {
+            // Remove reaction from the same author on the same content if any.
+            if let duplicateReaction = self.coreChatData.commonReaction(from: xmppReaction.fromUserId, on: chatReplyMsgId, in: managedObjectContext) {
+                managedObjectContext.delete(duplicateReaction)
+                DDLogInfo("ChatData/processInboundReaction/remove-old-reaction/reactionID [\(duplicateReaction.id)]")
+            }
             // Process Quoted Message
             if let message = MainAppContext.shared.chatData.chatMessage(with: chatReplyMsgId, in: managedObjectContext) {
                 commonReaction.message = message

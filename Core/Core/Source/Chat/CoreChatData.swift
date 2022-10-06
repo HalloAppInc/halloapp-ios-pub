@@ -1260,6 +1260,14 @@ public class CoreChatData {
                 }
             }
 
+            // Remove reaction from the same author on the same content if any.
+            if let chatReplyMsgId = chatMessageProtocol.context.chatReplyMessageID {
+                if let duplicateReaction = self.commonReaction(from: chatMessageProtocol.fromUserId, on: chatReplyMsgId, in: context) {
+                    context.delete(duplicateReaction)
+                    DDLogInfo("CoreChatData/saveReaction/remove-old-reaction/reactionID [\(duplicateReaction.id)]")
+                }
+            }
+
             DDLogDebug("CoreChatData/saveReaction [\(chatMessageProtocol.id)]")
             let commonReaction: CommonReaction = {
                 guard let existingReaction = existingReaction else {
@@ -1372,6 +1380,22 @@ public class CoreChatData {
             return messages.first
         }
         catch {
+            DDLogError("NotificationProtoService/fetch-posts/error  [\(error)]")
+            fatalError("Failed to fetch reactions.")
+        }
+    }
+
+    public func commonReaction(from userID: UserID, on messageID: ChatMessageID, in managedObjectContext: NSManagedObjectContext) -> CommonReaction? {
+        let fetchRequest: NSFetchRequest<CommonReaction> = CommonReaction.fetchRequest()
+
+        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(format: "fromUserID == %@ && message.id == %@", userID, messageID)
+        ])
+        fetchRequest.returnsObjectsAsFaults = false
+        do {
+            let reactions = try managedObjectContext.fetch(fetchRequest)
+            return reactions.first
+        } catch {
             DDLogError("NotificationProtoService/fetch-posts/error  [\(error)]")
             fatalError("Failed to fetch reactions.")
         }
