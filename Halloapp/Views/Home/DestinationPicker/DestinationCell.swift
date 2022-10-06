@@ -18,21 +18,18 @@ class DestinationCell: UICollectionViewCell {
     private lazy var homeView: UIView = {
         let imageView = UIImageView(image: Self.homeIcon)
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.tintColor = .avatarHomeIcon
+        imageView.tintColor = .black.withAlphaComponent(0.7)
         imageView.contentMode = .scaleAspectFit
 
         let container = UIView()
         container.translatesAutoresizingMaskIntoConstraints = false
-        container.backgroundColor = .avatarHomeBg
-        container.layer.cornerRadius = 6
-        container.clipsToBounds = true
         container.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         container.isHidden = true
 
         container.addSubview(imageView)
 
         NSLayoutConstraint.activate([
-            container.widthAnchor.constraint(equalToConstant: 34),
+            container.widthAnchor.constraint(equalToConstant: 32),
             container.heightAnchor.constraint(equalTo: container.widthAnchor),
             imageView.widthAnchor.constraint(equalToConstant: 24),
             imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor),
@@ -46,23 +43,19 @@ class DestinationCell: UICollectionViewCell {
     private lazy var favoritesView: UIView = {
         let imageView = UIImageView(image: Self.favoritesIcon)
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.tintColor = .white
         imageView.contentMode = .scaleAspectFit
 
         let container = UIView()
         container.translatesAutoresizingMaskIntoConstraints = false
-        container.backgroundColor = .favoritesBg
-        container.layer.cornerRadius = 6
-        container.clipsToBounds = true
         container.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         container.isHidden = true
 
         container.addSubview(imageView)
 
         NSLayoutConstraint.activate([
-            container.widthAnchor.constraint(equalToConstant: 34),
+            container.widthAnchor.constraint(equalToConstant: 32),
             container.heightAnchor.constraint(equalTo: container.widthAnchor),
-            imageView.widthAnchor.constraint(equalToConstant: 34),
+            imageView.widthAnchor.constraint(equalToConstant: 30),
             imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor),
             imageView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
             imageView.centerYAnchor.constraint(equalTo: container.centerYAnchor),
@@ -84,7 +77,7 @@ class DestinationCell: UICollectionViewCell {
     private lazy var title: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = .preferredFont(forTextStyle: .body)
+        label.font = .systemFont(ofSize: 17)
         label.textColor = .label
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -223,11 +216,11 @@ class DestinationCell: UICollectionViewCell {
     }
 
     private static var checkmarkUnchecked: UIImage {
-        UIImage(systemName: "circle", withConfiguration: UIImage.SymbolConfiguration(pointSize: 21))!.withRenderingMode(.alwaysTemplate)
+        UIImage(systemName: "circle", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25))!.withRenderingMode(.alwaysTemplate)
     }
 
     private static var checkmarkChecked: UIImage {
-        UIImage(systemName: "checkmark.circle.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 21))!.withRenderingMode(.alwaysTemplate)
+        UIImage(systemName: "checkmark.circle.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25))!.withRenderingMode(.alwaysTemplate)
     }
 
     private static var colorChecked: UIColor {

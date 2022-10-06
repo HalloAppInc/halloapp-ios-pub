@@ -151,7 +151,9 @@ final class NewPostViewController: UINavigationController {
     }
 
     private func pushComposer() {
-        pushViewController(makeComposerViewController(), animated: true)
+        UIView.transition(with: view, duration: 0.3, options: [.transitionCrossDissolve]) {
+            self.pushViewController(self.makeComposerViewController(), animated: false)
+        }
     }
 
     private func startingViewController() -> UIViewController {
@@ -179,10 +181,14 @@ final class NewPostViewController: UINavigationController {
                 } else if case .group(_, _) = self.destination {
                     self.share(to: result.destinations, result: result)
                 } else {
-                    self.pushViewController(self.makeDestinationPickerViewController(with: result), animated: true)
+                    UIView.transition(with: self.view, duration: 0.3, options: [.transitionCrossDissolve]) {
+                        self.pushViewController(self.makeDestinationPickerViewController(with: result), animated: false)
+                    }
                 }
             } else {
-                self.popViewController(animated: true)
+                UIView.transition(with: self.view, duration: 0.3, options: [.transitionCrossDissolve]) {
+                    self.popViewController(animated: false)
+                }
 
                 switch self.state.mediaSource {
                 case .library:
@@ -202,7 +208,9 @@ final class NewPostViewController: UINavigationController {
             if destinations.count > 0 {
                 self.share(to: destinations, result: result)
             } else {
-                self.popViewController(animated: true)
+                UIView.transition(with: self.view, duration: 0.3, options: [.transitionCrossDissolve]) {
+                    self.popViewController(animated: false)
+                }
             }
         }
     }
@@ -372,7 +380,9 @@ extension NewPostViewController: PostComposerViewDelegate {
         self.destination = destination
 
         state.pendingVoiceNote = voiceNote
-        popViewController(animated: true)
+        UIView.transition(with: self.view, duration: 0.3, options: [.transitionCrossDissolve]) {
+            self.popViewController(animated: false)
+        }
 
         switch state.mediaSource {
         case .library:

@@ -266,8 +266,6 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
     }()
 
     private lazy var shareButton: UIButton = {
-        let icon = UIImage(named: "icon_share")?.withTintColor(.white, renderingMode: .alwaysOriginal)
-
         let attributedTitle = NSAttributedString(string: Localizations.buttonShare,
                                                  attributes: [.kern: 0.5, .foregroundColor: UIColor.white])
         let disabledAttributedTitle = NSAttributedString(string: Localizations.buttonShare,
@@ -278,16 +276,17 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         // Attributed strings do not respect button title colors
         button.setAttributedTitle(attributedTitle, for: .normal)
         button.setAttributedTitle(disabledAttributedTitle, for: .disabled)
+        button.tintColor = .white
         button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
-        button.setImage(icon, for: .normal)
+        button.setImage(UIImage(named: "icon_share"), for: .normal)
         button.imageEdgeInsets = UIEdgeInsets(top: -4, left: 0, bottom: -4, right: 0)
 
         // keep image on the right & tappable
         if case .rightToLeft = view.effectiveUserInterfaceLayoutDirection {
-            button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 16)
+            button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: 12, bottom: 0, right: 32)
             button.semanticContentAttribute = .forceLeftToRight
         } else {
-            button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 0)
+            button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: 32, bottom: 0, right: 12)
             button.semanticContentAttribute = .forceRightToLeft
         }
 
