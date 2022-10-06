@@ -51,13 +51,7 @@ platform :ios do
       include_symbols: true,
       skip_profile_detection: true,
       xcargs: "-allowProvisioningUpdates")
-  end
-
-  lane :upload_symbols do
-    ensure_env_vars(env_vars: ['SENTRY_AUTH_TOKEN'])
-    download_dsyms(version: 'latest')
-    sentry_upload_dsym(auth_token: ENV['SENTRY_AUTH_TOKEN'], org_slug: 'halloapp', project_slug: 'halloapp-ios')
-    clean_build_artifacts
+      sentry_upload_dsym(auth_token: ENV['SENTRY_AUTH_TOKEN'], org_slug: 'halloapp', project_slug: 'halloapp-ios')
   end
 
   # ensure that jq is installed before running `brew install jq`
