@@ -139,12 +139,14 @@
 		F41FAA5027E530D400FC5090 /* ExternalShareInfo+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41FAA4E27E530D400FC5090 /* ExternalShareInfo+CoreDataClass.swift */; };
 		F44463242852BCCB0002570C /* KeyboardNotificationInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F44463232852BCCB0002570C /* KeyboardNotificationInfo.swift */; };
 		F46D1A8C28D2A4AE004ECE92 /* FrequentlyContactedDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = F46D1A8B28D2A4AE004ECE92 /* FrequentlyContactedDataSource.swift */; };
+		F46F6CB128EFC4DF002D0A10 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = F46F6CB028EFC4DF002D0A10 /* Sentry */; };
 		F47F765028B58FC800692F8E /* ContactStoreCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F47F764F28B58FC800692F8E /* ContactStoreCore.swift */; };
 		F47F765228B590E200692F8E /* Localizations.swift in Sources */ = {isa = PBXBuildFile; fileRef = F47F765128B590E200692F8E /* Localizations.swift */; };
 		F47F765428B595CC00692F8E /* CountController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F47F765328B595CC00692F8E /* CountController.swift */; };
 		F47F765828B6A51D00692F8E /* XMPPGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = F47F765728B6A51D00692F8E /* XMPPGroup.swift */; };
 		F485399728B442C000AC6916 /* ConversationID.swift in Sources */ = {isa = PBXBuildFile; fileRef = F485399628B442BF00AC6916 /* ConversationID.swift */; };
 		F4BC5C492888796600160103 /* CommonMediaUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4BC5C482888796600160103 /* CommonMediaUploader.swift */; };
+		F4BE52BA28EFC797001D3A10 /* SentryLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4BE52B928EFC797001D3A10 /* SentryLogger.swift */; };
 		F4FDEC9A28A43DC500B151CB /* VideoUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FDEC9928A43DC500B151CB /* VideoUtils.swift */; };
 		F4FDEC9E28A43EBE00B151CB /* NextLevelSessionExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FDEC9D28A43EBE00B151CB /* NextLevelSessionExporter.swift */; };
 		F86919E226397F0C00B01306 /* UIImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F86919E126397F0C00B01306 /* UIImageView.swift */; };
@@ -299,6 +301,7 @@
 		F47F765728B6A51D00692F8E /* XMPPGroup.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMPPGroup.swift; sourceTree = "<group>"; };
 		F485399628B442BF00AC6916 /* ConversationID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConversationID.swift; sourceTree = "<group>"; };
 		F4BC5C482888796600160103 /* CommonMediaUploader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonMediaUploader.swift; sourceTree = "<group>"; };
+		F4BE52B928EFC797001D3A10 /* SentryLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SentryLogger.swift; sourceTree = "<group>"; };
 		F4FDEC9928A43DC500B151CB /* VideoUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoUtils.swift; sourceTree = "<group>"; };
 		F4FDEC9D28A43EBE00B151CB /* NextLevelSessionExporter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NextLevelSessionExporter.swift; sourceTree = "<group>"; };
 		F86919E126397F0C00B01306 /* UIImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageView.swift; sourceTree = "<group>"; };
@@ -313,6 +316,7 @@
 			files = (
 				323F9A3A280DEAD900C8AB69 /* SwiftSoup in Frameworks */,
 				F404FC412810B3EE008313FF /* CoreCommon.framework in Frameworks */,
+				F46F6CB128EFC4DF002D0A10 /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -590,6 +594,7 @@
 				6A6BBAE227679D7F0063E8BC /* MainDataStore */,
 				6A087B92274571FE00BC337B /* Notifications */,
 				321A70092704E511005603B8 /* LinkPreview */,
+				F4BE52B828EFC788001D3A10 /* Logging */,
 				6AB4BBB726EFD7A0006D66AD /* MediaHash */,
 				76608ECB24EC2B2100DD61C3 /* Chat */,
 				F46D1A8A28D2A473004ECE92 /* FrequentlyContacted */,
@@ -711,6 +716,14 @@
 			path = Network;
 			sourceTree = "<group>";
 		};
+		F4BE52B828EFC788001D3A10 /* Logging */ = {
+			isa = PBXGroup;
+			children = (
+				F4BE52B928EFC797001D3A10 /* SentryLogger.swift */,
+			);
+			path = Logging;
+			sourceTree = "<group>";
+		};
 		F4FDEC9828A43DA700B151CB /* Media */ = {
 			isa = PBXGroup;
 			children = (
@@ -767,6 +780,7 @@
 			name = Core;
 			packageProductDependencies = (
 				323F9A39280DEAD900C8AB69 /* SwiftSoup */,
+				F46F6CB028EFC4DF002D0A10 /* Sentry */,
 			);
 			productName = Core;
 			productReference = 768123B82485D9C7008C5216 /* Core.framework */;
@@ -798,6 +812,7 @@
 			mainGroup = 768123AE2485D9C7008C5216;
 			packageReferences = (
 				323F9A38280DEAD900C8AB69 /* XCRemoteSwiftPackageReference "SwiftSoup" */,
+				F46F6CAF28EFC4DF002D0A10 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 			);
 			productRefGroup = 768123B92485D9C7008C5216 /* Products */;
 			projectDirPath = "";
@@ -962,6 +977,7 @@
 				6A6BBAFF276925CE0063E8BC /* NotificationSettings.swift in Sources */,
 				249028A224C5DFDE0019C4D5 /* Media+CoreDataProperties.swift in Sources */,
 				68803A8C27E51A8600EBFA61 /* FeedActivity+CoreDataClass.swift in Sources */,
+				F4BE52BA28EFC797001D3A10 /* SentryLogger.swift in Sources */,
 				EB3CB4AA288874B300249238 /* CommonReaction+CoreDataProperties.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1276,6 +1292,14 @@
 				version = 2.4.2;
 			};
 		};
+		F46F6CAF28EFC4DF002D0A10 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
+			requirement = {
+				kind = exactVersion;
+				version = 7.27.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1283,6 +1307,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 323F9A38280DEAD900C8AB69 /* XCRemoteSwiftPackageReference "SwiftSoup" */;
 			productName = SwiftSoup;
+		};
+		F46F6CB028EFC4DF002D0A10 /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F46F6CAF28EFC4DF002D0A10 /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
 		};
 /* End XCSwiftPackageProductDependency section */
 

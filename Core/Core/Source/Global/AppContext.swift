@@ -12,6 +12,7 @@ import CoreCommon
 import CoreData
 import Foundation
 import PhoneNumberKit
+import Sentry
 
 public var sharedContext: AppContext? {
     get {
@@ -247,7 +248,30 @@ open class AppContext: AppContextCommon {
     }
 
     required public init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
+        #if !DEBUG
+        SentrySDK.start { options in
+            options.dsn = "https://ed03b5bdacbe4571927f8f2c93a45790@sentry.halloapp.net/6126729"
+            options.enableAppHangTracking = true
+            options.enableAutoPerformanceTracking = true
+            options.enableUserInteractionTracing = true
+            options.maxBreadcrumbs = 500
+
+            // lazy, so this can be updated between app restarts
+            options.profilesSampler = { _ in return Self.sentryTracesSampleRate }
+            options.tracesSampler = { _ in return Self.sentryTracesSampleRate }
+        }
+
+        let sentryLogger = SentryLogger(logFormatter: LogFormatter())
+        DDLog.add(sentryLogger)
+        #endif
+
         super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
+
+        #if !DEBUG
+        errorLogger = sentryLogger
+        SentrySDK.setUser(Sentry.User(userId: userData.userId))
+        #endif
+
         // Migrate saved user data to app group container.
         let userDataDatabaseLocationInAppContainer = NSPersistentContainer.defaultDirectoryURL()
         if FileManager.default.fileExists(atPath: userDataDatabaseLocationInAppContainer.appendingPathComponent("Halloapp.sqlite").path) {

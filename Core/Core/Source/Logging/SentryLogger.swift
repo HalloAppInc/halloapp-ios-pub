@@ -8,6 +8,7 @@
 
 import Foundation
 import CocoaLumberjackSwift
+import CoreCommon
 import Sentry
 
 private extension DDLogFlag {
