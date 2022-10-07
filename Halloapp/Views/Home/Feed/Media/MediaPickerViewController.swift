@@ -130,6 +130,10 @@ struct MediaPickerConfig {
         MediaPickerConfig(destination: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: true)
     }
 
+    static var avatar: MediaPickerConfig {
+        MediaPickerConfig(destination: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: true, maxNumberOfItems: 1)
+    }
+
     static var more: MediaPickerConfig {
         MediaPickerConfig(destination: nil,filter: .all, allowsMultipleSelection: true, isCameraEnabled: true)
     }

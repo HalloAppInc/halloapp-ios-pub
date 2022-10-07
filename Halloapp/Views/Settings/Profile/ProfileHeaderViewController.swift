@@ -238,7 +238,7 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
     private func presentPhotoPicker() {
         DDLogInfo("profile/edit-photo Presenting photo picker")
 
-        let photoPickerViewController = MediaPickerViewController(config: .image) { (controller, _, media, canceled) in
+        let photoPickerViewController = MediaPickerViewController(config: .avatar) { (controller, _, media, canceled) in
             guard !canceled && !media.isEmpty else {
                 DDLogInfo("profile/edit-photo Photo picker canceled")
                 controller.dismiss(animated: true)
@@ -270,6 +270,7 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
                 self.dismiss(animated: true)
             }.withNavigationController()
 
+            controller.reset(destination: nil, selected: [])
             controller.present(photoCropperViewController, animated: true)
         }
         present(UINavigationController(rootViewController: photoPickerViewController), animated: true)

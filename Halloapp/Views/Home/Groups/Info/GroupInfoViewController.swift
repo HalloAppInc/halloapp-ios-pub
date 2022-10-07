@@ -527,7 +527,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
     }
 
     private func presentPhotoLibraryPicker() {
-        let pickerController = MediaPickerViewController(config: .image) { [weak self] controller, _, media, cancel in
+        let pickerController = MediaPickerViewController(config: .avatar) { [weak self] controller, _, media, cancel in
             guard let self = self else { return }
 
             if cancel || media.count == 0 {
@@ -556,6 +556,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
                     }
                 }.withNavigationController()
 
+                controller.reset(destination: nil, selected: [])
                 controller.present(edit, animated: true)
             }
         }
