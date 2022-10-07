@@ -1289,7 +1289,7 @@
 			repositoryURL = "https://github.com/scinfu/SwiftSoup";
 			requirement = {
 				kind = exactVersion;
-				version = 2.4.2;
+				version = 2.4.3;
 			};
 		};
 		F46F6CAF28EFC4DF002D0A10 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
@@ -1297,7 +1297,7 @@
 			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
 			requirement = {
 				kind = exactVersion;
-				version = 7.27.0;
+				version = 7.27.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
