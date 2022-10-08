@@ -13,22 +13,13 @@ import Core
 import CoreCommon
 import CocoaLumberjackSwift
 
-class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
+class MomentComposerViewController: UIViewController, MomentLocationToggleDelegate {
 
     let context: NewMomentViewController.Context
 
     private var media: PendingMedia?
     /// Used to wait for the creation of the media's file path.
     private var sendCancellable: AnyCancellable?
-
-    private lazy var locationManager: CLLocationManager = {
-        let manager = CLLocationManager()
-        manager.delegate = self
-        manager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
-        return manager
-    }()
-
-    private var locationString: String?
 
     private lazy var audienceIndicator: UIView = {
         let pill = PillView()
@@ -136,23 +127,11 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
         return button
     }()
 
-    private lazy var locationButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.tintColor = .primaryBlue
-        button.titleLabel?.font = .systemFont(forTextStyle: .body, weight: .medium, maximumPointSize: 22)
-        button.setImage(UIImage(systemName: "location.fill"), for: .normal)
-        button.addTarget(self, action: #selector(locationButtonPushed), for: .touchUpInside)
-
-        let inset: CGFloat = -10
-        switch view.effectiveUserInterfaceLayoutDirection {
-        case .rightToLeft:
-            button.imageEdgeInsets = .init(top: 0, left: 0, bottom: 0, right: inset)
-        default:
-            button.imageEdgeInsets = .init(top: 0, left: inset, bottom: 0, right: 0)
-        }
-
-        return button
+    private lazy var locationToggle: MomentLocationToggle = {
+        let toggle = MomentLocationToggle()
+        toggle.translatesAutoresizingMaskIntoConstraints = false
+        toggle.delegate = self
+        return toggle
     }()
 
     @UserDefault(key: "shown.replace.moment.disclaimer", defaultValue: false)
@@ -177,7 +156,7 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
 
         view.addSubview(audienceIndicator)
         view.addSubview(background)
-        view.addSubview(locationButton)
+        view.addSubview(locationToggle)
         background.addSubview(scrollViewContainer)
 
         scrollViewContainer.addSubview(leadingImageScrollView)
@@ -225,9 +204,11 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
             audienceIndicator.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             audienceIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
 
-            locationButton.topAnchor.constraint(equalTo: background.bottomAnchor, constant: 15),
-            locationButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            locationButton.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor),
+            locationToggle.topAnchor.constraint(equalTo: background.bottomAnchor, constant: 15),
+            locationToggle.centerXAnchor.constraint(equalTo: background.centerXAnchor),
+            locationToggle.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor),
+            locationToggle.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor),
+            locationToggle.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor),
         ])
         
         navigationItem.setHidesBackButton(true, animated: false)
@@ -244,8 +225,6 @@ class MomentComposerViewController: UIViewController, UIScrollViewDelegate {
         let hideTap = UITapGestureRecognizer(target: self, action: #selector(hideAudiencePillTapped))
         view.addGestureRecognizer(hideTap)
         hideTap.cancelsTouchesInView = false
-
-        updateLocationButton(.none, animated: false)
     }
 
     func configure(with media: PendingMedia) {
@@ -510,6 +489,7 @@ extension MomentComposerViewController {
         let frontMedia = PendingMedia(type: .image)
         let isSelfieLeading = leadingResult.direction == .front
         let unlockUserID = unlockUserID
+        let locationString = locationToggle.locationString
 
         let orderedMedia = [backMedia, frontMedia]
         let info = PendingMomentInfo(isSelfieLeading: isSelfieLeading, locationString: locationString, unlockUserID: unlockUserID)
@@ -538,6 +518,7 @@ extension MomentComposerViewController {
 
         let media = PendingMedia(type: .image)
         let unlockUserID = unlockUserID
+        let locationString = locationToggle.locationString
         let info = PendingMomentInfo(isSelfieLeading: false, locationString: locationString, unlockUserID: unlockUserID)
 
         media.image = cropped
@@ -596,147 +577,6 @@ extension FeedData {
                                 linkPreviewMedia: nil,
                                               to: .feed(.all),
                                       momentInfo: info)
-    }
-}
-
-// MARK: - CLLocationManagerDelegate methods
-
-extension MomentComposerViewController: CLLocationManagerDelegate {
-
-    enum LocationFetchState { case none, fetching, fetched(String), error }
-
-    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        checkLocationAuthorization()
-    }
-
-    @discardableResult
-    private func checkLocationAuthorization() -> CLAuthorizationStatus {
-        let authorization: CLAuthorizationStatus
-        if #available(iOS 14, *) {
-            authorization = locationManager.authorizationStatus
-        } else {
-            authorization = CLLocationManager.authorizationStatus()
-        }
-
-        DDLogInfo("MomentComposerViewController/checkLocationAuthorization/authorization [\(authorization)]")
-        return authorization
-    }
-
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let location = locations.first else {
-            return
-        }
-
-        DDLogInfo("MomentComposerViewController/didUpdateLocations")
-        Task { await parse(location: location) }
-    }
-
-    private func parse(location: CLLocation) async {
-        var locationString: String?
-
-        do {
-            if let placemark = try await CLGeocoder().reverseGeocodeLocation(location).first {
-                locationString = placemark.locality ?? placemark.administrativeArea ?? placemark.country
-            }
-        } catch {
-            DDLogError("MomentComposerViewController/parse-location/failed with error [\(String(describing: error))]")
-        }
-
-        DDLogInfo("MomentComposerViewController/parse-location/parsed \(locationString ?? "nil")")
-
-        let state: LocationFetchState
-        if let locationString {
-            state = .fetched(locationString)
-        } else {
-            state = .error
-        }
-
-        updateLocationButton(state)
-    }
-
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        DDLogError("MomentComposerViewController/locationManager-didFailWithError/error [\(String(describing: error))]")
-
-        DispatchQueue.main.async {
-            self.updateLocationButton(.error)
-        }
-    }
-
-    @objc
-    private func locationButtonPushed(_ button: UIButton) {
-        if locationString != nil {
-            // remove location
-            return updateLocationButton(.none)
-        }
-
-        let authorization = checkLocationAuthorization()
-        switch authorization {
-        case .authorizedAlways, .authorizedWhenInUse:
-            // perform a one-time request when the button is pushed
-            locationManager.requestLocation()
-            updateLocationButton(.fetching)
-
-        case .notDetermined:
-            locationManager.requestWhenInUseAuthorization()
-
-        case .denied, .restricted:
-            presentLocationPermissionDeniedAlert()
-
-        @unknown default:
-            DDLogError("MomentComposerViewController/locationButtonPushed/unknown authorization status \(authorization)")
-        }
-    }
-
-    /// - note: Updates `locationString`.
-    @MainActor
-    private func updateLocationButton(_ state: LocationFetchState, animated: Bool = true) {
-        if animated {
-            return UIView.transition(with: view, duration: 0.3, options: [.transitionCrossDissolve]) {
-                self.updateLocationButton(state, animated: false)
-            }
-        }
-
-        var tintColor = UIColor.primaryBlue
-        var isEnabled = true
-        var title = Localizations.addLocationTitle
-        var location: String?
-
-        switch state {
-        case .none:
-            break
-        case .fetching:
-            isEnabled = false
-            title = Localizations.fetchingTitle
-        case .fetched(let locationString):
-            title = locationString
-            location = locationString
-        case .error:
-            tintColor = .systemRed
-            title = Localizations.locationFetchError
-        }
-
-        locationButton.setTitle(title, for: .normal)
-        locationButton.tintColor = tintColor
-        locationButton.isEnabled = isEnabled
-
-        locationString = location
-    }
-
-    private func presentLocationPermissionDeniedAlert() {
-        let alert = UIAlertController(title: Localizations.locationSharingLocationAccessRequiredAlertTitle,
-                                    message: Localizations.locationSharingLocationAccessRequiredAlertMessage,
-                             preferredStyle: .alert)
-
-        alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel) { _ in })
-        alert.addAction(UIAlertAction(title: Localizations.buttonGoToSettings, style: .default) { _ in
-            guard let url = URL(string: UIApplication.openSettingsURLString) else {
-                return
-            }
-
-            UIApplication.shared.open(url)
-        })
-
-        present(alert, animated: true)
     }
 }
 
@@ -863,23 +703,5 @@ fileprivate extension Localizations {
         NSLocalizedString("moment.contacts.disclaimer",
                    value: "Your Moment will only be shared with your contacts on HalloApp",
                  comment: "Disclaimer to tell the user that their moments go to all of their contacts on HalloApp.")
-    }
-
-    static var addLocationTitle: String {
-        NSLocalizedString("add.location.title",
-                   value: "Add Location",
-                 comment: "Title of a button that allows a location to be added.")
-    }
-
-    static var fetchingTitle: String {
-        NSLocalizedString("fetching.title",
-                   value: "Fetching",
-                 comment: "Title to indicate that a fetch operation is in progress.")
-    }
-
-    static var locationFetchError: String {
-        NSLocalizedString("location.fetch.error",
-                   value: "Error fetching location",
-                 comment: "Displayed when a location fetch fails.")
     }
 }
