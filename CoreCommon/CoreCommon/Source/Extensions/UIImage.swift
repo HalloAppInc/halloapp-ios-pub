@@ -329,7 +329,7 @@ extension UIImage {
     }
 
     /// Combines `leading` and `trailing` into one image with a 1:1 aspect ratio.
-    public static func combine(leading: UIImage, trailing: UIImage) -> UIImage? {
+    public static func combine(leading: UIImage, trailing: UIImage, maximumLength: CGFloat? = nil) -> UIImage? {
         var direction: Locale.LanguageDirection?
         if #available(iOSApplicationExtension 16, *) {
             direction = Locale.current.language.characterDirection
@@ -337,16 +337,23 @@ extension UIImage {
             direction = Locale.characterDirection(forLanguage: preferred)
         }
 
+        let size: CGSize
+        if let maximumLength {
+            size = .init(width: maximumLength, height: maximumLength)
+        } else {
+            size = .init(width: leading.size.height, height: leading.size.height)
+        }
+
         let isLeftToRight = direction ?? .leftToRight == .leftToRight
-        return isLeftToRight ? combine(left: leading, right: trailing) : combine(left: trailing, right: leading)
+        return isLeftToRight ? combine(left: leading, right: trailing, size: size) : combine(left: trailing, right: leading, size: size)
     }
 
-    private static func combine(left: UIImage, right: UIImage) -> UIImage? {
-        let size = CGSize(width: left.size.height, height: left.size.height)
+    private static func combine(left: UIImage, right: UIImage, size: CGSize) -> UIImage? {
         UIGraphicsBeginImageContext(size)
 
-        left.draw(in: .init(origin: .zero, size: left.size))
-        right.draw(in: .init(origin: .init(x: left.size.width, y: 0), size: right.size))
+        let individualSize = CGSize(width: size.width / 2, height: size.height)
+        left.draw(in: .init(origin: .zero, size: individualSize))
+        right.draw(in: .init(origin: .init(x: individualSize.width, y: 0), size: individualSize))
         let result = UIGraphicsGetImageFromCurrentImageContext()
 
         UIGraphicsEndImageContext()

@@ -1431,13 +1431,13 @@ public class CoreChatData {
             let trailingPath,
             let leadingImage = UIImage(contentsOfFile: directory.fileURL(forRelativePath: leadingPath).path),
             let trailingImage = UIImage(contentsOfFile: directory.fileURL(forRelativePath: trailingPath).path),
-            let composited = UIImage.combine(leading: leadingImage, trailing: trailingImage)
+            let composited = UIImage.combine(leading: leadingImage, trailing: trailingImage, maximumLength: 128)
         else {
             DDLogError("CoreChatData/createDualMomentPreview/failed with leading [\(leadingPath ?? "nil")] trailing [\(trailingPath ?? "nil")]")
             return
         }
 
-        quotedMedia.previewData = VideoUtils.previewImageData(image: composited)
+        quotedMedia.previewData = composited.jpegData(compressionQuality: 0.5)
     }
 
     public func chatMessage(with chatMessageID: ChatMessageID, in managedObjectContext: NSManagedObjectContext) -> ChatMessage? {
