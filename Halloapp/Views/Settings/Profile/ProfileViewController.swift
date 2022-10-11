@@ -86,7 +86,7 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate {
                     action: { [weak self] in self?.openContacts() })
 
                 Item(title: Localizations.favoritesTitle,
-                      icon: UIImage(named: "FavoritesOutline"),
+                     icon: UIImage(named: "FavoritesOutline")?.withRenderingMode(.alwaysTemplate),
                     action: { [weak self] in self?.openFavorites() })
             }
             .rounding(corners: .bottom)

@@ -332,7 +332,7 @@ extension HAMenu {
         let image = isFavorite ? UIImage(named: "UnfavoriteOutline") : UIImage(named: "FavoritesOutline")
         let action: UserAction = isFavorite ? .removeFavorite(userID) : .addFavorite(userID)
 
-        return HAMenuButton(title: title, image: image) {
+        return HAMenuButton(title: title, image: image?.withRenderingMode(.alwaysTemplate)) {
             await handler(action)
         }
     }
