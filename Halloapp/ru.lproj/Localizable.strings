@@ -40,6 +40,9 @@
 /* First tab in the main app interface. */
 "activityCenter.promo.favorites" = "Оцените новую фичу «Избранное»!";
 
+/* Title of a button that allows a location to be added. */
+"add.location.title" = "Добавить местоположение";
+
 /* Menu option for adding generic file */
 "add.media.option.document" = "Документ";
 
@@ -730,6 +733,18 @@
 /* Indicates that an item has failed to be sent. */
 "failed.to.send" = "Не удалось отправить";
 
+/* Number of contacts added to a group. */
+"feed.collapsed.n.users.added" = "feed.collapsed.n.users.added";
+
+/* Number of contacts that joined a group. */
+"feed.collapsed.n.users.joined" = "feed.collapsed.n.users.joined";
+
+/* Number of contacts that left a group. */
+"feed.collapsed.n.users.left" = "feed.collapsed.n.users.left";
+
+/* Number of contacts removed from a group. */
+"feed.collapsed.n.users.removed" = "feed.collapsed.n.users.removed";
+
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "Ждем этого комментария. Это может занять некоторое время.";
 
@@ -1258,6 +1273,9 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Обнови свое приложение.";
 
+/* Displayed when a location fetch fails. */
+"location.fetch.error" = "Не удалось получить местоположение";
+
 /* General message of the alert for failures in location sharing features. */
 "locationSharing.alert.error" = "Что-то пошло не так. Попробуйте снова позже.";
 
@@ -1664,8 +1682,17 @@
 /* Header when selecting destinations to forward a message, this header appears above the feeds section */
 "post.privacy.header.feeds" = "Фиды";
 
-/* Header when selecting destinations to forward a message, this header appears above the feeds section */
+/* Header when selecting destinations to forward a message, this header appears above the frequently contacted section */
 "post.privacy.header.frequentlyContacted" = "Частые контактны";
+
+/* Header when selecting a group to share with */
+"post.privacy.header.groups" = "Поделиться только с группой";
+
+/* Header when selecting destinations to forward a message, this header appears above the recent section */
+"post.privacy.header.recent" = "Недавний";
+
+/* Controller title for changing destination and privacy */
+"post.privacy.title" = "Поделиться с ...";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Заблокирован";
@@ -2048,6 +2075,9 @@
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "нажмите, чтобы вернуться к звонку";
 
+/* Action text that shows up next to your selected reaction. */
+"tap.to.remove.reaction" = "Нажмите, чтобы удалить";
+
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Добавить в список для чтения";
 
@@ -2140,6 +2170,9 @@
 
 /* Row in Settings screen */
 "title.privacy" = "Конфиденциальность";
+
+/* Title for the screen with information about who reacted to your content. */
+"title.reactions" = "Реакции";
 
 /* Title of screen where user can add members during group creation flow */
 "title.select.group.members.create.title" = "Добавить участников";

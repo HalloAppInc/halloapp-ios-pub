@@ -137,7 +137,7 @@
 "media.button.discard" = "لغو";
 
 /* Push notification for a comment to message */
-"notification.comment.reaction" = "@% به یک نظر عکس‌العمل نشان داد";
+"notification.comment.reaction" = "@% به یک نظر واکنش نشان داد";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "نظر نوشت: %@";
@@ -152,7 +152,7 @@
 "notification.location" = "📍مکان";
 
 /* Push notification for a reaction to message */
-"notification.message.reaction" = "%@ به پیام عکس‌العمل نشان داد";
+"notification.message.reaction" = "%@ به پیام واکنش نشان داد";
 
 /* New moment notification text to be shown to the user. */
 "notification.moment" = "لحظه جدید";
@@ -206,16 +206,16 @@
 "notification.one.video" = "ویدیو 📹";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.1" = "@% لحظه‌ای را به اشتراک گذاشت و لحظه شما را باز کرد";
+"notification.unlocked.moment.1" = "@% برای دیدن لحظه شما، لحظه‌ای را به اشتراک گذاشت";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.2" = "@$1% و @$2% لحظه‌ای را به اشتراک گذاشتند و لحظه شما را باز کرد";
+"notification.unlocked.moment.2" = "@$1% و @$2% برای دیدن لحظه شما، لحظه‌ای را به اشتراک گذاشتند";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.3" = "@$1% و @$2% و @$3% لحظه‌ای را به اشتراک گذاشتند و لحظه شما را باز کرد";
+"notification.unlocked.moment.3" = "@$1% و @$2% و @$3% برای دیدن لحظه شما، لحظه‌ای را به اشتراک گذاشتند";
 
 /* New moment unlock notification text to be shown to the user. */
-"notification.unlocked.moment.4" = "@$1% و @$2% و @$3% و دیگران لحظه‌ای را به اشتراک گذاشتند و لحظه شما را باز کرد";
+"notification.unlocked.moment.4" = "@$1% و @$2% و @$3% و دیگران برای دیدن لحظه شما، لحظه‌ای را به اشتراک گذاشتند";
 
 /* Missed video call notification text to be shown to the user. */
 "notification.videocall.missed" = "📹 تماس ویدیویی از دست رفته";

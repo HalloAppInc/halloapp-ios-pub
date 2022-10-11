@@ -41,7 +41,7 @@
 "activityCenter.promo.favorites" = "Schau dir die neue Favoritenfunktion an!";
 
 /* Title of a button that allows a location to be added. */
-"add.location.title" = "Standort hinzufügen";
+"add.location.title" = "Ort hinzufügen";
 
 /* Menu option for adding generic file */
 "add.media.option.document" = "Dokument";
@@ -733,6 +733,18 @@
 /* Indicates that an item has failed to be sent. */
 "failed.to.send" = "Kann nicht gesendet werden";
 
+/* Number of contacts added to a group. */
+"feed.collapsed.n.users.added" = "feed.collapsed.n.users.added";
+
+/* Number of contacts that joined a group. */
+"feed.collapsed.n.users.joined" = "feed.collapsed.n.users.joined";
+
+/* Number of contacts that left a group. */
+"feed.collapsed.n.users.left" = "feed.collapsed.n.users.left";
+
+/* Number of contacts removed from a group. */
+"feed.collapsed.n.users.removed" = "feed.collapsed.n.users.removed";
+
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "Warten auf diesen Kommentar. Das kann eine Weile dauern.";
 
@@ -897,9 +909,6 @@
 
 /* Explains that as more contacts join the app, they will appear in this list automatically. */
 "fellow.contacts.will.arrive" = "Deine Kontakte, die sich bei HalloApp registrieren, werden hier automatisch angezeigt.";
-
-/* Title to indicate that a fetch operation is in progress. */
-"fetching.title" = "Wird abgerufen";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Gruppenbeschreibung hinzufügen";
@@ -1264,8 +1273,11 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Meine App aktualisieren.";
 
+/* Title to indicate that a fetch operation is in progress. */
+"locating.title" = "Lokalisierung";
+
 /* Displayed when a location fetch fails. */
-"location.fetch.error" = "Fehler beim Abrufen des Standorts";
+"location.fetch.error" = "Standort nicht gefunden";
 
 /* General message of the alert for failures in location sharing features. */
 "locationSharing.alert.error" = "Etwas ist schiefgelaufen. Bitte versuche es später noch einmal.";
@@ -1523,6 +1535,9 @@
 /* New moment screenshot notification text to be shown to the user. */
 "notification.moment.screenshot" = "%@ hat einen Screenshot von deinem Moment gemacht";
 
+/* New post notification text when post is multiple documents without caption. */
+"notification.n.documents" = "notification.n.documents";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "Benachrichtigung.n.Fotos";
 
@@ -1670,8 +1685,17 @@
 /* Header when selecting destinations to forward a message, this header appears above the feeds section */
 "post.privacy.header.feeds" = "Feed";
 
-/* Header when selecting destinations to forward a message, this header appears above the feeds section */
+/* Header when selecting destinations to forward a message, this header appears above the frequently contacted section */
 "post.privacy.header.frequentlyContacted" = "Häufig kontaktiert";
+
+/* Header when selecting a group to share with */
+"post.privacy.header.groups" = "Nur mit einer Gruppe teilen";
+
+/* Header when selecting destinations to forward a message, this header appears above the recent section */
+"post.privacy.header.recent" = "Zuletzt verwendet";
+
+/* Controller title for changing destination and privacy */
+"post.privacy.title" = "Teilen mit...";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Geblockte Kontakte";

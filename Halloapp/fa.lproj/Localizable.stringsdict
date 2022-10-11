@@ -45,9 +45,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d person was added</string>
+			<string>d% مخاطب افزوده شد</string>
 			<key>other</key>
-			<string>%d people were added</string>
+			<string>d% مخاطب افزوده شدند</string>
 		</dict>
 	</dict>
 	<key>feed.collapsed.n.users.joined</key>
@@ -61,9 +61,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d person joined</string>
+			<string>%d مخاطب پیوست</string>
 			<key>other</key>
-			<string>%d people joined</string>
+			<string>%d مخاطب پیوستند</string>
 		</dict>
 	</dict>
 	<key>feed.collapsed.n.users.left</key>
@@ -77,9 +77,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d person left</string>
+			<string>%d مخاطب ترک کرد</string>
 			<key>other</key>
-			<string>%d people left</string>
+			<string>%d مخاطب ترک کردند</string>
 		</dict>
 	</dict>
 	<key>feed.collapsed.n.users.removed</key>
@@ -93,9 +93,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d person was removed</string>
+			<string>d% مخاطب حذف شد</string>
 			<key>other</key>
-			<string>%d people were removed</string>
+			<string>d% مخاطب حذف شدند</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.contacts.excluded</key>

@@ -284,7 +284,7 @@
 "camera.init.error.title" = "Initialisatiefout";
 
 /* Text shown on the camera screen when composing a new moment. */
-"camera.moment.subtitle" = "Momenten verdwijnen na 24 uur en kunnen slechts één keer worden bekeken";
+"camera.moment.subtitle" = "Momenten verdwijnen na 24 uur";
 
 /* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
 "camera.moment.unlock.subtitle" = "Om het moment van %@ te zien, deel je je eigen moment";
@@ -1273,8 +1273,11 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "App bijwerken.";
 
+/* Title to indicate that a fetch operation is in progress. */
+"locating.title" = "Locatie wordt opgehaald";
+
 /* Displayed when a location fetch fails. */
-"location.fetch.error" = "Fout bij ophalen van locatie";
+"location.fetch.error" = "Kan Locatie Niet Vinden";
 
 /* General message of the alert for failures in location sharing features. */
 "locationSharing.alert.error" = "Er ging iets mis. Probeer het later opnieuw.";
@@ -1431,7 +1434,7 @@
 "moments.swipe.for.more" = "veeg voor meer";
 
 /* Message displayed to say when moments will disappear. */
-"mymoment.disappear.time.label" = "Je Moment is gedeeld met je contactenlijst. Momenten verdwijnen na 24 uur en kunnen slechts één keer worden bekeken.";
+"mymoment.disappear.time.label" = "Je Moment is gedeeld met je contactenlijst. Momenten verdwijnen na 24 uur.";
 
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Bericht Sturen";
@@ -1680,10 +1683,19 @@
 "post.privacy.header.contacts" = "Wie kan deze post zien";
 
 /* Header when selecting destinations to forward a message, this header appears above the feeds section */
-"post.privacy.header.feeds" = "Feeds";
+"post.privacy.header.feeds" = "Feed";
 
-/* Header when selecting destinations to forward a message, this header appears above the feeds section */
+/* Header when selecting destinations to forward a message, this header appears above the frequently contacted section */
 "post.privacy.header.frequentlyContacted" = "Veelgebruikte Contacten";
+
+/* Header when selecting a group to share with */
+"post.privacy.header.groups" = "Alleen delen met een groep";
+
+/* Header when selecting destinations to forward a message, this header appears above the recent section */
+"post.privacy.header.recent" = "Recent";
+
+/* Controller title for changing destination and privacy */
+"post.privacy.title" = "Delen Met...";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Geblokkeerd";

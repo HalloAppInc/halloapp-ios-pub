@@ -40,6 +40,9 @@
 /* First tab in the main app interface. */
 "activityCenter.promo.favorites" = "اطلع على ميزة \"المفضلة\" الجديدة!";
 
+/* Title of a button that allows a location to be added. */
+"add.location.title" = "إضافة موقع";
+
 /* Menu option for adding generic file */
 "add.media.option.document" = "مستند";
 
@@ -281,7 +284,7 @@
 "camera.init.error.title" = "خطأ في التشغيل";
 
 /* Text shown on the camera screen when composing a new moment. */
-"camera.moment.subtitle" = "تظهر اللحظات لمدة 24 ساعة ويمكن عرضها مرة واحدة فقط";
+"camera.moment.subtitle" = "تظهر اللحظات لمدة 24 ساعة";
 
 /* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
 "camera.moment.unlock.subtitle" = "لرؤية لحظة %@، يجب مشاركة اللحظة الخاصة بك";
@@ -326,7 +329,7 @@
 "chat.group.event.expiry.changed.you" = "لقد غيَّرت مدة صلاحية محتوى المجموعة ليصبح %1@";
 
 /* Message text shown with the user who joined the group via invite link */
-"chat.group.event.join" = "%@  انضم إلى المجموعة من خلال رابط الدعوة";
+"chat.group.event.join" = "%@ انضم إلى المجموعة من خلال رابط الدعوة";
 
 /* Message text shown when you join a group via invite link */
 "chat.group.event.join.you" = "أنت انضممت إلى المجموعة من خلال رابط الدعوة";
@@ -730,6 +733,18 @@
 /* Indicates that an item has failed to be sent. */
 "failed.to.send" = "تعذّر الإرسال";
 
+/* Number of contacts added to a group. */
+"feed.collapsed.n.users.added" = "feed.collapsed.n.users.added";
+
+/* Number of contacts that joined a group. */
+"feed.collapsed.n.users.joined" = "feed.collapsed.n.users.joined";
+
+/* Number of contacts that left a group. */
+"feed.collapsed.n.users.left" = "feed.collapsed.n.users.left";
+
+/* Number of contacts removed from a group. */
+"feed.collapsed.n.users.removed" = "feed.collapsed.n.users.removed";
+
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "بانتظار هذا التعليق. قد يستغرق الأمر بعض الوقت.";
 
@@ -1018,6 +1033,90 @@
 /* Label shown above group members list */
 "group.members.label" = "الأعضاء";
 
+/* Notification that a user changed a groups avatar */
+"group.notification.changeAvatar" = "<$sender$> غيّر صورة المجموعة <$groupname$>";
+
+/* Notification that you changed a groups avatar */
+"group.notification.changeAvatar.you" = "أنت غيّرت صورة المجموعة <$groupname$>";
+
+/* Notification that a user changed a groups description */
+"group.notification.changeDescription" = "<$sender$> غيّر وصف المجموعة <$groupname$>";
+
+/* Notification that you changed a groups description */
+"group.notification.changeDescription.you" = "أنت غيّرت وصف المجموعة <$groupname$>";
+
+/* Notification that a user changed a group's expiration */
+"group.notification.changeExpiry" = "<$sender$> غيّر مدة انتهاء صلاحية المجموعة <$groupname$> لتصبح %1@";
+
+/* Notification that you changed a group's expiration */
+"group.notification.changeExpiry.you" = "أنت غيّرت مدة انتهاء صلاحية المجموعة <$groupname$> لتصبح %1@";
+
+/* Notification that a user changed a groups name */
+"group.notification.changeName" = "<$sender$> غيّر اسم المجموعة ليصبح <$groupname$>";
+
+/* Notification that you changed a groups name */
+"group.notification.changeName.you" = "أنت غيّرت اسم المجموعة ليصبح <$groupname$>";
+
+/* Notification that a user created a group */
+"group.notification.created" = "<$sender$> أنشأ المجموعة <$groupname$>";
+
+/* Notification that you created a group */
+"group.notification.created.you" = "أنت أنشأت المجموعة <$groupname$>";
+
+/* Notification that a user joined a group */
+"group.notification.join" = "<$sender$> انضم إلى المجموعة <$groupname$> من خلال رابط الدعوة";
+
+/* Notification that you joined a group */
+"group.notification.join.you" = "أنت انضممت إلى المجموعة <$groupname$> من خلال رابط الدعوة";
+
+/* Notification that a user added a group member */
+"group.notification.memberaction.add" = "<$sender$> أضاف <$member$> إلى المجموعة <$groupname$>";
+
+/* Notification that a user added a group member */
+"group.notification.memberaction.add.you.member" = "<$sender$> أضافك إلى المجموعة <$groupname$>";
+
+/* Notification that you added a group member */
+"group.notification.memberaction.add.you.sender" = "أنت أضفت <$member$> إلى المجموعة <$groupname$>";
+
+/* Notification that a user demmoted a group member */
+"group.notification.memberaction.demote" = "<$sender$> أزال <$member$> من منصب مشرف للمجموعة <$groupname$>";
+
+/* Notification that a user demmoted you */
+"group.notification.memberaction.demote.you.member" = "<$sender$> أزالك من منصب مشرف للمجموعة <$groupname$>";
+
+/* Notification that you demmoted a group member */
+"group.notification.memberaction.demote.you.sender" = "أنت أزلت <$member$> من منصب مشرف للمجموعة <$groupname$>";
+
+/* Notification that a user left a group */
+"group.notification.memberaction.leave" = "<$sender$> غادر المجموعة <$groupname$>";
+
+/* Notification that you left a group */
+"group.notification.memberaction.leave.you" = "أنت غادرت المجموعة <$groupname$>";
+
+/* Notification that a user promoted a group member */
+"group.notification.memberaction.promote" = "<$sender$> عيّن <$member$> مشرفًا للمجموعة <$groupname$>";
+
+/* Notification that you promoted a group member */
+"group.notification.memberaction.promote.you.member" = "<$sender$> عيّنك مشرفًا للمجموعة <$groupname$>";
+
+/* Notification that you promoted a group member */
+"group.notification.memberaction.promote.you.sender" = "انت عيّنت <$member$> مشرفًا للمجموعة <$groupname$>";
+
+/* Notification that a user removed a group member */
+"group.notification.memberaction.remove" = "<$sender$> أزال <$member$> من المجموعة <$groupname$>";
+
+/* Notification that a user added a group member */
+"group.notification.memberaction.remove.you.member" = "<$sender$> أزالك من المجموعة <$groupname$>";
+
+/* Notification that you removed a group member */
+"group.notification.memberaction.remove.you.sender" = "أنت أزلت <$member$> من المجموعة <$groupname$>";
+
+/* Notification that a user changed a groups background */
+"group.notification.setBackground" = "<$sender$> غيّر لون الخلفية للمجموعة <$groupname$>";
+
+/* Notification that you changed a groups background */
+"group.notification.setBackground.you" = "أنت غيّرت لون الخلفية للمجموعة <$groupname$>";
+
 /* Text for alert box when the user clicks on an invalid group invite link */
 "group.preview.get.info.error.invalid.link" = "رابط الدعوة إلى المجموعة غير صالح";
 
@@ -1174,6 +1273,12 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "تحديث التطبيق";
 
+/* Title to indicate that a fetch operation is in progress. */
+"locating.title" = "جارٍ تحديد الموقع";
+
+/* Displayed when a location fetch fails. */
+"location.fetch.error" = "تعذّر العثور على الموقع";
+
 /* General message of the alert for failures in location sharing features. */
 "locationSharing.alert.error" = "حدث خطأ، يُرجى إعادة المحاولة لاحقًا.";
 
@@ -1329,7 +1434,7 @@
 "moments.swipe.for.more" = "التمرير لعرض المزيد";
 
 /* Message displayed to say when moments will disappear. */
-"mymoment.disappear.time.label" = "تمت مشاركة لحظاتك مع قائمة جهات اتصالك. تظهر اللحظات لمدة 24 ساعة ويمكن عرضها مرة واحدة فقط.";
+"mymoment.disappear.time.label" = "تمت مشاركة لحظتك مع قائمة جهات اتصالك. تظهر اللحظات لمدة 24 ساعة.";
 
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "رسالة";
@@ -1580,8 +1685,17 @@
 /* Header when selecting destinations to forward a message, this header appears above the feeds section */
 "post.privacy.header.feeds" = "صفحات الموجز";
 
-/* Header when selecting destinations to forward a message, this header appears above the feeds section */
+/* Header when selecting destinations to forward a message, this header appears above the frequently contacted section */
 "post.privacy.header.frequentlyContacted" = "يتكرر الاتصال بها";
+
+/* Header when selecting a group to share with */
+"post.privacy.header.groups" = "مشاركة مع مجموعة فقط";
+
+/* Header when selecting destinations to forward a message, this header appears above the recent section */
+"post.privacy.header.recent" = "حديثة";
+
+/* Controller title for changing destination and privacy */
+"post.privacy.title" = "مشاركة مع...";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "محظورة";
@@ -1964,6 +2078,9 @@
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "انقر للعودة إلى المكالمة";
 
+/* Action text that shows up next to your selected reaction. */
+"tap.to.remove.reaction" = "انقر للإزالة";
+
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "إضافة إلى قائمة القراءة";
 
@@ -2056,6 +2173,9 @@
 
 /* Row in Settings screen */
 "title.privacy" = "الخصوصية";
+
+/* Title for the screen with information about who reacted to your content. */
+"title.reactions" = "التفاعلات";
 
 /* Title of screen where user can add members during group creation flow */
 "title.select.group.members.create.title" = "إضافة أعضاء";

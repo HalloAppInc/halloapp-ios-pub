@@ -40,6 +40,9 @@
 /* First tab in the main app interface. */
 "activityCenter.promo.favorites" = "Confira o novo recurso Favoritos!";
 
+/* Title of a button that allows a location to be added. */
+"add.location.title" = "Adicionar local";
+
 /* Menu option for adding generic file */
 "add.media.option.document" = "Documento";
 
@@ -730,6 +733,18 @@
 /* Indicates that an item has failed to be sent. */
 "failed.to.send" = "Falha ao enviar";
 
+/* Number of contacts added to a group. */
+"feed.collapsed.n.users.added" = "feed.recolhido.n.usuários.adicionado";
+
+/* Number of contacts that joined a group. */
+"feed.collapsed.n.users.joined" = "feed.recolhido.n.usuários.ingressados";
+
+/* Number of contacts that left a group. */
+"feed.collapsed.n.users.left" = "feed.recolhido.n.usuários.esquerda";
+
+/* Number of contacts removed from a group. */
+"feed.collapsed.n.users.removed" = "feed.recolhido.n.usuários.removido";
+
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "Aguardando este comentário. Isso pode demorar um pouco.";
 
@@ -1258,6 +1273,12 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Atualize a sua aplicação.";
 
+/* Title to indicate that a fetch operation is in progress. */
+"locating.title" = "Localizando";
+
+/* Displayed when a location fetch fails. */
+"location.fetch.error" = "Não foi possível encontrar a localização";
+
 /* General message of the alert for failures in location sharing features. */
 "locationSharing.alert.error" = "Algo não funcionou. Por favor, tente novamente mais tarde.";
 
@@ -1664,8 +1685,17 @@
 /* Header when selecting destinations to forward a message, this header appears above the feeds section */
 "post.privacy.header.feeds" = "Feeds";
 
-/* Header when selecting destinations to forward a message, this header appears above the feeds section */
+/* Header when selecting destinations to forward a message, this header appears above the frequently contacted section */
 "post.privacy.header.frequentlyContacted" = "Frequentemente contatado";
+
+/* Header when selecting a group to share with */
+"post.privacy.header.groups" = "Teus Grupos";
+
+/* Header when selecting destinations to forward a message, this header appears above the recent section */
+"post.privacy.header.recent" = "Recente";
+
+/* Controller title for changing destination and privacy */
+"post.privacy.title" = "Contatos";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Bloqueado";
@@ -2048,6 +2078,9 @@
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "toque para retornar à chamada";
 
+/* Action text that shows up next to your selected reaction. */
+"tap.to.remove.reaction" = "Toque para remover";
+
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Adicionar à lista de leitura";
 
@@ -2140,6 +2173,9 @@
 
 /* Row in Settings screen */
 "title.privacy" = "Privacidade";
+
+/* Title for the screen with information about who reacted to your content. */
+"title.reactions" = "Reações";
 
 /* Title of screen where user can add members during group creation flow */
 "title.select.group.members.create.title" = "Adicionar membros";

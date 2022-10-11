@@ -61,17 +61,17 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>%d people were added</string>
+			<string>تمت إضافة %d أشخاص</string>
 			<key>many</key>
-			<string>%d people were added</string>
+			<string>تمت إضافة %d شخصًا</string>
 			<key>one</key>
-			<string>%d person was added</string>
+			<string>تمت إضافة شخص %d</string>
 			<key>other</key>
-			<string>%d people were added</string>
+			<string>تمت إضافة %d شخص</string>
 			<key>two</key>
-			<string>%d people were added</string>
+			<string>تمت إضافة شخصَين %d</string>
 			<key>zero</key>
-			<string>%d people were added</string>
+			<string>تمت إضافة %d من الأشخاص</string>
 		</dict>
 	</dict>
 	<key>feed.collapsed.n.users.joined</key>
@@ -85,17 +85,17 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>%d people joined</string>
+			<string>انضمّ %d أشخاص</string>
 			<key>many</key>
-			<string>%d people joined</string>
+			<string>انضمّ %d شخصًا</string>
 			<key>one</key>
-			<string>%d person joined</string>
+			<string>انضمَ شخص %d</string>
 			<key>other</key>
-			<string>%d people joined</string>
+			<string>انضمّ %d شخص</string>
 			<key>two</key>
-			<string>%d people joined</string>
+			<string>انضمّ شخصان %d</string>
 			<key>zero</key>
-			<string>%d people joined</string>
+			<string>انضمّ %d من الأشخاص</string>
 		</dict>
 	</dict>
 	<key>feed.collapsed.n.users.left</key>
@@ -109,17 +109,17 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>%d people left</string>
+			<string>غادر %d أشخاص</string>
 			<key>many</key>
-			<string>%d people left</string>
+			<string>غادر %d شخصًا</string>
 			<key>one</key>
-			<string>%d person left</string>
+			<string>غادر شخص %d</string>
 			<key>other</key>
-			<string>%d people left</string>
+			<string>غادر %d شخص</string>
 			<key>two</key>
-			<string>%d people left</string>
+			<string>غادر شخصان %d</string>
 			<key>zero</key>
-			<string>%d people left</string>
+			<string>غادر %d من الأشخاص</string>
 		</dict>
 	</dict>
 	<key>feed.collapsed.n.users.removed</key>
@@ -133,17 +133,17 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>%d people were removed</string>
+			<string>تمت إزالة %d أشخاص</string>
 			<key>many</key>
-			<string>%d people were removed</string>
+			<string>تمت إزالة %d شخصًا</string>
 			<key>one</key>
-			<string>%d person was removed</string>
+			<string>تمت إزالة شخص %d</string>
 			<key>other</key>
-			<string>%d people were removed</string>
+			<string>تمت إزالة %d شخص</string>
 			<key>two</key>
-			<string>%d people were removed</string>
+			<string>تمت إزالة شخصَين %d</string>
 			<key>zero</key>
-			<string>%d people were removed</string>
+			<string>تمت إزالة %d من الأشخاص</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.contacts.excluded</key>

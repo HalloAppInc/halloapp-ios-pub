@@ -898,9 +898,6 @@
 /* Explains that as more contacts join the app, they will appear in this list automatically. */
 "fellow.contacts.will.arrive" = "Tus contactos telefónicos que se registren con HalloApp aparecerán aquí automáticamente.";
 
-/* Title to indicate that a fetch operation is in progress. */
-"fetching.title" = "Buscando";
-
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Agrega la descripción del grupo";
 
@@ -1264,6 +1261,9 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Actualiza tu aplicación.";
 
+/* Title to indicate that a fetch operation is in progress. */
+"locating.title" = "Localizando";
+
 /* Displayed when a location fetch fails. */
 "location.fetch.error" = "Error al obtener la ubicación";
 
@@ -1422,7 +1422,7 @@
 "moments.swipe.for.more" = "desliza para más";
 
 /* Message displayed to say when moments will disappear. */
-"mymoment.disappear.time.label" = "Tu momento fue compartido con tu lista de contactos. Los momentos desaparecen después de 24 horas y solo se pueden ver una vez.";
+"mymoment.disappear.time.label" = "Tu momento fue compartido con tu lista de contactos. Los momentos desaparecen después de 24 horas y solo pueden verse una vez.";
 
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Enviar un mensaje";
@@ -1664,8 +1664,17 @@
 /* Header when selecting destinations to forward a message, this header appears above the feeds section */
 "post.privacy.header.feeds" = "Muro";
 
-/* Header when selecting destinations to forward a message, this header appears above the feeds section */
+/* Header when selecting destinations to forward a message, this header appears above the frequently contacted section */
 "post.privacy.header.frequentlyContacted" = "Frecuentemente contacto(a)";
+
+/* Header when selecting a group to share with */
+"post.privacy.header.groups" = "Compartir solo con un grupo";
+
+/* Header when selecting destinations to forward a message, this header appears above the recent section */
+"post.privacy.header.recent" = "Recientes";
+
+/* Controller title for changing destination and privacy */
+"post.privacy.title" = "Compartir con...";
 
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Bloqueado";

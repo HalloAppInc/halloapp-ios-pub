@@ -1207,6 +1207,12 @@
 /* Header when selecting all or some contacts to share with */
 "post.privacy.header.contacts" = "Kto zobaczy ten post";
 
+/* Header when selecting a group to share with */
+"post.privacy.header.groups" = "Udostępnij tylko grupie";
+
+/* Controller title for changing destination and privacy */
+"post.privacy.title" = "Udostępnij...";
+
 /* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
 "privacy.list.blocked" = "Zablokowani";
 

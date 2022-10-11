@@ -53,13 +53,13 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>%d people were added</string>
+			<string>%d людей были добавлены</string>
 			<key>many</key>
-			<string>%d people were added</string>
+			<string>%d людей были добавлены</string>
 			<key>one</key>
-			<string>%d person was added</string>
+			<string>%d человек был добавлен</string>
 			<key>other</key>
-			<string>%d people were added</string>
+			<string>%d людей были добавлены</string>
 		</dict>
 	</dict>
 	<key>feed.collapsed.n.users.joined</key>
@@ -73,13 +73,13 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>%d people joined</string>
+			<string>%d людей присоединились</string>
 			<key>many</key>
-			<string>%d people joined</string>
+			<string>%d людей присоединились</string>
 			<key>one</key>
-			<string>%d person joined</string>
+			<string>%d человек присоединился</string>
 			<key>other</key>
-			<string>%d people joined</string>
+			<string>%d человек присоединились</string>
 		</dict>
 	</dict>
 	<key>feed.collapsed.n.users.left</key>
@@ -93,13 +93,13 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>%d people left</string>
+			<string>%d людей ушли</string>
 			<key>many</key>
-			<string>%d people left</string>
+			<string>%d людей ушли</string>
 			<key>one</key>
-			<string>%d person left</string>
+			<string>%d человек ушел</string>
 			<key>other</key>
-			<string>%d people left</string>
+			<string>%d человек ушло</string>
 		</dict>
 	</dict>
 	<key>feed.collapsed.n.users.removed</key>
@@ -113,13 +113,13 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>%d people were removed</string>
+			<string>%d людей были удалены</string>
 			<key>many</key>
-			<string>%d people were removed</string>
+			<string>%d людей были удалены</string>
 			<key>one</key>
-			<string>%d person was removed</string>
+			<string>%d человек был удален</string>
 			<key>other</key>
-			<string>%d people were removed</string>
+			<string>%d человек было удалено</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.contacts.excluded</key>

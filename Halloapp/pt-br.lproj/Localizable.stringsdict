@@ -89,9 +89,9 @@
 			<key>many</key>
 			<string>%d people joined</string>
 			<key>one</key>
-			<string>%d person joined</string>
+			<string>%d pessoa entrou</string>
 			<key>other</key>
-			<string>%d people joined</string>
+			<string>%d pessoas entraram</string>
 			<key>two</key>
 			<string>%d people joined</string>
 			<key>zero</key>
@@ -101,7 +101,7 @@
 	<key>feed.collapsed.n.users.left</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@n_users@</string>
+		<string>%#@n_participantes@</string>
 		<key>n_users</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
@@ -113,9 +113,10 @@
 			<key>many</key>
 			<string>%d people left</string>
 			<key>one</key>
-			<string>%d person left</string>
+			<string>%d pessoa saiu
+</string>
 			<key>other</key>
-			<string>%d people left</string>
+			<string>%d pessoas sairam</string>
 			<key>two</key>
 			<string>%d people left</string>
 			<key>zero</key>
@@ -125,7 +126,7 @@
 	<key>feed.collapsed.n.users.removed</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@n_users@</string>
+		<string>%#@n_participantes@</string>
 		<key>n_users</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
@@ -137,9 +138,9 @@
 			<key>many</key>
 			<string>%d people were removed</string>
 			<key>one</key>
-			<string>%d person was removed</string>
+			<string>%d pessoa foi removida</string>
 			<key>other</key>
-			<string>%d people were removed</string>
+			<string>%d pessoas foram removidas</string>
 			<key>two</key>
 			<string>%d people were removed</string>
 			<key>zero</key>
