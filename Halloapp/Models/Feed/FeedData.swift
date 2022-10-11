@@ -4252,7 +4252,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 let contentID = fileNameWithIndexComponents.joined(separator: "-")
                 DDLogInfo("FeedData/cleanUpOldUploadData/file: \(file)/contentID: \(contentID)")
 
-                if let media = MainAppContext.shared.mainDataStore.commonMediaItem(id: fileNameWithIndex, in: context), media.status == .uploaded {
+                if let media = MainAppContext.shared.mainDataStore.commonMediaItem(id: fileNameWithIndex, in: context) {
+                    guard media.status == .uploaded else {
+                        return
+                    }
                     DDLogVerbose("FeedData/cleanUpOldUploadData/clean up existing media upload data: \(media.relativeFilePath ?? "")")
                     ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
                 } else if let feedPost = MainAppContext.shared.feedData.feedPost(with: contentID, in: context) {

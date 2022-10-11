@@ -3445,7 +3445,10 @@ extension ChatData {
                 let msgID = fileNameWithIndexComponents.joined(separator: "-")
 
                 DDLogInfo("ChatData/cleanUpOldUploadData/file: \(file)/msgID: \(msgID)")
-                if let media = MainAppContext.shared.mainDataStore.commonMediaItem(id: fileNameWithIndex, in: context), media.status == .uploaded {
+                if let media = MainAppContext.shared.mainDataStore.commonMediaItem(id: fileNameWithIndex, in: context) {
+                    guard media.status == .uploaded else {
+                        return
+                    }
                     DDLogInfo("ChatData/cleanUpOldUploadData/clean up existing media upload data: \(media.relativeFilePath ?? "")")
                     ImageServer.cleanUpUploadData(directoryURL: directoryURL, relativePath: media.relativeFilePath)
                 } else if let chatMessage = MainAppContext.shared.chatData.chatMessage(with: msgID, in: context) {
