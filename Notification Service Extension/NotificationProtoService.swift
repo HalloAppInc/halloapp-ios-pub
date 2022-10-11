@@ -968,11 +968,14 @@ final class NotificationProtoService: ProtoServiceCore {
             } else if let quotedMediaItem = chatMessage.quoted?.media?.first,
                       quotedMediaItem.mediaDirectory == .commonMedia,
                       let relativeFilePath = quotedMediaItem.relativeFilePath {
-                let attachment: UNNotificationAttachment
+                var attachments: [UNNotificationAttachment] = []
                 do {
                     let fileURL = self.downloadManager.fileURL(forRelativeFilePath: relativeFilePath)
-                    attachment = try UNNotificationAttachment(identifier: quotedMediaItem.id, url: fileURL, options: nil)
-                    self.presentNotification(for: metadata.identifier, with: notificationContent, using: [attachment])
+                    if FileManager.default.fileExists(atPath: fileURL.absoluteString) {
+                        let attachment = try UNNotificationAttachment(identifier: quotedMediaItem.id, url: fileURL, options: nil)
+                        attachments.append(attachment)
+                    }
+                    self.presentNotification(for: metadata.identifier, with: notificationContent, using: attachments)
                 } catch {
                     DDLogError("NotificationExtension/media/attachment-create/error \(error)")
                     self.presentNotification(for: metadata.identifier, with: notificationContent)
