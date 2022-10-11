@@ -327,6 +327,31 @@ extension UIImage {
             view.layer.render(in: context.cgContext)
         }
     }
+
+    /// Combines `leading` and `trailing` into one image with a 1:1 aspect ratio.
+    public static func combine(leading: UIImage, trailing: UIImage) -> UIImage? {
+        var direction: Locale.LanguageDirection?
+        if #available(iOSApplicationExtension 16, *) {
+            direction = Locale.current.language.characterDirection
+        } else if let preferred = Locale.preferredLanguages.first {
+            direction = Locale.characterDirection(forLanguage: preferred)
+        }
+
+        let isLeftToRight = direction ?? .leftToRight == .leftToRight
+        return isLeftToRight ? combine(left: leading, right: trailing) : combine(left: trailing, right: leading)
+    }
+
+    private static func combine(left: UIImage, right: UIImage) -> UIImage? {
+        let size = CGSize(width: left.size.height, height: left.size.height)
+        UIGraphicsBeginImageContext(size)
+
+        left.draw(in: .init(origin: .zero, size: left.size))
+        right.draw(in: .init(origin: .init(x: left.size.width, y: 0), size: right.size))
+        let result = UIGraphicsGetImageFromCurrentImageContext()
+
+        UIGraphicsEndImageContext()
+        return result
+    }
 }
 
 private extension CGImagePropertyOrientation {

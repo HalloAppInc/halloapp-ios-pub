@@ -1307,37 +1307,6 @@ class ChatData: ObservableObject {
         return nil
     }
     
-    // TODO(murali@): need to do some sort of migration for the existing media elements in the db.
-    func copyMediaToQuotedMedia(fromDir: MediaDirectory, fromPath: String?, to quotedMedia: CommonMedia) throws {
-        guard let fromRelativePath = fromPath else {
-            return
-        }
-        let fromURL = fromDir.fileURL(forRelativePath: fromRelativePath)
-        DDLogInfo("ChatData/copyMediaToQuotedMedia/fromURL: \(fromURL)")
-
-        // Store references to the quoted media directory and file path.
-        quotedMedia.relativeFilePath = fromRelativePath
-        quotedMedia.mediaDirectory = fromDir
-
-        // Generate thumbnail for the media: so that each message can have its own copy.
-        let previewImage: UIImage?
-        switch quotedMedia.type {
-        case .image:
-            previewImage = UIImage(contentsOfFile: fromURL.path)
-        case .video:
-            previewImage = VideoUtils.videoPreviewImage(url: fromURL)
-        case .audio:
-            previewImage = nil // no image to preview
-        case .document:
-            previewImage = nil // not currently showing preview in quoted panel
-        }
-        guard let img = previewImage else {
-            DDLogError("ChatData/copyMediaToQuotedMedia/unable to generate thumbnail image for media url: \(fromURL)")
-            return
-        }
-        quotedMedia.previewData = VideoUtils.previewImageData(image: img)
-    }
-    
     func sendSeenReceipt(for chatMessage: ChatMessage) {
         DDLogInfo("ChatData/sendSeenReceipt \(chatMessage.id)")
         service.sendReceipt(
@@ -1629,16 +1598,16 @@ class ChatData: ObservableObject {
             if let feedPostId = chatMessage.feedPostId, !feedPostId.isEmpty {
                 // Process Quoted Feedpost
                 if let quotedFeedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: managedObjectContext) {
-                    copyQuoted(to: chatMessage, from: quotedFeedPost, using: managedObjectContext)
+                    CoreChatData.copyQuoted(to: chatMessage, from: quotedFeedPost, using: managedObjectContext)
                 }
             } else if let chatReplyMsgId = chatMessage.chatReplyMessageID, !chatReplyMsgId.isEmpty {
                 // Process Quoted Message: these messages could be in the main database or in the shared database.
                 // so we first lookup the main database and then our list of mergedMessages.
                 // we ensure that messages are fetched in the correct order.
                 if let quotedChatMessage = MainAppContext.shared.chatData.chatMessage(with: chatReplyMsgId, in: managedObjectContext) {
-                    copyQuoted(to: chatMessage, from: quotedChatMessage, using: managedObjectContext)
+                    CoreChatData.copyQuoted(to: chatMessage, from: quotedChatMessage, using: managedObjectContext)
                 } else if let quotedChatMessage = mergedMessages.first(where: { $0.1.id == chatReplyMsgId })?.1 {
-                    copyQuoted(to: chatMessage, from: quotedChatMessage, using: managedObjectContext)
+                    CoreChatData.copyQuoted(to: chatMessage, from: quotedChatMessage, using: managedObjectContext)
                 }
             }
 
@@ -1734,41 +1703,6 @@ class ChatData: ObservableObject {
         DDLogInfo("ChatData/mergeMediaItems from \(mediaDirectory)/done")
     }
 
-    // This function can nicely copy references to quoted feed post or quoted message to the new chatMessage.
-    private func copyQuoted(to chatMessage: ChatMessage, from chatQuoted: ChatQuotedProtocol, using managedObjectContext: NSManagedObjectContext) {
-        DDLogInfo("ChatData/copyQuoted/message/\(chatMessage.id), chatQuotedType: \(chatQuoted.type)")
-        let quoted = NSEntityDescription.insertNewObject(forEntityName: ChatQuoted.entity().name!, into: managedObjectContext) as! ChatQuoted
-        quoted.type = chatQuoted.type
-        quoted.userID = chatQuoted.userId
-        quoted.rawText = chatQuoted.quotedText
-        quoted.message = chatMessage
-        quoted.mentions = chatQuoted.mentions
-
-        // TODO: Why Int16? - other classes have Int32 for the order attribute.
-        var mediaIndex: Int16 = 0
-        // Ensure Id of the quoted object is not empty - postId/msgId.
-        if let feedPostId = chatMessage.feedPostId, !feedPostId.isEmpty {
-            mediaIndex = Int16(chatMessage.feedPostMediaIndex)
-        } else if let chatReplyMessageID = chatMessage.chatReplyMessageID, !chatReplyMessageID.isEmpty {
-            mediaIndex = Int16(chatMessage.chatReplyMessageMediaIndex)
-        }
-        if let chatQuotedMediaItem = chatQuoted.mediaList.first(where: { $0.order == mediaIndex }) {
-            DDLogInfo("ChatData/copyQuoted/message/\(chatMessage.id), chatQuotedMediaIndex: \(chatQuotedMediaItem.order)")
-            let quotedMedia = CommonMedia(context: managedObjectContext)
-            quotedMedia.id = "\(quoted.message?.id ?? UUID().uuidString)-quoted-\(chatQuotedMediaItem.order)"
-            quotedMedia.type = chatQuotedMediaItem.quotedMediaType
-            quotedMedia.order = chatQuotedMediaItem.order
-            quotedMedia.width = Float(chatQuotedMediaItem.width)
-            quotedMedia.height = Float(chatQuotedMediaItem.height)
-            quotedMedia.chatQuoted = quoted
-            do {
-                try copyMediaToQuotedMedia(fromDir: chatQuotedMediaItem.mediaDirectory, fromPath: chatQuotedMediaItem.relativeFilePath, to: quotedMedia)
-            } catch {
-                DDLogError("ChatData/new-msg/quoted/copy-media/error [\(error)]")
-            }
-        }
-    }
-    
     private func incrementApplicationIconBadgeNumber() {
         DispatchQueue.main.async {
             let badgeNum = MainAppContext.shared.applicationIconBadgeNumber
@@ -2425,12 +2359,7 @@ extension ChatData {
                 quotedMedia.height = Float(feedPostMedia.size.height)
                 quotedMedia.chatQuoted = quoted
 
-                do {
-                    try copyMediaToQuotedMedia(fromDir: feedPostMedia.mediaDirectory, fromPath: feedPostMedia.relativeFilePath, to: quotedMedia)
-                }
-                catch {
-                    DDLogError("ChatData/createChatMsg/\(messageId)/quoted/copy-media/error [\(error)]")
-                }
+                CoreChatData.copyMediaToQuotedMedia(fromDir: feedPostMedia.mediaDirectory, fromPath: feedPostMedia.relativeFilePath, to: quotedMedia)
             }
         }
         // Process link preview if present
@@ -2464,12 +2393,7 @@ extension ChatData {
                 quotedMedia.height = Float(quotedChatMessageMedia.size.height)
                 quotedMedia.chatQuoted = quoted
 
-                do {
-                    try copyMediaToQuotedMedia(fromDir: quotedChatMessageMedia.mediaDirectory, fromPath: quotedChatMessageMedia.relativeFilePath, to: quotedMedia)
-                }
-                catch {
-                    DDLogError("ChatData/createChatMsg/\(messageId)/quoted/copy-media/error [\(error)]")
-                }
+                CoreChatData.copyMediaToQuotedMedia(fromDir: quotedChatMessageMedia.mediaDirectory, fromPath: quotedChatMessageMedia.relativeFilePath, to: quotedMedia)
             }
         }
         
@@ -3827,12 +3751,19 @@ extension ChatData {
         if let feedPostId = xmppChatMessage.context.feedPostID {
             // Process Quoted Feedpost
             if let quotedFeedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: managedObjectContext) {
-                copyQuoted(to: chatMessage, from: quotedFeedPost, using: managedObjectContext)
+                if quotedFeedPost.isMoment {
+                    CoreChatData.copyQuotedMoment(to: chatMessage,
+                                                from: quotedFeedPost,
+                                       selfieLeading: quotedFeedPost.isMomentSelfieLeading,
+                                               using: managedObjectContext)
+                } else {
+                    CoreChatData.copyQuoted(to: chatMessage, from: quotedFeedPost, using: managedObjectContext)
+                }
             }
         } else if let chatReplyMsgId = xmppChatMessage.context.chatReplyMessageID {
             // Process Quoted Message
             if let quotedChatMessage = MainAppContext.shared.chatData.chatMessage(with: chatReplyMsgId, in: managedObjectContext) {
-                copyQuoted(to: chatMessage, from: quotedChatMessage, using: managedObjectContext)
+                CoreChatData.copyQuoted(to: chatMessage, from: quotedChatMessage, using: managedObjectContext)
             }
         }
 

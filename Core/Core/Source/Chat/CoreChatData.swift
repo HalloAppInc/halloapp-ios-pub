@@ -1211,12 +1211,19 @@ public class CoreChatData {
             if let feedPostId = chatMessageProtocol.context.feedPostID {
                 // Process Quoted Feedpost
                 if let quotedFeedPost = AppContext.shared.coreFeedData.feedPost(with: feedPostId, in: context) {
-                    self.copyQuoted(to: chatMessage, from: quotedFeedPost, using: context)
+                    if quotedFeedPost.isMoment {
+                        Self.copyQuotedMoment(to: chatMessage,
+                                            from: quotedFeedPost,
+                                   selfieLeading: quotedFeedPost.isMomentSelfieLeading,
+                                           using: context)
+                    } else {
+                        Self.copyQuoted(to: chatMessage, from: quotedFeedPost, using: context)
+                    }
                 }
             } else if let chatReplyMsgId = chatMessageProtocol.context.chatReplyMessageID {
                 // Process Quoted Message
                 if let quotedChatMessage = self.chatMessage(with: chatReplyMsgId, in: context) {
-                    self.copyQuoted(to: chatMessage, from: quotedChatMessage, using: context)
+                    Self.copyQuoted(to: chatMessage, from: quotedChatMessage, using: context)
                 }
             }
 
@@ -1312,7 +1319,7 @@ public class CoreChatData {
     }
 
     // This function can nicely copy references to quoted feed post or quoted message to the new chatMessage.
-    private func copyQuoted(to chatMessage: ChatMessage, from chatQuoted: ChatQuotedProtocol, using managedObjectContext: NSManagedObjectContext) {
+    public static func copyQuoted(to chatMessage: ChatMessage, from chatQuoted: ChatQuotedProtocol, using managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("CoreChatData/copyQuoted/message/\(chatMessage.id), chatQuotedType: \(chatQuoted.type)")
         let quoted = ChatQuoted(context: managedObjectContext)
         quoted.type = chatQuoted.type
@@ -1341,12 +1348,96 @@ public class CoreChatData {
             quotedMedia.relativeFilePath = chatQuotedMediaItem.relativeFilePath
             quotedMedia.mediaDirectory = chatQuotedMediaItem.mediaDirectory
 
-            // TODO: We dont generate the previewData for now.
-            // This will result in empty preview if the corresponding quoted content was deleted.
-            // We need to generate the preview while merging this data to the main-app.
-            // Or - we need to have access to the media data in nse when writing media.
-            // Library to generate preview is also included only on the main-app for now.
+            copyMediaToQuotedMedia(fromDir: chatQuotedMediaItem.mediaDirectory,
+                                  fromPath: chatQuotedMediaItem.relativeFilePath,
+                                        to: quotedMedia)
         }
+    }
+
+    public static func copyQuotedMoment(to chatMessage: ChatMessage,
+                                        from chatQuoted: ChatQuotedProtocol,
+                                        selfieLeading: Bool,
+                                        using context: NSManagedObjectContext) {
+
+        DDLogInfo("CoreChatData/copyQuotedMoment/\(chatMessage.id)")
+        let quoted = ChatQuoted(context: context)
+        quoted.type = chatQuoted.type
+        quoted.userID = chatQuoted.userId
+        quoted.rawText = quoted.rawText
+        quoted.mentions = quoted.mentions
+        quoted.message = chatMessage
+
+        guard let first = chatQuoted.mediaList.first(where: { $0.order == 0 }) else {
+            return
+        }
+
+        let quotedMedia = CommonMedia(context: context)
+        quotedMedia.id = "\(quoted.message?.id ?? UUID().uuidString)-quoted-moment"
+        quotedMedia.type = .image
+        quotedMedia.order = 0
+        quotedMedia.chatQuoted = quoted
+
+        if chatQuoted.mediaList.count > 1, let second = chatQuoted.mediaList.first(where: { $0.order == 1 }) {
+            let leadingMedia = selfieLeading ? second : first
+            let trailingMedia = selfieLeading ? first : second
+
+            DDLogInfo("CoreChatData/copyQuotedMoment/dual image")
+            createDualMomentPreview(directory: leadingMedia.mediaDirectory,
+                                  leadingPath: leadingMedia.relativeFilePath,
+                                 trailingPath: trailingMedia.relativeFilePath,
+                                  quotedMedia: quotedMedia)
+        } else {
+            DDLogInfo("CoreChatData/copyQuotedMoment/single image")
+            copyMediaToQuotedMedia(fromDir: first.mediaDirectory, fromPath: first.relativeFilePath, to: quotedMedia)
+        }
+    }
+
+    public static func copyMediaToQuotedMedia(fromDir: MediaDirectory, fromPath: String?, to quotedMedia: CommonMedia) {
+        guard let fromRelativePath = fromPath else {
+            return
+        }
+
+        let fromURL = fromDir.fileURL(forRelativePath: fromRelativePath)
+        DDLogInfo("ChatData/copyMediaToQuotedMedia/fromURL: \(fromURL)")
+
+        // Store references to the quoted media directory and file path.
+        quotedMedia.relativeFilePath = fromRelativePath
+        quotedMedia.mediaDirectory = fromDir
+
+        // Generate thumbnail for the media: so that each message can have its own copy.
+        let previewImage: UIImage?
+        switch quotedMedia.type {
+        case .image:
+            previewImage = UIImage(contentsOfFile: fromURL.path)
+        case .video:
+            previewImage = VideoUtils.videoPreviewImage(url: fromURL)
+        case .audio:
+            previewImage = nil // no image to preview
+        case .document:
+            previewImage = nil // not currently showing preview in quoted panel
+        }
+
+        guard let previewImage else {
+            DDLogError("ChatData/copyMediaToQuotedMedia/unable to generate thumbnail image for media url: \(fromURL)")
+            return
+        }
+
+        quotedMedia.previewData = VideoUtils.previewImageData(image: previewImage)
+    }
+
+    private static func createDualMomentPreview(directory: MediaDirectory, leadingPath: String?, trailingPath: String?, quotedMedia: CommonMedia) {
+        guard
+            let leadingPath,
+            let trailingPath,
+            let leadingImage = UIImage(contentsOfFile: directory.fileURL(forRelativePath: leadingPath).path),
+            let trailingImage = UIImage(contentsOfFile: directory.fileURL(forRelativePath: trailingPath).path),
+            let composited = UIImage.combine(leading: leadingImage, trailing: trailingImage)
+        else {
+            DDLogError("CoreChatData/createDualMomentPreview/failed with leading [\(leadingPath ?? "nil")] trailing [\(trailingPath ?? "nil")]")
+            return
+        }
+
+        quotedMedia.previewData = VideoUtils.previewImageData(image: composited)
     }
 
     public func chatMessage(with chatMessageID: ChatMessageID, in managedObjectContext: NSManagedObjectContext) -> ChatMessage? {
