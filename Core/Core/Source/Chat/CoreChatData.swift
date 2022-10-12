@@ -380,8 +380,14 @@ public class CoreChatData {
         } else {
             DDLogDebug("CoreChatData/updateChatThread/\(chatMessage.id)/new-thread")
             chatThread = CommonThread(context: context)
-            chatThread.userID = isIncomingMsg ? chatMessage.fromUserId : chatMessage.toUserId
-            chatThread.groupId = chatMessage.toGroupId
+            switch chatMessageRecipient.chatType {
+            case .oneToOne:
+                chatThread.userID = isIncomingMsg ? chatMessage.fromUserId : chatMessage.toUserId
+            case .groupChat:
+                chatThread.groupId = chatMessage.toGroupId
+            default:
+                break
+            }
             chatThread.type = chatMessageRecipient.chatType
             if isIncomingMsg {
                 chatThread.unreadCount = 1

@@ -2275,7 +2275,7 @@ extension ChatData {
         let isMsgToYourself: Bool = chatMessageRecipient.toUserId == userData.userId
         
         // Create and save new ChatMessage object.
-        DDLogDebug("ChatData/createChatMsg/\(messageId)/toUserId: \(String(describing: chatMessageRecipient.toUserId))")
+        DDLogDebug("ChatData/createChatMsg/\(messageId)/recipientId: \(String(describing: chatMessageRecipient.recipientId)) type: \(chatMessageRecipient.chatType)")
         let chatMessage = ChatMessage(context: context)
         chatMessage.id = messageId
         chatMessage.fromUserId = userData.userId
@@ -2780,34 +2780,39 @@ extension ChatData {
     }
     
     // MARK: 1-1 Reaction
-    func sendReaction(toUserId: String,
+    func sendReaction(chatMessageRecipient: ChatMessageRecipient,
                       reaction: String,
                       chatMessageID: ChatMessageID) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            DDLogInfo("ChatData/sendReaction/createReaction/toUserId: \(toUserId)")
-            self.createReaction(toUserId: toUserId,
+            DDLogInfo("ChatData/sendReaction/createReaction/recipientId: \(chatMessageRecipient.recipientId) type: \(chatMessageRecipient.chatType)")
+            self.createReaction(chatMessageRecipient: chatMessageRecipient,
                                 reaction: reaction,
                                 chatMessageID: chatMessageID,
                                 using: managedObjectContext)
         }
-
-        coreChatData.addIntent(toUserId: toUserId)
+        if let toUserId = chatMessageRecipient.toUserId {
+            DDLogInfo("ChatData/sendReaction/toUserId: \(toUserId)")
+            self.coreChatData.addIntent(toUserId: toUserId)
+        } else if let toGroupId = chatMessageRecipient.toGroupId {
+            DDLogInfo("ChatData/sendReaction/toGroupId: \(toGroupId)")
+            AppContext.shared.coreFeedData.addIntent(groupId: toGroupId)
+        }
     }
 
     @discardableResult
-    func createReaction(toUserId: String,
+    func createReaction(chatMessageRecipient: ChatMessageRecipient,
                         reaction: String,
                         chatMessageID: ChatMessageID,
                         using context: NSManagedObjectContext) -> CommonReactionID {
         let reactionId = PacketID.generate()
-        let isMsgToYourself: Bool = toUserId == userData.userId
+        let isMsgToYourself: Bool = chatMessageRecipient.toUserId == userData.userId
 
         // Create and save new ChatMessage object.
-        DDLogDebug("ChatData/createReaction/\(reactionId)/toUserId: \(toUserId)")
+        DDLogDebug("ChatData/createReaction/\(reactionId)/recipientId: \(String(describing: chatMessageRecipient.recipientId)) type: \(chatMessageRecipient.chatType)")
         let commonReaction = CommonReaction(context: context)
         commonReaction.id = reactionId
-        commonReaction.toUserID = toUserId
+        commonReaction.chatMessageRecipient = chatMessageRecipient
         commonReaction.fromUserID = userData.userId
         commonReaction.emoji = reaction
         commonReaction.incomingStatus = .none
