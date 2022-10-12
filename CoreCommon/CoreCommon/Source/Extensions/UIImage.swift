@@ -341,7 +341,8 @@ extension UIImage {
         if let maximumLength {
             size = .init(width: maximumLength, height: maximumLength)
         } else {
-            size = .init(width: leading.size.height, height: leading.size.height)
+            let min = min(leading.size.height, trailing.size.height)
+            size = .init(width: min, height: min)
         }
 
         let isLeftToRight = direction ?? .leftToRight == .leftToRight

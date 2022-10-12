@@ -132,8 +132,21 @@ extension UIViewControllerMediaSaving {
                 present(alert, animated: true)
                 return false
             }
-            
-            let mediaInfo = try await mediaInfoProvider()
+
+            let feedPost: FeedPost?
+            var temporaryMomentURL: URL?
+            var mediaInfo = try await mediaInfoProvider()
+
+            if case let .post(id) = source, let fd = MainAppContext.shared.feedData, let post = fd.feedPost(with: id, in: fd.viewContext) {
+                feedPost = post
+            } else {
+                feedPost = nil
+            }
+
+            if let feedPost, feedPost.isMoment, let temporary = createTemporaryCombinedImageForMomentIfNeeded(feedPost, mediaInfo: mediaInfo) {
+                temporaryMomentURL = temporary
+                mediaInfo = [(.image, temporary)]
+            }
             
             try await PHPhotoLibrary.shared().performChanges {
                 for (type, url) in mediaInfo {
@@ -147,8 +160,12 @@ extension UIViewControllerMediaSaving {
                 }
             }
 
-            if case let .post(id) = source, let fd = MainAppContext.shared.feedData, let post = fd.feedPost(with: id, in: fd.viewContext) {
-                fd.sendSavedReceipt(for: post)
+            if let feedPost {
+                MainAppContext.shared.feedData.sendSavedReceipt(for: feedPost)
+            }
+
+            if let temporaryMomentURL {
+                try? FileManager.default.removeItem(at: temporaryMomentURL)
             }
             
             let toast = Toast(type: .icon(UIImage(named: "CheckmarkLong")?.withTintColor(.white)), text: Localizations.buttonDone)
@@ -166,6 +183,29 @@ extension UIViewControllerMediaSaving {
             }()
             
             return false
+        }
+    }
+
+    private func createTemporaryCombinedImageForMomentIfNeeded(_ moment: FeedPost, mediaInfo: [(type: CommonMediaType, url: URL)]) -> URL? {
+        guard
+            mediaInfo.count > 1,
+            let backImage = UIImage(contentsOfFile: mediaInfo[0].url.path),
+            let frontImage = UIImage(contentsOfFile: mediaInfo[1].url.path),
+            let combined = moment.isMomentSelfieLeading ? UIImage.combine(leading: frontImage, trailing: backImage) : UIImage.combine(leading: backImage, trailing: frontImage)
+        else {
+            return nil
+        }
+
+        let directory = NSTemporaryDirectory()
+        let path = UUID().uuidString + ".jpg"
+        let temporaryURL = URL(fileURLWithPath: directory).appendingPathComponent(path, isDirectory: false)
+
+        if combined.save(to: temporaryURL) {
+            DDLogInfo("UIViewControllerMediaSaving/createCombinedMomentImage/saved combined image to file [\(temporaryURL.absoluteString)]")
+            return temporaryURL
+        } else {
+            DDLogError("UIViewControllerMediaSaving/createCombinedMomentImage/unable to save combined image to file [\(temporaryURL.absoluteString)]")
+            return nil
         }
     }
 }
