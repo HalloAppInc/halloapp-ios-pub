@@ -87,3 +87,49 @@ public extension CommonReaction {
         }
     }
 }
+
+extension CommonReaction {
+
+    public var feedItemStatus: FeedItemStatus {
+        switch incomingStatus {
+        case .none:
+            switch outgoingStatus {
+            case .none: return .none
+            case .error, .pending: return .sendError
+            case .delivered, .seen, .sentOut, .retracted, .retracting: return .sent
+            }
+        case .rerequesting: return .rerequesting
+        case .retracted, .incoming, .unsupported: return .received
+        case .error: return .none
+        }
+    }
+
+    public var commentData: CommentData? {
+        let mentionText = MentionText(collapsedText: "", mentions: [:])
+        let content: CommentContent
+
+        guard let comment = comment else {
+            return nil
+        }
+        let postID = comment.post.id
+        let parentID = comment.id
+        let reactionID = id
+
+        if incomingStatus == .retracted || outgoingStatus == .retracted {
+            content = .retracted
+        } else if emoji.isEmpty && incomingStatus == .rerequesting {
+            content = .waiting
+        } else {
+            content = .commentReaction(emoji)
+        }
+
+        return CommentData(
+            id: reactionID,
+            userId: fromUserID,
+            timestamp: timestamp,
+            feedPostId: postID,
+            parentId: parentID,
+            content: content,
+            status: feedItemStatus)
+    }
+}

@@ -580,7 +580,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Fetching Feed Data
 
-    public func feedHistory(for groupID: GroupID, in managedObjectContext: NSManagedObjectContext, maxNumPosts: Int = Int.max, maxCommentsPerPost: Int = Int.max) -> ([PostData], [CommentData]) {
+    public func feedHistory(for groupID: GroupID, in managedObjectContext: NSManagedObjectContext, maxNumPosts: Int = Int.max, maxCommentsPerPost: Int = Int.max, maxReactionsPerComment: Int = Int.max) -> ([PostData], [CommentData]) {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
         // Fetch all feedposts in the group that have not expired yet.
         fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
@@ -604,15 +604,32 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 let sortedComments = postComments.sorted { $0.timestamp > $1.timestamp }
                 comments.append(contentsOf: sortedComments.prefix(maxCommentsPerPost))
             }
+
+            // Fetch reactions on comments.
+            var reactions: [CommonReaction] = []
+            for comment in comments {
+                guard let commentReactions = comment.reactions else {
+                    break
+                }
+                let sortedReactions = commentReactions.sorted { $0.timestamp > $1.timestamp }
+                reactions.append(contentsOf: sortedReactions.prefix(maxReactionsPerComment))
+            }
+
             let commentsData = comments.map{ $0.commentData }
+            let reactionsData = reactions.compactMap{ $0.commentData }
             let postIds = posts.map { $0.id }
             let commentIds = comments.map { $0.id }
+            let reactionIds = reactions.map { $0.id }
+
+            var allCommentsData: [CommentData] = []
+            allCommentsData.append(contentsOf: commentsData)
+            allCommentsData.append(contentsOf: reactionsData)
 
             // TODO: remove this log eventually.
-            DDLogDebug("FeedData/feedHistory/group: \(groupID)/postIds: \(postIds)/commentIds: \(commentIds)")
+            DDLogDebug("FeedData/feedHistory/group: \(groupID)/postIds: \(postIds)/commentIds: \(commentIds)/reactionIds: \(reactionIds)")
 
-            DDLogInfo("FeedData/feedHistory/group: \(groupID)/posts: \(posts.count)/comments: \(comments.count)")
-            return (postsData, commentsData)
+            DDLogInfo("FeedData/feedHistory/group: \(groupID)/posts: \(posts.count)/comments: \(comments.count)/reactions: \(reactions.count)")
+            return (postsData, allCommentsData)
         } catch {
             DDLogError("FeedData/fetch-posts/error  [\(error)]")
             fatalError("Failed to fetch feed posts.")
@@ -1559,6 +1576,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     break
                 case .error, .incoming, .retracted:
                     DDLogError("FeedData/process/already-exists/error [\(existingReaction.incomingStatus)] [\(xmppReaction.id)]")
+                    ignoredReactionIds.insert(xmppReaction.id)
                     continue
                 }
             }
@@ -1567,7 +1585,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             if let parentId = xmppReaction.parentId {
                 if let duplicateReaction = self.coreFeedData.commonReaction(from: xmppReaction.userId, on: parentId, in: managedObjectContext) {
                     managedObjectContext.delete(duplicateReaction)
-                    DDLogInfo("CoreFeedData/process/saveReactionData/remove-old-reaction/reactionID [\(duplicateReaction.id)]")
+                    DDLogInfo("FeedData/process-reactions/saveReactionData/remove-old-reaction/reactionID [\(duplicateReaction.id)]")
                 }
             }
 

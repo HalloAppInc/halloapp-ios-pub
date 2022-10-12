@@ -2016,14 +2016,16 @@ extension ProtoService: HalloService {
                     MainAppContext.shared.mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
                         // After successfully obtaining the memberKeys
                         // Now fetch feedHistory, compute the hashes and construct the history resend stanza.
-                        // Get feedHistory with a set-limit of 20 most recent items and 50 most recent comments per post.
+                        // Get feedHistory with a set-limit of 20 most recent items and 50 most recent comments per post and 5 reactions per comment.
                         let maxNumPosts = 20
                         let maxCommentsPerPost = 50
+                        let maxReactionsPerComment = 5
                         let (postsData, commentsData) = MainAppContext.shared.feedData.feedHistory(
                             for: groupID,
                             in: managedObjectContext,
                             maxNumPosts: maxNumPosts,
-                            maxCommentsPerPost: maxCommentsPerPost)
+                            maxCommentsPerPost: maxCommentsPerPost,
+                            maxReactionsPerComment: maxReactionsPerComment)
                         
                         DDLogInfo("ProtoServiceCore/modifyGroup/\(groupID)/fetchMemberKeysCompletion/success - \(newMembersDetails.count)")
                         var feedContentDetails: [Clients_ContentDetails] = []
