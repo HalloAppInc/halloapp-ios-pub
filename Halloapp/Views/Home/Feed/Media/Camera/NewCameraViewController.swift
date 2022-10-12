@@ -347,6 +347,7 @@ class NewCameraViewController: UIViewController {
 
         NSLayoutConstraint.activate([
             background.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            background.topAnchor.constraint(greaterThanOrEqualTo: subtitleLabel.bottomAnchor, constant: 20),
             backgroundWidth,
             backgroundCenterY,
             background.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -30),
