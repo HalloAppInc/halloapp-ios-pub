@@ -7,6 +7,7 @@
 //
 
 import Core
+import CoreCommon
 import Combine
 import Foundation
 import UIKit
@@ -33,7 +34,7 @@ class MessageCellViewBase: UICollectionViewCell {
     // MARK: Name Row
 
     public lazy var nameRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ nameLabel ])
+        let view = UIStackView(arrangedSubviews: [ nameLabel, forwardCountLabel ])
         view.axis = .vertical
         view.spacing = 0
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -49,6 +50,22 @@ class MessageCellViewBase: UICollectionViewCell {
         label.font = .scaledSystemFont(ofSize: 13, weight: .semibold)
         label.textColor = .secondaryLabel
         label.isUserInteractionEnabled = true
+
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        return label
+    }()
+
+    public lazy var forwardCountLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+
+        label.font = UIFont.preferredFont(forTextStyle: .footnote).withItalicsIfAvailable
+        label.textColor = .lightGray
+        label.text = Localizations.messageForwarded
+        label.isUserInteractionEnabled = false
+        label.isHidden = true
 
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -405,6 +422,11 @@ class MessageCellViewBase: UICollectionViewCell {
         contentView.addGestureRecognizer(longPressGesture)
         let listReactions = UITapGestureRecognizer(target: self, action: #selector(showReactionList(_:)))
         reactionBubble.addGestureRecognizer(listReactions)
+        if message.forwardCount > 0, !isOwnMessage {
+            forwardCountLabel.isHidden = false
+        } else {
+            forwardCountLabel.isHidden = true
+        }
         if let chatMessage = chatMessage, chatMessage.fromUserId == MainAppContext.shared.userData.userId {
             // outgoing message cell, track outgoing status
             setMessageOutgoingStatus()

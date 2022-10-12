@@ -95,6 +95,10 @@ extension Localizations {
         NSLocalizedString("message.forward", value: "Forward", comment: "Call to action to forward a message")
     }
 
+    static var messageForwarded: String {
+        NSLocalizedString("message.forwarded", value: "Forwarded", comment: "label on a chat message to indicate the chat message has been forwarded")
+    }
+
     static var messageForwardTo: String {
         NSLocalizedString("message.forward", value: "Forward To", comment: "Title of page where user can pick contats to forward a chat messsage")
     }
