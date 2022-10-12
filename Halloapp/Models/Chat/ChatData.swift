@@ -2067,14 +2067,14 @@ extension ChatData {
         DDLogInfo("ChatData/retractMsgIfFound/")
  
         switch chatRetractInfo.threadType {
-        case .oneToOne:
+        case .oneToOne, .groupChat:
             performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                 guard let self = self else { return }
 
                 if self.commonReaction(with: chatRetractInfo.messageID, in: managedObjectContext) != nil {
-                    self.processInboundReactionRetract(from: chatRetractInfo.from, reactionID: chatRetractInfo.messageID)
+                    self.processInboundReactionRetract(chatRetractInfo: chatRetractInfo)
                 } else {
-                    self.processInboundChatMessageRetract(from: chatRetractInfo.from, messageID: chatRetractInfo.messageID)
+                    self.processInboundChatMessageRetract(chatRetractInfo: chatRetractInfo)
                 }
             }
         default:
@@ -3075,17 +3075,25 @@ extension ChatData {
 
     // MARK: 1-1 Core Data Updating
 
-    private func createNewChatMessageIfMissing(from: UserID, messageID: String, status: ChatMessage.IncomingStatus) {
+    private func createNewChatMessageIfMissing(chatRetractInfo: ChatRetractInfo, status: ChatMessage.IncomingStatus) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            guard let self = self, self.chatMessage(with: messageID, in: managedObjectContext) == nil else {
+            guard let self = self, self.chatMessage(with: chatRetractInfo.messageID, in: managedObjectContext) == nil else {
                 return
             }
-            DDLogWarn("ChatData/createNewChatMessageIfMissing/from: \(from)/messageID: \(messageID)/status: \(status)/messages might be out of order")
+            DDLogWarn("ChatData/createNewChatMessageIfMissing/from: \(chatRetractInfo.from)/messageID: \(chatRetractInfo.messageID)/status: \(status)/messages might be out of order")
             let timestamp = Date()
             let chatMessage = ChatMessage(context: managedObjectContext)
-            chatMessage.id = messageID
-            chatMessage.fromUserId = from
-            chatMessage.toUserId = self.userData.userId
+            chatMessage.id = chatRetractInfo.messageID
+            chatMessage.fromUserId = chatRetractInfo.from
+            switch chatRetractInfo.threadType {
+            case .oneToOne:
+                chatMessage.toUserId = self.userData.userId
+            case .groupChat:
+                chatMessage.toGroupId = chatRetractInfo.threadID
+            case .groupFeed:
+                break
+            }
+
             chatMessage.incomingStatus = status
             chatMessage.outgoingStatus = .none
             chatMessage.timestamp = timestamp
@@ -3096,20 +3104,29 @@ extension ChatData {
         }
     }
 
-    private func createNewChatThreadIfMissing(from: UserID, messageID: String, status: ChatThread.LastMsgStatus) {
+    private func createNewChatThreadIfMissing(chatRetractInfo: ChatRetractInfo, status: ChatThread.LastMsgStatus) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            guard let self = self, self.chatThreadStatus(type: .oneToOne, id: from, messageId: messageID, in: managedObjectContext) == nil else {
+            // TODO NOTE this was previouslt self.chatThreadStatus WHY?
+            guard let self = self, self.chatThread(type: chatRetractInfo.threadType, id: chatRetractInfo.threadID, in: managedObjectContext) == nil else {
                 return
             }
-            DDLogWarn("ChatData/createNewChatThreadIfMissing/from: \(from)/messageID: \(messageID)/status: \(status)/messages might be out of order")
+            DDLogWarn("ChatData/createNewChatThreadIfMissing/from: \(chatRetractInfo.from)/messageID: \(chatRetractInfo.messageID)/status: \(status)/messages might be out of order")
             let timestamp = Date()
             let chatThread = ChatThread(context: managedObjectContext)
-            chatThread.lastMsgUserId = from
+            switch chatRetractInfo.threadType {
+            case .oneToOne:
+                chatThread.userID = chatRetractInfo.threadID
+            case .groupChat:
+                chatThread.groupId = chatRetractInfo.threadID
+            default:
+                break
+            }
+            chatThread.lastMsgUserId = chatRetractInfo.from
             chatThread.lastMsgTimestamp = timestamp
             chatThread.lastMsgStatus = status
             chatThread.lastMsgText = nil
             chatThread.lastMsgMediaType = .none
-            chatThread.type = .oneToOne
+            chatThread.type = chatRetractInfo.threadType
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
             }
@@ -3971,19 +3988,19 @@ extension ChatData {
     
     // MARK: 1-1 Process Inbound Retract Message
     
-    private func processInboundChatMessageRetract(from: UserID, messageID: String) {
+    private func processInboundChatMessageRetract(chatRetractInfo: ChatRetractInfo) {
         DDLogInfo("ChatData/processInboundChatMessageRetract")
 
-        createNewChatMessageIfMissing(from: from, messageID: messageID, status: .retracted)
+        createNewChatMessageIfMissing(chatRetractInfo: chatRetractInfo, status: .retracted)
 
-        updateChatMessage(with: messageID) { [weak self] (chatMessage) in
+        updateChatMessage(with: chatRetractInfo.messageID) { [weak self] (chatMessage) in
             guard let self = self else { return }
 
             chatMessage.incomingStatus = .retracted
 
             self.deleteChatMessageContent(in: chatMessage)
 
-            self.createNewChatThreadIfMissing(from: from, messageID: messageID, status: .retracted)
+            self.createNewChatThreadIfMissing(chatRetractInfo: chatRetractInfo, status: .retracted)
             self.updateChatThreadStatus(chatMessageRecipient: chatMessage.chatMessageRecipient, messageId: chatMessage.id) { (chatThread) in
                 chatThread.lastMsgStatus = .retracted
 
@@ -3993,10 +4010,10 @@ extension ChatData {
         }
     }
     
-    private func processInboundReactionRetract(from: UserID, reactionID: String) {
+    private func processInboundReactionRetract(chatRetractInfo: ChatRetractInfo) {
         DDLogInfo("ChatData/processInboundReactionRetract")
 
-        updateReaction(with: reactionID) { [weak self] (commonReaction) in
+        updateReaction(with: chatRetractInfo.messageID) { [weak self] (commonReaction) in
             guard let self = self else { return }
 
             commonReaction.incomingStatus = .retracted
@@ -4027,7 +4044,7 @@ extension ChatData {
                     reactionText = String(format: Localizations.chatListUserDeletedReactionText, fromUserName, commonReaction.emoji, "\"\(text)\"")
                 }
             }
-            self.createNewChatThreadIfMissing(from: from, messageID: reactionID, status: .retracted)
+            self.createNewChatThreadIfMissing(chatRetractInfo: chatRetractInfo, status: .retracted)
             self.updateChatThreadStatus(chatMessageRecipient: commonReaction.chatMessageRecipient, messageId: commonReaction.id) { (chatThread) in
                 chatThread.lastMsgStatus = .retracted
                 chatThread.lastMsgText = reactionText

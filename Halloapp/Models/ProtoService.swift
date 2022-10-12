@@ -875,7 +875,7 @@ final class ProtoService: ProtoServiceCore {
             DispatchQueue.main.async {
                 self.didGetChatRetract.send((
                     from: fromUserID,
-                    threadType: .groupFeed,
+                    threadType: .groupChat,
                     threadID: pbGroupChatRetract.gid,
                     messageID: pbGroupChatRetract.id
                 ))
