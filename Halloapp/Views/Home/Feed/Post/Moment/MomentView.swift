@@ -62,6 +62,7 @@ class MomentView: UIView {
         view.layer.cornerRadius = Layout.innerRadius
         view.layer.cornerCurve = .continuous
         view.layer.masksToBounds = true
+        view.layer.allowsEdgeAntialiasing = true
         return view
     }()
 
@@ -69,6 +70,7 @@ class MomentView: UIView {
         let view = ZoomableImageView(frame: .zero)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.contentMode = .scaleAspectFill
+        view.layer.allowsEdgeAntialiasing = true
         return view
     }()
 
@@ -76,6 +78,7 @@ class MomentView: UIView {
         let view = ZoomableImageView(frame: .zero)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.contentMode = .scaleAspectFill
+        view.layer.allowsEdgeAntialiasing = true
         return view
     }()
 
@@ -89,6 +92,7 @@ class MomentView: UIView {
         view.layer.cornerRadius = Layout.innerRadius
         view.layer.cornerCurve = .continuous
         view.layer.masksToBounds = true
+        view.layer.allowsEdgeAntialiasing = true
         return view
     }()
 
@@ -225,11 +229,6 @@ class MomentView: UIView {
         imageContainer.addSubview(leadingImageView)
         imageContainer.addSubview(trailingImageView)
 
-        imageContainer.layer.allowsEdgeAntialiasing = true
-        blurView.layer.allowsEdgeAntialiasing = true
-        leadingImageView.layer.allowsEdgeAntialiasing = true
-        trailingImageView.layer.allowsEdgeAntialiasing = true
-
         let footerPadding = Layout.footerPadding
         let imageHeightConstraint = imageContainer.heightAnchor.constraint(equalTo: imageContainer.widthAnchor)
         let hideTrailingImageConstraint = trailingImageView.widthAnchor.constraint(equalToConstant: 0)
@@ -250,7 +249,7 @@ class MomentView: UIView {
             imageHeightConstraint,
 
             leadingImageView.leadingAnchor.constraint(equalTo: imageContainer.leadingAnchor),
-            leadingImageView.trailingAnchor.constraint(equalTo: trailingImageView.leadingAnchor),
+            leadingImageView.trailingAnchor.constraint(equalTo: trailingImageView.leadingAnchor, constant: 1), // constant here is to remove aliasing
             leadingImageView.topAnchor.constraint(equalTo: imageContainer.topAnchor),
             leadingImageView.bottomAnchor.constraint(equalTo: imageContainer.bottomAnchor),
 
@@ -537,6 +536,7 @@ class MomentView: UIView {
         var hideDisclaimer = hasValidMoment
         let hideImageContainer = downloadProgressCancellable != nil
         var enableOpenTap = false
+        var hideBackgroundGradient = downloadProgressCancellable == nil
 
         if let post = feedPost {
             let name = MainAppContext.shared.contactStore.firstName(for: post.userID,
@@ -560,10 +560,13 @@ class MomentView: UIView {
             buttonText = Localizations.openCamera
             buttonImage = nil
             hideDisclaimer = true
+            hideBackgroundGradient = false
         }
 
         imageContainer.isHidden = hideImageContainer
         downloadProgressView.isHidden = !hideImageContainer
+        gradientView.isHidden = hideBackgroundGradient
+
         blurView.effect = showBlur ? UIBlurEffect(style: .regular) : nil
         blurView.isUserInteractionEnabled = newState != .unlocked
 
