@@ -121,6 +121,10 @@ protocol HalloService: CoreService {
     func getServerProperties(completion: @escaping ServiceRequestCompletion<ServerPropertiesResponse>)
 
     func mergeData(from sharedDataStore: SharedDataStore, completion: @escaping () -> ())
+
+    // MARK: Reporting content
+    func report(postID: FeedPostID, userID: UserID, completion: @escaping ServiceRequestCompletion<Void>)
+    func report(userID: UserID, completion: @escaping ServiceRequestCompletion<Void>)
 }
 
 protocol HalloFeedDelegate: AnyObject {

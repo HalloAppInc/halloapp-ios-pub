@@ -666,11 +666,7 @@ final class FeedItemHeaderView: UIView {
             privacyIndicatorButtonView.removeFromSuperview()
         }
 
-        if !(post.hasSaveablePostMedia && post.canSaveMedia), !post.canDeletePost {
-            moreButton.removeFromSuperview()
-        } else {
-            contentStackView.addArrangedSubview(moreButton)
-        }
+        contentStackView.addArrangedSubview(moreButton)
 
         configureGroupLabel(with: post.groupId, contentWidth: contentWidth, showGroupName: showGroupName)
         refreshTimestamp(with: post)

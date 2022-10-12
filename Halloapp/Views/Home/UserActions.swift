@@ -23,6 +23,7 @@ enum UserAction {
     case commonGroups(UserID)
     case block(UserID)
     case unblock(UserID)
+    case report(UserID)
 }
 
 /// For responding to context actions for a specific user.
@@ -58,6 +59,8 @@ extension UserActionHandler where Self: UIViewController {
             block(userID: id)
         case .unblock(let id):
             unblock(userID: id)
+        case .report(let id):
+            report(userID: id)
         default:
             break
         }
@@ -143,7 +146,11 @@ extension UserActionHandler where Self: UIViewController {
         navigationController?.present(controller, animated: true)
     }
     
-    private func block(userID: UserID) {
+    private func block(userID: UserID, showAlert: Bool = true) {
+        guard showAlert else {
+            return MainAppContext.shared.privacySettings.block(userID: userID)
+        }
+
         let contactsViewContext = MainAppContext.shared.contactStore.viewContext
         let blockMessage = Localizations.blockMessage(username: MainAppContext.shared.contactStore.fullName(for: userID, in: contactsViewContext))
         let alert = UIAlertController(title: nil, message: blockMessage, preferredStyle: .actionSheet)
@@ -172,6 +179,37 @@ extension UserActionHandler where Self: UIViewController {
         
         present(alert, animated: true)
     }
+
+    private func report(userID: UserID) {
+        let name = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
+        let title = String(format: Localizations.reportUserTitle, name)
+        let message = String(format: Localizations.reportUserMessage, name)
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+
+        let report = {
+            MainAppContext.shared.service.report(userID: userID) {
+                switch $0 {
+                case .success(_):
+                    Toast(type: .icon(.init(systemName: "checkmark")), text: String(format: Localizations.reportUserSuccess, name)).show()
+                case .failure(_):
+                    Toast(type: .icon(.init(systemName: "xmark")), text: String(format: Localizations.reportUserFailure, name)).show()
+                }
+            }
+        }
+
+        alert.addAction(.init(title: Localizations.reportAndBlock, style: .destructive) { _ in
+            report()
+            self.block(userID: userID, showAlert: false)
+        })
+
+        alert.addAction(.init(title: Localizations.reportTitle, style: .destructive) { _ in
+            report()
+        })
+
+        alert.addAction(.init(title: Localizations.buttonCancel, style: .cancel) { _ in })
+
+        present(alert, animated: true)
+    }
 }
 
 // MARK: - creating menus
@@ -192,17 +230,18 @@ extension HAMenu {
         static let safetyNumber = UserMenuOptions(rawValue: 1 << 6)
         static let commonGroups = UserMenuOptions(rawValue: 1 << 7)
         static let block = UserMenuOptions(rawValue: 1 << 8)
+        static let report = UserMenuOptions(rawValue: 1 << 9)
 
         static let all: UserMenuOptions = [.firstGroup, .secondGroup, .thirdGroup]
         fileprivate static let firstGroup: UserMenuOptions = [.message, .voiceCall, .videoCall]
         fileprivate static let secondGroup: UserMenuOptions = [.viewProfile, .addContact, .favorite, .safetyNumber, .commonGroups]
-        fileprivate static let thirdGroup: UserMenuOptions = [.block]
+        fileprivate static let thirdGroup: UserMenuOptions = [.block, .report]
 
         fileprivate static var ordered: [UserMenuOptions] {
             [
                 .message, .voiceCall, .videoCall,
                 .viewProfile, .addContact, .favorite, .safetyNumber, .commonGroups,
-                .block
+                .block, .report
             ]
         }
     }
@@ -283,6 +322,8 @@ extension HAMenu {
 
         case .block:
             return blockButton(userID, handler: handler)
+        case .report:
+            return reportButton(userID, handler: handler)
 
         default:
             return nil
@@ -370,6 +411,13 @@ extension HAMenu {
             }
         }
     }
+
+    private static func reportButton(_ userID: UserID, handler: @escaping UserActionCallback) -> HAMenuButton {
+        HAMenuButton(title: Localizations.reportUser, image: UIImage(systemName: "flag")) {
+            await handler(.report(userID))
+        }
+        .destructive()
+    }
 }
 
 // MARK: - Localization
@@ -404,5 +452,47 @@ extension Localizations {
         NSLocalizedString("removed.user.from.favorites",
                    value: "Removed %@ from favorites",
                  comment: "Confirmation when a user was successfully removed from favorites.")
+    }
+
+    static var reportUser: String {
+        NSLocalizedString("report.user",
+                   value: "Report User",
+                 comment: "Title of a button that reports a user.")
+    }
+
+    static var reportUserMessage: String {
+        NSLocalizedString("report.user.message",
+                   value: "Are you sure want to report %@?",
+                 comment: "Message confirming if the user wants to report someone.")
+    }
+
+    static var reportUserTitle: String {
+        NSLocalizedString("report.user.title",
+                   value: "Report %@",
+                 comment: "Title of the dialog that appears when reporting a user.")
+    }
+
+    static var reportTitle: String {
+        NSLocalizedString("report.title",
+                   value: "Report",
+                 comment: "Title of the report button.")
+    }
+
+    static var reportAndBlock: String {
+        NSLocalizedString("report.and.block",
+                   value: "Report and Block",
+                 comment: "Title of the button that both reports and blocks a user.")
+    }
+
+    static var reportUserSuccess: String {
+        NSLocalizedString("report.user.success",
+                   value: "Reported %@",
+                 comment: "Message that's displayed after successfully reporting a user.")
+    }
+
+    static var reportUserFailure: String {
+        NSLocalizedString("report.user.failure",
+                    value: "Failed to Report %@",
+                  comment: "Message that's displayed when reporting a user failed.")
     }
 }

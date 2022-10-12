@@ -534,6 +534,31 @@ final class ProtoExternalShareGetRequest: ProtoRequest<Server_ExternalSharePostC
     }
 }
 
+final class ProtoReportPostRequest: ProtoRequest<Void> {
+
+    init(postID: FeedPostID, userID: Int64, completion: @escaping Completion) {
+        var reportUserContent = Server_ReportUserContent()
+        reportUserContent.type = .post
+        reportUserContent.contentID = postID
+        reportUserContent.uid = userID
+
+        let iqPacket: Server_Packet = .iqPacket(type: .set, payload: .reportUserContent(reportUserContent))
+        super.init(iqPacket: iqPacket, transform: { _ in .success(()) }, completion: completion)
+    }
+}
+
+final class ProtoReportUserRequest: ProtoRequest<Void> {
+
+    init(userID: Int64, completion: @escaping Completion) {
+        var reportUserContent = Server_ReportUserContent()
+        reportUserContent.type = .user
+        reportUserContent.uid = userID
+
+        let iqPacket: Server_Packet = .iqPacket(type: .set, payload: .reportUserContent(reportUserContent))
+        super.init(iqPacket: iqPacket, transform: { _ in .success(())}, completion: completion)
+    }
+}
+
 extension Server_PushPref.Name {
     init(_ configKey: NotificationSettings.ConfigKey) {
         switch configKey {

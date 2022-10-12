@@ -5479,6 +5479,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             media.mediaDirectory = .commonMedia
         }
     }
+
+    func report(post: FeedPost, delete: Bool, completion: @escaping ServiceRequestCompletion<Void>) {
+        let postID = post.id
+        let userID = post.userID
+
+        service.report(postID: postID, userID: userID, completion: completion)
+        if delete {
+            deletePosts(with: [postID])
+        }
+    }
 }
 
 extension FeedData: HalloFeedDelegate {

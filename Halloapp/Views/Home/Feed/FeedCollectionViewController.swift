@@ -993,18 +993,31 @@ extension FeedCollectionViewController {
 
     @HAMenuContentBuilder
     private func moreMenu(for feedPost: FeedPost) -> HAMenu.Content {
-        if feedPost.hasSaveablePostMedia, feedPost.canSaveMedia {
-            let title = (feedPost.media?.count ?? 0) > 1 ? Localizations.saveAllButton : Localizations.saveAllButtonSingular
-            HAMenuButton(title: title, image: UIImage(systemName: "photo.on.rectangle.angled")) { [weak self] in
-                self?.savePostMedia(feedPost: feedPost)
+        HAMenu {
+            if feedPost.hasSaveablePostMedia, feedPost.canSaveMedia {
+                let title = (feedPost.media?.count ?? 0) > 1 ? Localizations.saveAllButton : Localizations.saveAllButtonSingular
+                HAMenuButton(title: title, image: UIImage(systemName: "photo.on.rectangle.angled")) { [weak self] in
+                    self?.savePostMedia(feedPost: feedPost)
+                }
+            }
+
+            if feedPost.canDeletePost {
+                let title = feedPost.isMoment ? Localizations.deleteMomentButtonTitle : Localizations.deletePostButtonTitle
+                HAMenuButton(title: title, image: UIImage(systemName: "trash")) { [weak self] in
+                    self?.handleDeletePostTapped(post: feedPost)
+                }.destructive()
             }
         }
+        .displayInline()
 
-        if feedPost.canDeletePost {
-            let title = feedPost.isMoment ? Localizations.deleteMomentButtonTitle : Localizations.deletePostButtonTitle
-            HAMenuButton(title: title, image: UIImage(systemName: "trash")) { [weak self] in
-                self?.handleDeletePostTapped(post: feedPost)
-            }.destructive()
+        if feedPost.userID != MainAppContext.shared.userData.userId {
+            HAMenu {
+                HAMenuButton(title: Localizations.reportPost, image: UIImage(systemName: "flag")) { [weak self] in
+                    self?.handleReportPost(feedPost)
+                }
+                .destructive()
+            }
+            .displayInline()
         }
     }
 
@@ -1068,6 +1081,36 @@ extension FeedCollectionViewController {
             }
         }
         dismiss(animated: true)
+    }
+
+    private func handleReportPost(_ post: FeedPost) {
+        let name = MainAppContext.shared.contactStore.fullName(for: post.userId, in: MainAppContext.shared.contactStore.viewContext)
+        let title = Localizations.reportPost
+        let message = String(format: Localizations.reportPostMessage, name)
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+
+        let report: (Bool) -> Void = { removePost in
+            MainAppContext.shared.feedData.report(post: post, delete: removePost) {
+                switch $0 {
+                case .success(_):
+                    Toast(type: .icon(.init(systemName: "checkmark")), text: Localizations.reportPostSuccess).show()
+                case .failure(_):
+                    Toast(type: .icon(.init(systemName: "xmark")), text: Localizations.reportPostFailure).show()
+                }
+            }
+        }
+
+        alert.addAction(.init(title: Localizations.reportAndRemovePost, style: .destructive) { _ in
+            report(true)
+        })
+
+        alert.addAction(.init(title: Localizations.reportTitle, style: .destructive) { _ in
+            report(false)
+        })
+
+        alert.addAction(.init(title: Localizations.buttonCancel, style: .cancel) { _ in })
+
+        present(alert, animated: true)
     }
 }
 
@@ -1308,6 +1351,36 @@ extension Localizations {
         NSLocalizedString("your.moment.delete.confirmation",
                    value: "Delete this moment? This action cannot be undone.",
                  comment: "Moment deletion confirmation. Displays as action sheet title.")
+    }
+
+    static var reportPost: String {
+        NSLocalizedString("report.post",
+                   value: "Report Post",
+                 comment: "Title of the button to report a post.")
+    }
+
+    static var reportPostMessage: String {
+        NSLocalizedString("report.post.message",
+                   value: "Are you sure you want to report this post by %@?",
+                 comment: "Message confirming if the user wants to report someone's post.")
+    }
+
+    static var reportAndRemovePost: String {
+        NSLocalizedString("report.post.and.remove",
+                   value: "Report and Remove Post",
+                 comment: "Title of the button that both reports a post and removes it.")
+    }
+
+    static var reportPostSuccess: String {
+        NSLocalizedString("report.post.success",
+                   value: "Reported Post",
+                 comment: "Message that's displayed after successfully reporting a post.")
+    }
+
+    static var reportPostFailure: String {
+        NSLocalizedString("report.post.failure",
+                   value: "Failed to Report Post",
+                 comment: "Message that's displayed when reporting a post failed.")
     }
 
     private static let postExpirationFormatter: DateFormatter = {

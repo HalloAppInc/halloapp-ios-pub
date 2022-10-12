@@ -2687,6 +2687,24 @@ extension ProtoService: HalloService {
             self.send(packetData)
         }
     }
+
+    func report(postID: FeedPostID, userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+        guard let userID = Int64(userID) else {
+            return completion(.failure(.malformedRequest))
+        }
+
+        let request = ProtoReportPostRequest(postID: postID, userID: userID, completion: completion)
+        enqueue(request: request)
+    }
+
+    func report(userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+        guard let userID = Int64(userID) else {
+            return completion(.failure(.malformedRequest))
+        }
+
+        let request = ProtoReportUserRequest(userID: userID, completion: completion)
+        enqueue(request: request)
+    }
 }
 
 private protocol ReceivedReceipt {
