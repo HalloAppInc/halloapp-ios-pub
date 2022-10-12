@@ -70,10 +70,10 @@ public struct MomentContent {
             selfie.img = resource
             selfie.width = Int32(image.size.width)
             selfie.height = Int32(image.size.height)
+            moment.selfieImage = selfie
         }
 
         moment.image = main
-        moment.selfieImage = selfie
         moment.selfieLeading = selfieLeading
         if let locationString {
             moment.location = locationString
