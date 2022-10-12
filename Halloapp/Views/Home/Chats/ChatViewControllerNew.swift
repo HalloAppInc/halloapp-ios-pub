@@ -878,7 +878,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
     private func configureCell(itemCell: MessageCellViewBase, for chatMessage: ChatMessage) {
         let isPreviousMessageFromSameSender = previousChatSenderInfo[chatMessage.id]
-        itemCell.configureWith(message: chatMessage, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender ?? false)
+        itemCell.configureWith(message: chatMessage, userColorAssignment: .secondaryLabel, parentUserColorAssignment: .secondaryLabel, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender ?? false)
         itemCell.textLabel.delegate = self
         itemCell.chatDelegate = self
     }

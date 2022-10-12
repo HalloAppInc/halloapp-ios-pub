@@ -184,14 +184,14 @@ class MessageCellViewQuoted: MessageCellViewBase {
         configureCell()
     }
 
-    override func configureWith(message: ChatMessage, isPreviousMessageFromSameSender: Bool) {
-        super.configureWith(message: message, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
+    override func configureWith(message: ChatMessage, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
+        super.configureWith(message: message, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         audioMediaStatusCancellable?.cancel()
         guard message.chatReplyMessageID != nil || message.feedPostId != nil else { return }
         configureText(chatMessage: message)
         // Configure parent chat view
         if let chatReplyMessageID = message.chatReplyMessageID, let replyMessage = MainAppContext.shared.chatData.chatMessage(with: chatReplyMessageID, in: MainAppContext.shared.chatData.viewContext) {
-            quotedMessageView.configureWith(message: replyMessage)
+            quotedMessageView.configureWith(message: replyMessage, userColorAssignment: parentUserColorAssignment)
             nameContentTimeRow.addArrangedSubview(quotedMessageView)
         } else if let quotedMessage = chatMessage?.quoted {
             quotedMessageView.configureWith(quoted: quotedMessage)

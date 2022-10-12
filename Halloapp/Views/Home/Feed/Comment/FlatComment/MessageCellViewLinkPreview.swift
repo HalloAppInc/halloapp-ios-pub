@@ -67,8 +67,8 @@ class MessageCellViewLinkPreview: MessageCellViewBase {
         super.configureCell()
     }
 
-    override func configureWith(message: ChatMessage, isPreviousMessageFromSameSender: Bool) {
-        super.configureWith(message: message, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
+    override func configureWith(message: ChatMessage, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
+        super.configureWith(message: message, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         configureText(chatMessage: message)
         if let feedLinkPreviews = message.linkPreviews, let feedLinkPreview = feedLinkPreviews.first {
             linkPreviewView.configure(linkPreview: feedLinkPreview)

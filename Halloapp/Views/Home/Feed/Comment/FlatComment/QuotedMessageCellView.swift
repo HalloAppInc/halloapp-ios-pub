@@ -211,9 +211,9 @@ class QuotedMessageCellView: UIView {
         textLabel.textColor = UIColor.quotedMessageText
     }
 
-    func configureWith(message: ChatMessage) {
+    func configureWith(message: ChatMessage, userColorAssignment: UIColor) {
         prepareForReuse()
-        setNameLabel(for: message.fromUserId)
+        setNameLabel(for: message.fromUserId, userColorAssignment: userColorAssignment)
         configureText(text: message.rawText ?? "", mentions: message.mentions)
         configureMedia(media: message.media)
         configureCell()

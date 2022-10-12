@@ -103,9 +103,9 @@ class MessageViewCell: MessageCellViewBase {
         }
     }
 
-    override func configureWith(message: ChatMessage, isPreviousMessageFromSameSender: Bool) {
+    override func configureWith(message: ChatMessage, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
         timeLabel.text = message.timestamp?.chatDisplayTimestamp()
-        super.configureWith(message: message, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
+        super.configureWith(message: message, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         configureCell()
         if [.retracted, .retracting].contains(message.outgoingStatus) || [.retracted].contains(message.incomingStatus) {
             configureRetracted(text: Localizations.chatMessageDeleted)

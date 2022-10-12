@@ -64,9 +64,9 @@ class MessageCellViewText: MessageCellViewBase {
         super.configureCell()
     }
 
-    override func configureWith(message: ChatMessage, isPreviousMessageFromSameSender: Bool) {
+    override func configureWith(message: ChatMessage, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
         timeLabel.text = message.timestamp?.chatDisplayTimestamp()
-        super.configureWith(message: message, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
+        super.configureWith(message: message, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         configureText(chatMessage: message)
         super.configureCell()
     }

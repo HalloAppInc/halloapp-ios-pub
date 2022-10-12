@@ -394,7 +394,7 @@ class MessageCellViewBase: UICollectionViewCell {
         }
     }
 
-    func configureWith(message: ChatMessage, isPreviousMessageFromSameSender: Bool) {
+    func configureWith(message: ChatMessage, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
         contentView.addSubview(forwardButton)
         chatMessage = message
         isOwnMessage = message.fromUserId == MainAppContext.shared.userData.userId
@@ -408,6 +408,10 @@ class MessageCellViewBase: UICollectionViewCell {
         if let chatMessage = chatMessage, chatMessage.fromUserId == MainAppContext.shared.userData.userId {
             // outgoing message cell, track outgoing status
             setMessageOutgoingStatus()
+        }
+        if let chatMessage = chatMessage, chatMessage.chatMessageRecipient.chatType == .groupChat {
+            nameLabel.text =  MainAppContext.shared.contactStore.fullName(for: chatMessage.fromUserId, in: MainAppContext.shared.contactStore.viewContext)
+            nameLabel.textColor = userColorAssignment
         }
         if let chatMessage = chatMessage {
             // track changes to reactions for chatMessage

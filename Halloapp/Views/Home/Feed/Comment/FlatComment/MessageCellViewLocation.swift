@@ -87,8 +87,8 @@ final class MessageCellViewLocation: MessageCellViewBase {
         // TODO: Configure with post comment
     }
 
-    override func configureWith(message: ChatMessage, isPreviousMessageFromSameSender: Bool) {
-        super.configureWith(message: message, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
+    override func configureWith(message: ChatMessage, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
+        super.configureWith(message: message, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         
         guard let location = message.location else { return }
         

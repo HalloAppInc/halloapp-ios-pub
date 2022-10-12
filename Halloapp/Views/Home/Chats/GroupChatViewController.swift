@@ -115,6 +115,23 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
     fileprivate typealias ChatDataSource = UICollectionViewDiffableDataSource<Section, MessageRow>
     fileprivate typealias ChatMessageSnapshot = NSDiffableDataSourceSnapshot<Section, MessageRow>
 
+    private var chatParticipants: [String: Int] = [:]
+    // List of colors to cycle through while setting user names
+    private var colors: [UIColor] = [
+        UIColor.userColor1,
+        UIColor.userColor2,
+        UIColor.userColor3,
+        UIColor.userColor4,
+        UIColor.userColor5,
+        UIColor.userColor6,
+        UIColor.userColor7,
+        UIColor.userColor8,
+        UIColor.userColor9,
+        UIColor.userColor10,
+        UIColor.userColor11,
+        UIColor.userColor12
+    ]
+
     private lazy var titleView: GroupTitleView = {
         let titleView = GroupTitleView()
         titleView.translatesAutoresizingMaskIntoConstraints = false
@@ -251,9 +268,14 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
     }
 
     private func configureCell(itemCell: MessageCellViewBase, for chatMessage: ChatMessage) {
+        let userColorAssignment = getUserColorAssignment(userId: chatMessage.fromUserId)
+        var parentUserColorAssignment = UIColor.secondaryLabel
+        if let parentMessageUserId = chatMessage.chatReplyMessageSenderID {
+            parentUserColorAssignment = getUserColorAssignment(userId: parentMessageUserId)
+        }
         // TODO isPreviousMessageFromSameSender calculation
         let isPreviousMessageFromSameSender = false
-        itemCell.configureWith(message: chatMessage, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
+        itemCell.configureWith(message: chatMessage, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         itemCell.textLabel.delegate = self
         itemCell.chatDelegate = self
     }
@@ -686,6 +708,15 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
             return nil
         }
         return dataSource?.indexPath(for: MessageRow.chatMessage(ChatMessageData(id: chatMessage.id, fromUserId: chatMessage.fromUserId, groupId: groupId, timestamp: chatMessage.timestamp)))
+    }
+
+    private func getUserColorAssignment(userId: UserID) -> UIColor {
+        guard let userColorIndex = chatParticipants[userId] else {
+            let chatParticipantsCount = chatParticipants.count
+            chatParticipants[userId] = chatParticipantsCount
+            return colors[(chatParticipantsCount) % colors.count]
+        }
+        return colors[userColorIndex % colors.count]
     }
 }
 
