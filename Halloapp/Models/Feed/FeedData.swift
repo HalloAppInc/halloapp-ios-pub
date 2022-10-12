@@ -1661,6 +1661,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogError("FeedData/process-reactions/processing comment as reaction [\(xmppReaction.id)] with status: \(xmppReaction.status)")
             }
 
+            DDLogInfo("FeedData/process-reactions/commonReaction  \(commonReaction)")
             reactions[commonReaction.id] = commonReaction
             newReactions.append(commonReaction)
         }
@@ -1706,6 +1707,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         if !contactNames.isEmpty {
             contactStore.addPushNames(contactNames)
         }
+
+        DDLogInfo("FeedData/processIncomingFeedItems/feedPosts: \(feedPosts.count)/comments: \(comments.count)/reactions: \(reactions.count)")
         
         performSeriallyOnBackgroundContext { (managedObjectContext) in
             let posts = self.process(posts: feedPosts,

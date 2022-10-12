@@ -400,7 +400,7 @@ final class ProtoService: ProtoServiceCore {
     }
 
     // TODO: murali@: it is a bit confusing to pass status for all feed items here - should improve this.
-    private func payloadContents(for items: [Server_GroupFeedItem], status: FeedItemStatus) -> [FeedContent] {
+    private func payloadContents(for items: [Server_GroupFeedItem], status: FeedItemStatus, fallback: Bool = false) -> [FeedContent] {
 
         // NB: This function should not assume group fields are populated! [gid, name, avatarID]
         // They aren't included on each child when server sends a `Server_GroupFeedItems` stanza.
@@ -409,7 +409,6 @@ final class ProtoService: ProtoServiceCore {
         var elements = [FeedElement]()
 
         // This function is used for groupFeedItems from server and for fallback to unencrypted payload.
-        let fallback: Bool = false
         for item in items {
             let isShared: Bool = item.isResentHistory ? true : item.action == .share
             switch item.item {
@@ -1333,7 +1332,8 @@ final class ProtoService: ProtoServiceCore {
                     // Update items decrypted count for groupHistory stats.
                     AppContext.shared.cryptoData.receivedFeedHistoryItems(groupID: groupID, timestamp: Date(), newlyDecrypted: items.items.count, newRerequests: 0)
                     let group = HalloGroup(id: groupID, name: items.name, type: ThreadType.groupFeed, avatarID: items.avatarID)
-                    for content in self.payloadContents(for: items.items, status: .received) {
+                    // Should fallback to plain text here.
+                    for content in self.payloadContents(for: items.items, status: .received, fallback: true) {
                         let payload = HalloServiceFeedPayload(content: content, group: group, isEligibleForNotification: false)
                         self.feedDelegate?.halloService(self, didReceiveFeedPayload: payload, ack: nil)
                     }
