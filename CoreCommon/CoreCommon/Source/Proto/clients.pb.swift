@@ -3672,4 +3672,3 @@ extension Clients_GroupHistoryPayload: SwiftProtobuf.Message, SwiftProtobuf._Mes
     return true
   }
 }
-

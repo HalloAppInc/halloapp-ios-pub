@@ -443,6 +443,25 @@ public struct Server_ContactSyncError {
   public init() {}
 }
 
+public struct Server_MomentInfo {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// timestamp received from the server in the notification.
+  public var notificationTimestamp: Int64 = 0
+
+  /// Time taken on the moment camera to capture the moment.
+  public var timeTaken: Int64 = 0
+
+  /// Number of times a moment has been captured and discarded.
+  public var numTakes: Int64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Server_MediaCounters {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -522,46 +541,86 @@ public struct Server_Post {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var id: String = String()
+  public var id: String {
+    get {return _storage._id}
+    set {_uniqueStorage()._id = newValue}
+  }
 
-  public var publisherUid: Int64 = 0
+  public var publisherUid: Int64 {
+    get {return _storage._publisherUid}
+    set {_uniqueStorage()._publisherUid = newValue}
+  }
 
-  public var payload: Data = Data()
+  public var payload: Data {
+    get {return _storage._payload}
+    set {_uniqueStorage()._payload = newValue}
+  }
 
   public var audience: Server_Audience {
-    get {return _audience ?? Server_Audience()}
-    set {_audience = newValue}
+    get {return _storage._audience ?? Server_Audience()}
+    set {_uniqueStorage()._audience = newValue}
   }
   /// Returns true if `audience` has been explicitly set.
-  public var hasAudience: Bool {return self._audience != nil}
+  public var hasAudience: Bool {return _storage._audience != nil}
   /// Clears the value of `audience`. Subsequent reads from it will return its default value.
-  public mutating func clearAudience() {self._audience = nil}
+  public mutating func clearAudience() {_uniqueStorage()._audience = nil}
 
-  public var timestamp: Int64 = 0
+  public var timestamp: Int64 {
+    get {return _storage._timestamp}
+    set {_uniqueStorage()._timestamp = newValue}
+  }
 
-  public var publisherName: String = String()
+  public var publisherName: String {
+    get {return _storage._publisherName}
+    set {_uniqueStorage()._publisherName = newValue}
+  }
 
   /// Serialized EncryptedPayload (from client.proto).
-  public var encPayload: Data = Data()
+  public var encPayload: Data {
+    get {return _storage._encPayload}
+    set {_uniqueStorage()._encPayload = newValue}
+  }
 
   public var mediaCounters: Server_MediaCounters {
-    get {return _mediaCounters ?? Server_MediaCounters()}
-    set {_mediaCounters = newValue}
+    get {return _storage._mediaCounters ?? Server_MediaCounters()}
+    set {_uniqueStorage()._mediaCounters = newValue}
   }
   /// Returns true if `mediaCounters` has been explicitly set.
-  public var hasMediaCounters: Bool {return self._mediaCounters != nil}
+  public var hasMediaCounters: Bool {return _storage._mediaCounters != nil}
   /// Clears the value of `mediaCounters`. Subsequent reads from it will return its default value.
-  public mutating func clearMediaCounters() {self._mediaCounters = nil}
+  public mutating func clearMediaCounters() {_uniqueStorage()._mediaCounters = nil}
 
-  public var tag: Server_Post.Tag = .empty
+  public var tag: Server_Post.Tag {
+    get {return _storage._tag}
+    set {_uniqueStorage()._tag = newValue}
+  }
 
-  public var psaTag: String = String()
+  public var psaTag: String {
+    get {return _storage._psaTag}
+    set {_uniqueStorage()._psaTag = newValue}
+  }
 
-  public var momentUnlockUid: Int64 = 0
+  public var momentUnlockUid: Int64 {
+    get {return _storage._momentUnlockUid}
+    set {_uniqueStorage()._momentUnlockUid = newValue}
+  }
 
   /// If set to true, the client will try and show ui design to
   /// share the recently composed post externally.
-  public var showPostShareScreen: Bool = false
+  public var showPostShareScreen: Bool {
+    get {return _storage._showPostShareScreen}
+    set {_uniqueStorage()._showPostShareScreen = newValue}
+  }
+
+  /// Must be set only for moments.
+  public var momentInfo: Server_MomentInfo {
+    get {return _storage._momentInfo ?? Server_MomentInfo()}
+    set {_uniqueStorage()._momentInfo = newValue}
+  }
+  /// Returns true if `momentInfo` has been explicitly set.
+  public var hasMomentInfo: Bool {return _storage._momentInfo != nil}
+  /// Clears the value of `momentInfo`. Subsequent reads from it will return its default value.
+  public mutating func clearMomentInfo() {_uniqueStorage()._momentInfo = nil}
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -595,8 +654,7 @@ public struct Server_Post {
 
   public init() {}
 
-  fileprivate var _audience: Server_Audience? = nil
-  fileprivate var _mediaCounters: Server_MediaCounters? = nil
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 #if swift(>=4.2)
@@ -3683,6 +3741,18 @@ extension Server_ContentMissing.ContentType: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+public struct Server_MomentNotification {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var timestamp: Int64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Server_Iq {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -4702,6 +4772,14 @@ public struct Server_Msg {
     set {_uniqueStorage()._payload = .groupChatStanza(newValue)}
   }
 
+  public var momentNotification: Server_MomentNotification {
+    get {
+      if case .momentNotification(let v)? = _storage._payload {return v}
+      return Server_MomentNotification()
+    }
+    set {_uniqueStorage()._payload = .momentNotification(newValue)}
+  }
+
   public var retryCount: Int32 {
     get {return _storage._retryCount}
     set {_uniqueStorage()._retryCount = newValue}
@@ -4767,6 +4845,7 @@ public struct Server_Msg {
     case screenshotReceipt(Server_ScreenshotReceipt)
     case savedReceipt(Server_SavedReceipt)
     case groupChatStanza(Server_GroupChatStanza)
+    case momentNotification(Server_MomentNotification)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Msg.OneOf_Payload, rhs: Server_Msg.OneOf_Payload) -> Bool {
@@ -4956,6 +5035,10 @@ public struct Server_Msg {
       }()
       case (.groupChatStanza, .groupChatStanza): return {
         guard case .groupChatStanza(let l) = lhs, case .groupChatStanza(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.momentNotification, .momentNotification): return {
+        guard case .momentNotification(let l) = lhs, case .momentNotification(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -5649,6 +5732,10 @@ public struct Server_PushRegister {
   public mutating func clearPushToken() {self._pushToken = nil}
 
   public var langID: String = String()
+
+  /// Time difference in seconds between the timezone and GMT.
+  /// Could be positive or negative
+  public var zoneOffset: Int64 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -7501,6 +7588,7 @@ extension Server_ContactList: @unchecked Sendable {}
 extension Server_ContactList.TypeEnum: @unchecked Sendable {}
 extension Server_ContactHash: @unchecked Sendable {}
 extension Server_ContactSyncError: @unchecked Sendable {}
+extension Server_MomentInfo: @unchecked Sendable {}
 extension Server_MediaCounters: @unchecked Sendable {}
 extension Server_Audience: @unchecked Sendable {}
 extension Server_Audience.TypeEnum: @unchecked Sendable {}
@@ -7593,6 +7681,7 @@ extension Server_WebStanza: @unchecked Sendable {}
 extension Server_WebStanza.OneOf_Payload: @unchecked Sendable {}
 extension Server_ContentMissing: @unchecked Sendable {}
 extension Server_ContentMissing.ContentType: @unchecked Sendable {}
+extension Server_MomentNotification: @unchecked Sendable {}
 extension Server_Iq: @unchecked Sendable {}
 extension Server_Iq.OneOf_Payload: @unchecked Sendable {}
 extension Server_Iq.TypeEnum: @unchecked Sendable {}
@@ -8355,6 +8444,50 @@ extension Server_ContactSyncError: SwiftProtobuf.Message, SwiftProtobuf._Message
   }
 }
 
+extension Server_MomentInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".MomentInfo"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "notification_timestamp"),
+    2: .standard(proto: "time_taken"),
+    3: .standard(proto: "num_takes"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularInt64Field(value: &self.notificationTimestamp) }()
+      case 2: try { try decoder.decodeSingularInt64Field(value: &self.timeTaken) }()
+      case 3: try { try decoder.decodeSingularInt64Field(value: &self.numTakes) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.notificationTimestamp != 0 {
+      try visitor.visitSingularInt64Field(value: self.notificationTimestamp, fieldNumber: 1)
+    }
+    if self.timeTaken != 0 {
+      try visitor.visitSingularInt64Field(value: self.timeTaken, fieldNumber: 2)
+    }
+    if self.numTakes != 0 {
+      try visitor.visitSingularInt64Field(value: self.numTakes, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_MomentInfo, rhs: Server_MomentInfo) -> Bool {
+    if lhs.notificationTimestamp != rhs.notificationTimestamp {return false}
+    if lhs.timeTaken != rhs.timeTaken {return false}
+    if lhs.numTakes != rhs.numTakes {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Server_MediaCounters: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".MediaCounters"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -8460,88 +8593,150 @@ extension Server_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     10: .standard(proto: "psa_tag"),
     11: .standard(proto: "moment_unlock_uid"),
     12: .standard(proto: "show_post_share_screen"),
+    13: .standard(proto: "moment_info"),
   ]
 
+  fileprivate class _StorageClass {
+    var _id: String = String()
+    var _publisherUid: Int64 = 0
+    var _payload: Data = Data()
+    var _audience: Server_Audience? = nil
+    var _timestamp: Int64 = 0
+    var _publisherName: String = String()
+    var _encPayload: Data = Data()
+    var _mediaCounters: Server_MediaCounters? = nil
+    var _tag: Server_Post.Tag = .empty
+    var _psaTag: String = String()
+    var _momentUnlockUid: Int64 = 0
+    var _showPostShareScreen: Bool = false
+    var _momentInfo: Server_MomentInfo? = nil
+
+    static let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _id = source._id
+      _publisherUid = source._publisherUid
+      _payload = source._payload
+      _audience = source._audience
+      _timestamp = source._timestamp
+      _publisherName = source._publisherName
+      _encPayload = source._encPayload
+      _mediaCounters = source._mediaCounters
+      _tag = source._tag
+      _psaTag = source._psaTag
+      _momentUnlockUid = source._momentUnlockUid
+      _showPostShareScreen = source._showPostShareScreen
+      _momentInfo = source._momentInfo
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
-      case 2: try { try decoder.decodeSingularInt64Field(value: &self.publisherUid) }()
-      case 3: try { try decoder.decodeSingularBytesField(value: &self.payload) }()
-      case 4: try { try decoder.decodeSingularMessageField(value: &self._audience) }()
-      case 5: try { try decoder.decodeSingularInt64Field(value: &self.timestamp) }()
-      case 6: try { try decoder.decodeSingularStringField(value: &self.publisherName) }()
-      case 7: try { try decoder.decodeSingularBytesField(value: &self.encPayload) }()
-      case 8: try { try decoder.decodeSingularMessageField(value: &self._mediaCounters) }()
-      case 9: try { try decoder.decodeSingularEnumField(value: &self.tag) }()
-      case 10: try { try decoder.decodeSingularStringField(value: &self.psaTag) }()
-      case 11: try { try decoder.decodeSingularInt64Field(value: &self.momentUnlockUid) }()
-      case 12: try { try decoder.decodeSingularBoolField(value: &self.showPostShareScreen) }()
-      default: break
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularStringField(value: &_storage._id) }()
+        case 2: try { try decoder.decodeSingularInt64Field(value: &_storage._publisherUid) }()
+        case 3: try { try decoder.decodeSingularBytesField(value: &_storage._payload) }()
+        case 4: try { try decoder.decodeSingularMessageField(value: &_storage._audience) }()
+        case 5: try { try decoder.decodeSingularInt64Field(value: &_storage._timestamp) }()
+        case 6: try { try decoder.decodeSingularStringField(value: &_storage._publisherName) }()
+        case 7: try { try decoder.decodeSingularBytesField(value: &_storage._encPayload) }()
+        case 8: try { try decoder.decodeSingularMessageField(value: &_storage._mediaCounters) }()
+        case 9: try { try decoder.decodeSingularEnumField(value: &_storage._tag) }()
+        case 10: try { try decoder.decodeSingularStringField(value: &_storage._psaTag) }()
+        case 11: try { try decoder.decodeSingularInt64Field(value: &_storage._momentUnlockUid) }()
+        case 12: try { try decoder.decodeSingularBoolField(value: &_storage._showPostShareScreen) }()
+        case 13: try { try decoder.decodeSingularMessageField(value: &_storage._momentInfo) }()
+        default: break
+        }
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if !self.id.isEmpty {
-      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
-    }
-    if self.publisherUid != 0 {
-      try visitor.visitSingularInt64Field(value: self.publisherUid, fieldNumber: 2)
-    }
-    if !self.payload.isEmpty {
-      try visitor.visitSingularBytesField(value: self.payload, fieldNumber: 3)
-    }
-    try { if let v = self._audience {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
-    } }()
-    if self.timestamp != 0 {
-      try visitor.visitSingularInt64Field(value: self.timestamp, fieldNumber: 5)
-    }
-    if !self.publisherName.isEmpty {
-      try visitor.visitSingularStringField(value: self.publisherName, fieldNumber: 6)
-    }
-    if !self.encPayload.isEmpty {
-      try visitor.visitSingularBytesField(value: self.encPayload, fieldNumber: 7)
-    }
-    try { if let v = self._mediaCounters {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
-    } }()
-    if self.tag != .empty {
-      try visitor.visitSingularEnumField(value: self.tag, fieldNumber: 9)
-    }
-    if !self.psaTag.isEmpty {
-      try visitor.visitSingularStringField(value: self.psaTag, fieldNumber: 10)
-    }
-    if self.momentUnlockUid != 0 {
-      try visitor.visitSingularInt64Field(value: self.momentUnlockUid, fieldNumber: 11)
-    }
-    if self.showPostShareScreen != false {
-      try visitor.visitSingularBoolField(value: self.showPostShareScreen, fieldNumber: 12)
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      if !_storage._id.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._id, fieldNumber: 1)
+      }
+      if _storage._publisherUid != 0 {
+        try visitor.visitSingularInt64Field(value: _storage._publisherUid, fieldNumber: 2)
+      }
+      if !_storage._payload.isEmpty {
+        try visitor.visitSingularBytesField(value: _storage._payload, fieldNumber: 3)
+      }
+      try { if let v = _storage._audience {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+      } }()
+      if _storage._timestamp != 0 {
+        try visitor.visitSingularInt64Field(value: _storage._timestamp, fieldNumber: 5)
+      }
+      if !_storage._publisherName.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._publisherName, fieldNumber: 6)
+      }
+      if !_storage._encPayload.isEmpty {
+        try visitor.visitSingularBytesField(value: _storage._encPayload, fieldNumber: 7)
+      }
+      try { if let v = _storage._mediaCounters {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
+      } }()
+      if _storage._tag != .empty {
+        try visitor.visitSingularEnumField(value: _storage._tag, fieldNumber: 9)
+      }
+      if !_storage._psaTag.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._psaTag, fieldNumber: 10)
+      }
+      if _storage._momentUnlockUid != 0 {
+        try visitor.visitSingularInt64Field(value: _storage._momentUnlockUid, fieldNumber: 11)
+      }
+      if _storage._showPostShareScreen != false {
+        try visitor.visitSingularBoolField(value: _storage._showPostShareScreen, fieldNumber: 12)
+      }
+      try { if let v = _storage._momentInfo {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Server_Post, rhs: Server_Post) -> Bool {
-    if lhs.id != rhs.id {return false}
-    if lhs.publisherUid != rhs.publisherUid {return false}
-    if lhs.payload != rhs.payload {return false}
-    if lhs._audience != rhs._audience {return false}
-    if lhs.timestamp != rhs.timestamp {return false}
-    if lhs.publisherName != rhs.publisherName {return false}
-    if lhs.encPayload != rhs.encPayload {return false}
-    if lhs._mediaCounters != rhs._mediaCounters {return false}
-    if lhs.tag != rhs.tag {return false}
-    if lhs.psaTag != rhs.psaTag {return false}
-    if lhs.momentUnlockUid != rhs.momentUnlockUid {return false}
-    if lhs.showPostShareScreen != rhs.showPostShareScreen {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._id != rhs_storage._id {return false}
+        if _storage._publisherUid != rhs_storage._publisherUid {return false}
+        if _storage._payload != rhs_storage._payload {return false}
+        if _storage._audience != rhs_storage._audience {return false}
+        if _storage._timestamp != rhs_storage._timestamp {return false}
+        if _storage._publisherName != rhs_storage._publisherName {return false}
+        if _storage._encPayload != rhs_storage._encPayload {return false}
+        if _storage._mediaCounters != rhs_storage._mediaCounters {return false}
+        if _storage._tag != rhs_storage._tag {return false}
+        if _storage._psaTag != rhs_storage._psaTag {return false}
+        if _storage._momentUnlockUid != rhs_storage._momentUnlockUid {return false}
+        if _storage._showPostShareScreen != rhs_storage._showPostShareScreen {return false}
+        if _storage._momentInfo != rhs_storage._momentInfo {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -12507,6 +12702,38 @@ extension Server_ContentMissing.ContentType: SwiftProtobuf._ProtoNameProviding {
   ]
 }
 
+extension Server_MomentNotification: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".MomentNotification"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "timestamp"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularInt64Field(value: &self.timestamp) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.timestamp != 0 {
+      try visitor.visitSingularInt64Field(value: self.timestamp, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_MomentNotification, rhs: Server_MomentNotification) -> Bool {
+    if lhs.timestamp != rhs.timestamp {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Iq"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -13353,6 +13580,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     50: .standard(proto: "screenshot_receipt"),
     51: .standard(proto: "saved_receipt"),
     52: .standard(proto: "group_chat_stanza"),
+    53: .standard(proto: "moment_notification"),
     21: .standard(proto: "retry_count"),
     25: .standard(proto: "rerequest_count"),
   ]
@@ -14000,6 +14228,19 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
             _storage._payload = .groupChatStanza(v)
           }
         }()
+        case 53: try {
+          var v: Server_MomentNotification?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .momentNotification(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .momentNotification(v)
+          }
+        }()
         default: break
         }
       }
@@ -14220,6 +14461,10 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       case .groupChatStanza?: try {
         guard case .groupChatStanza(let v)? = _storage._payload else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 52)
+      }()
+      case .momentNotification?: try {
+        guard case .momentNotification(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 53)
       }()
       default: break
       }
@@ -14863,6 +15108,7 @@ extension Server_PushRegister: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "push_token"),
     2: .standard(proto: "lang_id"),
+    3: .same(proto: "zoneOffset"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -14873,6 +15119,7 @@ extension Server_PushRegister: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularMessageField(value: &self._pushToken) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.langID) }()
+      case 3: try { try decoder.decodeSingularInt64Field(value: &self.zoneOffset) }()
       default: break
       }
     }
@@ -14889,12 +15136,16 @@ extension Server_PushRegister: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     if !self.langID.isEmpty {
       try visitor.visitSingularStringField(value: self.langID, fieldNumber: 2)
     }
+    if self.zoneOffset != 0 {
+      try visitor.visitSingularInt64Field(value: self.zoneOffset, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Server_PushRegister, rhs: Server_PushRegister) -> Bool {
     if lhs._pushToken != rhs._pushToken {return false}
     if lhs.langID != rhs.langID {return false}
+    if lhs.zoneOffset != rhs.zoneOffset {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
