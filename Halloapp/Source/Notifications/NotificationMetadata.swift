@@ -128,6 +128,9 @@ class NotificationMetadata: Codable {
     var serverChatStanzaPb: Data? = nil
     var senderClientVersion: String? = nil
 
+    //GroupChat specific fields
+    var serverGroupChatStanzaPb: Data? = nil
+
     // GroupFeedItem specific fields
     var serverGroupFeedItemPb: Data? = nil
     // HomeFeedItem specific fields
@@ -431,6 +434,32 @@ class NotificationMetadata: Codable {
                 return nil
             }
             senderClientVersion = chatMsg.senderClientVersion
+
+        case .groupChatStanza(let groupChatMsg):
+            contentId = msg.id
+            contentType = .groupChatMessage
+            fromId = UserID(msg.fromUid)
+            timestamp = Date(timeIntervalSince1970: TimeInterval(groupChatMsg.timestamp))
+            data = groupChatMsg.payload
+            pushName = groupChatMsg.senderName
+            pushNumber = groupChatMsg.senderPhone
+            groupId = groupChatMsg.gid
+            groupName = groupChatMsg.name
+
+
+            // Save pushNumber from the message received.
+            if let phone = pushNumber, !phone.isEmpty {
+                AppContext.shared.contactStore.addPushNumbers([ fromId : phone ])
+            }
+
+            do {
+                serverGroupChatStanzaPb = try groupChatMsg.serializedData()
+            } catch {
+                DDLogError("NotificationMetadata/init/chatStanza could not serialize chatMsg: \(msg)")
+                return nil
+            }
+            senderClientVersion = groupChatMsg.senderClientVersion
+
         case .chatRetract(let chatRetractStanza):
             contentId = chatRetractStanza.id
             contentType = .chatMessageRetract
@@ -438,6 +467,17 @@ class NotificationMetadata: Codable {
             timestamp = Date()
             data = nil
             pushName = nil
+
+        case .groupchatRetract(let groupChatRetract):
+            contentId = groupChatRetract.id
+            groupId = groupChatRetract.gid
+            contentType = .groupChatMessageRetract
+            fromId = UserID(msg.fromUid)
+            timestamp = Date()
+            data = nil
+            pushName = nil
+            pushNumber = nil
+
         case .groupStanza(let groupStanza):
             let addedToNewGroup = groupStanza.members.contains(where: { $0.action == .add && $0.uid == Int64(AppContext.shared.userData.userId) })
             if addedToNewGroup {

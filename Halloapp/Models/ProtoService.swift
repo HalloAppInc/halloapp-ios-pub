@@ -721,8 +721,7 @@ final class ProtoService: ProtoServiceCore {
                         .notDecrypted(
                             ChatMessageTombstone(
                                 id: msg.id,
-                                from: UserID(msg.fromUid),
-                                to: UserID(msg.toUid),
+                                chatMessageRecipient: .groupChat(toGroupId: GroupID(serverGroupChatStanza.gid), fromUserId: UserID(msg.fromUid)),
                                 timestamp: Date(timeIntervalSince1970: TimeInterval(serverGroupChatStanza.timestamp))
                             )))
                 }
@@ -800,8 +799,7 @@ final class ProtoService: ProtoServiceCore {
                         .notDecrypted(
                             ChatMessageTombstone(
                                 id: msg.id,
-                                from: UserID(msg.fromUid),
-                                to: UserID(msg.toUid),
+                                chatMessageRecipient: .oneToOneChat(toUserId: UserID(msg.toUid), fromUserId: UserID(msg.fromUid)),
                                 timestamp: Date(timeIntervalSince1970: TimeInterval(serverChat.timestamp))
                             )))
                 }

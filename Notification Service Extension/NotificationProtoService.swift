@@ -400,6 +400,37 @@ final class NotificationProtoService: ProtoServiceCore {
                 }
             }
 
+        case .groupChatMessage:
+            let messageId = metadata.messageId
+            // Check if message has already been received and decrypted successfully.
+            // If yes - then dismiss notification, else continue processing.
+            hasAckBeenDelegated = true
+            mainDataStore.performSeriallyOnBackgroundContext { context in
+                if let chatMessage = self.coreChatData.chatMessage(with: messageId, in: context), chatMessage.incomingStatus != .rerequesting {
+                    DDLogError("didReceiveRequest/error duplicate message ID that was already decrypted[\(messageId)]")
+                    ack()
+                    return
+                } else if let reaction = self.coreChatData.commonReaction(with: metadata.contentId, in: context), reaction.incomingStatus != .rerequesting {
+                    DDLogError("didReceiveRequest/error duplicate commonReaction [\(metadata.contentId)]/status: \(reaction.incomingStatus)")
+                    ack()
+                    return
+                }
+
+                do {
+                    guard let serverGroupChatStanzaPb = metadata.serverGroupChatStanzaPb else {
+                        DDLogError("MetadataError/could not find server_group_chat stanza, contentId: \(metadata.contentId), contentType: \(metadata.contentType)")
+                        ack()
+                        return
+                    }
+                    let serverGroupChatStanza = try Server_GroupChatStanza(serializedData: serverGroupChatStanzaPb)
+                    DDLogInfo("NotificationExtension/requesting decryptGroupChat \(metadata.contentId)")
+                    // this function acks and sends rerequests accordingly.
+                    self.decryptAndProcessGroupChat(messageId: messageId, serverGroupChatStanza: serverGroupChatStanza, metadata: metadata)
+                } catch {
+                    DDLogError("NotificationExtension/GroupChatMessage/Failed serverGroupChatStanzaStr: \(String(describing: metadata.serverChatStanzaPb)), error: \(error)")
+                }
+            }
+
         case .newInvitee, .newFriend, .newContact, .groupAdd:
             // save server message stanzas to process for these notifications.
             presentNotification(for: metadata)
@@ -535,7 +566,7 @@ final class NotificationProtoService: ProtoServiceCore {
             // save these messages to be processed by the main app.
             notificationDataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
 
-        case .groupChatMessage, .chatRerequest, .missedAudioCall, .missedVideoCall:
+        case .chatRerequest, .missedAudioCall, .missedVideoCall:
             notificationDataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
 
         case .screenshot:
@@ -858,8 +889,7 @@ final class NotificationProtoService: ProtoServiceCore {
             } else {
                 DDLogError("NotificationExtension/decryptChat/failed decryption, error: \(String(describing: decryptionFailure))")
                 let tombstone = ChatMessageTombstone(id: messageId,
-                                                     from: fromUserID,
-                                                     to: AppContext.shared.userData.userId,
+                                                     chatMessageRecipient: .oneToOneChat(toUserId: AppContext.shared.userData.userId, fromUserId: fromUserID),
                                                      timestamp: Date(timeIntervalSince1970: TimeInterval(serverChatStanza.timestamp)))
                 self.coreChatData.saveChatMessage(chatMessage: .notDecrypted(tombstone), hasBeenProcessed: false) { result in
                     DDLogInfo("NotificationExtension/decryptChat/failed/save tombstone \(messageId)/result: \(result)")
@@ -879,6 +909,51 @@ final class NotificationProtoService: ProtoServiceCore {
                 DDLogError("NotificationExtension/decryptAndProcessChat/could not report result, messageId: \(messageId)")
             }
             self.processChat(chatContent: content, failure: decryptionFailure, metadata: metadata)
+        }
+    }
+
+    // Decrypt, process, save, rerequest and ack chats!
+    private func decryptAndProcessGroupChat(messageId: String, serverGroupChatStanza: Server_GroupChatStanza, metadata: NotificationMetadata) {
+        let fromUserID = metadata.fromId
+        let groupID = GroupID(serverGroupChatStanza.gid)
+        decryptGroupChatStanza(serverGroupChatStanza, msgId: messageId, from: fromUserID, in: groupID) { (content, context, groupDecryptionFailure) in
+            if let content = content, let context = context {
+                DDLogInfo("NotificationExtension/decryptGroupChat/successful/messageId \(messageId)")
+                let groupChatMessage = XMPPChatMessage(content: content,
+                                                  context: context,
+                                                  timestamp: serverGroupChatStanza.timestamp,
+                                                  from: fromUserID,
+                                                  chatMessageRecipient: .groupChat(toGroupId: groupID, fromUserId: fromUserID),
+                                                  id: messageId,
+                                                  retryCount: metadata.retryCount,
+                                                  rerequestCount: metadata.rerequestCount)
+                self.coreChatData.saveChatMessage(chatMessage: .decrypted(groupChatMessage), hasBeenProcessed: false) { result in
+                    self.incrementApplicationIconBadgeNumber()
+                    DDLogInfo("NotificationExtension/decryptGroupChat/success/save message \(messageId)/result: \(result)")
+                }
+            } else {
+                DDLogError("NotificationExtension/decryptGroupChat/failed decryption, error: \(String(describing: groupDecryptionFailure))")
+                let tombstone = ChatMessageTombstone(id: messageId,
+                                                     chatMessageRecipient: .groupChat(toGroupId: groupID, fromUserId: fromUserID),
+                                                     timestamp: Date(timeIntervalSince1970: TimeInterval(serverGroupChatStanza.timestamp)))
+                self.coreChatData.saveChatMessage(chatMessage: .notDecrypted(tombstone), hasBeenProcessed: false) { result in
+                    DDLogInfo("NotificationExtension/decryptGroupChat/failed/save tombstone \(messageId)/result: \(result)")
+                }
+            }
+
+            if let senderClientVersion = metadata.senderClientVersion {
+                DDLogInfo("NotificationExtension/decryptAndProcessGroupChat/report result \(String(describing: groupDecryptionFailure?.error))/ msg: \(messageId)")
+                self.reportGroupDecryptionResult(error: groupDecryptionFailure?.error,
+                                                 contentID: messageId,
+                                                 contentType: .chat,
+                                                 groupID: groupID,
+                                                 timestamp: Date(timeIntervalSince1970: TimeInterval(serverGroupChatStanza.timestamp)),
+                                                 sender: UserAgent(string: senderClientVersion),
+                                                 rerequestCount: Int(metadata.rerequestCount))
+            } else {
+                DDLogError("NotificationExtension/decryptAndProcessGroupChat/could not report result, messageId: \(messageId)")
+            }
+            self.processGroupChat(chatContent: content, groupDecryptionFailure: groupDecryptionFailure, metadata: metadata)
         }
     }
 
@@ -910,6 +985,82 @@ final class NotificationProtoService: ProtoServiceCore {
         AppExtensionContext.shared.applicationIconBadgeNumber = applicationIconBadgeNumber
     }
 
+    // Process Group Chats - ack/rerequest/download media if necessary.
+    private func processGroupChat(chatContent: ChatContent?, groupDecryptionFailure: GroupDecryptionFailure?, metadata: NotificationMetadata) {
+        let messageId = metadata.messageId
+        guard let groupID = metadata.groupId else {
+            return
+        }
+
+        if let groupDecryptionFailure = groupDecryptionFailure {
+            DDLogError("proto/handleGrouChatStanza/\(messageId)/decrypt/error \(groupDecryptionFailure.error)")
+            self.rerequestGroupChatMessageIfNecessary(id: messageId, groupID: groupID, contentType: .message, failure: groupDecryptionFailure) { result in
+                switch result {
+                case .success:
+                    // Ack only on successful rereq
+                    DDLogInfo("NotificationExtension/processGroupChat/sendRerequest/success sent rerequest, messageId: \(messageId)")
+                    self.sendAck(messageID: messageId)
+                case .failure(let error):
+                    DDLogError("NotificationExtension/processGroupChat/sendRerequest/failure sending rerequest, messageId: \(messageId), error: \(error)")
+                    if error.canAck {
+                        self.sendAck(messageID: messageId)
+                    }
+                }
+            }
+        } else {
+            DDLogInfo("NotificationExtension/processGroupChat/error: missing rerequest data, messageId: \(messageId)")
+            sendAck(messageID: messageId)
+        }
+
+        // If we failed to get decrypted chat content successfully - then just return!
+        guard let chatContent = chatContent else {
+            DDLogError("NotificationExtension/decryptGroupChat/failed to get chat content, messageId: \(messageId)")
+            return
+        }
+
+        mainDataStore.performSeriallyOnBackgroundContext { context in
+            switch chatContent {
+            case .reaction(_):
+                let notificationContent = self.extractAndHoldNotificationContent(for: metadata, using: chatContent)
+                self.presentNotification(for: metadata.identifier, with: notificationContent)
+                return
+            default:
+                break
+            }
+
+            guard let chatMessage = self.coreChatData.chatMessage(with: messageId, in: context) else {
+                return
+            }
+
+            let notificationContent = self.extractAndHoldNotificationContent(for: metadata, using: chatContent)
+            if let firstOrderedMediaItem = chatMessage.orderedMedia.first,
+               let firstMediaItem = chatMessage.media?.filter({ $0.id == firstOrderedMediaItem.id }).first {
+                let downloadTask = self.startDownloading(media: firstMediaItem)
+                downloadTask?.feedMediaObjectId = firstMediaItem.objectID
+            } else if let firstMediaItem = chatMessage.linkPreviews?.first?.media?.first {
+                let downloadTask = self.startDownloading(media: firstMediaItem)
+                downloadTask?.feedMediaObjectId = firstMediaItem.objectID
+            } else if let quotedMediaItem = chatMessage.quoted?.media?.first,
+                      quotedMediaItem.mediaDirectory == .commonMedia,
+                      let relativeFilePath = quotedMediaItem.relativeFilePath {
+                var attachments: [UNNotificationAttachment] = []
+                do {
+                    let fileURL = self.downloadManager.fileURL(forRelativeFilePath: relativeFilePath)
+                    if FileManager.default.fileExists(atPath: fileURL.absoluteString) {
+                        let attachment = try UNNotificationAttachment(identifier: quotedMediaItem.id, url: fileURL, options: nil)
+                        attachments.append(attachment)
+                    }
+                    self.presentNotification(for: metadata.identifier, with: notificationContent, using: attachments)
+                } catch {
+                    DDLogError("NotificationExtension/media/attachment-create/error \(error)")
+                    self.presentNotification(for: metadata.identifier, with: notificationContent)
+                }
+            } else {
+                self.presentNotification(for: metadata.identifier, with: notificationContent)
+            }
+        }
+    }
+
     // Process Chats - ack/rerequest/download media if necessary.
     private func processChat(chatContent: ChatContent?, failure: DecryptionFailure?, metadata: NotificationMetadata) {
         let messageId = metadata.messageId
@@ -927,6 +1078,9 @@ final class NotificationProtoService: ProtoServiceCore {
                         self.sendAck(messageID: messageId)
                     case .failure(let error):
                         DDLogError("NotificationExtension/processChat/sendRerequest/failure sending rerequest, messageId: \(messageId), error: \(error)")
+                        if error.canAck {
+                            self.sendAck(messageID: messageId)
+                        }
                     }
                 }
             } else {

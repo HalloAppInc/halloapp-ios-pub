@@ -3612,7 +3612,7 @@ extension ChatData {
                 case .notDecrypted(let tombstone):
                     DDLogInfo("ChatData/processIncomingChatMessage/tombstone \(tombstone.id)")
                     self.processInboundTombstone(tombstone, using: managedObjectContext)
-                    self.didGetAChatMsg.send(tombstone.from)
+                    self.didGetAChatMsg.send(tombstone.chatMessageRecipient.fromUserId)
                 }
             }
         }
@@ -3626,8 +3626,7 @@ extension ChatData {
 
         let chatMessage = NSEntityDescription.insertNewObject(forEntityName: ChatMessage.entity().name!, into: managedObjectContext) as! ChatMessage
         chatMessage.id = tombstone.id
-        chatMessage.toUserId = tombstone.to
-        chatMessage.fromUserId = tombstone.from
+        chatMessage.chatMessageRecipient = tombstone.chatMessageRecipient
         chatMessage.timestamp = tombstone.timestamp
         let serialID = MainAppContext.shared.getchatMsgSerialId()
         DDLogDebug("ChatData/processInboundTombstone/\(tombstone.id)/serialId [\(serialID)]")

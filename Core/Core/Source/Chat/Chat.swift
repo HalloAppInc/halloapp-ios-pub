@@ -71,7 +71,7 @@ public enum ChatMessageRecipient {
         }
     }
 
-    public var fromUserId: String? {
+    public var fromUserId: String {
         switch self {
         case .oneToOneChat(_, let fromUserId):
             return fromUserId
@@ -377,17 +377,15 @@ public extension ChatMediaProtocol {
 }
 
 public struct ChatMessageTombstone {
-    public init(id: String, from: UserID, to: UserID, timestamp: Date) {
+    public init(id: String, chatMessageRecipient: ChatMessageRecipient, timestamp: Date) {
         self.id = id
-        self.from = from
-        self.to = to
+        self.chatMessageRecipient = chatMessageRecipient
         self.timestamp = timestamp
     }
 
     public var id: String
-    public var from: UserID
-    public var to: UserID
     public var timestamp: Date
+    public var chatMessageRecipient: ChatMessageRecipient
 }
 
 extension Clients_Text {

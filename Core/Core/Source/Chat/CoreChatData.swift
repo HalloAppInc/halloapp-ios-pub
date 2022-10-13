@@ -1081,8 +1081,7 @@ public class CoreChatData {
             DDLogDebug("CoreChatData/saveTombstone [\(tombstone.id)]")
             let chatMessage = ChatMessage(context: context)
             chatMessage.id = tombstone.id
-            chatMessage.toUserId = tombstone.to
-            chatMessage.fromUserId = tombstone.from
+            chatMessage.chatMessageRecipient = tombstone.chatMessageRecipient
             chatMessage.timestamp = tombstone.timestamp
             let serialID = AppContext.shared.getchatMsgSerialId()
             DDLogDebug("CoreChatData/saveTombstone/\(tombstone.id)/serialId [\(serialID)]")
