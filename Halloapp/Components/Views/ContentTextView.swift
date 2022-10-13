@@ -84,6 +84,10 @@ class ContentTextView: UITextView {
         placeholderLabel.isHidden = !(text?.isEmpty ?? true)
     }
 
+    override var text: String! {
+        didSet { updatePlaceholderVisibility() }
+    }
+
     override var font: UIFont? {
         didSet {
             guard let font = self.font else {
@@ -164,7 +168,7 @@ class ContentTextView: UITextView {
     }
     
     override func copy(_ sender: Any?) {
-        if(mentions.isEmpty) {
+        if mentions.isEmpty {
             super.copy(sender)
             return
         }
@@ -175,7 +179,7 @@ class ContentTextView: UITextView {
         var offsetMentions = Dictionary<NSRange, MentionedUser>()
         for mention in mentions {
             var newRange = mention.key
-            if(selectedRange.contains(newRange)) {
+            if selectedRange.contains(newRange) {
                 newRange.location -= selectedRange.location
                 offsetMentions[newRange] = mention.value
             }

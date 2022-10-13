@@ -214,14 +214,80 @@ class ExistingNetworkViewController: UIViewController, UserActionHandler {
 
     @objc
     private func nextButtonPushed(_ button: UIButton) {
-        let composer = PostComposerViewController(mediaToPost: [],
-                                                 initialInput: MentionInput(text: "", mentions: [:], selectedRange: NSRange()),
-                                                configuration: .onboardingPost,
-                                              initialPostType: .unified,
-                                                    voiceNote: nil,
-                                                     delegate: self)
+        let preset = Localizations.onboardingPostText
+        let length = preset.utf16Extent.length
+        let location = length == 0 ? 0 : length - 1
+
+        let composer = ComposerViewController(config: .onboardingPost,
+                                                type: .unified,
+                                               input: .init(text: preset, mentions: [:], selectedRange: NSMakeRange(location, 0)),
+                                               media: [],
+                                           voiceNote: nil) { viewController, result, tappedShare in
+
+            if tappedShare {
+                self.showDestinationPicker(result: result)
+            } else {
+                self.navigationController?.popViewController(animated: true)
+            }
+        }
+
+        composer.onCancel = { [onboardingManager] in
+            onboardingManager.didCompleteOnboardingFlow()
+        }
 
         navigationController?.pushViewController(composer, animated: true)
+    }
+
+    private func showDestinationPicker(result: ComposerResult) {
+        let picker = DestinationPickerViewController(config: .composer, destinations: result.destinations) { viewController, destinations in
+            guard !destinations.isEmpty else {
+                viewController.navigationController?.popViewController(animated: true)
+                return
+            }
+
+            for destination in destinations {
+                if case let .contact(userID, _, _) = destination {
+                    self.sendChat(to: userID, with: result)
+                } else {
+                    self.createPost(for: destination, with: result)
+                }
+            }
+
+            self.onboardingManager.didCompleteOnboardingFlow()
+        }
+
+        navigationController?.pushViewController(picker, animated: true)
+    }
+
+    private func sendChat(to userID: UserID, with result: ComposerResult) {
+        guard let text = result.text else {
+            return
+        }
+
+        let recipient: ChatMessageRecipient = .oneToOneChat(toUserId: userID, fromUserId: AppContext.shared.userData.userId)
+        MainAppContext.shared.chatData.sendMessage(chatMessageRecipient: recipient,
+                                                                   text: text.trimmed().collapsedText,
+                                                                  media: result.media,
+                                                                  files: [],
+                                                        linkPreviewData: result.linkPreviewData,
+                                                       linkPreviewMedia: result.linkPreviewMedia,
+                                                             feedPostId: nil,
+                                                     feedPostMediaIndex: 0,
+                                                     chatReplyMessageID: nil,
+                                               chatReplyMessageSenderID: nil,
+                                             chatReplyMessageMediaIndex: 0)
+    }
+
+    private func createPost(for destination: ShareDestination, with result: ComposerResult) {
+        guard let text = result.text else {
+            return
+        }
+
+        MainAppContext.shared.feedData.post(text: text,
+                                           media: result.media,
+                                 linkPreviewData: result.linkPreviewData,
+                                linkPreviewMedia: result.linkPreviewMedia,
+                                              to: destination)
     }
 }
 
@@ -235,37 +301,6 @@ extension ExistingNetworkViewController: UICollectionViewDelegate {
 
     func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
         return false
-    }
-}
-
-// MARK: - PostComposerViewDelegate methods
-
-extension ExistingNetworkViewController: PostComposerViewDelegate {
-
-    func composerDidTapShare(controller: PostComposerViewController,
-                             destination: Core.ShareDestination,
-                             mentionText: Core.MentionText,
-                             media: [Core.PendingMedia],
-                             linkPreviewData: Core.LinkPreviewData?,
-                             linkPreviewMedia: Core.PendingMedia?) {
-
-    }
-
-    func composerDidTapBack(controller: PostComposerViewController, destination: Core.ShareDestination, media: [Core.PendingMedia], voiceNote: Core.PendingMedia?) {
-        navigationController?.popViewController(animated: true)
-    }
-
-    func willDismissWithInput(mentionInput: Core.MentionInput) {
-
-    }
-
-    func composerDidTapLinkPreview(controller: PostComposerViewController, url: URL) {
-
-    }
-
-    func composerDidTapClose(controller: PostComposerViewController) {
-        // exited out of making a post; enter the main app
-        onboardingManager.didCompleteOnboardingFlow()
     }
 }
 
@@ -300,5 +335,11 @@ extension Localizations {
         NSLocalizedString("fellow.contacts.will.arrive",
                    value: "Your phone contacts that register with HalloApp will appear here automatically.",
                  comment: "Explains that as more contacts join the app, they will appear in this list automatically.")
+    }
+
+    static var onboardingPostText: String {
+        NSLocalizedString("onboarding.post.text",
+                   value: "Hey there! I’m using HalloApp.",
+                 comment: "Preset text for the composer when the user is creating their first post.")
     }
 }

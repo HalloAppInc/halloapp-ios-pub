@@ -32,6 +32,8 @@ struct ComposerConfig {
     var mediaEditMaxAspectRatio: CGFloat?
     var maxVideoLength: TimeInterval = ServerProperties.maxFeedVideoDuration
 
+    fileprivate var isOnboarding = false
+
     static func config(with destination: ShareDestination) -> ComposerConfig {
         switch destination {
         case .feed:
@@ -56,6 +58,10 @@ struct ComposerConfig {
             destination: destination,
             maxVideoLength: ServerProperties.maxChatVideoDuration
         )
+    }
+
+    static var onboardingPost: ComposerConfig {
+        ComposerConfig(destination: .feed(.all), isOnboarding: true)
     }
 }
 
@@ -129,6 +135,9 @@ class ComposerViewController: UIViewController {
         }
     }
 
+    /// - note: Only used during onboarding to cancel out of the compose flow (different from going back).
+    var onCancel: (() -> Void)?
+
     private var cancellables: Set<AnyCancellable> = []
     private var mediaReadyCancellable: AnyCancellable?
 
@@ -173,17 +182,19 @@ class ComposerViewController: UIViewController {
     }()
 
     private lazy var annotateButtonItem: UIBarButtonItem = {
-        let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
         let image = UIImage(named: "Annotate")
-
         return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(annotateAction))
     }()
 
     private lazy var drawButtonItem: UIBarButtonItem = {
-        let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
         let image = UIImage(named: "Draw")
-
         return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(drawAction))
+    }()
+
+    private lazy var cancelButtonItem: UIBarButtonItem = {
+        let configuration = UIImage.SymbolConfiguration(weight: .bold)
+        let image = UIImage(systemName: "xmark", withConfiguration: configuration)
+        return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(cancelAction))
     }()
 
     private lazy var contentView: UIStackView = {
@@ -567,17 +578,10 @@ class ComposerViewController: UIViewController {
             titleView.alignment = .leading
             if case .group(_, _) = config.destination {
                 titleView.title = Localizations.newPostTitle
-            } else if initialType == .unified {
+            } else if initialType == .unified, !config.isOnboarding {
                 titleView.title = Localizations.newPostTitle
             } else {
                 titleView.title = nil
-            }
-
-            switch initialType {
-            case .library, .camera:
-                navigationItem.leftBarButtonItem = backButtonItem
-            default:
-                navigationItem.leftBarButtonItem = closeButtonItem
             }
 
             contentView.addArrangedSubview(mediaCarouselView)
@@ -609,8 +613,6 @@ class ComposerViewController: UIViewController {
         } else if initialType == .voiceNote || (initialType != .unified && voiceNote != nil) {
             titleView.alignment = .center
             titleView.title = Localizations.fabAccessibilityVoiceNote
-            navigationItem.leftBarButtonItem = closeButtonItem
-            navigationItem.rightBarButtonItems = []
 
             contentView.addArrangedSubview(audioComposerView)
 
@@ -633,9 +635,7 @@ class ComposerViewController: UIViewController {
             }
         } else if initialType == .unified {
             titleView.alignment = .center
-            titleView.title = Localizations.newPostTitle
-            navigationItem.leftBarButtonItem = closeButtonItem
-            navigationItem.rightBarButtonItems = []
+            titleView.title = config.isOnboarding ? Localizations.onboardingFirstPostTitle : Localizations.newPostTitle
 
             contentView.layoutMargins = .zero
             contentView.addArrangedSubview(unifiedComposerView)
@@ -655,8 +655,6 @@ class ComposerViewController: UIViewController {
         } else {
             titleView.alignment = .center
             titleView.title = Localizations.fabAccessibilityTextPost
-            navigationItem.leftBarButtonItem = closeButtonItem
-            navigationItem.rightBarButtonItems = []
 
             contentView.layoutMargins = .zero
             contentView.addArrangedSubview(textComposerView)
@@ -721,20 +719,6 @@ class ComposerViewController: UIViewController {
                     self.sendButton.isEnabled = true
                 }
             }
-
-            guard 0 <= index, index < media.count else {
-                DDLogDebug("ComposerViewController/updateUI index out of bounds")
-                return
-            }
-
-            switch media[index].type {
-            case .image:
-                navigationItem.rightBarButtonItems = [drawButtonItem, annotateButtonItem, cropButtonItem]
-            case .video:
-                navigationItem.rightBarButtonItems = [cropButtonItem]
-            case .audio, .document:
-                navigationItem.rightBarButtonItems = []
-            }
         } else if initialType == .voiceNote || (initialType != .unified && voiceNote != nil) {
             audioComposerView.update(with: audioRecorder, voiceNote: voiceNote)
 
@@ -758,6 +742,46 @@ class ComposerViewController: UIViewController {
             } else {
                 sendButton.isEnabled = !input.text.isEmpty
             }
+        }
+
+        updateBarButtons()
+    }
+
+    private func updateBarButtons() {
+        var leftItems = [UIBarButtonItem]()
+        var rightItems = [UIBarButtonItem]()
+
+        defer {
+            navigationItem.leftBarButtonItems = leftItems
+            navigationItem.rightBarButtonItems = rightItems
+        }
+
+        switch initialType {
+        case .library where !media.isEmpty:
+            fallthrough
+        case .camera where !media.isEmpty:
+            leftItems = [backButtonItem]
+        default:
+            leftItems = [closeButtonItem]
+        }
+
+        if config.isOnboarding {
+            leftItems = [backButtonItem]
+            rightItems = [cancelButtonItem]
+        }
+
+        guard index >= 0, index < media.count else {
+            DDLogDebug("ComposerViewController/updateUI index out of bounds")
+            return
+        }
+
+        switch media[index].type {
+        case .image:
+            rightItems = [drawButtonItem, annotateButtonItem, cropButtonItem]
+        case .video:
+            rightItems = [cropButtonItem]
+        case .audio, .document:
+            break
         }
     }
 
@@ -1103,6 +1127,11 @@ extension ComposerViewController: MediaCarouselViewDelegate {
         }
 
         present(controller.withNavigationController(), animated: true)
+    }
+
+    @objc
+    private func cancelAction(_ sender: UIBarButtonItem) {
+        onCancel?()
     }
 
     private func updateMediaState(animated: Bool) {
@@ -1490,5 +1519,11 @@ private extension Localizations {
 
     static var shareWith: String {
         NSLocalizedString("composer.destinations.label", value: "Share with", comment: "Label above the list with whom you share")
+    }
+
+    static var onboardingFirstPostTitle: String {
+        NSLocalizedString("composer.onboarding.post.title",
+                   value: "My First Post",
+                 comment: "Title of the composer during a user's very first post.")
     }
 }
