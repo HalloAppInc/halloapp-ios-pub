@@ -95,12 +95,57 @@ public struct Web_WebContainer {
     set {payload = .feedUpdate(newValue)}
   }
 
+  public var groupRequest: Web_GroupRequest {
+    get {
+      if case .groupRequest(let v)? = payload {return v}
+      return Web_GroupRequest()
+    }
+    set {payload = .groupRequest(newValue)}
+  }
+
+  public var groupResponse: Web_GroupResponse {
+    get {
+      if case .groupResponse(let v)? = payload {return v}
+      return Web_GroupResponse()
+    }
+    set {payload = .groupResponse(newValue)}
+  }
+
+  public var privacyListRequest: Web_PrivacyListRequest {
+    get {
+      if case .privacyListRequest(let v)? = payload {return v}
+      return Web_PrivacyListRequest()
+    }
+    set {payload = .privacyListRequest(newValue)}
+  }
+
+  public var privacyListResponse: Web_PrivacyListResponse {
+    get {
+      if case .privacyListResponse(let v)? = payload {return v}
+      return Web_PrivacyListResponse()
+    }
+    set {payload = .privacyListResponse(newValue)}
+  }
+
+  public var receiptUpdate: Web_ReceiptUpdate {
+    get {
+      if case .receiptUpdate(let v)? = payload {return v}
+      return Web_ReceiptUpdate()
+    }
+    set {payload = .receiptUpdate(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Payload: Equatable {
     case feedRequest(Web_FeedRequest)
     case feedResponse(Web_FeedResponse)
     case feedUpdate(Web_FeedUpdate)
+    case groupRequest(Web_GroupRequest)
+    case groupResponse(Web_GroupResponse)
+    case privacyListRequest(Web_PrivacyListRequest)
+    case privacyListResponse(Web_PrivacyListResponse)
+    case receiptUpdate(Web_ReceiptUpdate)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Web_WebContainer.OneOf_Payload, rhs: Web_WebContainer.OneOf_Payload) -> Bool {
@@ -120,6 +165,26 @@ public struct Web_WebContainer {
         guard case .feedUpdate(let l) = lhs, case .feedUpdate(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
+      case (.groupRequest, .groupRequest): return {
+        guard case .groupRequest(let l) = lhs, case .groupRequest(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.groupResponse, .groupResponse): return {
+        guard case .groupResponse(let l) = lhs, case .groupResponse(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.privacyListRequest, .privacyListRequest): return {
+        guard case .privacyListRequest(let l) = lhs, case .privacyListRequest(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.privacyListResponse, .privacyListResponse): return {
+        guard case .privacyListResponse(let l) = lhs, case .privacyListResponse(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.receiptUpdate, .receiptUpdate): return {
+        guard case .receiptUpdate(let l) = lhs, case .receiptUpdate(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
       default: return false
       }
     }
@@ -127,6 +192,30 @@ public struct Web_WebContainer {
   }
 
   public init() {}
+}
+
+/// ConnectionInfo is included as message payload during Noise handshake.
+public struct Web_ConnectionInfo {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var version: String = String()
+
+  public var user: Web_UserDisplayInfo {
+    get {return _user ?? Web_UserDisplayInfo()}
+    set {_user = newValue}
+  }
+  /// Returns true if `user` has been explicitly set.
+  public var hasUser: Bool {return self._user != nil}
+  /// Clears the value of `user`. Subsequent reads from it will return its default value.
+  public mutating func clearUser() {self._user = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _user: Web_UserDisplayInfo? = nil
 }
 
 public struct Web_ReceiptInfo {
@@ -559,10 +648,97 @@ public struct Web_FeedUpdate {
   public init() {}
 }
 
+public struct Web_GroupRequest {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var id: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Web_GroupResponse {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var id: String = String()
+
+  public var groups: [Web_GroupDisplayInfo] = []
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Web_PrivacyListRequest {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var id: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Web_PrivacyListResponse {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var id: String = String()
+
+  public var privacyLists: Server_PrivacyLists {
+    get {return _privacyLists ?? Server_PrivacyLists()}
+    set {_privacyLists = newValue}
+  }
+  /// Returns true if `privacyLists` has been explicitly set.
+  public var hasPrivacyLists: Bool {return self._privacyLists != nil}
+  /// Clears the value of `privacyLists`. Subsequent reads from it will return its default value.
+  public mutating func clearPrivacyLists() {self._privacyLists = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _privacyLists: Server_PrivacyLists? = nil
+}
+
+public struct Web_ReceiptUpdate {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var id: String = String()
+
+  public var contentID: String = String()
+
+  public var receipt: Web_ReceiptInfo {
+    get {return _receipt ?? Web_ReceiptInfo()}
+    set {_receipt = newValue}
+  }
+  /// Returns true if `receipt` has been explicitly set.
+  public var hasReceipt: Bool {return self._receipt != nil}
+  /// Clears the value of `receipt`. Subsequent reads from it will return its default value.
+  public mutating func clearReceipt() {self._receipt = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _receipt: Web_ReceiptInfo? = nil
+}
+
 #if swift(>=5.5) && canImport(_Concurrency)
 extension Web_FeedType: @unchecked Sendable {}
 extension Web_WebContainer: @unchecked Sendable {}
 extension Web_WebContainer.OneOf_Payload: @unchecked Sendable {}
+extension Web_ConnectionInfo: @unchecked Sendable {}
 extension Web_ReceiptInfo: @unchecked Sendable {}
 extension Web_ReceiptInfo.Status: @unchecked Sendable {}
 extension Web_UserDisplayInfo: @unchecked Sendable {}
@@ -577,6 +753,11 @@ extension Web_FeedResponse.Error: @unchecked Sendable {}
 extension Web_FeedItem: @unchecked Sendable {}
 extension Web_FeedItem.OneOf_Content: @unchecked Sendable {}
 extension Web_FeedUpdate: @unchecked Sendable {}
+extension Web_GroupRequest: @unchecked Sendable {}
+extension Web_GroupResponse: @unchecked Sendable {}
+extension Web_PrivacyListRequest: @unchecked Sendable {}
+extension Web_PrivacyListResponse: @unchecked Sendable {}
+extension Web_ReceiptUpdate: @unchecked Sendable {}
 #endif  // swift(>=5.5) && canImport(_Concurrency)
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
@@ -597,6 +778,11 @@ extension Web_WebContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     1: .standard(proto: "feed_request"),
     2: .standard(proto: "feed_response"),
     3: .standard(proto: "feed_update"),
+    4: .standard(proto: "group_request"),
+    5: .standard(proto: "group_response"),
+    6: .standard(proto: "privacy_list_request"),
+    7: .standard(proto: "privacy_list_response"),
+    8: .standard(proto: "receipt_update"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -644,6 +830,71 @@ extension Web_WebContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
           self.payload = .feedUpdate(v)
         }
       }()
+      case 4: try {
+        var v: Web_GroupRequest?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .groupRequest(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .groupRequest(v)
+        }
+      }()
+      case 5: try {
+        var v: Web_GroupResponse?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .groupResponse(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .groupResponse(v)
+        }
+      }()
+      case 6: try {
+        var v: Web_PrivacyListRequest?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .privacyListRequest(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .privacyListRequest(v)
+        }
+      }()
+      case 7: try {
+        var v: Web_PrivacyListResponse?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .privacyListResponse(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .privacyListResponse(v)
+        }
+      }()
+      case 8: try {
+        var v: Web_ReceiptUpdate?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .receiptUpdate(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .receiptUpdate(v)
+        }
+      }()
       default: break
       }
     }
@@ -667,6 +918,26 @@ extension Web_WebContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       guard case .feedUpdate(let v)? = self.payload else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     }()
+    case .groupRequest?: try {
+      guard case .groupRequest(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    }()
+    case .groupResponse?: try {
+      guard case .groupResponse(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    }()
+    case .privacyListRequest?: try {
+      guard case .privacyListRequest(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+    }()
+    case .privacyListResponse?: try {
+      guard case .privacyListResponse(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
+    }()
+    case .receiptUpdate?: try {
+      guard case .receiptUpdate(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
+    }()
     case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -674,6 +945,48 @@ extension Web_WebContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
 
   public static func ==(lhs: Web_WebContainer, rhs: Web_WebContainer) -> Bool {
     if lhs.payload != rhs.payload {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Web_ConnectionInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ConnectionInfo"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "version"),
+    2: .same(proto: "user"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.version) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._user) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.version.isEmpty {
+      try visitor.visitSingularStringField(value: self.version, fieldNumber: 1)
+    }
+    try { if let v = self._user {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Web_ConnectionInfo, rhs: Web_ConnectionInfo) -> Bool {
+    if lhs.version != rhs.version {return false}
+    if lhs._user != rhs._user {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -1200,6 +1513,198 @@ extension Web_FeedUpdate: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     if lhs.userDisplayInfo != rhs.userDisplayInfo {return false}
     if lhs.postDisplayInfo != rhs.postDisplayInfo {return false}
     if lhs.groupDisplayInfo != rhs.groupDisplayInfo {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Web_GroupRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".GroupRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "id"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Web_GroupRequest, rhs: Web_GroupRequest) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Web_GroupResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".GroupResponse"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "id"),
+    2: .same(proto: "groups"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeRepeatedMessageField(value: &self.groups) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    }
+    if !self.groups.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.groups, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Web_GroupResponse, rhs: Web_GroupResponse) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs.groups != rhs.groups {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Web_PrivacyListRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".PrivacyListRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "id"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Web_PrivacyListRequest, rhs: Web_PrivacyListRequest) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Web_PrivacyListResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".PrivacyListResponse"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "id"),
+    2: .standard(proto: "privacy_lists"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._privacyLists) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    }
+    try { if let v = self._privacyLists {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Web_PrivacyListResponse, rhs: Web_PrivacyListResponse) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs._privacyLists != rhs._privacyLists {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Web_ReceiptUpdate: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ReceiptUpdate"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "id"),
+    2: .standard(proto: "content_id"),
+    3: .same(proto: "receipt"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.contentID) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._receipt) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    }
+    if !self.contentID.isEmpty {
+      try visitor.visitSingularStringField(value: self.contentID, fieldNumber: 2)
+    }
+    try { if let v = self._receipt {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Web_ReceiptUpdate, rhs: Web_ReceiptUpdate) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs.contentID != rhs.contentID {return false}
+    if lhs._receipt != rhs._receipt {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

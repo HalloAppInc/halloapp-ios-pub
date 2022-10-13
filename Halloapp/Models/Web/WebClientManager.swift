@@ -135,6 +135,16 @@ final class WebClientManager {
                 DDLogError("WebClientManager/handleIncoming/feedResponse/error [invalid-payload]")
             case .feedUpdate:
                 DDLogError("WebClientManager/handleIncoming/feedUpdate/error [invalid-payload]")
+            case .privacyListResponse:
+                DDLogError("WebClientManager/handleIncoming/privacyListResponse/error [invalid-payload]")
+            case .groupResponse:
+                DDLogError("WebClientManager/handleIncoming/groupResponse/error [invalid-payload]")
+            case .groupRequest:
+                DDLogInfo("WebClientManager/handleIncoming/groupRequest/unsupported")
+            case .privacyListRequest:
+                DDLogInfo("WebClientManager/handleIncoming/privacyListRequest/unsupported")
+            case .receiptUpdate:
+                DDLogInfo("WebClientManager/handleIncoming/receiptUpdate/unsupported")
             case .feedRequest(let request):
                 DispatchQueue.main.async {
                     guard let response = self.feedResponse(for: request) else {
