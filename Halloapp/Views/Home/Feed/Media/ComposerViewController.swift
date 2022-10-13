@@ -114,7 +114,8 @@ class ComposerViewController: UIViewController {
     private var videoTooLong = false
 
     private lazy var groups: [Group] = {
-        AppContext.shared.mainDataStore.groups(in: AppContext.shared.mainDataStore.viewContext)
+        AppContext.shared.mainDataStore.groups(predicate: NSPredicate(format: "typeValue = %d", GroupType.groupFeed.rawValue),
+                                               in: AppContext.shared.mainDataStore.viewContext)
     }()
 
     private lazy var contacts: [ABContact] = {

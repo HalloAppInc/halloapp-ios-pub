@@ -26,7 +26,8 @@ public struct GroupListSyncItem: Codable {
         DDLogInfo("GroupListSyncItem/load/begin")
         // Do some cleanup
         cleanup()
-        let groups = AppContext.shared.mainDataStore.groups(in: AppContext.shared.mainDataStore.viewContext)
+        let groups = AppContext.shared.mainDataStore.groups(predicate: NSPredicate(format: "typeValue = %d", GroupType.groupFeed.rawValue),
+                                                            in: AppContext.shared.mainDataStore.viewContext)
         let groupListItems = groups.map { group -> GroupListSyncItem in
             let users = group.orderedMembers.map{ $0.userID }
             let thread = AppContext.shared.mainDataStore.groupThread(for: group.id, in: AppContext.shared.mainDataStore.viewContext)
