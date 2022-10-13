@@ -502,12 +502,13 @@ extension DestinationPickerViewController: UICollectionViewDelegate {
             break
         }
     }
+
     private func onSelectionChange(destinations: [ShareDestination]) {
         selectedDestinations = destinations
-            updateNextBtn()
-            updateSelectionRow()
-            collectionView.reloadData()
-        }
+        updateNextBtn()
+        updateSelectionRow()
+        collectionView.reloadData()
+    }
 
     private func updateSelectionRow() {
         guard config != .composer else { return }

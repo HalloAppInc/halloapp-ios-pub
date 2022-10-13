@@ -135,6 +135,9 @@ public class AvatarView: UIView {
             .sink { [weak self] avatar in
                 self?.subscribeToUpdates(from: avatar)
             }
+
+        applyCornerRadius()
+        applyBorder()
     }
 
     private func subscribeToUpdates(from avatar: UserAvatar) {

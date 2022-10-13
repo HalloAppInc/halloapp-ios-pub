@@ -123,6 +123,7 @@ class DestinationCell: UICollectionViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
+        avatarView.prepareForReuse()
         homeView.isHidden = true
         favoritesView.isHidden = true
         avatarView.isHidden = true
