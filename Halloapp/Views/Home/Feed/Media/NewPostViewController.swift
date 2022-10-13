@@ -62,6 +62,8 @@ typealias DidPickVideoCallback = (URL) -> Void
 
 final class NewPostViewController: UINavigationController {
 
+    private let transitionDuration: CGFloat = 0.15
+
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .portrait
     }
@@ -151,7 +153,7 @@ final class NewPostViewController: UINavigationController {
     }
 
     private func pushComposer() {
-        UIView.transition(with: view, duration: 0.3, options: [.transitionCrossDissolve]) {
+        UIView.transition(with: view, duration: transitionDuration, options: [.transitionCrossDissolve]) {
             self.pushViewController(self.makeComposerViewController(), animated: false)
         }
     }
@@ -181,12 +183,12 @@ final class NewPostViewController: UINavigationController {
                 } else if case .group(_, _) = self.destination {
                     self.share(to: result.destinations, result: result)
                 } else {
-                    UIView.transition(with: self.view, duration: 0.3, options: [.transitionCrossDissolve]) {
+                    UIView.transition(with: self.view, duration: self.transitionDuration, options: [.transitionCrossDissolve]) {
                         self.pushViewController(self.makeDestinationPickerViewController(with: result), animated: false)
                     }
                 }
             } else {
-                UIView.transition(with: self.view, duration: 0.3, options: [.transitionCrossDissolve]) {
+                UIView.transition(with: self.view, duration: self.transitionDuration, options: [.transitionCrossDissolve]) {
                     self.popViewController(animated: false)
                 }
 
@@ -208,7 +210,7 @@ final class NewPostViewController: UINavigationController {
             if destinations.count > 0 {
                 self.share(to: destinations, result: result)
             } else {
-                UIView.transition(with: self.view, duration: 0.3, options: [.transitionCrossDissolve]) {
+                UIView.transition(with: self.view, duration: self.transitionDuration, options: [.transitionCrossDissolve]) {
                     self.popViewController(animated: false)
                 }
             }
@@ -380,7 +382,7 @@ extension NewPostViewController: PostComposerViewDelegate {
         self.destination = destination
 
         state.pendingVoiceNote = voiceNote
-        UIView.transition(with: self.view, duration: 0.3, options: [.transitionCrossDissolve]) {
+        UIView.transition(with: self.view, duration: transitionDuration, options: [.transitionCrossDissolve]) {
             self.popViewController(animated: false)
         }
 
