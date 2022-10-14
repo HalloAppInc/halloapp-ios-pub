@@ -474,6 +474,7 @@ public enum DecryptionError: String, Error {
     case missingContent
     case invalidGroup
     case missingCommentKey
+    case postNotFound
 }
 
 // Add new error cases at the end (the index is used as the error code)

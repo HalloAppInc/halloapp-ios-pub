@@ -961,14 +961,18 @@ final class ProtoService: ProtoServiceCore {
                                     switch result {
                                     case .failure(let reason):
                                         DDLogError("proto/handleFeedItem/\(msg.id)/\(postID)/rerequestHomeFeedPost failed: \(reason)")
-                                        self.reportHomeDecryptionResult(
-                                            error: .missingContent,
-                                            contentID: contentID,
-                                            contentType: contentType,
-                                            type: item.sessionType,
-                                            timestamp: receiptTimestamp,
-                                            sender: UserAgent(string: item.senderClientVersion),
-                                            rerequestCount: Int(msg.rerequestCount))
+                                        if reason.canAck {
+                                            // Report postNotFound error in this case - since these errors are not visible to the user.
+                                            self.reportHomeDecryptionResult(
+                                                error: .postNotFound,
+                                                contentID: contentID,
+                                                contentType: contentType,
+                                                type: item.sessionType,
+                                                timestamp: receiptTimestamp,
+                                                sender: UserAgent(string: item.senderClientVersion),
+                                                rerequestCount: Int(msg.rerequestCount))
+                                            ack()
+                                        }
                                     case .success:
                                         DDLogInfo("proto/handleFeedItem/\(msg.id)/\(postID)/rerequestHomeFeedPost success")
                                         commentRerequestCompletion()

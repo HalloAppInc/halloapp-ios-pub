@@ -770,15 +770,18 @@ final class NotificationProtoService: ProtoServiceCore {
                                 commentRerequestCompletion()
                             case .failure(let reason):
                                 DDLogError("proto/decryptAndProcessHomeFeedItem/\(postID)/rerequestHomeFeedPost failed: \(reason)")
-                                // Report missingContent error in this case - since these errors are not visible to the user.
-                                self.reportHomeDecryptionResult(
-                                    error: .missingContent,
-                                    contentID: contentID,
-                                    contentType: contentTypeValue,
-                                    type: item.sessionType,
-                                    timestamp: Date(),
-                                    sender: UserAgent(string: item.senderClientVersion),
-                                    rerequestCount: Int(metadata.rerequestCount))
+                                if reason.canAck {
+                                    // Report postNotFound error in this case - since these errors are not visible to the user.
+                                    self.reportHomeDecryptionResult(
+                                        error: .postNotFound,
+                                        contentID: contentID,
+                                        contentType: contentTypeValue,
+                                        type: item.sessionType,
+                                        timestamp: Date(),
+                                        sender: UserAgent(string: item.senderClientVersion),
+                                        rerequestCount: Int(metadata.rerequestCount))
+                                    ack()
+                                }
                             }
                         }
                     } else {

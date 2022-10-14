@@ -782,7 +782,7 @@ extension HomeFeedItemDecryption {
     }
 
     public func isMissingFromAuthor() -> Bool {
-        return (decryptionError ?? "") == "missingContent"
+        return (decryptionError ?? "" == "missingContent") || (decryptionError ?? "" == "postNotFound")
     }
 }
 
@@ -833,7 +833,7 @@ extension GroupFeedItemDecryption {
     }
 
     public func isMissingFromAuthor() -> Bool {
-        return (decryptionError ?? "") == "missingContent"
+        return (decryptionError ?? "" == "missingContent") || (decryptionError ?? "" == "postNotFound")
     }
 }
 
