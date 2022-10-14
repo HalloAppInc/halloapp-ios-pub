@@ -720,6 +720,14 @@ extension ChatListViewController: NewChatViewControllerDelegate {
             }
         }
     }
+
+    func newChatViewController(_ controller: NewChatViewController, didSelectGroup groupId: GroupID) {
+        let vc = GroupChatViewController(for: groupId)
+        self.navigationController?.pushViewController(vc, animated: true)
+        DispatchQueue.main.async {
+            vc.showKeyboard()
+        }
+    }
 }
 
 extension ChatListViewController: ChatViewControllerDelegate {

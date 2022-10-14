@@ -5192,7 +5192,7 @@ extension ChatData {
             chatThread.type = xmppGroup.groupType
             chatThread.groupId = chatGroup.id
             chatThread.title = chatGroup.name
-            chatThread.lastMsgTimestamp = nil
+            chatThread.lastMsgTimestamp = Date()
         }
         return chatGroup
     }

@@ -13,6 +13,7 @@ import UIKit
 
 protocol NewChatViewControllerDelegate: AnyObject {
     func newChatViewController(_ newChatViewController: NewChatViewController, didSelect userId: UserID)
+    func newChatViewController(_ newChatViewController: NewChatViewController, didSelectGroup groupId: GroupID)
 }
 
 class NewChatTableViewController: ContactPickerViewController<ABContact> {
@@ -100,7 +101,8 @@ class NewChatViewController: NewChatTableViewController {
     }
 
     private func didCreateNewGroup(_ groupId: GroupID) {
-        // Redirect to the group chat thread
+        dismiss(animated: false)
+        delegate?.newChatViewController(self, didSelectGroup: groupId)
     }
 
     override func viewWillLayoutSubviews() {
