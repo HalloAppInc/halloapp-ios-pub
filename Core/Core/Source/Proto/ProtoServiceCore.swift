@@ -2438,7 +2438,6 @@ extension ProtoServiceCore: CoreService {
                     case .text, .album, .files, .voiceNote, .location, .unsupported:
                         groupChatStanza.chatType = .chat
                     }
-                    // TODO @Nandini ask murali: groupChatStanza.senderLogInfo = ?
                     groupChatStanza.mediaCounters = message.serverMediaCounters
                     completion(groupChatStanza, nil)
                 } catch {

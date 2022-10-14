@@ -407,6 +407,9 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                 scrollToLastMessageOnNextUpdate = true
             }
             updateCollectionViewData()
+        case .delete:
+            DDLogInfo("ChatViewControllerNew/didChange type delete")
+            updateCollectionViewData()
         case .update:
             DDLogInfo("ChatViewControllerNew/didChange type update")
             if let chatMessage = anObject as? ChatMessage {

@@ -3532,7 +3532,12 @@ extension ChatData {
             guard let self = self, let chatMessage = self.chatMessage(with: id, in: context) else {
                 return
             }
-
+            // Clear out the last message info from the chat thread.
+            self.updateChatThreadStatus(chatMessageRecipient: chatMessage.chatMessageRecipient, messageId: chatMessage.id) { (chatThread) in
+                chatThread.lastMsgStatus = .none
+                chatThread.lastMsgText = nil
+                chatThread.lastMsgMediaType = .none
+            }
             self.deleteMedia(in: chatMessage)
             context.delete(chatMessage)
 

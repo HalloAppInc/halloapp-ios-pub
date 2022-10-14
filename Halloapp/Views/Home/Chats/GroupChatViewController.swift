@@ -442,6 +442,8 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
         case .insert:
             DDLogInfo("GroupChatViewController/didChange type insert")
             updateCollectionViewData()
+        case .delete:
+            updateCollectionViewData()
         case .update:
             DDLogInfo("GroupChatViewController/didChange type update")
             if let chatMessage = anObject as? ChatMessage {
