@@ -9,7 +9,7 @@
 import CoreCommon
 import CoreData
 
-public enum ThreadType: Int16 {
+public enum ThreadType: Int16, Codable {
     case oneToOne = 0
     case groupFeed = 1
     case groupChat = 2

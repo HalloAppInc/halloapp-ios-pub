@@ -63,7 +63,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         cancellableSet.insert(
             MainAppContext.shared.openChatThreadRequest.sink { [weak self] (threadID) in
                 guard let self = self else { return }
-                self.routeTo(threadID, animated: false)
+                self.routeTo(userID: threadID, animated: false)
             }
         )
     }
@@ -531,19 +531,32 @@ extension ChatListViewController: UIViewControllerHandleTapNotification {
 
     func processNotification(metadata: NotificationMetadata) {
         // If the user tapped on the chat notification or inviter/friend notification - show the chat screen.
-        guard metadata.isChatNotification || metadata.isContactNotification else {
+        guard metadata.isChatNotification || metadata.isContactNotification || metadata.isChatGroupAddNotification else {
             return
         }
 
         // If the user tapped on a notification, move to the chat view
-        if metadata.contentType == .chatMessage || metadata.isContactNotification {
-            routeTo(metadata.fromId, animated: true)
+        if metadata.isGroupNotification, let groupId = metadata.groupId {
+            // route to group chat view
+            routeTo(groupId: groupId, animated: true)
+        } else if metadata.contentType == .chatMessage || metadata.isContactNotification {
+            // route to oneToOne chat view
+            routeTo(userID: metadata.fromId, animated: true)
         }
 
         metadata.removeFromUserDefaults()
     }
+    
+    private func routeTo(groupId: GroupID, animated: Bool) {
+        if let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
+            let vc = GroupChatViewController(for: groupId)
+            self.navigationController?.pushViewController(vc, animated: true)
+        } else {
+            AppContext.shared.errorLogger?.logError(NSError(domain: "missingGroup", code: 1013))
+        }
+    }
 
-    private func routeTo(_ userID: UserID, animated: Bool) {
+    private func routeTo(userID: UserID, animated: Bool) {
         DDLogInfo("ChatListViewController/routeTo/\(userID)")
 
         navigationController?.popToRootViewController(animated: false)
@@ -628,8 +641,8 @@ extension ChatListViewController: UITableViewDelegate {
             }
         }
         
-        if let groupUserId = chatThread.groupId {
-            let vc = GroupChatViewController(for: groupUserId)
+        if let groupId = chatThread.groupId {
+            let vc = GroupChatViewController(for: groupId)
             self.navigationController?.pushViewController(vc, animated: true)
         }
 

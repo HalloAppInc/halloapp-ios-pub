@@ -1362,6 +1362,8 @@ final class NotificationProtoService: ProtoServiceCore {
             let metadata = NotificationMetadata(contentId: lastMoment.id,
                                                 contentType: .feedPost,
                                                 fromId: lastMoment.userId,
+                                                groupId: nil,
+                                                groupType: nil,
                                                 timestamp: lastMoment.timestamp,
                                                 data: try lastMoment.postData.clientContainer.serializedData(),
                                                 messageId: nil,

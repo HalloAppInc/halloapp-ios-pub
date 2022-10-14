@@ -106,12 +106,17 @@ fileprivate class BannerView: UIView, UIGestureRecognizerDelegate {
 
     public func configure(title: String, body: String?, attributedBody: NSAttributedString?, userID: UserID? = nil, groupID: GroupID? = nil, type: ThreadType, using avatarStore: AvatarStore) {
         self.type = type
-        if let userID = userID {
-            self.userID = userID
-            avatarView.configure(with: userID, using: avatarStore)
-        } else if let groupID = groupID {
-            self.groupID = groupID
-            avatarView.configure(groupId: groupID, using: avatarStore)
+        switch type {
+        case .groupChat, .groupFeed:
+            if let groupID = groupID {
+                self.groupID = groupID
+                avatarView.configure(groupId: groupID, using: avatarStore)
+            }
+        case .oneToOne:
+            if let userID = userID {
+                self.userID = userID
+                avatarView.configure(with: userID, using: avatarStore)
+            }
         }
         
         titleLabel.text = title
@@ -238,6 +243,8 @@ fileprivate class BannerView: UIView, UIGestureRecognizerDelegate {
         let metadata = NotificationMetadata(contentId: contentId,
                                             contentType: notificationType,
                                             fromId: contentId,
+                                            groupId: groupID,
+                                            groupType: type,
                                             timestamp: nil,
                                             data: nil,
                                             messageId: nil)

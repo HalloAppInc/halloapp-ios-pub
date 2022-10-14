@@ -3866,7 +3866,7 @@ extension ChatData {
             self.updateUnreadChatsThreadCount()
         }
 
-        showOneToOneNotification(for: xmppChatMessage)
+        showChatNotification(for: xmppChatMessage)
         // download media for this chat message.
         downloadMedia(in: chatMessage)
         chatMessage.linkPreviews?.forEach { linkPreview in
@@ -3985,7 +3985,7 @@ extension ChatData {
 
         save(managedObjectContext)
 
-        showOneToOneNotification(for: xmppReaction)
+        showChatNotification(for: xmppReaction)
 
         // remove user from typing state
         removeFromChatStateList(from: xmppReaction.fromUserId, threadType: .oneToOne, threadID: xmppReaction.fromUserId, type: .available)
@@ -4272,8 +4272,8 @@ extension ChatData {
 // MARK: 1-1 Local Notifications
 extension ChatData {
     
-    private func showOneToOneNotification(for xmppChatMessage: ChatMessageProtocol) {
-        DDLogVerbose("ChatData/showOneToOneNotification")
+    private func showChatNotification(for xmppChatMessage: ChatMessageProtocol) {
+        DDLogVerbose("ChatData/showChatNotification")
         
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -4283,11 +4283,19 @@ extension ChatData {
                 self.presentLocalOneToOneNotifications(for: xmppChatMessage)
             case .active:
                 guard !self.isAtChatListViewTop() else {
-                    DDLogVerbose("ChatData/showOneToOneNotification/isAtChatListViewTop/skip")
+                    DDLogVerbose("ChatData/showChatNotification/isAtChatListViewTop/skip")
                     return
                 }
                 guard self.coreChatData.getCurrentlyChattingWithUserId() != xmppChatMessage.fromUserId else {
-                    DDLogVerbose("ChatData/showOneToOneNotification/currentlyChattingWithUserId/skip")
+                    DDLogVerbose("ChatData/showChatNotification/currentlyChattingWithUserId/skip")
+                    return
+                }
+                if let groupId = xmppChatMessage.chatMessageRecipient.toGroupId, self.coreChatData.isCurrentlyChatting(in: groupId) {
+                    DDLogVerbose("ChatData/showChateNotification/currentlyChattingInGroup/skip")
+                    return
+                }
+                if let groupId = xmppChatMessage.chatMessageRecipient.toGroupId, self.coreChatData.isCurrentlyChatting(in: groupId) {
+                    DDLogVerbose("ChatData/showChateNotification/currentlyChattingInGroup/skip")
                     return
                 }
                 self.presentOneToOneBanner(for: xmppChatMessage)
@@ -4303,8 +4311,11 @@ extension ChatData {
         let messageID = xmppChatMessage.id
         
         let name = contactStore.fullName(for: userID, in: contactStore.viewContext)
-        
-        let title = "\(name)"
+        var groupName: String? = nil
+        if let groupId = xmppChatMessage.chatMessageRecipient.toGroupId {
+            groupName = chatGroup(groupId: groupId, in: viewContext)?.name
+        }
+        let title = [name, groupName].compactMap({ $0 }).joined(separator: " @ ")
         
         let body: String
 
@@ -4340,7 +4351,7 @@ extension ChatData {
             body = ""
         }
         AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: messageID) {
-            Banner.show(title: title, body: body, userID: userID, type: .oneToOne, using: MainAppContext.shared.avatarStore)
+            Banner.show(title: title, body: body, attributedBody: nil, userID: userID, groupID: xmppChatMessage.chatMessageRecipient.toGroupId, type: xmppChatMessage.chatMessageRecipient.chatType, using: MainAppContext.shared.avatarStore)
         }
     }
     
@@ -4355,6 +4366,8 @@ extension ChatData {
         let metadata = NotificationMetadata(contentId: xmppChatMessage.id,
                                             contentType: .chatMessage,
                                             fromId: userID,
+                                            groupId: xmppChatMessage.chatMessageRecipient.toGroupId,
+                                            groupType: xmppChatMessage.chatMessageRecipient.chatType,
                                             timestamp: timestamp,
                                             data: protobufData,
                                             messageId: xmppChatMessage.id)
@@ -5445,6 +5458,8 @@ extension ChatData {
         let metadata = NotificationMetadata(contentId: messageID,
                                             contentType: .groupAdd,
                                             fromId: userID,
+                                            groupId: xmppGroup.groupId,
+                                            groupType: xmppGroup.groupType,
                                             timestamp: nil,
                                             data: nil,
                                             messageId: messageID)

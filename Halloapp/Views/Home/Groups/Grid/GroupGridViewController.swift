@@ -451,6 +451,71 @@ extension GroupGridViewController: UISearchControllerDelegate {
     }
 }
 
+extension GroupGridViewController: UIViewControllerHandleTapNotification {
+    // MARK: Tap Notification
+    func processNotification(metadata: NotificationMetadata) {
+        guard metadata.isGroupNotification else {
+            return
+        }
+
+        metadata.removeFromUserDefaults()
+        // If the user tapped on a notification, move to group feed
+        DDLogDebug("GroupGridViewController/processNotification/open group feed [\(metadata.groupId ?? "")], contentType: \(metadata.contentType)")
+
+        navigationController?.popToRootViewController(animated: false)
+
+        switch metadata.contentType {
+        case .groupFeedPost, .groupFeedComment:
+            if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
+                if let vc = GroupFeedViewController(metadata: metadata) {
+                    vc.delegate = self
+                    self.navigationController?.pushViewController(vc, animated: false)
+                } else {
+                    let vc = GroupFeedViewController(groupId: groupId)
+                    vc.delegate = self
+                    self.navigationController?.pushViewController(vc, animated: false)
+                }
+            }
+            break
+        case .groupAdd:
+            if let groupId = metadata.groupId {
+                if let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
+                    openFeed(forGroupId: groupId)
+                } else {
+                    AppContext.shared.errorLogger?.logError(NSError(domain: "missingGroup", code: 1013))
+                }
+            }
+        case .groupChatMessage:
+            break
+        default:
+            break
+        }
+    }
+
+    private func openFeed(forGroupId groupId: GroupID) {
+        guard let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) else { return }
+        switch group.type {
+        case .groupFeed:
+            let groupFeedViewController = GroupFeedViewController(groupId: groupId)
+            navigationController?.pushViewController(groupFeedViewController, animated: true)
+        case .groupChat:
+            let groupChatViewController = GroupChatViewController(for: groupId)
+            navigationController?.pushViewController(groupChatViewController, animated: true)
+        case .oneToOne:
+            break
+        }
+    }
+}
+
+extension GroupGridViewController: FeedCollectionViewControllerDelegate {
+    func feedCollectionViewController(_ controller: FeedCollectionViewController, userActioned: Bool) {
+        searchController.isActive = false
+        DispatchQueue.main.async {
+            self.scrollToTop(animated: false)
+        }
+    }
+}
+
 extension Localizations {
 
     static var groupsGridDeleteGroupFailed: String {

@@ -802,6 +802,8 @@ final class CallManager: NSObject, CXProviderDelegate {
         let metadata = NotificationMetadata(contentId: callID,
                                             contentType: contentType,
                                             fromId: peerUserID,
+                                            groupId: nil,
+                                            groupType: nil,
                                             timestamp: Date(),
                                             data: nil,
                                             messageId: nil,

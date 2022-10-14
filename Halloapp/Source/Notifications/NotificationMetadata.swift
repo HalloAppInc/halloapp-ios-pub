@@ -146,6 +146,7 @@ class NotificationMetadata: Codable {
     var postId: String? = nil
     var parentId: String? = nil
     var groupId: String? = nil
+    var groupType: GroupType? = nil
     var groupName: String? = nil
     var normalizedPhone: String? = nil
     var momentContext: MomentType? = nil
@@ -250,10 +251,13 @@ class NotificationMetadata: Codable {
         AppContext.shared.errorLogger?.logError(customError)
     }
 
-    init(contentId: String, contentType: NotificationContentType, fromId: UserID, timestamp: Date?, data: Data?, messageId: String?, pushName: String? = nil) {
+    init(contentId: String, contentType: NotificationContentType, fromId: UserID, groupId: GroupID?,
+         groupType: GroupType?, timestamp: Date?, data: Data?, messageId: String?, pushName: String? = nil) {
         self.contentId = contentId
         self.contentType = contentType
         self.fromId = fromId
+        self.groupId = groupId
+        self.groupType = groupType
         self.timestamp = timestamp
         self.data = data
         // messageId could be nil for local pushes when app is alive - in those cases: this field is not that important.
@@ -407,6 +411,7 @@ class NotificationMetadata: Codable {
             }
             groupId = groupFeedItem.gid
             groupName = groupFeedItem.name
+            groupType = .groupFeed
             do {
                 serverGroupFeedItemPb = try groupFeedItem.serializedData()
             } catch {
@@ -421,7 +426,6 @@ class NotificationMetadata: Codable {
             data = chatMsg.payload
             pushName = chatMsg.senderName
             pushNumber = chatMsg.senderPhone
-
             // Save pushNumber from the message received.
             if let phone = pushNumber, !phone.isEmpty {
                 AppContext.shared.contactStore.addPushNumbers([ fromId : phone ])
@@ -444,8 +448,8 @@ class NotificationMetadata: Codable {
             pushName = groupChatMsg.senderName
             pushNumber = groupChatMsg.senderPhone
             groupId = groupChatMsg.gid
+            groupType = .groupChat
             groupName = groupChatMsg.name
-
 
             // Save pushNumber from the message received.
             if let phone = pushNumber, !phone.isEmpty {
@@ -455,7 +459,7 @@ class NotificationMetadata: Codable {
             do {
                 serverGroupChatStanzaPb = try groupChatMsg.serializedData()
             } catch {
-                DDLogError("NotificationMetadata/init/chatStanza could not serialize chatMsg: \(msg)")
+                DDLogError("NotificationMetadata/init/groupChatStanza could not serialize chatMsg: \(msg)")
                 return nil
             }
             senderClientVersion = groupChatMsg.senderClientVersion
@@ -479,6 +483,14 @@ class NotificationMetadata: Codable {
             pushNumber = nil
 
         case .groupStanza(let groupStanza):
+            switch groupStanza.groupType {
+            case .chat:
+                groupType = .groupChat
+            case .feed:
+                groupType = .groupFeed
+            default:
+                break
+            }
             let addedToNewGroup = groupStanza.members.contains(where: { $0.action == .add && $0.uid == Int64(AppContext.shared.userData.userId) })
             if addedToNewGroup {
                 contentId = groupStanza.gid
@@ -906,8 +918,12 @@ extension NotificationMetadata {
         return contentType == .groupChatMessage
     }
     
-    var isGroupAddNotification: Bool {
-        return contentType == .groupAdd
+    var isFeedGroupAddNotification: Bool {
+        return contentType == .groupAdd && groupType == .groupFeed
+    }
+
+    var isChatGroupAddNotification: Bool {
+        return (contentType == .groupAdd && groupType == .groupChat)
     }
     
     var isContactNotification: Bool {

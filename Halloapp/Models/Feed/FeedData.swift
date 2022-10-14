@@ -2010,6 +2010,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     let metadata = NotificationMetadata(contentId: comment.id,
                                                         contentType: contentType,
                                                         fromId: comment.userId,
+                                                        groupId: nil,
+                                                        groupType: nil,
                                                         timestamp: comment.timestamp,
                                                         data: protobufData,
                                                         messageId: nil)
@@ -2057,6 +2059,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     let metadata = NotificationMetadata(contentId: feedPost.id,
                                                         contentType: metadataContentType,
                                                         fromId: feedPost.userId,
+                                                        groupId: nil,
+                                                        groupType: nil,
                                                         timestamp: feedPost.timestamp,
                                                         data: protobufData,
                                                         messageId: nil)
@@ -2089,6 +2093,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let metadata = NotificationMetadata(contentId: receipt.itemId,
                                             contentType: .screenshot,
                                             fromId: receipt.userId,
+                                            groupId: nil,
+                                            groupType: nil,
                                             timestamp: receipt.timestamp,
                                             data: nil,
                                             messageId: nil)

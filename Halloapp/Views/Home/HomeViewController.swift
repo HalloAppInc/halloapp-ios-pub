@@ -339,8 +339,10 @@ class HomeViewController: UITabBarController {
 
         if metadata.isFeedNotification {
             selectedIndex = TabBarSelection.home.index
-        } else if metadata.isGroupAddNotification {
+        } else if metadata.isFeedGroupAddNotification {
             selectedIndex = TabBarSelection.group.index
+        } else if metadata.isChatGroupAddNotification {
+            selectedIndex = TabBarSelection.chat.index
         } else if metadata.isChatNotification || metadata.isContactNotification {
             // we need to show the chatscreen when the notification tapped is chat/friend/inviter notification.
             selectedIndex = TabBarSelection.chat.index

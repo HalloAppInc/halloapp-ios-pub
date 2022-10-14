@@ -280,10 +280,18 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
 
     // MARK: Helpers
 
-    private func openFeed(forGroupId groupId: GroupID) {
-        let vc = GroupFeedViewController(groupId: groupId)
-        vc.delegate = self
-        navigationController?.pushViewController(vc, animated: true)
+    private func openView(forGroupId groupId: GroupID) {
+        guard let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) else { return }
+        switch group.type {
+        case .groupFeed:
+            let groupFeedViewController = GroupFeedViewController(groupId: groupId)
+            navigationController?.pushViewController(groupFeedViewController, animated: true)
+        case .groupChat:
+            let groupChatViewController = GroupChatViewController(for: groupId)
+            navigationController?.pushViewController(groupChatViewController, animated: true)
+        case .oneToOne:
+            break
+        }
     }
 }
 
@@ -369,7 +377,7 @@ extension GroupsInCommonViewController: UITableViewDelegate, UITableViewDataSour
         }
         guard let groupId = chatThread.groupId else { return }
 
-        openFeed(forGroupId: groupId)
+        openView(forGroupId: groupId)
 
         tableView.deselectRow(at: indexPath, animated: true)
     }
