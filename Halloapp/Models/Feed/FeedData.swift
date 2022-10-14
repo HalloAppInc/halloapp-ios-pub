@@ -1571,7 +1571,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             if let existingReaction = reactions[xmppReaction.id] {
                 switch existingReaction.incomingStatus {
-                case .unsupported, .none, .rerequesting:
+                case .rerequesting:
+                    guard xmppReaction.status == .received else {
+                        DDLogError("FeedData/process/already-exists with same status/[\(existingReaction.incomingStatus)] [\(xmppReaction.id)]/skipping")
+                        ignoredReactionIds.insert(xmppReaction.id)
+                        continue
+                    }
+                    DDLogInfo("FeedData/process/already-exists/updating [\(existingReaction.incomingStatus)] [\(xmppReaction.id)]")
+                    break
+                case .unsupported, .none:
                     DDLogInfo("FeedData/process/already-exists/updating [\(existingReaction.incomingStatus)] [\(xmppReaction.id)]")
                     break
                 case .error, .incoming, .retracted:
