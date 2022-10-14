@@ -675,12 +675,16 @@ extension ChatListViewController: UISearchResultsUpdating {
         let searchStr = searchBarText.trimmingCharacters(in: CharacterSet.whitespaces).lowercased()
 
         filteredChats = allChats.filter {
-            guard let chatWithUserID = $0.userID else { return false }
-            let title = MainAppContext.shared.contactStore.fullName(for: chatWithUserID, in: MainAppContext.shared.contactStore.viewContext)
-            if title.lowercased().contains(searchStr) {
-                return true
+            var title = ""
+            if let chatWithUserID = $0.userID {
+                title = MainAppContext.shared.contactStore.fullName(for: chatWithUserID, in: MainAppContext.shared.contactStore.viewContext)
+            } else if let chatInGroupID = $0.groupId {
+                guard let group = MainAppContext.shared.chatData.chatGroup(groupId: chatInGroupID, in: MainAppContext.shared.chatData.viewContext) else { return false }
+                title = group.name
+            } else {
+                return false
             }
-            return false
+            return title.lowercased().contains(searchStr)
         }
         DDLogDebug("ChatListViewController/updateSearchResults/filteredChats count \(filteredChats.count) for: \(searchBarText)")
 
