@@ -35,6 +35,7 @@ public class CoreChatData {
     private let commonMediaUploader: CommonMediaUploader
     private var cancellableSet: Set<AnyCancellable> = []
     private var currentlyChattingWithUserId: String? = nil
+    private var currentlyChattingInGroup: GroupID? = nil
 
     public init(service: CoreService, mainDataStore: MainDataStore, userData: UserData, contactStore: ContactStoreCore, commonMediaUploader: CommonMediaUploader) {
         self.mainDataStore = mainDataStore
@@ -367,13 +368,21 @@ public class CoreChatData {
         }
         var chatThread: CommonThread
         let isIncomingMsg = chatMessage.fromUserID != userData.userId
-        let isCurrentlyChattingWithUser = isCurrentlyChatting(with: recipientId)
+
+        var isCurrentlyChattingWithRecipient = false
+        switch chatMessageRecipient {
+        case .oneToOneChat(let toUserId, _):
+            isCurrentlyChattingWithRecipient = isCurrentlyChatting(with: toUserId)
+        case .groupChat(let groupId, _):
+            isCurrentlyChattingWithRecipient = isCurrentlyChatting(in: groupId)
+        }
+
         if let existingChatThread = self.chatThread(type: chatMessageRecipient.chatType, id: recipientId, in: context) {
             DDLogDebug("CoreChatData/updateChatThread/ update-thread")
             chatThread = existingChatThread
             if isIncomingMsg {
-                chatThread.unreadCount = isCurrentlyChattingWithUser ? 0 : chatThread.unreadCount + 1
-            } else if isCurrentlyChattingWithUser {
+                chatThread.unreadCount = isCurrentlyChattingWithRecipient ? 0 : chatThread.unreadCount + 1
+            } else if isCurrentlyChattingWithRecipient {
                 // Sending a message always clears out the unread count when currently chatting with user
                 chatThread.unreadCount = 0
             }
@@ -391,7 +400,7 @@ public class CoreChatData {
             chatThread.type = chatMessageRecipient.chatType
             if isIncomingMsg {
                 chatThread.unreadCount = 1
-            } else if isCurrentlyChattingWithUser {
+            } else if isCurrentlyChattingWithRecipient {
                 // Sending a message always clears out the unread count when currently chatting with user
                 chatThread.unreadCount = 0
             }
@@ -413,8 +422,16 @@ public class CoreChatData {
         currentlyChattingWithUserId = chatWithUserId
     }
 
+    public func setCurrentlyChattingInGroup(in groupId: GroupID?) {
+        currentlyChattingInGroup = groupId
+    }
+
     public func getCurrentlyChattingWithUserId() -> String? {
         return currentlyChattingWithUserId
+    }
+
+    public func getCurrentlyChattingInGroup() -> String? {
+        return currentlyChattingInGroup
     }
 
     public func isCurrentlyChatting(with userId: UserID) -> Bool {
@@ -422,6 +439,13 @@ public class CoreChatData {
             if userId == currentlyChattingWithUserId {
                 return true
             }
+        }
+        return false
+    }
+
+    public func isCurrentlyChatting(in groupID: GroupID) -> Bool {
+        if let currentlyChattingInGroupId = self.currentlyChattingInGroup, currentlyChattingInGroupId == groupID {
+            return true
         }
         return false
     }

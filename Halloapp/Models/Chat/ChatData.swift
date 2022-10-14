@@ -34,8 +34,8 @@ class ChatData: ObservableObject {
     public var currentPage: Int = 0
 
     let didChangeUnreadThreadCount = PassthroughSubject<Int, Never>()
-    let didGetCurrentChatPresence = PassthroughSubject<(UserPresenceType, Date?), Never>()
-    let didGetChatStateInfo = PassthroughSubject<Void, Never>()
+    let didGetCurrentChatPresence = PassthroughSubject<(UserID, UserPresenceType, Date?), Never>()
+    let didGetChatStateInfo = PassthroughSubject<ChatStateInfo?, Never>()
     
     let didGetMediaUploadProgress = PassthroughSubject<(String, Float), Never>()
     
@@ -46,6 +46,7 @@ class ChatData: ObservableObject {
     let didUserPresenceChange = PassthroughSubject<PresenceType, Never>()
     
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.chat")
+    private let currentSubscribersQueue = DispatchQueue(label: "com.halloapp.chat.currentsubscribers", qos: .userInitiated)
     private lazy var downloadManager: FeedDownloadManager = {
         let downloadManager = FeedDownloadManager(mediaDirectoryURL: MainAppContext.commonMediaStoreURL)
         downloadManager.delegate = self
@@ -66,9 +67,7 @@ class ChatData: ObservableObject {
     private let coreChatData: CoreChatData
     private let mediaUploader: MediaUploader
 
-    private var isSubscribedToCurrentUser: Bool = false
-    
-    private var currentlyChattingInGroup: GroupID? = nil
+    private var currentlySubscribedUsers: [UserID] = []
     
     private var chatStateInfoList: [ChatStateInfo] = []
     private var chatStateDebounceTimer: Timer? = nil
@@ -325,19 +324,25 @@ class ChatData: ObservableObject {
         }
 
         cancellableSet.insert(
+            service.didDisconnect.sink { [weak self] in
+                guard let self = self else { return }
+                DDLogInfo("ChatData/didDisconnect")
+                self.clearAllUserSubscriptions()
+            }
+        )
+
+        cancellableSet.insert(
             service.didConnect.sink { [weak self] in
                 guard let self = self else { return }
                 DDLogInfo("ChatData/didConnect")
-
+                self.clearAllUserSubscriptions()
                 // include inactive as app is still in foreground (one case found is when app is freshly installed and the scene is in transition)
                 if ([.active, .inactive].contains(UIApplication.shared.applicationState)) {
                     DDLogInfo("ChatData/didConnect/sendPresence \(UIApplication.shared.applicationState.rawValue)")
                     self.checkViewAndSendPresence(type: .available)
 
                     if let currentUser = coreChatData.getCurrentlyChattingWithUserId() {
-                        if !self.isSubscribedToCurrentUser {
-                            self.subscribeToPresence(to: currentUser)
-                        }
+                        self.subscribeToPresence(to: currentUser)
                     }
                 } else {
                     DDLogDebug("ChatData/didConnect/app is in background \(UIApplication.shared.applicationState.rawValue)")
@@ -421,7 +426,7 @@ class ChatData: ObservableObject {
 
                 // clear the typing indicators
                 self.chatStateInfoList.removeAll()
-                self.didGetChatStateInfo.send()
+                self.didGetChatStateInfo.send(nil)
             }
         )
 
@@ -1801,15 +1806,20 @@ extension ChatData {
     // MARK: Thread
     
     func markSeenMessages(type: ChatType, for id: String, in managedObjectContext: NSManagedObjectContext) {
-        guard type == .oneToOne else { return }
+        var unseenChatMsgs: [ChatMessage] = []
+        switch type {
+        case .oneToOne:
+            unseenChatMsgs = unseenChatMessages(with: id, in: managedObjectContext)
+        case .groupChat:
+            unseenChatMsgs = unseenGroupChatMessages(in : id, in: managedObjectContext)
+        case .groupFeed:
+            return
+        }
 
-        let unseenChatMsgs = unseenChatMessages(with: id, in: managedObjectContext)
-        
         unseenChatMsgs.forEach {
             sendSeenReceipt(for: $0)
             $0.incomingStatus = ChatMessage.IncomingStatus.haveSeen
         }
-
         if managedObjectContext.hasChanges {
             save(managedObjectContext)
         }
@@ -1990,7 +2000,7 @@ extension ChatData {
         }
     }
 
-    public func getTypingIndicatorString(type: ChatType, id: String?) -> String? {
+    public func getTypingIndicatorString(type: ChatType, id: String?, fromUserID: UserID?) -> String? {
         guard let id = id else { return nil }
         
         var typingStr = ""
@@ -2003,7 +2013,11 @@ extension ChatData {
         case .groupFeed:
             chatStateList = chatStateInfoList.filter { $0.threadType == .groupFeed && $0.threadID == id }
         case .groupChat:
-            chatStateList = chatStateInfoList.filter { $0.threadType == .groupChat && $0.threadID == id }
+            chatStateList = chatStateInfoList.filter { $0.threadType == .groupChat && $0.threadID == id && $0.from == fromUserID}
+            if let fromUserID = fromUserID {
+                let name = MainAppContext.shared.contactStore.fullName(for: fromUserID, in: MainAppContext.shared.contactStore.viewContext)
+                typingStr = Localizations.userChatTyping(name: name)
+            }
         }
 
         guard chatStateList.count > 0 else { return nil }
@@ -2042,10 +2056,15 @@ extension ChatData {
             // add new typing indicator
             if chatStateInfo.type == .typing {
                 chatStateInfoList.append(chatStateInfo)
+                if chatStateInfo.type == .typing {
+                    // subscribe to presence for the user when typing indicator is received, we do this so
+                    // we can clear typing indicators when we receive offline presence.
+                    subscribeToPresence(to: chatStateInfo.from)
+                }
             }
         }
 
-        didGetChatStateInfo.send()
+        didGetChatStateInfo.send(chatStateInfo)
 
         chatStateDebounceTimer?.invalidate()
 
@@ -2087,8 +2106,29 @@ extension ChatData {
 extension ChatData {
     
     func setCurrentlyChattingWithUserId(for chatWithUserId: String?) {
+        // Clear out previously chatting with 1:1 userId
+        currentSubscribersQueue.sync {
+            if let previouslyChattingWithUserId = coreChatData.getCurrentlyChattingWithUserId(), let userIndex = currentlySubscribedUsers.firstIndex(of: previouslyChattingWithUserId) {
+                currentlySubscribedUsers.remove(at: userIndex)
+            }
+        }
         coreChatData.setCurrentlyChattingWithUserId(for: chatWithUserId)
-        isSubscribedToCurrentUser = false
+    }
+
+    func clearAllUserSubscriptions() {
+        currentSubscribersQueue.sync {
+            self.currentlySubscribedUsers = []
+        }
+    }
+
+    func setCurrentlyChattingInGroup(in groupId: GroupID?) {
+        coreChatData.setCurrentlyChattingInGroup(in: groupId)
+    }
+
+    func isSubscribedToUser(userId: UserID) -> Bool {
+        currentSubscribersQueue.sync {
+            return currentlySubscribedUsers.contains(userId)
+        }
     }
             
     // MARK: 1-1 Sending Messages
@@ -3019,6 +3059,14 @@ extension ChatData {
         ]
         return self.chatMessages(predicate: NSPredicate(format: "fromUserID = %@ && toUserID = %@ && (incomingStatusValue = %d OR incomingStatusValue = %d)", fromUserId, userData.userId, ChatMessage.IncomingStatus.none.rawValue, ChatMessage.IncomingStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
+
+    func unseenGroupChatMessages(in groupId: GroupID, in managedObjectContext: NSManagedObjectContext) -> [ChatMessage] {
+        let sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatMessage.serialID, ascending: true),
+            NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
+        ]
+        return self.chatMessages(predicate: NSPredicate(format: "toGroupID = %@", groupId), sortDescriptors: sortDescriptors, in: managedObjectContext)
+    }
     
     func pendingOutgoingChatMessages(in managedObjectContext: NSManagedObjectContext) -> [ChatMessage] {
         let sortDescriptors = [
@@ -3649,8 +3697,7 @@ extension ChatData {
                 return
             }
         }
-
-        let isCurrentlyChattingWithUser = coreChatData.isCurrentlyChatting(with: xmppChatMessage.fromUserId)
+        
         DDLogDebug("ChatData/processInboundChatMessage [\(xmppChatMessage.id)]")
         let chatMessage: ChatMessage = {
             guard let existingChatMessage = existingChatMessage else {
@@ -3797,6 +3844,14 @@ extension ChatData {
 
         save(managedObjectContext)
 
+        var isCurrentlyChattingWithUser = false
+        switch chatMessage.chatMessageRecipient {
+        case .oneToOneChat(let toUserId, _):
+            isCurrentlyChattingWithUser = coreChatData.isCurrentlyChatting(with: toUserId)
+        case .groupChat(let groupId, _):
+            isCurrentlyChattingWithUser = coreChatData.isCurrentlyChatting(in: groupId)
+        }
+        
         if isCurrentlyChattingWithUser && isAppActive && (chatMessage.incomingStatus != .unsupported) && (chatMessage.incomingStatus != .rerequesting) {
             self.sendSeenReceipt(for: chatMessage)
             self.updateChatMessage(with: chatMessage.id) { (chatMessage) in
@@ -4063,8 +4118,12 @@ extension ChatData {
     // MARK: 1-1 Presence
     
     func subscribeToPresence(to chatWithUserId: String) {
-        guard !self.isSubscribedToCurrentUser else { return }
-        self.isSubscribedToCurrentUser = service.subscribeToPresenceIfPossible(to: chatWithUserId)
+        guard isSubscribedToUser(userId: chatWithUserId) == false else { return }
+        if service.subscribeToPresenceIfPossible(to: chatWithUserId) {
+            currentSubscribersQueue.sync {
+                currentlySubscribedUsers.append(chatWithUserId)
+            }
+        }
     }
     
     private func checkViewAndSendPresence(type: PresenceType) {
@@ -4109,13 +4168,21 @@ extension ChatData {
         }
                 
         // notify chatViewController
-        guard let currentlyChattingWithUserId = coreChatData.getCurrentlyChattingWithUserId() else { return }
-        guard currentlyChattingWithUserId == presenceInfo.userID else { return }
-        didGetCurrentChatPresence.send((presenceStatus, presenceLastSeen))
-        
-        // remove user from typing state
-        if presenceInfo.presence == .away {
-            removeFromChatStateList(from: currentlyChattingWithUserId, threadType: .oneToOne, threadID: currentlyChattingWithUserId, type: .available)
+        if let currentlyChattingWithUserId = coreChatData.getCurrentlyChattingWithUserId() {
+            guard currentlyChattingWithUserId == presenceInfo.userID else { return }
+            didGetCurrentChatPresence.send((presenceInfo.userID, presenceStatus, presenceLastSeen))
+            // remove user from typing state
+            if presenceInfo.presence == .away {
+                removeFromChatStateList(from: currentlyChattingWithUserId, threadType: .oneToOne, threadID: currentlyChattingWithUserId, type: .available)
+            }
+        } else if let currentlyChattingInGroup = coreChatData.getCurrentlyChattingInGroup() {
+            guard (MainAppContext.shared.chatData.chatGroupMember(groupId: currentlyChattingInGroup, memberUserId: presenceInfo.userID, in: viewContext) != nil) else { return }
+            // process user presence for group chat to clear typing indicators.
+            didGetCurrentChatPresence.send((presenceInfo.userID, presenceStatus, presenceLastSeen))
+            // remove user from typing state
+            if presenceInfo.presence == .away {
+                removeFromChatStateList(from: currentlyChattingInGroup, threadType: .groupChat, threadID: currentlyChattingInGroup, type: .available)
+            }
         }
     }
 }
@@ -5390,7 +5457,7 @@ extension ChatData: HalloChatDelegate {
 
     func halloService(_ halloService: HalloService, didReceiveMessageReceipt receipt: HalloReceipt, ack: (() -> Void)?) {
         DDLogDebug("ChatData/didReceiveMessageReceipt [\(receipt.itemId)] \(receipt)")
-        guard receipt.thread == .none else {
+        guard receipt.thread != .feed else {
             DDLogError("ChatData/didReceiveMessageReceipt/error [unexpected-thread] [\(receipt.thread)]")
             ack?()
             return

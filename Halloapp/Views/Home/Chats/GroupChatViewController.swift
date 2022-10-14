@@ -115,6 +115,14 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
     fileprivate typealias ChatDataSource = UICollectionViewDiffableDataSource<Section, MessageRow>
     fileprivate typealias ChatMessageSnapshot = NSDiffableDataSourceSnapshot<Section, MessageRow>
 
+    private lazy var titleView: ChatTitleView = {
+        let titleView = ChatTitleView()
+        titleView.translatesAutoresizingMaskIntoConstraints = false
+        titleView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 3, right: 0)
+        titleView.delegate = self
+        return titleView
+    }()
+
     private var chatParticipants: [String: Int] = [:]
     // List of colors to cycle through while setting user names
     private var colors: [UIColor] = [
@@ -131,12 +139,6 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
         UIColor.userColor11,
         UIColor.userColor12
     ]
-
-    private lazy var titleView: GroupTitleView = {
-        let titleView = GroupTitleView()
-        titleView.translatesAutoresizingMaskIntoConstraints = false
-        return titleView
-    }()
 
     private lazy var collectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: self.view.bounds, collectionViewLayout: createLayout())
@@ -313,19 +315,52 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
         setupUI()
 
         navigationItem.titleView = titleView
-        titleView.translatesAutoresizingMaskIntoConstraints = false
-        titleView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        titleView.clearGroupTitleViewTyping(groupId: groupId)
+        
         titleView.delegate = self
-
-        titleView.animateInfoLabel()
         loadChatDraft(id: groupId)
         scrollToLastMessage(animated: false)
+
+        if let group = group {
+            cancellableSet.insert(
+                group.publisher(for: \.name).sink {
+                    [weak self] _ in
+                    self?.titleView.refreshName(groupId: group.id)
+                }
+            )
+        }
+
+        cancellableSet.insert(
+            MainAppContext.shared.chatData.didGetCurrentChatPresence.sink { [weak self] fromUserId, status, ts in
+                guard let self = self else { return }
+                guard MainAppContext.shared.chatData.chatGroupMember(groupId: self.groupId, memberUserId: fromUserId, in: MainAppContext.shared.chatData.viewContext) != nil else { return }
+                DDLogInfo("GroupChatViewController/received chat presence for user \(fromUserId)")
+                DispatchQueue.main.async {
+                    self.titleView.updateGroupTitleView(groupId: self.groupId, fromUserId: fromUserId, status: status)
+                }
+            }
+        )
+
+        cancellableSet.insert(
+            MainAppContext.shared.chatData.didGetChatStateInfo.sink { [weak self] chatStateInfo in
+                guard let self = self else { return }
+                guard let chatStateInfo = chatStateInfo else {
+                    // if no chat state info received, clear typing indicator
+                    self.titleView.clearGroupTitleViewTyping(groupId: self.groupId)
+                    return
+                }
+                guard chatStateInfo.threadID == self.groupId else { return }
+                DDLogInfo("GroupChatViewController/didGetChatStateInfo \(String(describing: chatStateInfo))")
+                DispatchQueue.main.async {
+                    self.titleView.configureGroupTitleViewWithTypingIndicator(chatStateInfo: chatStateInfo)
+                }
+            }
+        )
     }
 
     override func viewWillAppear(_ animated: Bool) {
         DDLogInfo("GroupChatViewController/viewWillAppear")
         super.viewWillAppear(animated)
-        titleView.update(with: groupId)
         navigationController?.navigationBar.tintColor = UIColor.groupFeedTopNav
     }
 
@@ -336,6 +371,13 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
 
         MainAppContext.shared.chatData.markThreadAsRead(type: .groupChat, for: groupId)
         MainAppContext.shared.chatData.updateUnreadChatsThreadCount()
+        MainAppContext.shared.chatData.setCurrentlyChattingInGroup(in: nil)
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        MainAppContext.shared.chatData.markSeenMessages(type: .groupChat, for: groupId)
+        MainAppContext.shared.chatData.setCurrentlyChattingInGroup(in: groupId)
     }
 
     private func setupUI() {
@@ -744,19 +786,6 @@ extension GroupChatViewController: TextLabelDelegate {
     private func showUserFeed(for userID: UserID) {
         let userViewController = UserFeedViewController(userId: userID)
         self.navigationController?.pushViewController(userViewController, animated: true)
-    }
-}
-
-// MARK: Title View Delegates
-extension GroupChatViewController: GroupTitleViewDelegate {
-
-    func groupTitleViewRequestsOpenGroupInfo(_ groupTitleView: GroupTitleView) {
-        let vc = GroupInfoViewController(for: groupId)
-        navigationController?.pushViewController(vc, animated: true)
-    }
-
-    func groupTitleViewRequestsOpenGroupFeed(_ groupTitleView: GroupTitleView) {
-        // N/A
     }
 }
 
@@ -1445,5 +1474,13 @@ extension GroupChatViewController: UIDocumentInteractionControllerDelegate {
     }
     func documentInteractionControllerDidEndPreview(_ controller: UIDocumentInteractionController) {
         documentInteractionController = nil
+    }
+}
+
+// MARK: ChatTitle Delegates
+extension GroupChatViewController: ChatTitleViewDelegate {
+    func chatTitleView(_ chatTitleView: ChatTitleView) {
+        let vc = GroupInfoViewController(for: groupId)
+        navigationController?.pushViewController(vc, animated: true)
     }
 }

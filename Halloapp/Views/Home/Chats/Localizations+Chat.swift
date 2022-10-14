@@ -17,6 +17,12 @@ extension Localizations {
         NSLocalizedString("chat.typing.capitalized", value: "typing...", comment: "Label shown when user is typing")
     }
     
+    static func userChatTyping(name: String) -> String {
+        return String(
+            format: NSLocalizedString("user.chat.typing", value: "%@ is typing...", comment: "Label shown in group chat when a user is typing"),
+            name)
+    }
+    
     static var chatMessageDeleted: String {
         NSLocalizedString("chat.message.deleted", value: "This message was deleted.", comment: "Message text shown for the message that was deleted")
     }

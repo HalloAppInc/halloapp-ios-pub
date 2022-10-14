@@ -20,6 +20,8 @@ class ChatTitleView: UIView {
 
     public var isShowingTypingIndicator: Bool = false
 
+    public var currentlyTypingUserId: UserID?
+
     private var isUnknownContactWithPushNumber: Bool = false
 
     override init(frame: CGRect){
@@ -28,6 +30,10 @@ class ChatTitleView: UIView {
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
+
+    override var intrinsicContentSize: CGSize {
+        return CGSize(width: .greatestFiniteMagnitude, height: UIView.noIntrinsicMetric)
+    }
 
     private lazy var contactImageView: AvatarView = {
         return AvatarView()
@@ -57,9 +63,33 @@ class ChatTitleView: UIView {
         }
     }
 
+    func updateGroupTitleView(groupId: GroupID, fromUserId: UserID, status: UserPresenceType) {
+        contactImageView.configure(groupId: groupId, using: MainAppContext.shared.avatarStore)
+        setNameLabel(groupId: groupId)
+        guard currentlyTypingUserId == fromUserId else { return }
+        switch status {
+        case .away:
+            currentlyTypingUserId = nil
+            typingLabel.isHidden = true
+        default:
+            lastSeenLabel.isHidden = true
+        }
+    }
+
+    func clearGroupTitleViewTyping(groupId: GroupID) {
+        contactImageView.configure(groupId: groupId, using: MainAppContext.shared.avatarStore)
+        setNameLabel(groupId: groupId)
+        typingLabel.text = ""
+        typingLabel.isHidden = true
+    }
+
     func refreshName(for userID: String) {
         setNameLabel(for: userID)
         checkIfUnknownContactWithPushNumber(userID: userID)
+    }
+
+    func refreshName(groupId: GroupID) {
+        setNameLabel(groupId: groupId)
     }
 
     func checkIfUnknownContactWithPushNumber(userID: UserID) {
@@ -85,6 +115,28 @@ class ChatTitleView: UIView {
         }
     }
 
+    public func configureGroupTitleViewWithTypingIndicator(chatStateInfo: ChatStateInfo) {
+        let typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: .groupChat, id: chatStateInfo.threadID, fromUserID: chatStateInfo.from)
+
+        if typingIndicatorStr == nil && !isShowingTypingIndicator {
+            return
+        }
+        currentlyTypingUserId = chatStateInfo.from
+        showChatState(with: typingIndicatorStr)
+    }
+
+    func showTypingChatStateForGroupChat(for typingUserId: UserID, with typingIndicatorStr: String?) {
+
+        let showTyping: Bool = typingIndicatorStr != nil
+
+        lastSeenLabel.isHidden = showTyping
+        typingLabel.isHidden = !showTyping
+        isShowingTypingIndicator = showTyping
+
+        guard let typingStr = typingIndicatorStr else { return }
+        typingLabel.text = typingStr
+    }
+
     func showChatState(with typingIndicatorStr: String?) {
         guard !isUnknownContactWithPushNumber else { return }
 
@@ -100,6 +152,12 @@ class ChatTitleView: UIView {
     
     private func setNameLabel(for userID: UserID) {
         nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
+    }
+
+    private func setNameLabel(groupId: GroupID) {
+        if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
+            nameLabel.text = group.name
+        }
     }
     
     private func setup() {

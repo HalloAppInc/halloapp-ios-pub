@@ -263,7 +263,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         }
 
         cancellableSet.insert(
-            MainAppContext.shared.chatData.didGetCurrentChatPresence.sink { [weak self] status, ts in
+            MainAppContext.shared.chatData.didGetCurrentChatPresence.sink { [weak self] fromUserId, status, ts in
                 DDLogInfo("ChatViewController/didGetCurrentChatPresence")
                 guard let self = self else { return }
                 guard let userId = self.fromUserId else { return }
@@ -1171,7 +1171,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     private func configureTitleViewWithTypingIndicator() {
         guard let userID = self.fromUserId else { return }
-        let typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: .oneToOne, id: userID)
+        let typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: .oneToOne, id: userID, fromUserID: userID)
 
         if typingIndicatorStr == nil && !titleView.isShowingTypingIndicator {
             return

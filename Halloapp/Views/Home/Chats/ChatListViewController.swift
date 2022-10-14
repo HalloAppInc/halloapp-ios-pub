@@ -159,7 +159,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
                     } else {
                         DDLogError("ChatListViewController/viewDidLoad/ recipient id not set.")
                     }
-                    self.updateCellWithChatState(cell: cell, chatThread: chatThread)
+                    self.updateCellWithChatState(cell: cell, chatThread: chatThread, chatStateInfo: nil)
 
                     if self.isFiltering {
                         let searchStr = self.searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
@@ -194,10 +194,10 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         })
 
         cancellableSet.insert(
-            MainAppContext.shared.chatData.didGetChatStateInfo.sink { [weak self] in
+            MainAppContext.shared.chatData.didGetChatStateInfo.sink { [weak self] chatStateInfo in
                 guard let self = self else { return }
                 DispatchQueue.main.async {
-                    self.updateVisibleCellsWithTypingIndicator()
+                    self.updateVisibleCellsWithTypingIndicator(chatStateInfo: chatStateInfo)
                 }
             }
         )
@@ -497,20 +497,25 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         return tableView.contentOffset.y < fromTop
     }
 
-    private func updateVisibleCellsWithTypingIndicator() {
+    private func updateVisibleCellsWithTypingIndicator(chatStateInfo: ChatStateInfo?) {
         guard isVisible else { return }
         for tableCell in tableView.visibleCells {
             guard let cell = tableCell as? ThreadListCell else { continue }
             guard let chatThread = cell.chatThread else { continue }
-            updateCellWithChatState(cell: cell, chatThread: chatThread)
+            updateCellWithChatState(cell: cell, chatThread: chatThread, chatStateInfo: chatStateInfo)
         }
     }
 
-    private func updateCellWithChatState(cell: ThreadListCell, chatThread: ChatThread) {
+    private func updateCellWithChatState(cell: ThreadListCell, chatThread: ChatThread, chatStateInfo: ChatStateInfo?) {
         var typingIndicatorStr: String? = nil
 
-        if chatThread.type == .oneToOne {
-            typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: chatThread.type, id: chatThread.userID)
+        switch chatThread.type {
+        case .oneToOne:
+            typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: chatThread.type, id: chatThread.userID, fromUserID: chatThread.userID)
+        case .groupChat:
+            typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: .groupChat, id: chatThread.groupId, fromUserID: chatStateInfo?.from)
+        default:
+            return
         }
 
         if typingIndicatorStr == nil && !cell.isShowingTypingIndicator {

@@ -600,10 +600,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         rightBarButtons.append(videoButton)
 
         navigationItem.rightBarButtonItems = rightBarButtons
-
-        let titleWidthConstraint = titleView.widthAnchor.constraint(equalToConstant: (view.frame.width*0.8))
-        titleWidthConstraint.priority = .defaultHigh // Lower priority to allow space for trailing button if necessary
-        titleWidthConstraint.isActive = true
         // Setup title view
         navigationItem.titleView = titleView
         titleView.update(with: fromUserId, status: UserPresenceType.none, lastSeen: nil)
@@ -643,10 +639,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         }
 
         cancellableSet.insert(
-            MainAppContext.shared.chatData.didGetCurrentChatPresence.sink { [weak self] status, ts in
+            MainAppContext.shared.chatData.didGetCurrentChatPresence.sink { [weak self] fromUserId, status, ts in
                 DDLogInfo("ChatViewControllerNew/didGetCurrentChatPresence")
                 guard let self = self else { return }
-                guard let userId = self.fromUserId else { return }
+                guard let userId = self.fromUserId, userId == fromUserId else { return }
                 DispatchQueue.main.async {
                     self.titleView.update(with: userId, status: status, lastSeen: ts)
                 }
@@ -910,7 +906,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
     private func configureTitleViewWithTypingIndicator() {
         guard let userID = self.fromUserId else { return }
-        let typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: .oneToOne, id: userID)
+        let typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: .oneToOne, id: userID, fromUserID: userID)
 
         if typingIndicatorStr == nil && !titleView.isShowingTypingIndicator {
             return

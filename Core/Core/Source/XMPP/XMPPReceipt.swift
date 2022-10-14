@@ -24,7 +24,7 @@ public struct XMPPReceipt: Equatable {
     public enum Thread: Equatable {
         case none           // 1-1 messages
         case feed           // feed
-        case group(String)  // associated value is group id
+        case group(String)  // associated value is group id for group chat
     }
 
     public let itemId: String
