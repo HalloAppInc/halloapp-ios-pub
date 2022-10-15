@@ -60,7 +60,7 @@ extension KeyStore {
     }
 
     public func homeSessionKeyBundle(for type: HomeSessionType, in managedObjectContext: NSManagedObjectContext) -> HomeSessionKeyBundle? {
-        let homePredicate = NSPredicate(format: "typeValue == \(type.rawValue)")
+        let homePredicate = NSPredicate(format: "typeValue == %d", type.rawValue)
         return homeSessionKeyBundle(predicate: homePredicate, in: managedObjectContext)
     }
 
