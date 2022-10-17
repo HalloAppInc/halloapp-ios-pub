@@ -371,8 +371,9 @@ public class CoreChatData {
 
         var isCurrentlyChattingWithRecipient = false
         switch chatMessageRecipient {
-        case .oneToOneChat(let toUserId, _):
-            isCurrentlyChattingWithRecipient = isCurrentlyChatting(with: toUserId)
+        case .oneToOneChat(let toUserId, let fromUserId):
+            let userId = isIncomingMsg ? fromUserId : toUserId
+            isCurrentlyChattingWithRecipient = isCurrentlyChatting(with: userId)
         case .groupChat(let groupId, _):
             isCurrentlyChattingWithRecipient = isCurrentlyChatting(in: groupId)
         }
@@ -381,7 +382,7 @@ public class CoreChatData {
             DDLogDebug("CoreChatData/updateChatThread/ update-thread")
             chatThread = existingChatThread
             if isIncomingMsg {
-                chatThread.unreadCount = isCurrentlyChattingWithRecipient ? 0 : chatThread.unreadCount + 1
+                chatThread.unreadCount = chatThread.unreadCount + 1
             } else if isCurrentlyChattingWithRecipient {
                 // Sending a message always clears out the unread count when currently chatting with user
                 chatThread.unreadCount = 0
@@ -1258,27 +1259,31 @@ public class CoreChatData {
 
             // Update Chat Thread
             let lastMsgText = (chatMessage.rawText ?? "").isEmpty ? lastMsgTextFallback : chatMessage.rawText
-            if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatMessage.fromUserId, in: context) {
-                chatThread.lastMsgTimestamp = chatMessage.timestamp
-                chatThread.lastMsgId = chatMessage.id
-                chatThread.lastMsgUserId = chatMessage.fromUserId
-                chatThread.lastMsgText = lastMsgText
-                chatThread.lastMsgMediaType = lastMsgMediaType
-                chatThread.lastMsgStatus = .none
-                chatThread.lastMsgTimestamp = chatMessage.timestamp
-                chatThread.unreadCount = chatThread.unreadCount + 1
-            } else {
-                let chatThread = CommonThread(context: context)
-                chatThread.userID = chatMessage.fromUserId
-                chatThread.lastMsgId = chatMessage.id
-                chatThread.lastMsgUserId = chatMessage.fromUserId
-                chatThread.lastMsgText = lastMsgText
-                chatThread.lastMsgMediaType = lastMsgMediaType
-                chatThread.lastMsgStatus = .none
-                chatThread.lastMsgTimestamp = chatMessage.timestamp
-                chatThread.type = .oneToOne
-                chatThread.unreadCount = 1
+            if let recipientId = chatMessage.chatMessageRecipient.recipientId {
+                if let chatThread = self.chatThread(type: chatMessage.chatMessageRecipient.chatType, id: recipientId, in: context) {
+                    chatThread.lastMsgTimestamp = chatMessage.timestamp
+                    chatThread.lastMsgId = chatMessage.id
+                    chatThread.lastMsgUserId = chatMessage.fromUserId
+                    chatThread.lastMsgText = lastMsgText
+                    chatThread.lastMsgMediaType = lastMsgMediaType
+                    chatThread.lastMsgStatus = .none
+                    chatThread.lastMsgTimestamp = chatMessage.timestamp
+                    chatThread.unreadCount = chatThread.unreadCount + 1
+                } else {
+                    let chatThread = CommonThread(context: context)
+                    chatThread.userID = chatMessage.fromUserId
+                    chatThread.groupId = chatMessage.chatMessageRecipient.toGroupId
+                    chatThread.lastMsgId = chatMessage.id
+                    chatThread.lastMsgUserId = chatMessage.fromUserId
+                    chatThread.lastMsgText = lastMsgText
+                    chatThread.lastMsgMediaType = lastMsgMediaType
+                    chatThread.lastMsgStatus = .none
+                    chatThread.lastMsgTimestamp = chatMessage.timestamp
+                    chatThread.type = chatMessage.chatMessageRecipient.chatType
+                    chatThread.unreadCount = 1
+                }
             }
+
         }, completion: completion)
     }
     
