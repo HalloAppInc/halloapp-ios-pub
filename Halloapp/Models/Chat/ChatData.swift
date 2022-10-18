@@ -3065,7 +3065,7 @@ extension ChatData {
             NSSortDescriptor(keyPath: \ChatMessage.serialID, ascending: true),
             NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
         ]
-        return self.chatMessages(predicate: NSPredicate(format: "toGroupID = %@", groupId), sortDescriptors: sortDescriptors, in: managedObjectContext)
+        return self.chatMessages(predicate: NSPredicate(format: "toGroupID = %@ && (incomingStatusValue = %d OR incomingStatusValue = %d)", groupId, ChatMessage.IncomingStatus.none.rawValue, ChatMessage.IncomingStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
     
     func pendingOutgoingChatMessages(in managedObjectContext: NSManagedObjectContext) -> [ChatMessage] {
@@ -4000,7 +4000,6 @@ extension ChatData {
 
         updateChatMessage(with: messageId) { [weak self] (chatMessage) in
             guard let self = self else { return }
-            // TODO @Nandini double check this for group chat message
             guard ![.played, .seen, .retracting, .retracted].contains(chatMessage.outgoingStatus) || receiptType == .played else { return }
 
             switch receiptType {
