@@ -6,7 +6,9 @@
 //
 
 import AVFoundation
+import CocoaLumberjackSwift
 import Combine
+import Core
 import Foundation
 import UIKit
 
@@ -17,6 +19,7 @@ class VideoView: UIView {
 
     private var rateObservation: NSKeyValueObservation?
     private var videoRectObservation: NSKeyValueObservation?
+    private var statusObservation: NSKeyValueObservation?
 
     var player: AVPlayer? {
         get {
@@ -32,8 +35,16 @@ class VideoView: UIView {
                     guard let self = self else { return }
                     self.playButton.isHidden = player.rate > 0 || self.playbackControls == .advanced
                 })
+                statusObservation = player.currentItem?.observe(\.status, changeHandler: { item, change in
+                    if item.status == .failed, let error = item.error {
+                        DDLogError("VideoView/playbackFailed: \(error)")
+                        let reportedError = NSError(domain: "videoPlaybackFailed", code: 418, userInfo: [NSUnderlyingErrorKey: error])
+                        AppContext.shared.errorLogger?.logError(reportedError)
+                    }
+                })
             } else {
                 rateObservation = nil
+                statusObservation = nil
             }
         }
     }
