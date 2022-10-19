@@ -38,10 +38,6 @@ class ArchiveViewController: UIViewController, UICollectionViewDelegate, UIColle
     }()
 
     private lazy var emptyPlaceholderView: UIStackView = {
-        let stack = UIStackView()
-        stack.axis = .vertical
-        stack.alignment = .center
-        
         let imageView = UIImageView(image: UIImage(named: "archivePlaceholder"))
         imageView.contentMode = .scaleAspectFit
         imageView.tintColor = .tertiarySystemFill
@@ -53,8 +49,11 @@ class ArchiveViewController: UIViewController, UICollectionViewDelegate, UIColle
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = .tertiaryLabel
         
-        stack.addArrangedSubview(imageView)
-        stack.addArrangedSubview(label)
+        let stack = UIStackView(arrangedSubviews: [imageView, label])
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .vertical
+        stack.alignment = .center
+        stack.spacing = 12
         
         NSLayoutConstraint.activate([
             imageView.widthAnchor.constraint(equalToConstant: 55),
@@ -77,6 +76,7 @@ class ArchiveViewController: UIViewController, UICollectionViewDelegate, UIColle
         view.addSubview(emptyPlaceholderView)
         emptyPlaceholderView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
+            emptyPlaceholderView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.8),
             emptyPlaceholderView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             emptyPlaceholderView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
         ])

@@ -47,7 +47,6 @@ struct DeveloperMenuView: View {
 
     @State var useTestServer = MainAppContext.shared.coreService.useTestServer
     @State var enableGroupChat = AppContext.shared.userDefaults.bool(forKey: "enableGroupChat")
-    @State var enableChatForwarding = AppContext.shared.userDefaults.bool(forKey: "enableChatForwarding")
     @State var showDecryptionResults = DeveloperSetting.showDecryptionResults
     @State var forceCompactShare = AppContext.shared.userDefaults.bool(forKey: "forceCompactShare")
     @State var forcePickerShare = AppContext.shared.userDefaults.bool(forKey: "forcePickerShare")
@@ -227,11 +226,6 @@ struct DeveloperMenuView: View {
                     //    .onReceive(Just(self.enableGroupChat)) { value in
                     //        AppContext.shared.userDefaults.set(value, forKey: "enableGroupChat")
                     //    }
-
-                    Toggle(MenuTitles.enableChatForwarding, isOn: $enableChatForwarding)
-                        .onReceive(Just(self.enableChatForwarding)) { value in
-                            AppContext.shared.userDefaults.set(value, forKey: "enableChatForwarding")
-                        }
 
                     Toggle(MenuTitles.forceCompactShare, isOn: $forceCompactShare)
                         .onReceive(Just(forceCompactShare)) { value in
