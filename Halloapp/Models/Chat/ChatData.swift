@@ -5481,6 +5481,10 @@ extension ChatData: HalloChatDelegate {
             ack?()
             return
         }
+        guard receipt.userId != userData.userId else {
+            // skip processing own receipts for group chat
+            return
+        }
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
             if self.commonReaction(with: receipt.itemId, in: managedObjectContext) != nil {
