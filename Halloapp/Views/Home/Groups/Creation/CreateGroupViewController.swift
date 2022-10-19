@@ -91,7 +91,7 @@ class CreateGroupViewController: UIViewController {
         view.addSubview(formStackField)
 
 
-        if ServerProperties.enableGroupExpiry {
+        if ServerProperties.enableGroupExpiry, groupType == .groupFeed {
             formStackField.addArrangedSubview(groupExpirationField)
         }
 
