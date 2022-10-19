@@ -522,7 +522,7 @@ public class ChunkedMediaCrypter: MediaCrypter {
 
                 let decryptedChunk = try decrypter.decrypt(encryptedChunk: encryptedChunk, chunkIndex: Int(chunkIndex), shouldUpdateHash: shouldValidateHash)
                 if (chunkIndex < chunkedParameters.regularChunkCount && decryptedChunk.count != Int(chunkPlaintextSize)) ||
-                    (chunkIndex == chunkedParameters.regularChunkCount && abs(decryptedChunk.count - Int(chunkPlaintextSize)) >= ChunkedMediaParameters.BLOCK_SIZE) {
+                    (chunkIndex == chunkedParameters.regularChunkCount && abs(decryptedChunk.count - Int(chunkPlaintextSize)) > ChunkedMediaParameters.BLOCK_SIZE) {
                     DDLogError("ChunkedMedia/decryptChunkedMedia/error Unexpected plaintext chunk size got=[\(decryptedChunk.count)] expected=[\(chunkPlaintextSize)]")
                     throw Error.plaintextChunkSizeMismatch(estmated: Int(chunkPlaintextSize), actual: decryptedChunk.count)
                 }
