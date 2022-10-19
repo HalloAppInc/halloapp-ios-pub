@@ -423,8 +423,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                     case .chatMessage(let data):
                         if data.id == chatMessage.id {
                             snapshot.reloadItems([item])
-                            DispatchQueue.main.async {
-                                self.dataSource.apply(snapshot, animatingDifferences: false)
+                            let isScrolledTobottom = isScrolledTobottom()
+                            self.dataSource.apply(snapshot, animatingDifferences: false)
+                            if isScrolledTobottom {
+                                scrollToLastMessage(animated: false)
                             }
                         }
                     default:
@@ -435,6 +437,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         default:
             break
         }
+    }
+
+    private func isScrolledTobottom() -> Bool {
+        return collectionView.contentOffset.y == (collectionView.contentSize.height - (collectionView.bounds.height - collectionView.adjustedContentInset.bottom))
     }
 
     func updateCollectionViewData() {
