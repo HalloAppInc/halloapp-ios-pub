@@ -51,7 +51,7 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This lets you send photos and videos from your gallery, and save the ones you capture.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This lets you browse and share locations near you.</string>
+	<string>This lets you send your current location or nearby places in comments and chats.</string>
 	<key>NSUserActivityTypes</key>
 	<array>
 		<string>INSendMessageIntent</string>
