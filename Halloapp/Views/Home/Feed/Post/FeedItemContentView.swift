@@ -59,6 +59,8 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     private let scaleThreshold: CGFloat = 1.3
     private var postId: FeedPostID? = nil
     private var linkPreviewURL: URL?
+    private let mediaCarouselViewConfiguration: MediaCarouselViewConfiguration
+    private let maxMediaHeight: CGFloat?
 
     private enum LayoutConstants {
         static let topMargin: CGFloat = 5
@@ -90,12 +92,16 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         }
     }
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    init(mediaCarouselViewConfiguration: MediaCarouselViewConfiguration = .default, maxMediaHeight: CGFloat? = nil) {
+        self.mediaCarouselViewConfiguration = mediaCarouselViewConfiguration
+        self.maxMediaHeight = maxMediaHeight
+        super.init(frame: .zero)
         setupView()
     }
 
     required init?(coder: NSCoder) {
+        mediaCarouselViewConfiguration = .default
+        maxMediaHeight = nil
         super.init(coder: coder)
         setupView()
     }
@@ -140,7 +146,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         // Media
 
         if showMediaCarousel {
-            let mediaViewHeight = MediaCarouselView.preferredHeight(for: imageAndVideoMedia, width: contentWidth)
+            let mediaViewHeight = MediaCarouselView.preferredHeight(for: imageAndVideoMedia, width: contentWidth, maxHeight: maxMediaHeight)
             let index = displayData?.currentMediaIndex ?? 0
             DDLogInfo("FeedItemContentView/media-view-height post=[\(post.id)] height=[\(mediaViewHeight)]")
 
@@ -149,7 +155,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
                 mediaView.refreshData(media: imageAndVideoMedia, index: index, animated: false)
             } else {
                 mediaView?.removeFromSuperview()
-                var config = MediaCarouselViewConfiguration.default
+                var config = mediaCarouselViewConfiguration
                 config.gutterWidth = gutterWidth
                 let mediaView = MediaCarouselView(media: imageAndVideoMedia, initialIndex: index, configuration: config)
                 mediaView.delegate = self
@@ -620,12 +626,20 @@ final class FeedItemHeaderView: UIView {
         }
     }
 
-    func refreshTimestamp(with post: FeedPostDisplayable) {
-        timestampLabel.text = post.timestamp.feedTimestamp()
+    func refreshTimestamp(with post: FeedPostDisplayable, dateFormatter: DateFormatter? = nil) {
+        if let dateFormatter = dateFormatter {
+            timestampLabel.text = dateFormatter.string(from: post.timestamp)
+        } else {
+            timestampLabel.text = post.timestamp.feedTimestamp()
+        }
     }
 
-    func configure(with post: FeedPostDisplayable, contentWidth: CGFloat, showGroupName: Bool, showArchivedDate: Bool = false) {
-        nameLabel.text = post.posterFullName
+    func configure(with post: FeedPostDisplayable, contentWidth: CGFloat, showGroupName: Bool, showArchivedDate: Bool = false, useFullUserName: Bool = false) {
+        if useFullUserName, post.userId == MainAppContext.shared.userData.userId {
+            nameLabel.text = MainAppContext.shared.userData.name
+        } else {
+            nameLabel.text = post.posterFullName
+        }
 
         let isPostExpired = post.expiration.flatMap { $0 < Date() } ?? false
 

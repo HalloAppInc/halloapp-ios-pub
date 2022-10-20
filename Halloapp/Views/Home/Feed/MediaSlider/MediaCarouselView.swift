@@ -40,6 +40,7 @@ struct MediaCarouselViewConfiguration {
     var downloadProgressViewSize: CGFloat = 80 // Diameter of the circular progress view. Set to 0 to hide progress view.
     var supplementaryViewsProvider: ((Int) -> [MediaCarouselSupplementaryItem])?
     var pageControlViewsProvider: ((Int) -> [MediaCarouselSupplementaryItem])?
+    var loadMediaSynchronously = false
 
     static var `default`: MediaCarouselViewConfiguration {
         get { MediaCarouselViewConfiguration() }
@@ -125,8 +126,11 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         MainAppContext.shared.mediaDidStartPlaying.send(nil)
     }
 
-    class func preferredHeight(for media: [FeedMedia], width: CGFloat) -> CGFloat {
+    class func preferredHeight(for media: [FeedMedia], width: CGFloat, maxHeight: CGFloat? = nil) -> CGFloat {
         let maxHeight: CGFloat = {
+            if let maxHeight = maxHeight {
+                return maxHeight
+            }
             // We're seeing some posts appear with missing media when opening app from notification.
             // Could be related to screen bounds flakiness immediately after waking? https://developer.apple.com/forums/thread/65337
             // For now let's assume portrait orientation. This will need to change if we support landscape.
@@ -1270,6 +1274,7 @@ fileprivate class MediaCarouselSimpleVideoViewCell: MediaCarouselCollectionViewC
             setNeedsLayout()
         }
     }
+    private var loadMediaSynchronously = false
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -1305,6 +1310,7 @@ fileprivate class MediaCarouselSimpleVideoViewCell: MediaCarouselCollectionViewC
         borderView.strokeColor = configuration.borderColor
         borderView.lineWidth = configuration.borderWidth
         showsVideoPlaybackControls = configuration.showVideoPlaybackControls
+        loadMediaSynchronously = configuration.loadMediaSynchronously
     }
 
     override func configure(with media: FeedMedia, supplementaryViewsProvider provider: () -> [MediaCarouselSupplementaryItem]) {
@@ -1332,14 +1338,21 @@ fileprivate class MediaCarouselSimpleVideoViewCell: MediaCarouselCollectionViewC
         imageView.image = UIImage(systemName: "video")
 
         if let videoURL = videoURL {
-            DispatchQueue.global().async { [weak self] in
-                let image = VideoUtils.videoPreviewImage(url: videoURL)
-                DispatchQueue.main.async { [weak self] in
-                    guard let self = self, let image = image, self.videoURL == videoURL else {
-                        return
+            if loadMediaSynchronously {
+                if let image = VideoUtils.videoPreviewImage(url: videoURL) {
+                    isShowingPlaceholder = false
+                    imageView.image = image
+                }
+            } else {
+                DispatchQueue.global().async { [weak self] in
+                    let image = VideoUtils.videoPreviewImage(url: videoURL)
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self = self, let image = image, self.videoURL == videoURL else {
+                            return
+                        }
+                        self.isShowingPlaceholder = false
+                        self.imageView.image = image
                     }
-                    self.isShowingPlaceholder = false
-                    self.imageView.image = image
                 }
             }
         }

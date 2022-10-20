@@ -407,4 +407,8 @@ extension UIColor {
     class var reactionSelected: UIColor {
         UIColor(named: "ReactionSelected")!
     }
+
+    class var externalShareBackgound: UIColor {
+        UIColor(named: "ExternalShareBackground")!
+    }
 }
