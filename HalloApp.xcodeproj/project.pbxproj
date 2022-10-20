@@ -446,6 +446,12 @@
 		F427FF3828D0FF50000D3EAD /* ComposerTitleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F427FF3728D0FF50000D3EAD /* ComposerTitleView.swift */; };
 		F427FF3A28D16220000D3EAD /* Group+Expiration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F427FF3928D16220000D3EAD /* Group+Expiration.swift */; };
 		F42F574827C86D7200988E9D /* FeedInviteCarouselCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */; };
+		F43DF0EA28F0A686008008B7 /* ShareProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43DF0E928F0A685008008B7 /* ShareProvider.swift */; };
+		F43DF0EC28F0A94D008008B7 /* WhatsAppShareProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43DF0EB28F0A94D008008B7 /* WhatsAppShareProvider.swift */; };
+		F43DF0F028F5EDE8008008B7 /* SystemShareProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43DF0EF28F5EDE8008008B7 /* SystemShareProvider.swift */; };
+		F43DF0F228F5F242008008B7 /* MessagesShareProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43DF0F128F5F242008008B7 /* MessagesShareProvider.swift */; };
+		F43DF0F628F60E0B008008B7 /* InstagramStoriesShareProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43DF0F528F60E0B008008B7 /* InstagramStoriesShareProvider.swift */; };
+		F43DF0F828F60F4B008008B7 /* TwitterShareProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43DF0F728F60F4B008008B7 /* TwitterShareProvider.swift */; };
 		F445A73927FFB8270046D382 /* ShareMenuPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F445A73827FFB8270046D382 /* ShareMenuPresenter.swift */; };
 		F451ADA928CFBCE5003D1A76 /* UnifiedComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F451ADA828CFBCE5003D1A76 /* UnifiedComposerView.swift */; };
 		F45D9F762825DEFF005BAD9D /* GroupGridViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D9F752825DEFF005BAD9D /* GroupGridViewController.swift */; };
@@ -1239,6 +1245,12 @@
 		F427FF3728D0FF50000D3EAD /* ComposerTitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerTitleView.swift; sourceTree = "<group>"; };
 		F427FF3928D16220000D3EAD /* Group+Expiration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Group+Expiration.swift"; sourceTree = "<group>"; };
 		F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedInviteCarouselCell.swift; sourceTree = "<group>"; };
+		F43DF0E928F0A685008008B7 /* ShareProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareProvider.swift; sourceTree = "<group>"; };
+		F43DF0EB28F0A94D008008B7 /* WhatsAppShareProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsAppShareProvider.swift; sourceTree = "<group>"; };
+		F43DF0EF28F5EDE8008008B7 /* SystemShareProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemShareProvider.swift; sourceTree = "<group>"; };
+		F43DF0F128F5F242008008B7 /* MessagesShareProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesShareProvider.swift; sourceTree = "<group>"; };
+		F43DF0F528F60E0B008008B7 /* InstagramStoriesShareProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstagramStoriesShareProvider.swift; sourceTree = "<group>"; };
+		F43DF0F728F60F4B008008B7 /* TwitterShareProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwitterShareProvider.swift; sourceTree = "<group>"; };
 		F445A73827FFB8270046D382 /* ShareMenuPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareMenuPresenter.swift; sourceTree = "<group>"; };
 		F451ADA828CFBCE5003D1A76 /* UnifiedComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedComposerView.swift; sourceTree = "<group>"; };
 		F45D9F752825DEFF005BAD9D /* GroupGridViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridViewController.swift; sourceTree = "<group>"; };
@@ -2418,6 +2430,7 @@
 				761C6165242D896E0028AE19 /* Components */,
 				76DF9FF724132BDC00F49CA4 /* Global */,
 				EA3861EB23342C3800705943 /* Models */,
+				F43DF0E828F0A642008008B7 /* Share */,
 				EAC4AF21233E8D9700739B2B /* Network */,
 				146B93702405F2F900768AC6 /* Resources */,
 				EA5AD43C23342B8C00429643 /* Views */,
@@ -2466,6 +2479,19 @@
 				EE3A915C28A48B52002B66B6 /* LocationMessage.swift */,
 			);
 			path = "Location Sharing";
+			sourceTree = "<group>";
+		};
+		F43DF0E828F0A642008008B7 /* Share */ = {
+			isa = PBXGroup;
+			children = (
+				F43DF0E928F0A685008008B7 /* ShareProvider.swift */,
+				F43DF0F528F60E0B008008B7 /* InstagramStoriesShareProvider.swift */,
+				F43DF0F128F5F242008008B7 /* MessagesShareProvider.swift */,
+				F43DF0EF28F5EDE8008008B7 /* SystemShareProvider.swift */,
+				F43DF0EB28F0A94D008008B7 /* WhatsAppShareProvider.swift */,
+				F43DF0F728F60F4B008008B7 /* TwitterShareProvider.swift */,
+			);
+			path = Share;
 			sourceTree = "<group>";
 		};
 		F45D9F772825DF46005BAD9D /* Grid */ = {
@@ -3046,6 +3072,7 @@
 				A13C928E28D915A00096CE00 /* InAppPermissionsViewController.swift in Sources */,
 				F850677A26A7FDDF00A120EC /* AudioView.swift in Sources */,
 				3295A55D28809491007642B5 /* DestinationCell.swift in Sources */,
+				F43DF0EC28F0A94D008008B7 /* WhatsAppShareProvider.swift in Sources */,
 				EAA424FB24ECF1480025CBBE /* ChatGroupMember+CoreDataProperties.swift in Sources */,
 				F45D9F7F282C4E4B005BAD9D /* GroupGridHeader.swift in Sources */,
 				F8E6DCDF271EB06F005EECC5 /* TimeInterval.swift in Sources */,
@@ -3139,6 +3166,7 @@
 				688718E427F030E60010111D /* FeedDataLegacy.swift in Sources */,
 				32ECB6DB27725E2C004DABBA /* MessageCommentHeaderView.swift in Sources */,
 				7627173B257B0744006F7F3D /* AboutViewController.swift in Sources */,
+				F43DF0EA28F0A686008008B7 /* ShareProvider.swift in Sources */,
 				766103AB2461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift in Sources */,
 				EBA8265D28418BAF00590507 /* VerificationCodeTextField.swift in Sources */,
 				32C83FBD268FD6B000BEB4F5 /* NewGroupMembersPermissionDeniedController.swift in Sources */,
@@ -3216,6 +3244,7 @@
 				EAD944F724F73E4C004A27B1 /* GroupInfoViewController.swift in Sources */,
 				764F7751246226120063645A /* PostDashboardViewController.swift in Sources */,
 				F40F7C6B274C8159008144DE /* PostAudioView.swift in Sources */,
+				F43DF0F828F60F4B008008B7 /* TwitterShareProvider.swift in Sources */,
 				EAC6A4452721F57D00E5E12E /* FeedWelcomeCell.swift in Sources */,
 				764D5AEC248F0F3B009295F3 /* UINavigationBar.swift in Sources */,
 				E5959702268E3F6500AA3BB9 /* DeleteAccountModel.swift in Sources */,
@@ -3229,6 +3258,7 @@
 				761C6161242D2AE50028AE19 /* DeveloperMenuView.swift in Sources */,
 				EAA424FF24ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift in Sources */,
 				323D787927D7D71300C29FA1 /* MessageCellViewAudio.swift in Sources */,
+				F43DF0F028F5EDE8008008B7 /* SystemShareProvider.swift in Sources */,
 				EE3A915D28A48B52002B66B6 /* LocationMessage.swift in Sources */,
 				F427FF3828D0FF50000D3EAD /* ComposerTitleView.swift in Sources */,
 				EAD476F32458F03700EF8591 /* ChatMedia+CoreDataProperties.swift in Sources */,
@@ -3369,6 +3399,7 @@
 				F45D9F7D282C3ACF005BAD9D /* GroupGridDataSource.swift in Sources */,
 				EA9B750F25A9003B00389A8E /* MsgViewCell.swift in Sources */,
 				681E0DAA24C8E0190073A03E /* NewPostViewController.swift in Sources */,
+				F43DF0F228F5F242008008B7 /* MessagesShareProvider.swift in Sources */,
 				EA0B9917249C1FFB00B05094 /* Character.swift in Sources */,
 				32F7C4FA2834CB6C00AA2ECB /* MessageCommentViewHeaderPreview.swift in Sources */,
 				764AB42424A71D6900D4E354 /* PrivacyListView.swift in Sources */,
@@ -3378,6 +3409,7 @@
 				68CCB16726964851007015FA /* InitializingViewController.swift in Sources */,
 				F4F157DC276AA5B7002FDB9E /* DeleteAccountTextView.swift in Sources */,
 				EAA4C0A12739F505002F1628 /* AddGroupMembersWelcomeView.swift in Sources */,
+				F43DF0F628F60E0B008008B7 /* InstagramStoriesShareProvider.swift in Sources */,
 				EA039C6326C49BC4002CC4CF /* EditGroupDescViewController.swift in Sources */,
 				EACC34CB24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift in Sources */,
 				F41FAA5227E54F2900FC5090 /* FeedPostMenuViewController.swift in Sources */,
