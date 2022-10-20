@@ -54,6 +54,8 @@ class GroupFeedViewController: FeedCollectionViewController {
 
     private var shouldRestoreScrollPosition: Bool
 
+    private var recentSelfPostIDs = Set<FeedPostID>()
+
     override var feedPostIdToScrollTo: FeedPostID? {
         didSet {
             if feedPostIdToScrollTo != nil {
@@ -321,6 +323,15 @@ class GroupFeedViewController: FeedCollectionViewController {
         }
     }
 
+    override func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        super.collectionView(collectionView, didEndDisplaying: cell, forItemAt: indexPath)
+
+        if let feedItem = feedDataSource.item(at: indexPath.item), case .shareCarousel(let feedPostID) = feedItem {
+            recentSelfPostIDs.remove(feedPostID)
+            feedDataSource.removeItem(feedItem)
+        }
+    }
+
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         updateTopNavShadow()
     }
@@ -384,6 +395,14 @@ class GroupFeedViewController: FeedCollectionViewController {
 
     // MARK: Datasource
 
+    override func itemDidChange(_ item: FeedDisplayItem, change type: FeedDataSource.FeedDataSourceChangeType) {
+        super.itemDidChange(item, change: type)
+
+        if type == .insert, case .post(let feedPost) = item, feedPost.userID == MainAppContext.shared.userData.userId, -feedPost.timestamp.timeIntervalSinceNow < 5 * 60 {
+            recentSelfPostIDs.insert(feedPost.id)
+        }
+    }
+
     override func modifyItems(_ items: [FeedDisplayItem]) -> [FeedDisplayItem] {
         var result = items
         guard let group = self.group else { return result }
@@ -415,6 +434,15 @@ class GroupFeedViewController: FeedCollectionViewController {
         // one time update to mark sample group welcome post as seen if not seen before
         if isSampleGroup, let seen = sharedNUX.sampleGroupWelcomePostSeen(), !seen {
             sharedNUX.markSampleGroupWelcomePostSeen() // user will see welcome post once loaded since it's at the top
+        }
+
+        // Insert share carousels last, so any other operations will not interfere with positioning
+        var idx = 0
+        while idx < result.count {
+            if case .post(let feedPost) = result[idx], recentSelfPostIDs.contains(feedPost.id) {
+                result.insert(.shareCarousel(feedPost.id), at: idx + 1)
+            }
+            idx += 1
         }
 
         return result

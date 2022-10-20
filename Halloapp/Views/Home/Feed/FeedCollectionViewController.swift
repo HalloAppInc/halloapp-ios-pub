@@ -203,6 +203,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Sh
         collectionView.register(FeedInviteCarouselCell.self, forCellWithReuseIdentifier: FeedInviteCarouselCell.reuseIdentifier)
         collectionView.register(MomentCollectionViewCell.self, forCellWithReuseIdentifier: MomentCollectionViewCell.reuseIdentifier)
         collectionView.register(StackedMomentCollectionViewCell.self, forCellWithReuseIdentifier: StackedMomentCollectionViewCell.reuseIdentifier)
+        collectionView.register(FeedShareCarouselCell.self, forCellWithReuseIdentifier: FeedShareCarouselCell.reuseIdentifier)
 
         view.addSubview(collectionView)
         collectionView.constrain(to: view)
@@ -851,6 +852,14 @@ extension FeedCollectionViewController {
                     }
                     cell.hideContact = { contact in
                         AppContext.shared.contactStore.hideContactFromSuggestedInvites(identifier: contact.identifier)
+                    }
+                }
+                return cell
+            case .shareCarousel(let feedPostID):
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedShareCarouselCell.reuseIdentifier, for: indexPath)
+                if let cell = cell as? FeedShareCarouselCell {
+                    cell.shareAction = { [weak self] shareProvider in
+                        self?.share(postID: feedPostID, with: shareProvider)
                     }
                 }
                 return cell

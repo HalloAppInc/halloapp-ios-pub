@@ -72,7 +72,7 @@ final class FeedDataSource: NSObject {
                 return post.id == feedPostID
             case .post(let post):
                 return post.id == feedPostID
-            case .event, .groupWelcome, .inviteCarousel, .welcome:
+            case .event, .groupWelcome, .inviteCarousel, .welcome, .shareCarousel:
                 return false
             }
         })
@@ -99,6 +99,11 @@ final class FeedDataSource: NSObject {
     func item(at index: Int) -> FeedDisplayItem? {
         guard index < displayItems.count else { return nil }
         return displayItems[index]
+    }
+
+    func removeItem(_ item: FeedDisplayItem) {
+        displayItems.removeAll { $0 == item }
+        delegate?.itemsDidChange(displayItems)
     }
 
     var hasUnreadPosts: Bool {
@@ -461,6 +466,7 @@ enum FeedDisplayItem: Hashable, Equatable {
     case welcome
     case groupWelcome(GroupID)
     case inviteCarousel
+    case shareCarousel(FeedPostID)
 
     var post: FeedPost? {
         switch self {
@@ -471,6 +477,7 @@ enum FeedDisplayItem: Hashable, Equatable {
         case .welcome: return nil
         case .groupWelcome: return nil
         case .inviteCarousel: return nil
+        case .shareCarousel: return nil
         }
     }
     
@@ -483,6 +490,7 @@ enum FeedDisplayItem: Hashable, Equatable {
         case .welcome: return nil
         case .groupWelcome: return nil
         case .inviteCarousel: return nil
+        case .shareCarousel: return nil
         }
     }
     
@@ -495,6 +503,7 @@ enum FeedDisplayItem: Hashable, Equatable {
         case .groupWelcome(let groupID): return groupID
         case .inviteCarousel: return nil
         case .momentStack: return nil
+        case .shareCarousel: return nil
         }
     }
 }

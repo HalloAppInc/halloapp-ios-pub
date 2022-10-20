@@ -20,6 +20,8 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
 
     private var cancellables: Set<AnyCancellable> = []
 
+    private var recentSelfPostIDs = Set<FeedPostID>()
+
     private lazy var canInvite = {
         return isWhatsAppAvailable || isIMessageAvailable
     }()
@@ -131,6 +133,15 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         DispatchQueue.main.async { [weak self] in self?.floatingMenu.setAccessoryState(fabAccessoryState, animated: true) }
     }
 
+    override func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        super.collectionView(collectionView, didEndDisplaying: cell, forItemAt: indexPath)
+
+        if let feedItem = feedDataSource.item(at: indexPath.item), case .shareCarousel(let feedPostID) = feedItem {
+            recentSelfPostIDs.remove(feedPostID)
+            feedDataSource.removeItem(feedItem)
+        }
+    }
+
     // MARK: FeedCollectionViewController
 
     override func willUpdate(with items: [FeedDisplayItem]) {
@@ -140,6 +151,14 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
     }
 
     // MARK: Datasource
+
+    override func itemDidChange(_ item: FeedDisplayItem, change type: FeedDataSource.FeedDataSourceChangeType) {
+        super.itemDidChange(item, change: type)
+
+        if type == .insert, case .post(let feedPost) = item, feedPost.userID == MainAppContext.shared.userData.userId, -feedPost.timestamp.timeIntervalSinceNow < 5 * 60 {
+            recentSelfPostIDs.insert(feedPost.id)
+        }
+    }
     
     override func modifyItems(_ items: [FeedDisplayItem]) -> [FeedDisplayItem] {
         var result = items
@@ -182,6 +201,15 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             default:
                 result.insert(.momentStack([.prompt]), at: 0)
             }
+        }
+
+        // Insert share carousels last, so any other operations will not interfere with positioning
+        var idx = 0
+        while idx < result.count {
+            if case .post(let feedPost) = result[idx], recentSelfPostIDs.contains(feedPost.id) {
+                result.insert(.shareCarousel(feedPost.id), at: idx + 1)
+            }
+            idx += 1
         }
 
         return result
