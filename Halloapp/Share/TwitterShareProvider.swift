@@ -21,7 +21,7 @@ class TwitterShareProvider: ShareProvider {
     static var canShare: Bool {
         // SLComposeViewController.isAvailable(forServiceType: SLServiceTypeTwitter)  always returns false
         // Instead, check whether the Twitter app is installed. This will still fail if the user is not logged in,
-        // but we don't have a detection mechanismfor that.
+        // but we don't have a detection mechanism for that.
         guard let url = URL(string: "twitter://") else {
             return false
         }
