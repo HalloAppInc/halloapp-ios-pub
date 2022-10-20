@@ -409,7 +409,7 @@ class NewCameraViewController: UIViewController {
         let libraryButton = UIBarButtonItem(image: libraryImage, style: .plain, target: self, action: #selector(libraryTapped))
 
         navigationItem.leftBarButtonItem = options.contains(.showDismissButton) ? downButton : nil
-        navigationItem.rightBarButtonItem = options.contains(.showLibraryButton) && self.configuration != .moment ? libraryButton : nil
+        navigationItem.rightBarButtonItem = options.contains(.showLibraryButton) ? libraryButton : nil
     }
 
     @objc

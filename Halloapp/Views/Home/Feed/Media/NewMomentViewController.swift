@@ -53,7 +53,15 @@ final class NewMomentViewController: UIViewController {
     /// - note: We keep a reference to the view controller itself so that we can easily get
     ///         layout values when performing the animation.
     private lazy var cameraController: NewCameraViewController = {
-        let vc = NewCameraViewController(style: .moment)
+        let options: NewCameraViewController.Options
+
+#if targetEnvironment(simulator)
+        options = [.showLibraryButton]
+#else
+        options = []
+#endif
+
+        let vc = NewCameraViewController(style: .moment, options: options)
         vc.delegate = self
         vc.title = Localizations.newMomentTitle
         vc.subtitle = prompt
