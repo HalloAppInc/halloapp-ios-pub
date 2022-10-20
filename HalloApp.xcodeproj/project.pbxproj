@@ -460,6 +460,7 @@
 		F45D9F7D282C3ACF005BAD9D /* GroupGridDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D9F7C282C3ACF005BAD9D /* GroupGridDataSource.swift */; };
 		F45D9F7F282C4E4B005BAD9D /* GroupGridHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D9F7E282C4E4B005BAD9D /* GroupGridHeader.swift */; };
 		F470251027ED31A6008CD37F /* URLRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F470250F27ED31A6008CD37F /* URLRouter.swift */; };
+		F4867F3328ECA0B4006C22A8 /* ShareCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4867F3228ECA0B4006C22A8 /* ShareCarousel.swift */; };
 		F494BEE72745E7DB00982E49 /* ActionSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */; };
 		F499FB0D2877A914005D5ADD /* GroupGridProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F499FB0C2877A914005D5ADD /* GroupGridProgressView.swift */; };
 		F49C8E632835A52900E881E3 /* RoundedRectButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49C8E622835A52900E881E3 /* RoundedRectButton.swift */; };
@@ -1260,6 +1261,7 @@
 		F45D9F7C282C3ACF005BAD9D /* GroupGridDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridDataSource.swift; sourceTree = "<group>"; };
 		F45D9F7E282C4E4B005BAD9D /* GroupGridHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridHeader.swift; sourceTree = "<group>"; };
 		F470250F27ED31A6008CD37F /* URLRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLRouter.swift; sourceTree = "<group>"; };
+		F4867F3228ECA0B4006C22A8 /* ShareCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareCarousel.swift; sourceTree = "<group>"; };
 		F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionSheetViewController.swift; sourceTree = "<group>"; };
 		F499FB0C2877A914005D5ADD /* GroupGridProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridProgressView.swift; sourceTree = "<group>"; };
 		F49C8E622835A52900E881E3 /* RoundedRectButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedRectButton.swift; sourceTree = "<group>"; };
@@ -2493,6 +2495,7 @@
 				F43DF0EF28F5EDE8008008B7 /* SystemShareProvider.swift */,
 				F43DF0EB28F0A94D008008B7 /* WhatsAppShareProvider.swift */,
 				F43DF0F728F60F4B008008B7 /* TwitterShareProvider.swift */,
+				F4867F3228ECA0B4006C22A8 /* ShareCarousel.swift */,
 			);
 			path = Share;
 			sourceTree = "<group>";
@@ -3230,6 +3233,7 @@
 				6ABBB206272D90FB007A595D /* Call.swift in Sources */,
 				764AB41824A67A5C00D4E354 /* Privacy.swift in Sources */,
 				F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */,
+				F4867F3328ECA0B4006C22A8 /* ShareCarousel.swift in Sources */,
 				A1E6767B28513F5E0086EDD2 /* CameraShutterButton.swift in Sources */,
 				A17DCD7027C0885F00E00073 /* ExpandableTextView.swift in Sources */,
 				A188383928BD5DA6005BBCC2 /* PhoneNumberEntryViewController.swift in Sources */,
