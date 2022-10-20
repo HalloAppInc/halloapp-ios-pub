@@ -6,6 +6,7 @@
 //  Copyright © 2022 HalloApp, Inc. All rights reserved.
 //
 
+import CocoaLumberjackSwift
 import Core
 import CoreCommon
 import UIKit
@@ -22,16 +23,14 @@ extension ShareMenuPresenter {
             FeedPostMenuViewController.Section(postPreview: .init(image: MainAppContext.shared.feedData.externalShareThumbnail(for: feedPost),
                                                                   title: MainAppContext.shared.userData.name,
                                                                   subtitle: feedPost.externalShareDescription))
+            FeedPostMenuViewController.Section(shareCarouselItem: .init(shareAction: { [weak self] shareProvider in
+                self?.share(postID: postID, with: shareProvider)
+            }))
             FeedPostMenuViewController.Section {
                 FeedPostMenuViewController.Item(style: .standard,
                                                 icon: UIImage(systemName: "square.and.arrow.up"),
                                                 title: Localizations.buttonShare) { [weak self] _ in
-                    self?.generateExternalShareLink(postID: postID, success: { [weak self] url, toast in
-                        toast.hide()
-                        let shareText = "\(Localizations.externalShareText) \(url)"
-                        let activityViewController = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
-                        self?.present(activityViewController, animated: true)
-                    })
+                    self?.share(postID: postID, with: SystemShareProvider.self)
                 }
                 FeedPostMenuViewController.Item(style: .standard,
                                                 icon: UIImage(named: "ExternalShareLink"),
@@ -52,6 +51,30 @@ extension ShareMenuPresenter {
             }
             FeedPostMenuViewController.Section(description: Localizations.externalShareDescription, icon: UIImage(systemName: "info.circle"))
         }), animated: true)
+    }
+
+    func share(postID: FeedPostID, with shareProvider: ShareProvider.Type) {
+        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: postID, in: MainAppContext.shared.feedData.viewContext) else {
+            DDLogError("ShareMenuPresenter/shareWithShareProvider/post not found")
+            return
+        }
+
+        let completion: (ShareProviderResult) -> Void = { result in
+            DDLogInfo("ShareMenuPresenter/shareWithShareProvider/didCompleteShare/\(shareProvider.title)/\(result)")
+        }
+
+        if shareProvider == InstagramStoriesShareProvider.self {
+            shareProvider.share(text: nil,
+                                image: ExternalSharePostView.snapshot(with: feedPost, includeBackground: true),
+                                completion: completion)
+        } else {
+            generateExternalShareLink(postID: postID) { url, toast in
+                toast.hide()
+                shareProvider.share(text: Localizations.externalShareText(url: url),
+                                    image: ExternalSharePostView.snapshot(with: feedPost),
+                                    completion: completion)
+            }
+        }
     }
 
     private func generateExternalShareLink(postID: FeedPostID, success: @escaping (URL, Toast) -> Void) {
@@ -124,10 +147,11 @@ extension Localizations {
                           comment: "Success toast when external share link is copied")
     }
 
-    static var externalShareText: String {
-        NSLocalizedString("your.post.externalshare.title",
-                          value: "Check out my post on HalloApp:",
-                          comment: "Text introducing external share link, part of what is shared")
+    static func externalShareText(url: URL) -> String {
+        let localizedString = NSLocalizedString("your.post.externalshare.title",
+                                                value: "Check out my post on HalloApp:",
+                                                comment: "Text introducing external share link, part of what is shared")
+        return "\(localizedString) \(url)"
     }
 
     static var externalShareFailed: String = {

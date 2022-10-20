@@ -7,6 +7,7 @@
 //
 
 import CocoaLumberjackSwift
+import Core
 import CoreCommon
 import UIKit
 
@@ -23,7 +24,7 @@ class FeedPostMenuViewController: BottomSheetViewController {
     struct Section: Hashable {
 
         fileprivate enum SectionType: Hashable {
-            case description(Description), actions([Item]), postPreview(FeedPostPreview)
+            case description(Description), actions([Item]), postPreview(FeedPostPreview), shareCarousel(FeedShareItem)
         }
 
         fileprivate let type: SectionType
@@ -40,6 +41,10 @@ class FeedPostMenuViewController: BottomSheetViewController {
             type = .postPreview(postPreview)
         }
 
+        init(shareCarouselItem: FeedShareItem) {
+            type = .shareCarousel(shareCarouselItem)
+        }
+
         var items: [AnyHashable] {
             switch type {
             case .description(let description):
@@ -48,6 +53,8 @@ class FeedPostMenuViewController: BottomSheetViewController {
                 return items
             case .postPreview(let feedPostPreview):
                 return [feedPostPreview]
+            case .shareCarousel(let feedShareItem):
+                return [feedShareItem]
             }
         }
     }
@@ -89,6 +96,19 @@ class FeedPostMenuViewController: BottomSheetViewController {
     struct Description: Hashable {
         let description: String
         let icon: UIImage?
+    }
+
+    struct FeedShareItem: Hashable {
+        private let uuid = UUID()
+        let shareAction: (ShareProvider.Type) -> Void
+
+        static func == (lhs: FeedShareItem, rhs: FeedShareItem) -> Bool {
+            return lhs.uuid == rhs.uuid
+        }
+
+        func hash(into hasher: inout Hasher) {
+            uuid.hash(into: &hasher)
+        }
     }
 
     @resultBuilder
@@ -143,6 +163,7 @@ class FeedPostMenuViewController: BottomSheetViewController {
         static let cell = "cell"
         static let descriptionCell = "description"
         static let postPreviewCell = "postPreview"
+        static let shareCarouselCell = "shareCarousel"
         static let footer = "footer"
     }
 
@@ -172,6 +193,7 @@ class FeedPostMenuViewController: BottomSheetViewController {
         collectionView.register(FeedPostMenuCell.self, forCellWithReuseIdentifier: ReuseIdentifier.cell)
         collectionView.register(FeedPostMenuDescriptionCell.self, forCellWithReuseIdentifier: ReuseIdentifier.descriptionCell)
         collectionView.register(FeedPostMenuPostPreviewCell.self, forCellWithReuseIdentifier: ReuseIdentifier.postPreviewCell)
+        collectionView.register(FeedPostMenuShareCarouselCell.self, forCellWithReuseIdentifier: ReuseIdentifier.shareCarouselCell)
         collectionView.register(FeedPostMenuFooter.self,
                                 forSupplementaryViewOfKind: ElementKind.footer,
                                 withReuseIdentifier: ReuseIdentifier.footer)
@@ -261,6 +283,10 @@ class FeedPostMenuViewController: BottomSheetViewController {
         case let item as FeedPostPreview:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ReuseIdentifier.postPreviewCell, for: indexPath)
             (cell as? FeedPostMenuPostPreviewCell)?.configure(with: item)
+            return cell
+        case let item as FeedShareItem:
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ReuseIdentifier.shareCarouselCell, for: indexPath)
+            (cell as? FeedPostMenuShareCarouselCell)?.configure(with: item, dismissAction: { [weak self] completion in self?.dismiss(animated: true, completion: completion) })
             return cell
         default:
             fatalError()
@@ -608,5 +634,37 @@ private class FeedPostMenuSectionBackground: UICollectionReusableView {
     override func layoutSubviews() {
         super.layoutSubviews()
         layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius).cgPath
+    }
+}
+
+private class FeedPostMenuShareCarouselCell: UICollectionViewCell {
+
+    private let shareCarousel = ShareCarousel()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        shareCarousel.layoutMargins = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+        shareCarousel.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(shareCarousel)
+
+        NSLayoutConstraint.activate([
+            shareCarousel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: -20),
+            shareCarousel.topAnchor.constraint(equalTo: contentView.topAnchor),
+            shareCarousel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: 20),
+            shareCarousel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError()
+    }
+
+    func configure(with feedShareItem: FeedPostMenuViewController.FeedShareItem, dismissAction: @escaping (@escaping () -> Void) -> Void) {
+        shareCarousel.share = { shareProvider in
+            dismissAction() {
+                feedShareItem.shareAction(shareProvider)
+            }
+        }
     }
 }
