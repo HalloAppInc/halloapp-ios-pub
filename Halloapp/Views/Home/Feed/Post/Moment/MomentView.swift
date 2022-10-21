@@ -141,7 +141,6 @@ class MomentView: UIView {
         let view = AvatarView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.isUserInteractionEnabled = true
-        view.isHidden = configuration == .fullscreen
         view.layer.shadowColor = UIColor.black.withAlphaComponent(0.1).cgColor
         view.layer.shadowRadius = 2
         view.layer.shadowOffset = .zero
@@ -693,6 +692,7 @@ class MomentView: UIView {
         var enableOpenTap = false
         var hideBackgroundGradient = downloadProgressCancellable == nil
         let showFacePile = configuration == .stacked && feedPost?.userID == MainAppContext.shared.userData.userId
+        let hideSmallAvatar = configuration == .fullscreen || newState == .prompt
 
         if let feedPost {
             let name = MainAppContext.shared.contactStore.firstName(for: feedPost.userID,
@@ -722,6 +722,7 @@ class MomentView: UIView {
         imageContainer.isHidden = hideImageContainer
         downloadProgressView.isHidden = !hideImageContainer
         gradientView.isHidden = hideBackgroundGradient
+        smallAvatarView.isHidden = hideSmallAvatar
 
         blurView.effect = showBlur ? UIBlurEffect(style: .regular) : nil
         blurView.isUserInteractionEnabled = newState != .unlocked
