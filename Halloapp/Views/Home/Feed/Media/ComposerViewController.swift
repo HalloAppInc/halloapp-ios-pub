@@ -835,6 +835,8 @@ class ComposerViewController: UIViewController {
         guard !isSharing else { return }
         isSharing = true
 
+        mediaCarouselView.stopPlayback()
+
         isVideoLengthWithinLimit { [weak self] isWithinLimit in
             guard let self = self else { return }
 
