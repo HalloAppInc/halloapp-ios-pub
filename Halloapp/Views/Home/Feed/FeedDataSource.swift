@@ -361,10 +361,6 @@ final class FeedDataSource: NSObject {
                 oldestUnexpiredMoment = $0.timestamp
             }
 
-            if $0.userId == MainAppContext.shared.userData.userId {
-                return true
-            }
-
             stackedMoments.append(.moment($0))
             return false
         }

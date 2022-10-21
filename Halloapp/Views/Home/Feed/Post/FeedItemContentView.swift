@@ -416,7 +416,7 @@ final class FeedItemHeaderView: UIView {
     private let moreButtonWidth: CGFloat = 18
     private let moreButtonSpacing: CGFloat = 2
 
-    private lazy var avatarViewButton: AvatarViewButton = {
+    private(set) lazy var avatarViewButton: AvatarViewButton = {
         let avatarViewButton = AvatarViewButton(type: .custom)
         avatarViewButton.translatesAutoresizingMaskIntoConstraints = false
         avatarViewButton.addTarget(self, action: #selector(showUser), for: .touchUpInside)

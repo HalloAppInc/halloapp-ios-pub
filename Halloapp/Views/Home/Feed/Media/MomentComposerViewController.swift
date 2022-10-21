@@ -167,6 +167,8 @@ class MomentComposerViewController: UIViewController, MomentLocationToggleDelega
         sendButtonContainer.addSubview(sendButton)
 
         let padding = NewCameraViewController.Layout.padding(for: .moment)
+        let minimizeLocationToggleWidth = locationToggle.widthAnchor.constraint(equalToConstant: 0)
+        minimizeLocationToggleWidth.priority = UILayoutPriority(1)
 
         NSLayoutConstraint.activate([
             background.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -207,8 +209,8 @@ class MomentComposerViewController: UIViewController, MomentLocationToggleDelega
             locationToggle.topAnchor.constraint(equalTo: background.bottomAnchor, constant: 15),
             locationToggle.centerXAnchor.constraint(equalTo: background.centerXAnchor),
             locationToggle.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor),
-            locationToggle.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor),
-            locationToggle.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor),
+            locationToggle.widthAnchor.constraint(lessThanOrEqualTo: background.widthAnchor, multiplier: 0.75),
+            minimizeLocationToggleWidth,
         ])
         
         navigationItem.setHidesBackButton(true, animated: false)
@@ -225,6 +227,8 @@ class MomentComposerViewController: UIViewController, MomentLocationToggleDelega
         let hideTap = UITapGestureRecognizer(target: self, action: #selector(hideAudiencePillTapped))
         view.addGestureRecognizer(hideTap)
         hideTap.cancelsTouchesInView = false
+
+        locationToggle.requestLocation()
     }
 
     func configure(with media: PendingMedia) {

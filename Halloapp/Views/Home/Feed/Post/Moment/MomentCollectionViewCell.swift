@@ -17,7 +17,7 @@ class MomentCollectionViewCell: UICollectionViewCell, MomentViewDelegate {
     private(set) var post: FeedPost?
 
     private(set) lazy var momentView: MomentView = {
-        let view = MomentView()
+        let view = MomentView(configuration: .stacked)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.delegate = self
         return view

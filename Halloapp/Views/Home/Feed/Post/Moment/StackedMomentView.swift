@@ -27,6 +27,11 @@ enum MomentStackItem: Equatable, Hashable {
 class StackedMomentView: UIView {
 
     typealias Item = MomentStackItem
+    /// Represents whether the stack is showing the next (forwards) or previous item during an in-flight
+    /// swipe animation.
+    private enum IterationDirection { case forwards, backwards }
+    /// Represents which direction the swipe animation will complete. For example, the view can be dragged
+    /// to the left of the stack, but with enough velocity can finish on the right.
     private enum AnimationDirection { case left, right }
 
     private var items: [Item] = []
@@ -35,7 +40,7 @@ class StackedMomentView: UIView {
     private lazy var unusedViews: [MomentView] = {
         var views = [MomentView]()
         for i in 1...5 {
-            let momentView = MomentView()
+            let momentView = MomentView(configuration: .stacked)
             momentView.translatesAutoresizingMaskIntoConstraints = false
 
             momentView.delegate = self
@@ -50,6 +55,7 @@ class StackedMomentView: UIView {
         return visibleViews.first
     }
 
+    private var iterationDirection: IterationDirection?
     private var gestureStartPoint: CGPoint?
     private var topMomentRotationAngle: CGFloat?
 
@@ -85,15 +91,28 @@ class StackedMomentView: UIView {
         fatalError("StackedMomentView coder init not implemented...")
     }
 
-    func configure(with items: [Item]) {
+    func configure(with items: [Item], sorted: Bool = true) {
         reset()
+
+        var items = items
+        if sorted, case .moment(_) = items.first {
+            // don't sort if it's the prompt
+            items = sort(items: items)
+        }
 
         self.items = items
         iterator = ItemIterator(items)
 
         for _ in (items.count == 1 ? 1...1 : 1...3) {
-            if let item = iterator?.next() {
-                insertItemAtBottom(item)
+            insertViewAtBottom()
+        }
+
+        if let item = items.first, let topView {
+            switch item {
+            case .moment(let post):
+                topView.configure(with: post)
+            case .prompt:
+                topView.configure(with: nil)
             }
         }
 
@@ -102,22 +121,41 @@ class StackedMomentView: UIView {
         }
     }
 
+    private func sort(items: [Item]) -> [Item] {
+        func isUnseen(_ post: FeedPost) -> Bool {
+            !(post.status == .seen || post.status == .seenSending)
+        }
+
+        return items.sorted(by: {
+            switch ($0, $1) {
+            case (.moment(let post), _) where post.userId == MainAppContext.shared.userData.userId:
+                // user's own moment is always first
+                return true
+
+            case (.moment(let p1), .moment(let p2)) where isUnseen(p1) && !isUnseen(p2):
+                // unseen moments go before seen ones
+                return true
+            case (.moment(let p1), .moment(let p2)) where !isUnseen(p1) && isUnseen(p2):
+                return false
+
+            case (.moment(let p1), .moment(let p2)):
+                return p1.timestamp > p2.timestamp
+
+            default:
+                return false
+            }
+        })
+    }
+
     private func reset() {
         unusedViews.append(contentsOf: visibleViews)
         visibleViews = []
         unusedViews.forEach { $0.isHidden = true }
     }
 
-    private func insertItemAtBottom(_ item: Item) {
+    private func insertViewAtBottom() {
         guard let view = dequeueMomentView() else {
             return
-        }
-
-        switch item {
-        case .moment(let post):
-            view.configure(with: post)
-        case .prompt:
-            view.configure(with: nil)
         }
 
         let aboveViewAngle = visibleViews.last?.transform.rotationAngle ?? 1
@@ -140,6 +178,7 @@ class StackedMomentView: UIView {
 
         switch gesture.state {
         case .began:
+            configureNextItem(gesture)
             gestureStartPoint = gesture.location(in: self)
             topMomentRotationAngle = momentView.transform.rotationAngle
             fallthrough
@@ -153,11 +192,34 @@ class StackedMomentView: UIView {
         case .ended, .failed, .cancelled:
             completeStackAnimation(gesture)
             gestureStartPoint = nil
+            iterationDirection = nil
             topMomentRotationAngle = nil
-
         default:
             break
         }
+    }
+
+    private func configureNextItem(_ gesture: UIPanGestureRecognizer) {
+        guard visibleViews.count > 1, iterationDirection == nil else {
+            return
+        }
+
+        let velocity: CGFloat = gesture.velocity(in: gesture.view).x
+        let direction: IterationDirection
+
+        switch effectiveUserInterfaceLayoutDirection {
+        case .rightToLeft:
+            direction = velocity >= 0 ? .forwards : .backwards
+        default:
+            direction = velocity >= 0 ? .backwards : .forwards
+        }
+
+        let nextItem = direction == .forwards ? iterator?.peekNext : iterator?.peekPrevious
+        if case let .moment(post) = nextItem {
+            visibleViews[1].configure(with: post)
+        }
+
+        iterationDirection = direction
     }
 
     private func rotationAngle(_ xTranslation: CGFloat) -> CGFloat {
@@ -258,11 +320,17 @@ class StackedMomentView: UIView {
 
     private func didSwipe() {
         let previousTopMoment = visibleViews.remove(at: 0)
-        guard let item = iterator?.next() else {
-            return
+
+        switch iterationDirection {
+        case .forwards:
+            iterator?.next()
+        case .backwards:
+            iterator?.previous()
+        default:
+            break
         }
 
-        insertItemAtBottom(item)
+        insertViewAtBottom()
         removeFTUXIfNecessary(previousTopMoment)
     }
 
@@ -287,7 +355,7 @@ class StackedMomentView: UIView {
         items.removeSubrange(..<index)
         items.insert(contentsOf: slice, at: items.endIndex)
 
-        configure(with: items)
+        configure(with: items, sorted: false)
         return true
     }
 }
@@ -380,16 +448,58 @@ fileprivate struct ItemIterator: IteratorProtocol {
         self.index = items.startIndex
     }
 
-    public mutating func next() -> MomentStackItem? {
+    private var previousIndex: Int? {
         guard !items.isEmpty else {
             return nil
         }
 
-        let item = items[index]
-        let next = items.index(after: index)
-        index = next == items.endIndex ? items.startIndex : next
+        let value = index - 1
+        return value < 0 ? items.count - 1 : value
+    }
 
-        return item
+    private var nextIndex: Int? {
+        guard !items.isEmpty else {
+            return nil
+        }
+
+        let value = index + 1
+        return value == items.count ? 0 : value
+    }
+
+    public var peekPrevious: MomentStackItem? {
+        if let previousIndex {
+            return items[previousIndex]
+        }
+
+        return nil
+    }
+
+    public var peekNext: MomentStackItem? {
+        if let nextIndex {
+            return items[nextIndex]
+        }
+
+        return nil
+    }
+
+    @discardableResult
+    public mutating func next() -> MomentStackItem? {
+        guard let nextIndex else {
+            return nil
+        }
+
+        index = nextIndex
+        return items[nextIndex]
+    }
+
+    @discardableResult
+    public mutating func previous() -> MomentStackItem? {
+        guard let previousIndex else {
+            return nil
+        }
+
+        index = previousIndex
+        return items[previousIndex]
     }
 }
 

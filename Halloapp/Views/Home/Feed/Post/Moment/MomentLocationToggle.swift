@@ -48,13 +48,16 @@ class MomentLocationToggle: UIControl {
         stack.isLayoutMarginsRelativeArrangement = true
         stack.layoutMargins = .init(top: 7, left: 10, bottom: 7, right: 10)
         stack.spacing = 7
+        stack.alignment = .center
+        stack.distribution = .equalCentering
         return stack
     }()
 
     private lazy var statusLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(forTextStyle: .body, weight: .medium, maximumPointSize: 22)
+        label.font = .systemFont(forTextStyle: .callout, weight: .medium, maximumPointSize: 22)
         label.adjustsFontSizeToFitWidth = true
+        label.numberOfLines = 0
         return label
     }()
 
@@ -229,7 +232,7 @@ extension MomentLocationToggle: CLLocationManagerDelegate {
         }
 
         DDLogInfo("MomentLocationToggle/didUpdateLocations")
-        Task { await parse(location: location) }
+        Task { await update(with: location) }
     }
 
     @discardableResult
@@ -245,16 +248,64 @@ extension MomentLocationToggle: CLLocationManagerDelegate {
         return authorization
     }
 
-    private func parse(location: CLLocation) async {
+    func requestLocation() {
+        switch checkLocationAuthorization() {
+        case .authorizedAlways, .authorizedWhenInUse:
+            locationManager.requestLocation()
+            setState(.fetching)
+        default:
+            break
+        }
+    }
+
+    private func update(with location: CLLocation) async {
         guard
             let placemark = try? await CLGeocoder().reverseGeocodeLocation(location).first,
-            let string = placemark.locality ?? placemark.administrativeArea ?? placemark.country
+            let result = parse(placemark)
         else {
-            return
+            DDLogError("MomentLocationToggle/unable to parse location")
+            return setState(.error)
         }
 
-        DDLogInfo("MomentLocationToggle/parsed [\(string)]")
-        setState(.fetched(string))
+        DDLogInfo("MomentLocationToggle/parsed [\(result)]")
+        setState(.fetched(result))
+    }
+
+    private func parse(_ placemark: CLPlacemark) -> String? {
+        if let aoi = placemark.areasOfInterest?.first {
+            // if there's an area of interest, combine with an area >= city
+            // e.g., "Brooklyn Bridge, New York"
+            switch placemark.locality ?? placemark.administrativeArea ?? placemark.country {
+            case .some(let second):
+                return String(format: Localizations.momentLocationFormat, aoi, second)
+            case .none:
+                return aoi
+            }
+        }
+
+        let areas = [
+            placemark.subLocality,
+            placemark.locality,
+            placemark.administrativeArea,
+            placemark.country,
+        ]
+        .compactMap { $0 }
+
+        let result: String?
+        let (firstComponent, secondComponent) = areas.count > 1 ? (areas[0], areas[1]) : (areas.first, nil)
+
+        switch (firstComponent, secondComponent) {
+        case (.some(let first), .some(let second)):
+            result = String(format: Localizations.momentLocationFormat, first, second)
+        case (.some(let first), _):
+            result = first
+        case (_, .some(let second)):
+            result = second
+        default:
+            result = nil
+        }
+
+        return result
     }
 }
 
@@ -304,5 +355,15 @@ extension Localizations {
         NSLocalizedString("location.fetch.error",
                    value: "Unable to Find Location",
                  comment: "Displayed when a location fetch fails.")
+    }
+
+    static var momentLocationFormat: String {
+        NSLocalizedString("moment.location.format",
+                   value: "%@, %@",
+                 comment: """
+                          The format of a moment's location string. The first argument could be a point of interest \
+                          or the name of a neighborhood, whereas the second could be a city or state name. E.g., "Brooklyn Bridge, New York".
+                          """
+        )
     }
 }

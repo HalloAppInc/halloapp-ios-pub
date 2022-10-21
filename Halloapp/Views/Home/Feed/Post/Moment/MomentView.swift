@@ -45,16 +45,27 @@ extension MomentView {
 class MomentView: UIView {
 
     typealias LayoutConstants = FeedPostCollectionViewCell.LayoutConstants
-    enum State { case locked, unlocked, indeterminate, prompt }
-    enum Action { case open(moment: FeedPost), camera, view(profile: UserID) }
 
-    private(set) var state: State = .locked
+    enum Configuration { case stacked, fullscreen }
+    enum State { case locked, unlocked, indeterminate, prompt }
+    enum Action { case open(moment: FeedPost), camera, view(profile: UserID), seenBy(moment: FeedPost) }
+
+    let configuration: Configuration
+
+    private(set) var state: State = .locked {
+        didSet { statePublisher.send(state) }
+    }
+    private(set) lazy var statePublisher: CurrentValueSubject<State, Never> = {
+        CurrentValueSubject<State, Never>(state)
+    }()
+
     private(set) var feedPost: FeedPost?
 
     private var cancellables: Set<AnyCancellable> = []
     private var imageLoadingCancellables: Set<AnyCancellable> = []
+    private var uploadProgressCancellables: Set<AnyCancellable> = []
     private var downloadProgressCancellable: AnyCancellable?
-    private var unlockCancellable: AnyCancellable?
+    private var stateCancellable: AnyCancellable?
 
     private lazy var imageContainer: UIView = {
         let view = UIView()
@@ -110,11 +121,32 @@ class MomentView: UIView {
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
+
+    private lazy var uploadProgressIndicator: GroupGridProgressView = {
+        let indicator = GroupGridProgressView()
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        return indicator
+    }()
     
     private lazy var avatarView: AvatarView = {
         let view = AvatarView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.isUserInteractionEnabled = true
+        let tap = UITapGestureRecognizer(target: self, action: #selector(avatarTapped))
+        view.addGestureRecognizer(tap)
+        return view
+    }()
+
+    private(set) lazy var smallAvatarView: AvatarView = {
+        let view = AvatarView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isUserInteractionEnabled = true
+        view.isHidden = configuration == .fullscreen
+        view.layer.shadowColor = UIColor.black.withAlphaComponent(0.1).cgColor
+        view.layer.shadowRadius = 2
+        view.layer.shadowOffset = .zero
+        view.layer.shadowOpacity = 1
+
         let tap = UITapGestureRecognizer(target: self, action: #selector(avatarTapped))
         view.addGestureRecognizer(tap)
         return view
@@ -186,33 +218,45 @@ class MomentView: UIView {
 
         return stack
     }()
+
+    private lazy var footerContainer: UIView = {
+        let view = UIView()
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
     
     private(set) lazy var footerLabel: UILabel = {
         let label = UILabel()
-        label.font = .handwritingFont(forTextStyle: .body, pointSizeChange: 2, weight: .regular, maximumPointSize: 26)
+        label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = .black.withAlphaComponent(0.9)
+        label.font = configuration == .fullscreen ? .handwritingFont(forTextStyle: .title1, pointSizeChange: -2) : .handwritingFont(forTextStyle: .title3)
+        label.adjustsFontSizeToFitWidth = true
+        label.baselineAdjustment = .alignCenters
+        label.numberOfLines = 2
+        label.textAlignment = effectiveUserInterfaceLayoutDirection == .rightToLeft ? .left : .right
         return label
     }()
-    
-    private lazy var footerView: UIStackView = {
-        let stack = UIStackView()
-        stack.axis = .vertical
-        stack.alignment = .trailing
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        stack.isLayoutMarginsRelativeArrangement = true
-        stack.layoutMargins = UIEdgeInsets(top: 7, left: 0, bottom: 7, right: 0)
-        return stack
+
+    private lazy var facePileView: FacePileView = {
+        let view = FacePileView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.avatarViews.forEach { $0.borderColor = backgroundColor }
+        view.addTarget(self, action: #selector(seenByPushed), for: .touchUpInside)
+        return view
     }()
 
     private lazy var openTapGesture: UITapGestureRecognizer = {
         let tap = UITapGestureRecognizer(target: self, action: #selector(openTapped))
+        tap.delegate = self
         return tap
     }()
 
     weak var delegate: MomentViewDelegate?
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    init(configuration: Configuration) {
+        self.configuration = configuration
+        super.init(frame: .zero)
 
         layer.cornerRadius = Layout.cornerRadius
         layer.cornerCurve = .circular
@@ -223,30 +267,28 @@ class MomentView: UIView {
         addSubview(gradientView)
         addSubview(downloadProgressView)
         addSubview(imageContainer)
-        addSubview(footerView)
+        addSubview(uploadProgressIndicator)
+        addSubview(smallAvatarView)
+        addSubview(footerContainer)
         addSubview(blurView)
         addSubview(overlayStack)
         imageContainer.addSubview(leadingImageView)
         imageContainer.addSubview(trailingImageView)
+        footerContainer.addSubview(footerLabel)
+        footerContainer.addSubview(facePileView)
 
-        let footerPadding = Layout.footerPadding
-        let imageHeightConstraint = imageContainer.heightAnchor.constraint(equalTo: imageContainer.widthAnchor)
         let hideTrailingImageConstraint = trailingImageView.widthAnchor.constraint(equalToConstant: 0)
-        let footerBottomConstraint = footerView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -footerPadding)
+        let footerBottomConstraint = footerContainer.bottomAnchor.constraint(equalTo: bottomAnchor)
         let avatarDiameter = Layout.avatarDiameter
 
-        imageHeightConstraint.priority = .required
         hideTrailingImageConstraint.priority = .defaultHigh
         footerBottomConstraint.priority = .defaultHigh
-
-        let minimizeFooterHeight = footerView.heightAnchor.constraint(equalToConstant: 1)
-        minimizeFooterHeight.priority = UILayoutPriority(1)
 
         NSLayoutConstraint.activate([
             imageContainer.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor),
             imageContainer.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor),
             imageContainer.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor),
-            imageHeightConstraint,
+            imageContainer.heightAnchor.constraint(equalTo: imageContainer.widthAnchor),
 
             leadingImageView.leadingAnchor.constraint(equalTo: imageContainer.leadingAnchor),
             leadingImageView.trailingAnchor.constraint(equalTo: trailingImageView.leadingAnchor, constant: 1), // constant here is to remove aliasing
@@ -268,6 +310,11 @@ class MomentView: UIView {
             downloadProgressView.leadingAnchor.constraint(equalTo: imageContainer.leadingAnchor),
             downloadProgressView.trailingAnchor.constraint(equalTo: imageContainer.trailingAnchor),
 
+            uploadProgressIndicator.leadingAnchor.constraint(equalTo: imageContainer.leadingAnchor),
+            uploadProgressIndicator.trailingAnchor.constraint(equalTo: imageContainer.trailingAnchor),
+            uploadProgressIndicator.topAnchor.constraint(equalTo: imageContainer.topAnchor),
+            uploadProgressIndicator.bottomAnchor.constraint(equalTo: imageContainer.bottomAnchor),
+
             blurView.leadingAnchor.constraint(equalTo: imageContainer.leadingAnchor),
             blurView.topAnchor.constraint(equalTo: imageContainer.topAnchor),
             blurView.trailingAnchor.constraint(equalTo: imageContainer.trailingAnchor),
@@ -282,12 +329,27 @@ class MomentView: UIView {
             avatarView.widthAnchor.constraint(equalToConstant: avatarDiameter),
             avatarView.heightAnchor.constraint(equalToConstant: avatarDiameter),
 
-            footerView.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor),
-            footerView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -footerPadding - 8),
-            footerView.topAnchor.constraint(equalTo: imageContainer.bottomAnchor, constant: footerPadding - 2),
-            footerView.heightAnchor.constraint(greaterThanOrEqualTo: imageContainer.heightAnchor, multiplier: 0.15),
-            minimizeFooterHeight,
+            smallAvatarView.leadingAnchor.constraint(equalTo: imageContainer.leadingAnchor, constant: 10),
+            smallAvatarView.topAnchor.constraint(equalTo: imageContainer.topAnchor, constant: 10),
+            smallAvatarView.widthAnchor.constraint(equalToConstant: 45),
+            smallAvatarView.heightAnchor.constraint(equalTo: smallAvatarView.widthAnchor),
+
+            footerContainer.leadingAnchor.constraint(equalTo: leadingAnchor),
+            footerContainer.trailingAnchor.constraint(equalTo: trailingAnchor),
+            footerContainer.heightAnchor.constraint(equalTo: imageContainer.heightAnchor, multiplier: 0.25),
+            footerContainer.topAnchor.constraint(equalTo: imageContainer.bottomAnchor),
             footerBottomConstraint,
+
+            footerLabel.leadingAnchor.constraint(equalTo: footerContainer.layoutMarginsGuide.leadingAnchor, constant: 75),
+            footerLabel.trailingAnchor.constraint(equalTo: footerContainer.layoutMarginsGuide.trailingAnchor),
+            footerLabel.centerYAnchor.constraint(equalTo: footerContainer.centerYAnchor),
+            footerLabel.topAnchor.constraint(greaterThanOrEqualTo: footerContainer.topAnchor),
+            footerLabel.bottomAnchor.constraint(lessThanOrEqualTo: footerContainer.bottomAnchor),
+
+            facePileView.trailingAnchor.constraint(equalTo: footerContainer.layoutMarginsGuide.trailingAnchor),
+            facePileView.centerYAnchor.constraint(equalTo: footerContainer.centerYAnchor),
+            facePileView.topAnchor.constraint(greaterThanOrEqualTo: footerContainer.topAnchor),
+            facePileView.bottomAnchor.constraint(lessThanOrEqualTo: footerContainer.bottomAnchor),
         ])
 
         layer.shadowOpacity = 0.85
@@ -298,21 +360,10 @@ class MomentView: UIView {
         layer.masksToBounds = false
         clipsToBounds = false
 
-        footerView.addArrangedSubview(footerLabel)
-
         layer.borderWidth = 0.5 / UIScreen.main.scale
         layer.borderColor = UIColor(red: 0.71, green: 0.71, blue: 0.71, alpha: 1.00).cgColor
         // helps with how the border renders when the view is being rotated
         layer.allowsEdgeAntialiasing = true
-
-        MainAppContext.shared.feedData.validMoment
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                if let state = self?.state, state != .prompt {
-                    self?.setState(state, animated: true)
-                }
-            }
-            .store(in: &cancellables)
     }
     
     required init?(coder: NSCoder) {
@@ -325,13 +376,20 @@ class MomentView: UIView {
         
         promptLabel.layer.shadowPath = UIBezierPath(rect: promptLabel.bounds).cgPath
         disclaimerLabel.layer.shadowPath = UIBezierPath(rect: disclaimerLabel.bounds).cgPath
+        smallAvatarView.layer.shadowPath = UIBezierPath(ovalIn: smallAvatarView.bounds).cgPath
+    }
+
+    private func reset() {
+        imageLoadingCancellables = []
+        uploadProgressCancellables = []
+        downloadProgressCancellable = nil
+        stateCancellable = nil
+
+        uploadProgressIndicator.setState(.hidden, animated: false)
     }
 
     func configure(with post: FeedPost?) {
-        imageLoadingCancellables = []
-        downloadProgressCancellable = nil
-        unlockCancellable = nil
-
+        reset()
         guard let post = post else {
             return configureForPrompt()
         }
@@ -341,34 +399,83 @@ class MomentView: UIView {
         if let location = post.locationString {
             footerLabel.text = location
         } else {
-            footerLabel.text = DateFormatter.dateTimeFormatterDayOfWeekLong.string(from: post.timestamp).uppercased()
+            footerLabel.text = DateFormatter.dateTimeFormatterDayOfWeekLong.string(from: post.timestamp)
         }
 
         avatarView.configure(with: post.userID, using: MainAppContext.shared.avatarStore)
+        smallAvatarView.configure(with: post.userID, using: MainAppContext.shared.avatarStore)
+        facePileView.configure(with: post)
+
         setupMedia()
 
-        let isOwnPost = MainAppContext.shared.userData.userId == post.userId
-        let state: State
+        let statusPublisher = post.publisher(for: \.statusValue)
+        let validMomentPublisher = MainAppContext.shared.feedData.validMoment
+        var isInitialSetup = true
 
-        switch post.status {
-        case .seen, .seenSending:
-            state = .unlocked
-        default:
-            state = isOwnPost ? .unlocked : .locked
-        }
-
-        setState(state)
-        unlockCancellable = post.publisher(for: \.statusValue)
-            .compactMap { FeedPost.Status(rawValue: $0) }
-            .sink { [weak self] status in
-                // when the post is seen in the fullscreen viewer, unlock it in other places
-                switch status {
-                case .seen, .seenSending:
-                    self?.setState(.unlocked)
-                default:
-                    break
+        stateCancellable = Publishers.CombineLatest(statusPublisher, validMomentPublisher)
+            .flatMap { _, validMoment -> AnyPublisher<Void, Never> in
+                if let validMomentStatusPublisher = validMoment?.publisher(for: \.statusValue) {
+                    return Publishers.CombineLatest3(statusPublisher, validMomentPublisher, validMomentStatusPublisher)
+                        .map { _, _, _ in }
+                        .eraseToAnyPublisher()
+                } else {
+                    return Publishers.CombineLatest(statusPublisher, validMomentPublisher)
+                        .map { _, _ in }
+                        .eraseToAnyPublisher()
                 }
             }
+            .compactMap { [weak self] in
+                return self?.determineState()
+            }
+            .filter { [weak self] newState in
+                guard let self else {
+                    return false
+                }
+
+                return isInitialSetup || newState != self.state
+            }
+            .sink { [weak self] newState in
+                DDLogInfo("MomentView/stateCancellable/setting [\(newState)] for post id [\(post.id)]; animated [\(!isInitialSetup)]")
+                self?.setState(newState, animated: !isInitialSetup)
+                isInitialSetup = false
+            }
+    }
+
+    private func determineState() -> State {
+        guard let feedPost else {
+            return .prompt
+        }
+
+        if feedPost.userID == MainAppContext.shared.userData.userId {
+            return .unlocked
+        }
+
+        let hasUploadedMoment: Bool
+        let state: State
+
+        switch MainAppContext.shared.feedData.validMoment.value {
+        case .some(let moment) where moment.status == .sent:
+            hasUploadedMoment = true
+        default:
+            hasUploadedMoment = false
+        }
+
+        switch (configuration, feedPost.status) {
+        case (.stacked, .seenSending) where hasUploadedMoment:
+            fallthrough
+        case (.stacked, .seen) where hasUploadedMoment:
+            state = .unlocked
+
+        case (.fullscreen, _) where hasUploadedMoment:
+            state = .unlocked
+        case (.fullscreen, _):
+            state = .indeterminate
+
+        case (.stacked, _):
+            state = .locked
+        }
+
+        return state
     }
 
     private func setupMedia() {
@@ -404,6 +511,7 @@ class MomentView: UIView {
 
         showTrailingImageViewConstraint.isActive = trailing != nil
         subscribeToDownloadProgressIfNecessary()
+        subscribeToUploadProgress()
     }
 
     /// The media items in their display order.
@@ -504,6 +612,52 @@ class MomentView: UIView {
             .eraseToAnyPublisher()
     }
 
+    private func subscribeToUploadProgress() {
+        guard case .stacked = configuration, let feedPost else {
+            return
+        }
+
+        let indicator = uploadProgressIndicator
+        var animateState = false
+        var animateProgress = false
+
+        feedPost.publisher(for: \.statusValue)
+            .compactMap { FeedPost.Status(rawValue: $0) }
+            .sink { status in
+                switch status {
+                case .sendError:
+                    indicator.setState(.failed, animated: animateState)
+                case .sending:
+                    indicator.setState(.uploading, animated: animateState)
+                default:
+                    indicator.setState(.hidden, animated: animateState)
+                }
+
+                animateState = true
+            }
+            .store(in: &uploadProgressCancellables)
+
+        MainAppContext.shared.feedData.uploadProgressPublisher(for: feedPost)
+            .receive(on: DispatchQueue.main)
+            .sink { progress in
+                indicator.setProgress(progress, animated: animateProgress)
+                animateProgress = true
+            }
+            .store(in: &uploadProgressCancellables)
+
+        indicator.cancelAction = {
+            MainAppContext.shared.feedData.cancelMediaUpload(postId: feedPost.id)
+        }
+
+        indicator.deleteAction = {
+            MainAppContext.shared.feedData.deleteUnsentPost(postID: feedPost.id)
+        }
+
+        indicator.retryAction = {
+            MainAppContext.shared.feedData.retryPosting(postId: feedPost.id)
+        }
+    }
+
     private func configureForPrompt() {
         feedPost = nil
         leadingImageView.image = nil
@@ -521,6 +675,7 @@ class MomentView: UIView {
     }
 
     func setState(_ newState: State, animated: Bool = false) {
+        state = newState
         if animated {
             return UIView.transition(with: self, duration: 0.3, options: [.transitionCrossDissolve]) { self.setState(newState) }
         }
@@ -537,9 +692,10 @@ class MomentView: UIView {
         let hideImageContainer = downloadProgressCancellable != nil
         var enableOpenTap = false
         var hideBackgroundGradient = downloadProgressCancellable == nil
+        let showFacePile = configuration == .stacked && feedPost?.userID == MainAppContext.shared.userData.userId
 
-        if let post = feedPost {
-            let name = MainAppContext.shared.contactStore.firstName(for: post.userID,
+        if let feedPost {
+            let name = MainAppContext.shared.contactStore.firstName(for: feedPost.userID,
                                                                      in: MainAppContext.shared.contactStore.viewContext)
             promptText = String(format: Localizations.secretPostEntice, name)
         }
@@ -571,8 +727,10 @@ class MomentView: UIView {
         blurView.isUserInteractionEnabled = newState != .unlocked
 
         overlayStack.alpha = overlayAlpha
-        footerLabel.isHidden = dayHidden
         promptLabel.text = promptText
+
+        facePileView.isHidden = !showFacePile
+        footerLabel.isHidden = dayHidden || showFacePile
 
         actionButton.setTitle(buttonText, for: .normal)
         actionButton.setImage(buttonImage?.withRenderingMode(.alwaysTemplate), for: .normal)
@@ -583,7 +741,6 @@ class MomentView: UIView {
             disclaimerLabel.isHidden = hideDisclaimer
         }
 
-        state = newState
         setNeedsLayout()
     }
     
@@ -610,6 +767,31 @@ class MomentView: UIView {
         if let feedPost {
             delegate?.momentView(self, didSelect: .open(moment: feedPost))
         }
+    }
+
+    @objc
+    private func seenByPushed(_ sender: UIControl) {
+        if let feedPost {
+            delegate?.momentView(self, didSelect: .seenBy(moment: feedPost))
+        }
+    }
+
+    func additionalAnimationsForTransition() {
+        facePileView.alpha = 0
+        uploadProgressIndicator.setState(.hidden, animated: false)
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate methods
+
+extension MomentView: UIGestureRecognizerDelegate {
+
+    override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        if gestureRecognizer is UITapGestureRecognizer, !facePileView.isHidden {
+            return !facePileView.frame.contains(gestureRecognizer.location(in: footerContainer))
+        }
+
+        return true
     }
 }
 

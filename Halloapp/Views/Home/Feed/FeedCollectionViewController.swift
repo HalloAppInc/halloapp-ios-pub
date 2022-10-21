@@ -401,9 +401,6 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Sh
         let ownValidMoment = MainAppContext.shared.feedData.fetchLatestMoment(using: MainAppContext.shared.feedData.viewContext)
 
         switch (ownValidMoment, moment.status) {
-        case (_, .seenSending), (_, .seen):
-            presentMomentViewController(moment: moment, unlockingMoment: nil, momentView: momentView)
-
         case (.some(let unlocker), _) where unlocker.status == .sent:
             presentMomentViewController(moment: moment, unlockingMoment: nil, momentView: momentView)
 
@@ -922,6 +919,8 @@ extension FeedCollectionViewController {
                 self?.createNewMoment()
             case .view(profile: let userID):
                 self?.showUserFeed(for: userID)
+            case .seenBy(moment: let moment):
+                self?.showSeenByView(for: moment)
             }
         }
     }
