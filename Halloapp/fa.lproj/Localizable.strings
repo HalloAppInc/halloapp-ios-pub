@@ -1403,6 +1403,9 @@
 /* Call to action to forward a message which contains more than once media item */
 "message.forward.all" = "هدایت همه";
 
+/* label on a chat message to indicate the chat message has been forwarded */
+"message.forwarded" = "هدایت شده";
+
 /* Message action. Verb. */
 "message.reply" = "پاسخ";
 

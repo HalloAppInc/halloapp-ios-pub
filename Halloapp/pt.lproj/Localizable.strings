@@ -1403,6 +1403,9 @@
 /* Call to action to forward a message which contains more than once media item */
 "message.forward.all" = "Encaminhar todos";
 
+/* label on a chat message to indicate the chat message has been forwarded */
+"message.forwarded" = "Encaminhada";
+
 /* Message action. Verb. */
 "message.reply" = "Responder";
 
@@ -1615,6 +1618,9 @@
 
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "Toque aqui para partilhar uma atualização com seus amigos e familiares no HalloApp";
+
+/* Preset text for the composer when the user is creating their first post. */
+"onboarding.post.text" = "Ei! Estou usando o HalloApp.";
 
 /* Title of the button that opens the camera. */
 "open.camera" = "Abrir Câmera";
@@ -1888,6 +1894,42 @@
 
 /* Confirmation when a user was successfully removed from favorites. */
 "removed.user.from.favorites" = "Removido %@ dos favoritos";
+
+/* Title of the button that both reports and blocks a user. */
+"report.and.block" = "Denunciar e bloquear";
+
+/* Title of the button to report a post. */
+"report.post" = "Denunciar postagem";
+
+/* Title of the button that both reports a post and removes it. */
+"report.post.and.remove" = "Denunciar e remover postagem";
+
+/* Message that's displayed when reporting a post failed. */
+"report.post.failure" = "Falha ao denunciar postagem";
+
+/* Message confirming if the user wants to report someone's post. */
+"report.post.message" = "Tem certeza de que deseja denunciar esta postagem por %@?";
+
+/* Message that's displayed after successfully reporting a post. */
+"report.post.success" = "Postagem denunciada";
+
+/* Title of the report button. */
+"report.title" = "Denunciar";
+
+/* Title of a button that reports a user. */
+"report.user" = "Reportar usuário";
+
+/* Message that's displayed when reporting a user failed. */
+"report.user.failure" = "Falha ao reportar %@";
+
+/* Message confirming if the user wants to report someone. */
+"report.user.message" = "Tem certeza que deseja denunciar %@?";
+
+/* Message that's displayed after successfully reporting a user. */
+"report.user.success" = "Relatado %@";
+
+/* Title of the dialog that appears when reporting a user. */
+"report.user.title" = "Relatório %@";
 
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Para verificar a segurança da sua ligação com %@, confira se os números acima correspondem aos mostrados no dispositivo da pessoa, ou escaneie o seu código QR no telefone da pessoa.";
@@ -2224,6 +2266,9 @@
 
 /* Message asking if the user is sure they want to block this user */
 "user.block.message" = "Tem a certeza de que deseja bloquear %@ no HalloApp? Pode sempre mudar isso depois.";
+
+/* Label shown in group chat when a user is typing */
+"user.chat.typing" = "%@ está digitando...";
 
 /* Option when user taps more on profile page */
 "user.option.block" = "Bloquear no HalloApp";

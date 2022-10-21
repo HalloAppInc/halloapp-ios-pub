@@ -700,6 +700,9 @@
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Om connectie te maken, moeten jullie telefoonnummers uitwisselen";
 
+/* Text on external share preview background, followed by URL */
+"externalshare.download" = "Download HalloApp gratis:";
+
 /* Description of an externally shared post containing an audio post */
 "externalShare.og.description.audio" = "Audiopost";
 
@@ -1403,6 +1406,9 @@
 /* Call to action to forward a message which contains more than once media item */
 "message.forward.all" = "Alles Doorsturen";
 
+/* label on a chat message to indicate the chat message has been forwarded */
+"message.forwarded" = "Doorgestuurd";
+
 /* Message action. Verb. */
 "message.reply" = "Beantwoorden";
 
@@ -1411,6 +1417,9 @@
 
 /* Disclaimer to tell the user that their moments go to all of their contacts on HalloApp. */
 "moment.contacts.disclaimer" = "Je moment wordt alleen gedeeld met je contacten op HalloApp";
+
+/* The format of a moment's location string. The first argument could be a point of interest or the name of a neighborhood, whereas the second could be a city or state name. E.g., "Brooklyn Bridge, New York". */
+"moment.location.format" = "1$@, %2$@";
 
 /* Text displayed the first time the user acts to post a second moment in the same day. */
 "moment.replacement.disclaimer" = "Dit nieuwe moment zal je vorige moment vervangen.";
@@ -1616,6 +1625,9 @@
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "Tik om een update te delen met je vrienden & familie op HalloApp";
 
+/* Preset text for the composer when the user is creating their first post. */
+"onboarding.post.text" = "Hallo! Ik gebruik HalloApp.";
+
 /* Title of the button that opens the camera. */
 "open.camera" = "Open Camera";
 
@@ -1686,7 +1698,7 @@
 "post.privacy.header.feeds" = "Feed";
 
 /* Header when selecting destinations to forward a message, this header appears above the frequently contacted section */
-"post.privacy.header.frequentlyContacted" = "Veelgebruikte Contacten";
+"post.privacy.header.frequentlyContacted" = "Frequent Gecontacteerd";
 
 /* Header when selecting a group to share with */
 "post.privacy.header.groups" = "Alleen delen met een groep";
@@ -1889,6 +1901,42 @@
 /* Confirmation when a user was successfully removed from favorites. */
 "removed.user.from.favorites" = "%@ verwijderd uit favorieten";
 
+/* Title of the button that both reports and blocks a user. */
+"report.and.block" = "Rapporteren en Blokkeren";
+
+/* Title of the button to report a post. */
+"report.post" = "Post Rapporteren";
+
+/* Title of the button that both reports a post and removes it. */
+"report.post.and.remove" = "Post Rapporteren en Verwijderen";
+
+/* Message that's displayed when reporting a post failed. */
+"report.post.failure" = "Rapporteren van Post Mislukt";
+
+/* Message confirming if the user wants to report someone's post. */
+"report.post.message" = "Weet je zeker dat je de post van %@ wilt rapporteren?";
+
+/* Message that's displayed after successfully reporting a post. */
+"report.post.success" = "Gerapporteerde Post";
+
+/* Title of the report button. */
+"report.title" = "Rapporteren";
+
+/* Title of a button that reports a user. */
+"report.user" = "Gebruiker Rapporteren";
+
+/* Message that's displayed when reporting a user failed. */
+"report.user.failure" = "Rapporteren van %@ Mislukt";
+
+/* Message confirming if the user wants to report someone. */
+"report.user.message" = "Weet je zeker dat je %@ wilt rapporteren?";
+
+/* Message that's displayed after successfully reporting a user. */
+"report.user.success" = "%@ Gerapporteerd";
+
+/* Title of the dialog that appears when reporting a user. */
+"report.user.title" = "%@ Rapporteren";
+
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Om de beveiliging van je verbinding met %@ te verifiëren, controleer of bovenstaande nummers overeenkomen met die op het andere apparaat of scan de QR-code op de andere telefoon.";
 
@@ -2066,6 +2114,9 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Sluit je aan bij mijn netwerk voor échte relaties op HalloApp. Download gratis op halloapp.com/dl";
 
+/* Title for inline external share prompt */
+"share.carousel.title" = "Deel met meer vrienden:";
+
 /* Show more groups in the share group selection */
 "share.destination.more" = "Laat meer zien...";
 
@@ -2074,6 +2125,21 @@
 
 /* Text placed on the blurred overlay of someone else's moment. */
 "shared.moment" = "Moment van %@";
+
+/* Title for sharing to instagram stories */
+"shareprovider.instagramstories.title" = "Instagram Verhalen";
+
+/* Name of system messages app */
+"shareprovider.messages.title" = "Berichten";
+
+/* Title for button launching system share dialog */
+"shareprovider.system.title" = "Delen via";
+
+/* Name of Twitter app */
+"shareprovider.twitter.title" = "Twitter";
+
+/* Whatsapp messages share destination */
+"shareprovider.whatsapp.title" = "WhatsApp";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "tik om terug te gaan naar oproep";
@@ -2224,6 +2290,9 @@
 
 /* Message asking if the user is sure they want to block this user */
 "user.block.message" = "Weet je zeker dat je %@ wilt blokkeren op HalloApp? Je kunt dit later altijd weer aanpassen.";
+
+/* Label shown in group chat when a user is typing */
+"user.chat.typing" = "%@ is aan het typen...";
 
 /* Option when user taps more on profile page */
 "user.option.block" = "Blokkeren op HalloApp";

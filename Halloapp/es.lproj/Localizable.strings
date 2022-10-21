@@ -700,6 +700,9 @@
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Para conectarse deben intercambiar números de teléfono";
 
+/* Text on external share preview background, followed by URL */
+"externalshare.download" = "Descarga HalloApp gratis:";
+
 /* Description of an externally shared post containing an audio post */
 "externalShare.og.description.audio" = "Publicación de audio";
 
@@ -711,6 +714,9 @@
 
 /* Title for posts that are externally shared, 'John Smith's HalloApp Post' */
 "externalShare.og.title3" = "%@ Publicación de HalloApp";
+
+/* Attached to our logo as an image, 'Posted from HalloApp' */
+"externalshare.postedFrom" = "Publicado desde";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Cámara";
@@ -1391,6 +1397,9 @@
 /* Call to action to forward a message which contains more than once media item */
 "message.forward.all" = "Reenviar todo";
 
+/* label on a chat message to indicate the chat message has been forwarded */
+"message.forwarded" = "Enviado";
+
 /* Message action. Verb. */
 "message.reply" = "Responder";
 
@@ -1399,6 +1408,9 @@
 
 /* Disclaimer to tell the user that their moments go to all of their contacts on HalloApp. */
 "moment.contacts.disclaimer" = "Tu momento solo se compartirá con tus contactos en HalloApp";
+
+/* The format of a moment's location string. The first argument could be a point of interest or the name of a neighborhood, whereas the second could be a city or state name. E.g., "Brooklyn Bridge, New York". */
+"moment.location.format" = "%1$@, %2$@";
 
 /* Text displayed the first time the user acts to post a second moment in the same day. */
 "moment.replacement.disclaimer" = "Este nuevo momento reemplazará al anterior.";
@@ -1594,6 +1606,9 @@
 
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "Toca para compartir una novedad con tus amigos y familia en HalloApp";
+
+/* Preset text for the composer when the user is creating their first post. */
+"onboarding.post.text" = "Hola! Estoy usando HalloApp.";
 
 /* Title of the button that opens the camera. */
 "open.camera" = "Abrir cámara";
@@ -1868,6 +1883,42 @@
 /* Confirmation when a user was successfully removed from favorites. */
 "removed.user.from.favorites" = "Removiste a %@ de favoritos";
 
+/* Title of the button that both reports and blocks a user. */
+"report.and.block" = "Reportar y bloquear";
+
+/* Title of the button to report a post. */
+"report.post" = "Reportar publicación";
+
+/* Title of the button that both reports a post and removes it. */
+"report.post.and.remove" = "Reportar y eliminar publicación";
+
+/* Message that's displayed when reporting a post failed. */
+"report.post.failure" = "Error al reportar publicación";
+
+/* Message confirming if the user wants to report someone's post. */
+"report.post.message" = "¿Seguro que quieres denunciar esta publicación de %@?";
+
+/* Message that's displayed after successfully reporting a post. */
+"report.post.success" = "Publicación reportada";
+
+/* Title of the report button. */
+"report.title" = "Reportar";
+
+/* Title of a button that reports a user. */
+"report.user" = "Reportar usuario";
+
+/* Message that's displayed when reporting a user failed. */
+"report.user.failure" = "Error al reportar a %@";
+
+/* Message confirming if the user wants to report someone. */
+"report.user.message" = "¿Seguro(a) de que quieres reportar a %@?";
+
+/* Message that's displayed after successfully reporting a user. */
+"report.user.success" = "Reportado %@";
+
+/* Title of the dialog that appears when reporting a user. */
+"report.user.title" = "Reportar a %@";
+
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Para verificar la seguridad de tu conexión con %@, comprueba que los números anteriores coinciden con los que aparecen en su dispositivo, o escanea el código QR de su teléfono.";
 
@@ -2045,6 +2096,9 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Únete a mi red social de relaciones reales, HalloApp. Descarga la aplicación gratis en halloapp.com/dl";
 
+/* Title for inline external share prompt */
+"share.carousel.title" = "Compartir con más amigos:";
+
 /* Show more groups in the share group selection */
 "share.destination.more" = "Mostrar más...";
 
@@ -2053,6 +2107,21 @@
 
 /* Text placed on the blurred overlay of someone else's moment. */
 "shared.moment" = "momento de %@";
+
+/* Title for sharing to instagram stories */
+"shareprovider.instagramstories.title" = "Instagram Stories";
+
+/* Name of system messages app */
+"shareprovider.messages.title" = "Mensajes";
+
+/* Title for button launching system share dialog */
+"shareprovider.system.title" = "Compartir vía";
+
+/* Name of Twitter app */
+"shareprovider.twitter.title" = "Twitter";
+
+/* Whatsapp messages share destination */
+"shareprovider.whatsapp.title" = "WhatsApp";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "toca para devolver la llamada";
@@ -2203,6 +2272,9 @@
 
 /* Message asking if the user is sure they want to block this user */
 "user.block.message" = "¿Quieres bloquear a %@ en HalloApp? Puedes cambiarlo después.";
+
+/* Label shown in group chat when a user is typing */
+"user.chat.typing" = "%@ está escribiendo...";
 
 /* Option when user taps more on profile page */
 "user.option.block" = "Bloquear en HalloApp";

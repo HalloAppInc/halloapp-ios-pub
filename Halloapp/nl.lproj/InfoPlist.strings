@@ -2,17 +2,17 @@
 "CFBundleName" = "HalloApp";
 
 /* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Dit zorgt ervoor dat je direct vanuit HalloApp foto's en video's kunt maken.";
+"NSCameraUsageDescription" = "Dit zorgt ervoor dat je kunt videobellen en foto's en video's kunt maken op HalloApp";
 
 /* Privacy - Contacts Usage Description */
-"NSContactsUsageDescription" = "Geef HalloApp toegang tot je contacten zodat je posts kunt delen en zien van je vrienden en familie.";
+"NSContactsUsageDescription" = "Om posts te delen en te zien van je vrienden en familie, sta HalloApp toe om je contacten te uploaden naar de servers.";
 
 /* Privacy - Location When In Use Usage Description */
-"NSLocationWhenInUseUsageDescription" = "Dit zorgt ervoor dat je locaties bij je in de buurt kunt zoeken en delen.";
+"NSLocationWhenInUseUsageDescription" = "Dit zorgt ervoor dat je je huidige locatie of plaatsen in de buurt kunt verzenden in reacties en chats.";
 
 /* Privacy - Microphone Usage Description */
 "NSMicrophoneUsageDescription" = "Dit zorgt ervoor dat je kunt bellen, audioposts en audioberichten kunt verzenden en video's met geluid kunt opnemen.";
 
 /* Privacy - Photo Library Usage Description */
-"NSPhotoLibraryUsageDescription" = "Dit zorgt ervoor dat je foto's en video's uit je bibliotheek kunt delen en gemaakte items kunt opslaan.";
+"NSPhotoLibraryUsageDescription" = "Dit zorgt ervoor dat je foto's en video's uit je galerij kunt verzenden en gemaakte items kunt opslaan.";
 

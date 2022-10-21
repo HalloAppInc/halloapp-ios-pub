@@ -700,6 +700,9 @@
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Для установки связи вам нужно обменяться номерами телефонов";
 
+/* Text on external share preview background, followed by URL */
+"externalshare.download" = "Скачайте HalloApp бесплатно:";
+
 /* Description of an externally shared post containing an audio post */
 "externalShare.og.description.audio" = "Аудио пост";
 
@@ -711,6 +714,9 @@
 
 /* Title for posts that are externally shared, 'John Smith's HalloApp Post' */
 "externalShare.og.title3" = "Пост от %@ в HalloApp";
+
+/* Attached to our logo as an image, 'Posted from HalloApp' */
+"externalshare.postedFrom" = "Опубликовано из";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Камера";
@@ -1273,6 +1279,9 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Обнови свое приложение.";
 
+/* Title to indicate that a fetch operation is in progress. */
+"locating.title" = "Ищет";
+
 /* Displayed when a location fetch fails. */
 "location.fetch.error" = "Не удалось получить местоположение";
 
@@ -1400,6 +1409,9 @@
 /* Call to action to forward a message which contains more than once media item */
 "message.forward.all" = "Переслать все";
 
+/* label on a chat message to indicate the chat message has been forwarded */
+"message.forwarded" = "Переправлено";
+
 /* Message action. Verb. */
 "message.reply" = "Ответить";
 
@@ -1408,6 +1420,9 @@
 
 /* Disclaimer to tell the user that their moments go to all of their contacts on HalloApp. */
 "moment.contacts.disclaimer" = "Ваш Момент будет доступен только вашим контактам в HalloApp";
+
+/* The format of a moment's location string. The first argument could be a point of interest or the name of a neighborhood, whereas the second could be a city or state name. E.g., "Brooklyn Bridge, New York". */
+"moment.location.format" = "%1$@, %2$@";
 
 /* Text displayed the first time the user acts to post a second moment in the same day. */
 "moment.replacement.disclaimer" = "Этот новый Момент заменит ваш предыдущий.";
@@ -1612,6 +1627,9 @@
 
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "Коснитесь, чтобы поделиться новостью со своими друзьями и родными в HalloApp";
+
+/* Preset text for the composer when the user is creating their first post. */
+"onboarding.post.text" = "Привет! Я использую HalloApp.";
 
 /* Title of the button that opens the camera. */
 "open.camera" = "Открытая камера";
@@ -1886,6 +1904,42 @@
 /* Confirmation when a user was successfully removed from favorites. */
 "removed.user.from.favorites" = "Удалили %@ из избранного";
 
+/* Title of the button that both reports and blocks a user. */
+"report.and.block" = "Пожаловаться и заблокировать";
+
+/* Title of the button to report a post. */
+"report.post" = "Пожаловаться на публикацию";
+
+/* Title of the button that both reports a post and removes it. */
+"report.post.and.remove" = "Пожаловаться и удалить публикацию";
+
+/* Message that's displayed when reporting a post failed. */
+"report.post.failure" = "Не удалось пожаловаться на этот пост";
+
+/* Message confirming if the user wants to report someone's post. */
+"report.post.message" = "Вы уверены, что хотите пожаловаться на это сообщение по %@?";
+
+/* Message that's displayed after successfully reporting a post. */
+"report.post.success" = "Вы пожаловались на пост";
+
+/* Title of the report button. */
+"report.title" = "Пожаловаться";
+
+/* Title of a button that reports a user. */
+"report.user" = "Пожаловаться на пользователя";
+
+/* Message that's displayed when reporting a user failed. */
+"report.user.failure" = "Не удалось пожаловаться на %@";
+
+/* Message confirming if the user wants to report someone. */
+"report.user.message" = "Вы уверены, что хотите пожаловаться на %@?";
+
+/* Message that's displayed after successfully reporting a user. */
+"report.user.success" = "Вы пожаловались на %@";
+
+/* Title of the dialog that appears when reporting a user. */
+"report.user.title" = "Пожаловаться на %@";
+
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Чтобы проверить безопасность твоего соединения с  %@, убедись, что цифры выше соответствуют тем, которые отображаются на его или ее устройстве, или сканируй QR-код  его или ее телефоном.";
 
@@ -2063,6 +2117,9 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Присоединяйтесь к моей сети знакомых из реальной жизни в HalloApp. Приложение можно скачать бесплатно по адресу halloapp.com/dl";
 
+/* Title for inline external share prompt */
+"share.carousel.title" = "Поделитесь с другими друзьями:";
+
 /* Show more groups in the share group selection */
 "share.destination.more" = "Показать больше...";
 
@@ -2071,6 +2128,21 @@
 
 /* Text placed on the blurred overlay of someone else's moment. */
 "shared.moment" = "момент %@";
+
+/* Title for sharing to instagram stories */
+"shareprovider.instagramstories.title" = "Instagram Stories";
+
+/* Name of system messages app */
+"shareprovider.messages.title" = "Сообщения";
+
+/* Title for button launching system share dialog */
+"shareprovider.system.title" = "Отправить по…";
+
+/* Name of Twitter app */
+"shareprovider.twitter.title" = "Twitter";
+
+/* Whatsapp messages share destination */
+"shareprovider.whatsapp.title" = "WhatsApp";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "нажмите, чтобы вернуться к звонку";
@@ -2221,6 +2293,9 @@
 
 /* Message asking if the user is sure they want to block this user */
 "user.block.message" = "Уверен(-а) , что хочешь заблокировать%@ в HalloApp? Ты всегда можешь изменить это позже.";
+
+/* Label shown in group chat when a user is typing */
+"user.chat.typing" = "%@ печатает...";
 
 /* Option when user taps more on profile page */
 "user.option.block" = "Блокировать в HalloApp";

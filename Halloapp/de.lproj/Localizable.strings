@@ -1403,6 +1403,9 @@
 /* Call to action to forward a message which contains more than once media item */
 "message.forward.all" = "Alle weiterleiten";
 
+/* label on a chat message to indicate the chat message has been forwarded */
+"message.forwarded" = "Weitergeleitet";
+
 /* Message action. Verb. */
 "message.reply" = "Antworten";
 
@@ -1599,7 +1602,7 @@
 "nux.activity.center.icon" = "Hallo!";
 
 /* Shown on chats list when there are no contacts or messages to display */
-"nux.chat.empty" = "Deine Kontakte und Nachrichten erscheinen hier";
+"nux.chat.empty" = "Deine Kontakte und Nachrichten findest du hier";
 
 /* Text for new user popup pointing at chat list */
 "nux.chat.list" = "Hier findest du Nachrichten von deinen Freunden und deiner Familie. Du siehst hier auch wenn sich jemand neu bei HalloApp angemeldet hat.";
@@ -1608,13 +1611,16 @@
 "nux.groups.common.list.empty" = "Ihr habt keine gemeinsame Gruppe";
 
 /* Shown on groups list when there are no groups to display */
-"nux.groups.list.empty" = "Deine Gruppen erscheinen hier";
+"nux.groups.list.empty" = "Deine Gruppen findest du hier";
 
 /* Shown on home feed when no posts are available */
 "nux.home.feed.empty" = "Beiträge deiner Kontakte werden hier angezeigt";
 
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "Tippe hier, um ein Update mit deinen Freunden und deiner Familie auf HalloApp zu teilen";
+
+/* Preset text for the composer when the user is creating their first post. */
+"onboarding.post.text" = "Hallo! Ich bin auf HalloApp.";
 
 /* Title of the button that opens the camera. */
 "open.camera" = "Kamera öffnen";
@@ -1888,6 +1894,42 @@
 
 /* Confirmation when a user was successfully removed from favorites. */
 "removed.user.from.favorites" = "%@ entfernt aus Favoriten";
+
+/* Title of the button that both reports and blocks a user. */
+"report.and.block" = "Melden und blockieren";
+
+/* Title of the button to report a post. */
+"report.post" = "Beitrag melden";
+
+/* Title of the button that both reports a post and removes it. */
+"report.post.and.remove" = "Beitrag melden und entfernen";
+
+/* Message that's displayed when reporting a post failed. */
+"report.post.failure" = "Beitrag kann nicht gemeldet werden";
+
+/* Message confirming if the user wants to report someone's post. */
+"report.post.message" = "Bist du dir sicher, dass du diesen Beitrag von %@ melden möchtest?";
+
+/* Message that's displayed after successfully reporting a post. */
+"report.post.success" = "Beitrag gemeldet";
+
+/* Title of the report button. */
+"report.title" = "Melden";
+
+/* Title of a button that reports a user. */
+"report.user" = "Nutzer melden";
+
+/* Message that's displayed when reporting a user failed. */
+"report.user.failure" = "%@ kann nicht gemeldet werden";
+
+/* Message confirming if the user wants to report someone. */
+"report.user.message" = "Bist du dir sicher, dass du %@ melden möchtest?";
+
+/* Message that's displayed after successfully reporting a user. */
+"report.user.success" = "%@ wurde gemeldet";
+
+/* Title of the dialog that appears when reporting a user. */
+"report.user.title" = "%@ melden";
 
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Um die Sicherheit deiner Verbindung mit %@ zu verifizieren, prüfe bitte, ob die obigen Nummern mit denen auf dem anderen Mobilgerät angezeigten übereinstimmen oder scanne den QR-Code.";
@@ -2224,6 +2266,9 @@
 
 /* Message asking if the user is sure they want to block this user */
 "user.block.message" = "Bist du dir sicher, dass du %@ auf HalloApp blocken möchtest? Du kannst dies später jederzeit ändern.";
+
+/* Label shown in group chat when a user is typing */
+"user.chat.typing" = "%@ schreibt...";
 
 /* Option when user taps more on profile page */
 "user.option.block" = "Auf HalloApp blocken";
