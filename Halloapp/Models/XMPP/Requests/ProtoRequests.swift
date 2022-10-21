@@ -40,6 +40,8 @@ final class ProtoPushTokenRequest: ProtoRequest<Void> {
             pushRegister.langID = langID
         }
 
+        pushRegister.zoneOffset = Int64(TimeZone.current.secondsFromGMT())
+
         super.init(
             iqPacket: .iqPacket(type: .set, payload: .pushRegister(pushRegister)),
             transform: { _ in .success(()) },
