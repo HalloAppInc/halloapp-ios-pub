@@ -651,14 +651,35 @@ extension ChatListViewController: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard let chatThread = self.chatThread(at: indexPath) else { return UISwipeActionsConfiguration(actions: []) }
-        guard let chatWithUserId = chatThread.userID else { return UISwipeActionsConfiguration(actions: []) }
+        // User cannot delete a group chat thread when they are still members of the group
+        if let groupId = chatThread.groupId, MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId, in: MainAppContext.shared.chatData.viewContext) != nil {
+            return UISwipeActionsConfiguration(actions: [])
+        }
+
+        var chatThreadId: String? = nil
+        switch chatThread.type {
+        case .oneToOne:
+            chatThreadId = chatThread.userID
+        case .groupChat:
+            chatThreadId = chatThread.groupId
+        case .groupFeed:
+            break
+        }
+        guard let chatThreadId = chatThreadId else { return UISwipeActionsConfiguration(actions: []) }
 
         let removeAction = UIContextualAction(style: .destructive, title: Localizations.buttonRemove) { [weak self] (_, _, completionHandler) in
             guard let self = self else { return }
             let actionSheet = UIAlertController(title: chatThread.title, message: Localizations.chatsListRemoveMessage, preferredStyle: .actionSheet)
             actionSheet.addAction(UIAlertAction(title: Localizations.buttonRemove, style: .destructive) { [weak self] action in
                 guard let self = self else { return }
-                MainAppContext.shared.chatData.deleteChat(chatThreadId: chatWithUserId)
+                switch chatThread.type {
+                case .oneToOne:
+                    MainAppContext.shared.chatData.deleteChat(chatThreadId: chatThreadId)
+                case .groupChat:
+                    MainAppContext.shared.chatData.deleteChatGroup(groupId: chatThreadId, type: .groupChat)
+                case .groupFeed:
+                    break
+                }
                 if self.isFiltering {
                     self.filteredChats.remove(at: indexPath.row)
                 }

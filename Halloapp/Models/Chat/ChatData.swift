@@ -4862,9 +4862,10 @@ extension ChatData {
         DDLogInfo("ChatData/deleteChatGroup")
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-
+            var groupType: GroupType = .groupFeed
             // delete group
             if let chatGroup = self.chatGroup(groupId: groupId, in: managedObjectContext) {
+                groupType = chatGroup.type
                 if let members = chatGroup.members {
                     members.forEach {
                         managedObjectContext.delete($0)
@@ -4894,11 +4895,35 @@ extension ChatData {
                 return
             }
 
-            // delete feeds
-            MainAppContext.shared.feedData.deletePosts(groupId: groupId)
+            switch groupType {
+            case .groupFeed:
+                // delete feeds
+                MainAppContext.shared.feedData.deletePosts(groupId: groupId)
 
-            // delete welcome post
-            MainAppContext.shared.nux.deleteWelcomePost(id: groupId)
+                // delete welcome post
+                MainAppContext.shared.nux.deleteWelcomePost(id: groupId)
+            case .groupChat:
+                let fetchRequest = ChatMessage.fetchRequest()
+                fetchRequest.predicate = NSPredicate(format: "toGroupID = %@", groupId)
+                do {
+                    let chatMessages = try managedObjectContext.fetch(fetchRequest)
+                    DDLogInfo("ChatData/deleteChatGroup/delete-messages/begin count=[\(chatMessages.count)]")
+                    chatMessages.forEach {
+                        self.deleteMedia(in: $0)
+                        managedObjectContext.delete($0)
+                    }
+                    DDLogInfo("ChatData/deleteChatGroup/delete-messages/finished")
+                }
+                catch {
+                    DDLogError("ChatData/deleteChatGroup/delete-messages/error  [\(error)]")
+                    return
+                }
+            case .oneToOne:
+                DDLogError("ChatData/deleteChatGroup/delete-messages/wrong group type")
+                return
+
+            }
+            
 
             self.save(managedObjectContext)
         }
