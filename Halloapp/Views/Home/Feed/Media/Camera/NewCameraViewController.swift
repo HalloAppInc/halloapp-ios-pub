@@ -94,6 +94,8 @@ extension NewCameraViewController {
 
         static let showDismissButton = Options(rawValue: 1 << 0)
         static let showLibraryButton = Options(rawValue: 1 << 1)
+
+        static let moment: Options = [.showDismissButton]
     }
 }
 

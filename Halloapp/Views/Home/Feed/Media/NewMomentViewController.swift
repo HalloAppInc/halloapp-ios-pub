@@ -56,9 +56,9 @@ final class NewMomentViewController: UIViewController {
         let options: NewCameraViewController.Options
 
 #if targetEnvironment(simulator)
-        options = [.showLibraryButton]
+        options = [.moment, .showLibraryButton]
 #else
-        options = []
+        options = [.moment]
 #endif
 
         let vc = NewCameraViewController(style: .moment, options: options)

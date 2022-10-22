@@ -178,7 +178,7 @@ extension ExternalSharePreviewImageGenerator {
             header.translatesAutoresizingMaskIntoConstraints = false
             addSubview(header)
 
-            let momentView = MomentView()
+            let momentView = MomentView(configuration: .fullscreen)
             momentView.translatesAutoresizingMaskIntoConstraints = false
             addSubview(momentView)
 
