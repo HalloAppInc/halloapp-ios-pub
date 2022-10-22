@@ -452,7 +452,7 @@
 		F43DF0F228F5F242008008B7 /* MessagesShareProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43DF0F128F5F242008008B7 /* MessagesShareProvider.swift */; };
 		F43DF0F628F60E0B008008B7 /* InstagramStoriesShareProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43DF0F528F60E0B008008B7 /* InstagramStoriesShareProvider.swift */; };
 		F43DF0F828F60F4B008008B7 /* TwitterShareProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43DF0F728F60F4B008008B7 /* TwitterShareProvider.swift */; };
-		F43DF0FA28F75C98008008B7 /* ExternalSharePostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43DF0F928F75C98008008B7 /* ExternalSharePostView.swift */; };
+		F43DF0FA28F75C98008008B7 /* ExternalSharePreviewImageGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43DF0F928F75C98008008B7 /* ExternalSharePreviewImageGenerator.swift */; };
 		F445A73927FFB8270046D382 /* ShareMenuPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F445A73827FFB8270046D382 /* ShareMenuPresenter.swift */; };
 		F451ADA928CFBCE5003D1A76 /* UnifiedComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F451ADA828CFBCE5003D1A76 /* UnifiedComposerView.swift */; };
 		F45D9F762825DEFF005BAD9D /* GroupGridViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D9F752825DEFF005BAD9D /* GroupGridViewController.swift */; };
@@ -1254,7 +1254,7 @@
 		F43DF0F128F5F242008008B7 /* MessagesShareProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesShareProvider.swift; sourceTree = "<group>"; };
 		F43DF0F528F60E0B008008B7 /* InstagramStoriesShareProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstagramStoriesShareProvider.swift; sourceTree = "<group>"; };
 		F43DF0F728F60F4B008008B7 /* TwitterShareProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwitterShareProvider.swift; sourceTree = "<group>"; };
-		F43DF0F928F75C98008008B7 /* ExternalSharePostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalSharePostView.swift; sourceTree = "<group>"; };
+		F43DF0F928F75C98008008B7 /* ExternalSharePreviewImageGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalSharePreviewImageGenerator.swift; sourceTree = "<group>"; };
 		F445A73827FFB8270046D382 /* ShareMenuPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareMenuPresenter.swift; sourceTree = "<group>"; };
 		F451ADA828CFBCE5003D1A76 /* UnifiedComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedComposerView.swift; sourceTree = "<group>"; };
 		F45D9F752825DEFF005BAD9D /* GroupGridViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridViewController.swift; sourceTree = "<group>"; };
@@ -1690,7 +1690,6 @@
 				A1AFA978286B6460005B0DEA /* UploadProgressControl.swift */,
 				A193F57028107A9B00B13D4B /* InsetCollectionView.swift */,
 				F8F6ADCB287D52E100A1B203 /* ShadowView.swift */,
-				F43DF0F928F75C98008008B7 /* ExternalSharePostView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -2492,6 +2491,7 @@
 		F43DF0E828F0A642008008B7 /* Share */ = {
 			isa = PBXGroup;
 			children = (
+				F43DF0F928F75C98008008B7 /* ExternalSharePreviewImageGenerator.swift */,
 				F43DF0E928F0A685008008B7 /* ShareProvider.swift */,
 				F43DF0F528F60E0B008008B7 /* InstagramStoriesShareProvider.swift */,
 				F43DF0F128F5F242008008B7 /* MessagesShareProvider.swift */,
@@ -3170,7 +3170,7 @@
 				680528CD264F14B9001F6A57 /* SafetyNumber.swift in Sources */,
 				EA388C5C2520EB9500DEAB53 /* Banner.swift in Sources */,
 				68130169268D369A001BBDC6 /* ContactSelectionViewController.swift in Sources */,
-				F43DF0FA28F75C98008008B7 /* ExternalSharePostView.swift in Sources */,
+				F43DF0FA28F75C98008008B7 /* ExternalSharePreviewImageGenerator.swift in Sources */,
 				A1DD974A287E569900B98618 /* StackedMomentView.swift in Sources */,
 				761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */,
 				688718E427F030E60010111D /* FeedDataLegacy.swift in Sources */,

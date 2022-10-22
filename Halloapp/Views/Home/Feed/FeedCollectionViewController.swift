@@ -1002,6 +1002,12 @@ extension FeedCollectionViewController {
     @HAMenuContentBuilder
     private func moreMenu(for feedPost: FeedPost) -> HAMenu.Content {
         HAMenu {
+            if feedPost.isMoment, feedPost.userID == MainAppContext.shared.userData.userId {
+                HAMenuButton(title: Localizations.buttonShare, image: UIImage(systemName: "square.and.arrow.up")) { [weak self] in
+                    self?.presentShareMenu(for: feedPost)
+                }
+            }
+
             if feedPost.hasSaveablePostMedia, feedPost.canSaveMedia {
                 let title = (feedPost.media?.count ?? 0) > 1 ? Localizations.saveAllButton : Localizations.saveAllButtonSingular
                 HAMenuButton(title: title, image: UIImage(systemName: "photo.on.rectangle.angled")) { [weak self] in

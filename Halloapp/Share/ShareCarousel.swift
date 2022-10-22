@@ -40,7 +40,7 @@ class ShareCarousel: UIView {
             ShareDestination(icon: UIImage(named: "ShareAppIconMessages"), shareProvider: MessagesShareProvider.self),
             ShareDestination(icon: UIImage(named: "ShareAppIconTwitter"), shareProvider: TwitterShareProvider.self),
             ShareDestination(icon: UIImage(named: "ShareAppIconInstagram"), shareProvider: InstagramStoriesShareProvider.self),
-        ]//.filter { $0.shareProvider.canShare }
+        ].filter { $0.shareProvider.canShare }
     }()
 
     private lazy var dataSource: UICollectionViewDiffableDataSource<Section, ShareDestination> = {
