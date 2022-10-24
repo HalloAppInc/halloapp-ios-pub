@@ -295,6 +295,9 @@ extension MomentLocationToggle: CLLocationManagerDelegate {
         let (firstComponent, secondComponent) = areas.count > 1 ? (areas[0], areas[1]) : (areas.first, nil)
 
         switch (firstComponent, secondComponent) {
+        case (.some(let first), .some(let second)) where first.range(of: second, options: .caseInsensitive) != nil:
+            // avoid cases like "Downtown Mountain View, Mountain View"
+            result = first
         case (.some(let first), .some(let second)):
             result = String(format: Localizations.momentLocationFormat, first, second)
         case (.some(let first), _):

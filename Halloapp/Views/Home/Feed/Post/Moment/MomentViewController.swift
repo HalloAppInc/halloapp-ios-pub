@@ -1156,7 +1156,7 @@ fileprivate class MomentPresenter: NSObject, UIViewControllerAnimatedTransitioni
             return performSimpleTransition(using: transitionContext)
         }
 
-        transitionViews.momentView.smallAvatarView.isHidden = true
+        transitionViews.momentView.smallAvatarView.alpha = 0
         to.headerView.avatarViewButton.isHidden = transitionViews.avatarSnapshot != nil
         to.momentView.isHidden = true
 

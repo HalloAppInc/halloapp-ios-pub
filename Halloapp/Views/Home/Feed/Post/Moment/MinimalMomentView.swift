@@ -16,15 +16,33 @@ import CocoaLumberjackSwift
 class MinimalMomentView: UIView {
 
     private(set) var feedPost: FeedPost?
-    private var mediaLoader: AnyCancellable?
+    private var imageLoadingCancellables: Set<AnyCancellable> = []
 
-    private(set) lazy var imageView: UIImageView = {
-        let view = UIImageView()
+    private var imageContainer: UIView = {
+        let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.contentMode = .scaleAspectFill
         view.layer.masksToBounds = true
         view.layer.cornerRadius = 4
         return view
+    }()
+
+    private lazy var leadingImageView: UIImageView = {
+        let view = UIImageView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.contentMode = .scaleAspectFill
+        return view
+    }()
+
+    private lazy var trailingImageView: UIImageView = {
+        let view = UIImageView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.contentMode = .scaleAspectFill
+        return view
+    }()
+
+    private lazy var showTrailingImageViewConstraint: NSLayoutConstraint = {
+        let constraint = trailingImageView.widthAnchor.constraint(equalTo: imageContainer.widthAnchor, multiplier: 0.5)
+        return constraint
     }()
 
     private lazy var overlay: UIView = {
@@ -58,27 +76,42 @@ class MinimalMomentView: UIView {
         layer.masksToBounds = true
         layer.cornerRadius = 5
 
-        addSubview(imageView)
+        addSubview(imageContainer)
+        imageContainer.addSubview(leadingImageView)
+        imageContainer.addSubview(trailingImageView)
         addSubview(overlay)
         addSubview(progressControl)
 
         let padding: CGFloat = 3
+        let hideTrailingImageViewConstraint = trailingImageView.widthAnchor.constraint(equalToConstant: 0)
+        hideTrailingImageViewConstraint.priority = .defaultHigh
+
         NSLayoutConstraint.activate([
-            imageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
-            imageView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding),
-            imageView.topAnchor.constraint(equalTo: topAnchor, constant: padding),
-            imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor),
-            imageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
+            imageContainer.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
+            imageContainer.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding),
+            imageContainer.topAnchor.constraint(equalTo: topAnchor, constant: padding),
+            imageContainer.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
+            imageContainer.heightAnchor.constraint(equalTo: imageContainer.widthAnchor),
 
-            overlay.leadingAnchor.constraint(equalTo: imageView.leadingAnchor),
-            overlay.trailingAnchor.constraint(equalTo: imageView.trailingAnchor),
-            overlay.topAnchor.constraint(equalTo: imageView.topAnchor),
-            overlay.bottomAnchor.constraint(equalTo: imageView.bottomAnchor),
+            leadingImageView.leadingAnchor.constraint(equalTo: imageContainer.leadingAnchor),
+            leadingImageView.trailingAnchor.constraint(equalTo: trailingImageView.leadingAnchor),
+            leadingImageView.topAnchor.constraint(equalTo: imageContainer.topAnchor),
+            leadingImageView.bottomAnchor.constraint(equalTo: imageContainer.bottomAnchor),
 
-            progressControl.widthAnchor.constraint(equalTo: imageView.widthAnchor, multiplier: 0.4),
+            trailingImageView.trailingAnchor.constraint(equalTo: imageContainer.trailingAnchor),
+            trailingImageView.topAnchor.constraint(equalTo: imageContainer.topAnchor),
+            trailingImageView.bottomAnchor.constraint(equalTo: imageContainer.bottomAnchor),
+            hideTrailingImageViewConstraint,
+
+            overlay.leadingAnchor.constraint(equalTo: imageContainer.leadingAnchor),
+            overlay.trailingAnchor.constraint(equalTo: imageContainer.trailingAnchor),
+            overlay.topAnchor.constraint(equalTo: imageContainer.topAnchor),
+            overlay.bottomAnchor.constraint(equalTo: imageContainer.bottomAnchor),
+
+            progressControl.widthAnchor.constraint(equalTo: imageContainer.widthAnchor, multiplier: 0.4),
             progressControl.heightAnchor.constraint(equalTo: progressControl.widthAnchor),
-            progressControl.centerXAnchor.constraint(equalTo: imageView.centerXAnchor),
-            progressControl.centerYAnchor.constraint(equalTo: imageView.centerYAnchor),
+            progressControl.centerXAnchor.constraint(equalTo: imageContainer.centerXAnchor),
+            progressControl.centerYAnchor.constraint(equalTo: imageContainer.centerYAnchor),
         ])
     }
 
@@ -87,24 +120,70 @@ class MinimalMomentView: UIView {
     }
 
     func configure(with post: FeedPost) {
-        guard let media = post.feedMedia.first else {
+        imageLoadingCancellables = []
+        feedPost = post
+
+        guard let (leading, trailing) = arrangedMedia else {
             DDLogError("MinimalMomentView/configure/post with no media")
             return
         }
 
-        feedPost = post
-        if media.isMediaAvailable {
-            imageView.image = media.image
-        } else {
-            mediaLoader = media.imageDidBecomeAvailable
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] image in
-                    self?.imageView.image = media.image
-                }
+        leading.imagePublisher
+            .sink { [weak self] image in
+                self?.leadingImageView.image = image
+            }
+            .store(in: &imageLoadingCancellables)
 
-            media.loadImage()
+        trailing?.imagePublisher
+            .sink { [weak self] image in
+                self?.trailingImageView.image = image
+            }
+            .store(in: &imageLoadingCancellables)
+
+        [leading, trailing].forEach {
+            $0?.loadImage()
         }
 
+        showTrailingImageViewConstraint.isActive = trailing != nil
         progressControl.configure(with: post)
+    }
+
+    private var arrangedMedia: (leading: FeedMedia, trailing: FeedMedia?)? {
+        guard let feedPost else {
+            return nil
+        }
+
+        let media = feedPost.feedMedia
+
+        if let selfieMedia = media.count == 2 ? media[1] : nil, let first = media.first {
+            return feedPost.isMomentSelfieLeading ? (selfieMedia, first) : (first, selfieMedia)
+        }
+
+        if let first = media.first {
+            return (first, nil)
+        }
+
+        return nil
+    }
+
+    /// A publisher that fires only once when the appropriate image views have been assigned images.
+    var imageViewsAreReadyPublisher: AnyPublisher<Void, Never> {
+        let leadingPublisher = leadingImageView.publisher(for: \.image)
+            .compactMap {
+                $0 != nil ? () : nil
+            }
+            .first()
+
+        let trailingPublisher = !showTrailingImageViewConstraint.isActive ? nil : trailingImageView.publisher(for: \.image)
+            .compactMap {
+                $0 != nil ? () : nil
+            }
+            .first()
+
+        let publishers = [leadingPublisher, trailingPublisher].compactMap { $0 }
+        return Publishers.MergeMany(publishers)
+            .collect()
+            .map { _ in }
+            .eraseToAnyPublisher()
     }
 }

@@ -270,18 +270,15 @@ final class NewMomentViewController: UIViewController {
         vc.loadViewIfNeeded()
 
         // want to ensure that the the image view is populated before taking the snapshot
-        if vc.unlockingMomentView.imageView.image != nil {
-            performUnlockTransition(for: vc)
-        } else {
-            DDLogInfo("NewMomentViewController/completeCompose/creating transition cancellable")
-            startUnlockTransitionCancellable = vc.unlockingMomentView.imageView.publisher(for: \.image)
-                .compactMap { $0 }
-                .sink { [weak self] _ in
-                    DDLogInfo("NewMomentViewController/completeCompose/starting transition via cancellable")
-                    self?.startUnlockTransitionCancellable = nil
-                    self?.performUnlockTransition(for: vc)
-                }
-        }
+        DDLogInfo("NewMomentViewController/completeCompose/creating transition cancellable")
+        startUnlockTransitionCancellable = vc.unlockingMomentView.imageViewsAreReadyPublisher
+            .sink(receiveCompletion: { [weak self] _ in
+                DDLogInfo("NewMomentViewController/completeCompose/starting transition via cancellable")
+                self?.startUnlockTransitionCancellable = nil
+                self?.performUnlockTransition(for: vc)
+            }, receiveValue: {
+
+            })
 
         delegate?.newMomentViewControllerDidPost(self)
     }

@@ -39,6 +39,18 @@ extension MomentView {
         static var avatarDiameter: CGFloat {
             85
         }
+
+        static var smallAvatarDiameter: CGFloat {
+            45
+        }
+
+        static var footerVerticalPadding: CGFloat {
+            9
+        }
+
+        static var footerHorizontalPadding: CGFloat {
+            20
+        }
     }
 }
 
@@ -220,8 +232,11 @@ class MomentView: UIView {
 
     private lazy var footerContainer: UIView = {
         let view = UIView()
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.layoutMargins = UIEdgeInsets(top: Layout.footerVerticalPadding,
+                                         left: Layout.footerHorizontalPadding,
+                                       bottom: Layout.footerVerticalPadding,
+                                        right: Layout.footerHorizontalPadding)
         return view
     }()
     
@@ -330,7 +345,7 @@ class MomentView: UIView {
 
             smallAvatarView.leadingAnchor.constraint(equalTo: imageContainer.leadingAnchor, constant: 10),
             smallAvatarView.topAnchor.constraint(equalTo: imageContainer.topAnchor, constant: 10),
-            smallAvatarView.widthAnchor.constraint(equalToConstant: 45),
+            smallAvatarView.widthAnchor.constraint(equalToConstant: Layout.smallAvatarDiameter),
             smallAvatarView.heightAnchor.constraint(equalTo: smallAvatarView.widthAnchor),
 
             footerContainer.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -342,8 +357,8 @@ class MomentView: UIView {
             footerLabel.leadingAnchor.constraint(equalTo: footerContainer.layoutMarginsGuide.leadingAnchor, constant: 75),
             footerLabel.trailingAnchor.constraint(equalTo: footerContainer.layoutMarginsGuide.trailingAnchor),
             footerLabel.centerYAnchor.constraint(equalTo: footerContainer.centerYAnchor),
-            footerLabel.topAnchor.constraint(greaterThanOrEqualTo: footerContainer.topAnchor),
-            footerLabel.bottomAnchor.constraint(lessThanOrEqualTo: footerContainer.bottomAnchor),
+            footerLabel.topAnchor.constraint(greaterThanOrEqualTo: footerContainer.layoutMarginsGuide.topAnchor),
+            footerLabel.bottomAnchor.constraint(lessThanOrEqualTo: footerContainer.layoutMarginsGuide.bottomAnchor),
 
             facePileView.trailingAnchor.constraint(equalTo: footerContainer.layoutMarginsGuide.trailingAnchor),
             facePileView.centerYAnchor.constraint(equalTo: footerContainer.centerYAnchor),
@@ -697,7 +712,7 @@ class MomentView: UIView {
         if let feedPost {
             let name = MainAppContext.shared.contactStore.firstName(for: feedPost.userID,
                                                                      in: MainAppContext.shared.contactStore.viewContext)
-            promptText = String(format: Localizations.secretPostEntice, name)
+            promptText = String(format: Localizations.otherUsersMoment, name)
         }
 
         switch newState {
@@ -851,9 +866,9 @@ fileprivate class GradientView: UIView {
 // MARK: - localization
 
 extension Localizations {
-    static var secretPostEntice: String {
+    static var otherUsersMoment: String {
         NSLocalizedString("shared.moment",
-                   value: "%@’s moment",
+                   value: "%@’s Moment",
                  comment: "Text placed on the blurred overlay of someone else's moment.")
     }
 
@@ -863,15 +878,9 @@ extension Localizations {
                  comment: "Text that indicates a view action.")
     }
 
-    static var unlock: String {
-        NSLocalizedString("unlock.title",
-                   value: "Unlock",
-                 comment: "Text that indicates the unlock action for a moment.")
-    }
-
     static var shareMoment: String {
         NSLocalizedString("share.moment.prompt",
-                   value: "Share a moment",
+                   value: "Share a Moment",
                  comment: "Prompt for the user to share a moment.")
     }
 
@@ -883,7 +892,7 @@ extension Localizations {
 
     static var momentUnlockDisclaimer: String {
         NSLocalizedString("moment.unlock.disclaimer",
-                   value: "To see their moment, share your own",
+                   value: "To see their Moment, share your own",
                  comment: "Text on a locked moment that explains the need to post your own in order to view it.")
     }
 }
