@@ -1828,8 +1828,9 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
     }
     
     func sendReaction(chatMessage: ChatMessage, reaction: String) {
-
-        MainAppContext.shared.chatData.sendReaction(chatMessageRecipient: chatMessage.chatMessageRecipient,
+        guard let sendToUserId = self.fromUserId else { return }
+        let reactionMessageRecipient: ChatMessageRecipient = .oneToOneChat(toUserId: sendToUserId, fromUserId: AppContext.shared.userData.userId)
+        MainAppContext.shared.chatData.sendReaction(chatMessageRecipient: reactionMessageRecipient,
                                                     reaction: reaction,
                                                     chatMessageID: chatMessage.id)
     }

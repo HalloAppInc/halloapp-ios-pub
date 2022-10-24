@@ -1551,7 +1551,8 @@ extension GroupChatViewController: MessageViewChatDelegate, ReactionViewControll
     }
     
     func sendReaction(chatMessage: ChatMessage, reaction: String) {
-        MainAppContext.shared.chatData.sendReaction(chatMessageRecipient: chatMessage.chatMessageRecipient,
+        let reactionMessageRecipient: ChatMessageRecipient = .groupChat(toGroupId: groupId, fromUserId: AppContext.shared.userData.userId)
+        MainAppContext.shared.chatData.sendReaction(chatMessageRecipient: reactionMessageRecipient,
                                                     reaction: reaction,
                                                     chatMessageID: chatMessage.id)
     }
