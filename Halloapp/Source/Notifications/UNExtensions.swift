@@ -271,10 +271,16 @@ extension Localizations {
             comment: "Push notification for a new comment. Parameter is the text of the comment")
     }
     
-    static var newCommentWithReactionNotificationBody: String {
+    static var newCommentReactionNotificationBody: String {
         NSLocalizedString("notification.comment.reaction",
                           value: "Reacted %@ to a comment",
-                          comment: "Push notification for a comment to message")
+                          comment: "Push notification for a reaction to comment")
+    }
+
+    static var newPostReactionNotificationBody: String {
+        NSLocalizedString("notification.post.reaction",
+                          value: "Reacted %@ to a post",
+                          comment: "Push notification for a reaction to post")
     }
 
     static var newMessageNotificationBody: String {

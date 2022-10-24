@@ -788,7 +788,12 @@ class NotificationMetadata: Codable {
         case .voiceNote(_):
             body = String(format: Localizations.newCommentWithTextNotificationBody, Localizations.newAudioCommentNotificationBody)
         case .commentReaction(let emoji):
-            body = String(format: Localizations.newCommentWithReactionNotificationBody, emoji)
+            let isPostReaction = (commentData?.parentId ?? "").isEmpty
+            if isPostReaction {
+                body = String(format: Localizations.newPostReactionNotificationBody, emoji)
+            } else {
+                body = String(format: Localizations.newCommentReactionNotificationBody, emoji)
+            }
         case .none, .retracted, .unsupported, .waiting:
             body = newCommentString
         }
