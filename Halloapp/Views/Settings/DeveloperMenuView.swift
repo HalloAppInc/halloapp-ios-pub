@@ -26,7 +26,6 @@ private enum MenuTitles {
     static var resetFavoritesZeroState: String { "Reset Favorites Zero State" }
     static var addFavoritesNotification: String { "Add Favorites Notification" }
     static var manageWebClient: String { "Manage web client" }
-    static var enableGroupChat: String { "Enable Group Chat" }
     static var enableChatForwarding: String { "Enable Chat Forwarding" }
     static var showDecryptionResults: String { "Show decryption results  ✅ ❌" }
     static var forceCompactShare: String { "Force Compact Share UI" }
@@ -46,7 +45,6 @@ struct DeveloperSetting {
 struct DeveloperMenuView: View {
 
     @State var useTestServer = MainAppContext.shared.coreService.useTestServer
-    @State var enableGroupChat = AppContext.shared.userDefaults.bool(forKey: "enableGroupChat")
     @State var showDecryptionResults = DeveloperSetting.showDecryptionResults
     @State var forceCompactShare = AppContext.shared.userDefaults.bool(forKey: "forceCompactShare")
     @State var forcePickerShare = AppContext.shared.userDefaults.bool(forKey: "forcePickerShare")
@@ -221,11 +219,6 @@ struct DeveloperMenuView: View {
                         .onReceive(Just(self.showDecryptionResults)) { value in
                             DeveloperSetting.showDecryptionResults = value
                         }
-                    // Temporarily disable group chat until ready for testing
-                    // Toggle(MenuTitles.enableGroupChat, isOn: $enableGroupChat)
-                    //    .onReceive(Just(self.enableGroupChat)) { value in
-                    //        AppContext.shared.userDefaults.set(value, forKey: "enableGroupChat")
-                    //    }
 
                     Toggle(MenuTitles.forceCompactShare, isOn: $forceCompactShare)
                         .onReceive(Just(forceCompactShare)) { value in

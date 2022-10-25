@@ -84,7 +84,7 @@ class NewChatViewController: NewChatTableViewController {
         } catch {
             fatalError("Failed to fetch contacts. \(error)")
         }
-        if AppContext.shared.userDefaults.bool(forKey: "enableGroupChat") {
+        if ServerProperties.enableGroupChat {
             let newGroupChatHeaderView = NewGroupChatHeaderView()
             newGroupChatHeaderView.delegate = self
             tableView.tableHeaderView = newGroupChatHeaderView
