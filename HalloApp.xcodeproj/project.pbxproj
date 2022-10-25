@@ -1096,7 +1096,7 @@
 		A188383528BD5D80005BBCC2 /* RoundedRectChevronButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedRectChevronButton.swift; sourceTree = "<group>"; };
 		A188383828BD5DA6005BBCC2 /* PhoneNumberEntryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneNumberEntryViewController.swift; sourceTree = "<group>"; };
 		A188383A28BD5DC2005BBCC2 /* CountryCodeTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountryCodeTableView.swift; sourceTree = "<group>"; };
-		A18A409628EF578D002A0BDE /* MomentLocationToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MomentLocationToggle.swift; path = Halloapp/Views/Home/Feed/Post/Moment/MomentLocationToggle.swift; sourceTree = SOURCE_ROOT; };
+		A18A409628EF578D002A0BDE /* MomentLocationToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MomentLocationToggle.swift; path = Halloapp/Views/Home/Feed/Moment/MomentLocationToggle.swift; sourceTree = SOURCE_ROOT; };
 		A193F57028107A9B00B13D4B /* InsetCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsetCollectionView.swift; sourceTree = "<group>"; };
 		A1AE40CA282DAB3F00C3EF3A /* QuotedMomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMomentView.swift; sourceTree = "<group>"; };
 		A1AE40CE283DA7DB00C3EF3A /* QuotedMediaPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotedMediaPanel.swift; sourceTree = "<group>"; };
@@ -1700,7 +1700,6 @@
 				76271388252D250E00389FBC /* FacePileView.swift */,
 				7653F301255DB7FE001CC946 /* FeedPostCollectionViewCell.swift */,
 				F4B3FC7B2900A50400D73C9A /* FeedShareCarouselCell.swift */,
-				A1AFE7792821E144008BBC80 /* Moment */,
 				76271383252D24AD00389FBC /* FeedItemContentView.swift */,
 				764F7750246226120063645A /* PostDashboardViewController.swift */,
 				E5AFB4C626BC5C74002CE127 /* FeedPostView.swift */,
@@ -1891,7 +1890,7 @@
 			path = Onboarding;
 			sourceTree = "<group>";
 		};
-		A1AFE7792821E144008BBC80 /* Moment */ = {
+		A18A409A29085B10002A0BDE /* Moment */ = {
 			isa = PBXGroup;
 			children = (
 				A1AFE7772821E135008BBC80 /* MomentView.swift */,
@@ -1901,6 +1900,10 @@
 				A1DD9747287E39A000B98618 /* StackedMomentCollectionViewCell.swift */,
 				A1DD9749287E569900B98618 /* StackedMomentView.swift */,
 				A1AFE775281FAA6B008BBC80 /* MomentViewController.swift */,
+				A11272E92856C5930009EBD7 /* NewMomentViewController.swift */,
+				A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */,
+				A18A409628EF578D002A0BDE /* MomentLocationToggle.swift */,
+				A11FA896285BE02900ACDA76 /* MomentsExplainerViewController.swift */,
 			);
 			path = Moment;
 			sourceTree = "<group>";
@@ -2084,6 +2087,7 @@
 		EA38843423A15C9D00E8BF92 /* Feed */ = {
 			isa = PBXGroup;
 			children = (
+				A18A409A29085B10002A0BDE /* Moment */,
 				EA5414D623EE16D500390EF6 /* Comment */,
 				EA5414D423EE164C00390EF6 /* Media */,
 				F8606DCB257E7245006CD1A6 /* MediaExplorer */,
@@ -2155,10 +2159,6 @@
 				F88E5C94275A14D500290A89 /* MediaPickerPreview.swift */,
 				EA0C315623EB97C800016EDB /* PostComposerView.swift */,
 				681E0DA924C8E0190073A03E /* NewPostViewController.swift */,
-				A11272E92856C5930009EBD7 /* NewMomentViewController.swift */,
-				A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */,
-				A18A409628EF578D002A0BDE /* MomentLocationToggle.swift */,
-				A11FA896285BE02900ACDA76 /* MomentsExplainerViewController.swift */,
 				5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */,
 				A1562B1528D0EA350082F1E5 /* Camera */,
 				5BF5D12224F5295300F272D8 /* CameraViewController.swift */,
