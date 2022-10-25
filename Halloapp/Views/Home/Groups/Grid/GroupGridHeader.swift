@@ -21,7 +21,6 @@ class GroupGridHeader: UICollectionReusableView {
     var menuActions: (() -> [UIMenuElement])?
 
     private struct Constants {
-        static let postButtonSize: CGFloat = 22
         static let avatarSize: CGFloat = 32
     }
 
@@ -60,12 +59,19 @@ class GroupGridHeader: UICollectionReusableView {
 
         let postButton = RoundedRectButton()
         postButton.addTarget(self, action: #selector(composeButtonTapped), for: .touchUpInside)
-        postButton.backgroundTintColor = .primaryBlue
-        postButton.imageView?.tintColor = .primaryWhiteBlack
+        postButton.backgroundTintColor = .systemGray5
+        postButton.titleLabel?.font = .quicksandFont(ofFixedSize: 16, weight: .bold)
+        postButton.imageView?.tintColor = .primaryBlue
         postButton.setImage(UIImage(systemName: "plus")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold)),
                             for: .normal)
-        // ugh
-        postButton.contentEdgeInsets = UIEdgeInsets(top: 0, left: 1.0 / UIScreen.main.scale, bottom: 0, right: -1.0 / UIScreen.main.scale)
+        postButton.setTitle(Localizations.fabPostButton, for: .normal)
+        postButton.setTitleColor(.primaryBlue, for: .normal)
+        let isLTR = postButton.effectiveUserInterfaceLayoutDirection == .leftToRight
+        postButton.contentEdgeInsets = UIEdgeInsets(top: 5, left: isLTR ? 12 : 8, bottom: 5, right: isLTR ? 8 : 12)
+        postButton.titleEdgeInsets = UIEdgeInsets(top: 0, left: isLTR ? -2 : 2, bottom: 0, right: isLTR ? 2 : -2)
+        postButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: isLTR ? 2 : -2, bottom: 0, right: isLTR ? -2 : 2)
+        postButton.semanticContentAttribute = isLTR ? .forceRightToLeft : .forceLeftToRight
+        postButton.setContentCompressionResistancePriority(.required, for: .horizontal)
         postButton.translatesAutoresizingMaskIntoConstraints = false
         addSubview(postButton)
 
@@ -82,8 +88,6 @@ class GroupGridHeader: UICollectionReusableView {
             groupAvatarAndNameStackViewBottomConstraint,
             groupAvatarAndNameStackView.trailingAnchor.constraint(lessThanOrEqualTo: postButton.leadingAnchor, constant: -12),
 
-            postButton.widthAnchor.constraint(equalToConstant: Constants.postButtonSize),
-            postButton.heightAnchor.constraint(equalToConstant: Constants.postButtonSize),
             postButton.centerYAnchor.constraint(equalTo: centerYAnchor),
             postButton.trailingAnchor.constraint(equalTo: trailingAnchor),
         ])
