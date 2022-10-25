@@ -134,6 +134,7 @@ protocol HalloFeedDelegate: AnyObject {
     func halloService(_ halloService: HalloService, didRerequestGroupFeedHistory contentID: String, from userID: UserID, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didReceiveFeedReceipt receipt: HalloReceipt, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didSendFeedReceipt receipt: HalloReceipt)
+    func halloService(_ halloService: HalloService, didReceiveDailyMomentNotification timestamp: Int64)
 }
 
 protocol HalloChatDelegate: AnyObject {

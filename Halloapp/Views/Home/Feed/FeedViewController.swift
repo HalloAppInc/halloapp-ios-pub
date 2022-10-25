@@ -511,6 +511,8 @@ extension FeedViewController: UIViewControllerHandleTapNotification {
             let dashboard = PostDashboardViewController(feedPost: feedPost)
             dashboard.delegate = self
             present(UINavigationController(rootViewController: dashboard), animated: true)
+        case .dailyMoment:
+            presentNewMomentViewController(context: .normal)
         default:
             break
         }

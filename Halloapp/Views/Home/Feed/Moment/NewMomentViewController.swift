@@ -103,13 +103,23 @@ final class NewMomentViewController: UIViewController {
     init(context: Context = .normal) {
         self.context = context
         super.init(nibName: nil, bundle: nil)
-        view.backgroundColor = .black
 
+        commonInit()
+    }
+
+    init(notificationMetadata: NotificationMetadata) {
+        context = .normal
+        super.init(nibName: nil, bundle: nil)
+
+        commonInit()
+    }
+
+    private func commonInit() {
+        view.backgroundColor = .black
         overrideUserInterfaceStyle = .dark
 
         modalPresentationStyle = .custom
         modalTransitionStyle = .coverVertical
-
         definesPresentationContext = true
         modalPresentationCapturesStatusBarAppearance = true
     }

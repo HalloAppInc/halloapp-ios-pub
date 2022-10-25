@@ -432,6 +432,16 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Sh
         present(vc, animated: true)
     }
 
+    func presentNewMomentViewController(notificationMetadata: NotificationMetadata) {
+        guard case .dailyMoment = notificationMetadata.contentType else {
+            return
+        }
+
+        let vc = NewMomentViewController(notificationMetadata: notificationMetadata)
+        vc.delegate = self
+        present(vc, animated: true)
+    }
+
     // MARK: Post Actions
 
     func showCommentsView(for postId: FeedPostID, highlighting commentId: FeedPostCommentID? = nil) {

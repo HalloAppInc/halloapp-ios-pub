@@ -2112,6 +2112,25 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    private func presentDailyMomentNotification(timestamp: Int64) async {
+        guard await UIApplication.shared.applicationState != .active else {
+            return
+        }
+
+        let metadata = NotificationMetadata(contentId: "moment-\(timestamp)",
+                                          contentType: .dailyMoment,
+                                               fromId: "",
+                                              groupId: nil,
+                                            groupType: nil,
+                                            timestamp: Date(timeIntervalSince1970: TimeInterval(timestamp)),
+                                                 data: nil,
+                                            messageId: nil)
+
+        DispatchQueue.main.async {
+            NotificationRequest.createAndShow(from: metadata)
+        }
+    }
+
     // MARK: Retracts
     
     let didProcessGroupFeedPostRetract = PassthroughSubject<FeedPostID, Never>()
@@ -5584,5 +5603,9 @@ extension FeedData: HalloFeedDelegate {
                 feedPost.status = .seen
             }
         }
+    }
+
+    func halloService(_ halloService: HalloService, didReceiveDailyMomentNotification timestamp: Int64) {
+        Task { await presentDailyMomentNotification(timestamp: timestamp) }
     }
 }

@@ -592,6 +592,9 @@ final class NotificationProtoService: ProtoServiceCore {
 
                 ack()
             }
+
+        case .dailyMoment:
+            presentDailyMomentNotification(for: metadata)
         }
     }
 
@@ -1253,6 +1256,21 @@ final class NotificationProtoService: ProtoServiceCore {
             let notificationContent = UNMutableNotificationContent()
             notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
             notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
+            notificationContent.sound = UNNotificationSound.default
+            notificationContent.userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
+            self.pendingNotificationContent[metadata.identifier] = notificationContent
+
+            let notificationCenter = UNUserNotificationCenter.current()
+            notificationCenter.add(UNNotificationRequest(identifier: metadata.identifier, content: notificationContent, trigger: nil))
+            recordPresentingNotification(for: metadata.identifier, type: metadata.contentType.rawValue)
+        }
+    }
+
+    private func presentDailyMomentNotification(for metadata: NotificationMetadata) {
+        runIfNotificationWasNotPresented(for: metadata.identifier) { [self] in
+            DDLogDebug("ProtoService/presentNotification")
+            let notificationContent = UNMutableNotificationContent()
+            notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
             notificationContent.sound = UNNotificationSound.default
             notificationContent.userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
             self.pendingNotificationContent[metadata.identifier] = notificationContent

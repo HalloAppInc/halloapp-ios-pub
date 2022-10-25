@@ -396,4 +396,16 @@ extension Localizations {
                    value: "%@ took a screenshot of your moment",
                  comment: "New moment screenshot notification text to be shown to the user.")
     }
+
+    static var dailyMomentNotificationTitle: String {
+        NSLocalizedString("notification.daily.moment.title",
+                   value: "Daily Moment",
+                 comment: "Title of the daily moment notification.")
+    }
+
+    static var dailyMomentNotificationBody: String {
+        NSLocalizedString("notification.daily.moment.body",
+                   value: "You have 2 minutes to share a Moment",
+                 comment: "Body of the daily moment notification.")
+    }
 }
