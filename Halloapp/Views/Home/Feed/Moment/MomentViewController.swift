@@ -17,7 +17,7 @@ protocol MomentViewControllerDelegate: MomentViewDelegate, UserActionHandler {
 
 }
 
-class MomentViewController: UIViewController, UIViewControllerMediaSaving {
+class MomentViewController: UIViewController, UIViewControllerMediaSaving, ShareMenuPresenter {
 
     private(set) var post: FeedPost
     let unlockingPost: FeedPost?
@@ -451,6 +451,14 @@ class MomentViewController: UIViewController, UIViewControllerMediaSaving {
     @HAMenuContentBuilder
     private func configureMoreMenu() -> HAMenu.Content {
         HAMenu {
+            if post.userID == MainAppContext.shared.userData.userId {
+                HAMenuButton(title: Localizations.buttonShare, image: UIImage(systemName: "square.and.arrow.up")) { [weak self] in
+                    guard let self = self else {
+                        return
+                    }
+                    self.presentShareMenu(for: self.post)
+                }
+            }
             if post.hasSaveablePostMedia, post.canSaveMedia {
                 let title = Localizations.buttonSave
                 HAMenuButton(title: title, image: UIImage(systemName: "photo.on.rectangle.angled")) { [weak self] in
