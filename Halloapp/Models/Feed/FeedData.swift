@@ -2337,10 +2337,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         if self.externalShareInfo(for: postId) != nil {
+            let context = feedPost.managedObjectContext
             self.revokeExternalShareUrl(for: postId) { result in
                 switch result {
                 case .success:
-                    deletePost()
+                    context?.perform {
+                        deletePost()
+                    }
                 case .failure(let error):
                     completion?(.failure(error))
                 }
