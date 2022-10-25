@@ -700,6 +700,9 @@
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Para se ligar, deve trocar os números de telefone";
 
+/* Text on external share preview background, followed by URL */
+"externalshare.download" = "Baixe o HalloApp gratuitamente:";
+
 /* Description of an externally shared post containing an audio post */
 "externalShare.og.description.audio" = "Postagem de áudio";
 
@@ -711,6 +714,9 @@
 
 /* Title for posts that are externally shared, 'John Smith's HalloApp Post' */
 "externalShare.og.title3" = "Postagem no HalloApp de %@";
+
+/* Attached to our logo as an image, 'Posted from HalloApp' */
+"externalshare.postedFrom" = "Postado de";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Câmara";
@@ -1415,6 +1421,9 @@
 /* Disclaimer to tell the user that their moments go to all of their contacts on HalloApp. */
 "moment.contacts.disclaimer" = "Seu Momento será compartilhado apenas com seus contatos no HalloApp";
 
+/* The format of a moment's location string. The first argument could be a point of interest or the name of a neighborhood, whereas the second could be a city or state name. E.g., "Brooklyn Bridge, New York". */
+"moment.location.format" = "%1$@, %2$@";
+
 /* Text displayed the first time the user acts to post a second moment in the same day. */
 "moment.replacement.disclaimer" = "Este novo momento substituirá o anterior.";
 
@@ -1502,7 +1511,7 @@
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Já não está neste grupo";
 
-/* Push notification for a comment to message */
+/* Push notification for a reaction to comment */
 "notification.comment.reaction" = "Reagiu %@ a um comentário";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
@@ -1570,6 +1579,9 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 vídeo";
+
+/* Push notification for a reaction to post */
+"notification.post.reaction" = "Reagiu %@ a uma postagem";
 
 /* New moment unlock notification text to be shown to the user. */
 "notification.unlocked.moment.1" = "%@ compartilhou um novo momento para ver o seu";
@@ -2108,6 +2120,9 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "Junte-se à minha rede de relacionamento real no HalloApp. Baixe gratuitamente em halloapp.com/dl";
 
+/* Title for inline external share prompt */
+"share.carousel.title" = "Compartilhe com mais amigos:";
+
 /* Show more groups in the share group selection */
 "share.destination.more" = "Mostre mais...";
 
@@ -2116,6 +2131,21 @@
 
 /* Text placed on the blurred overlay of someone else's moment. */
 "shared.moment" = "momento de %@";
+
+/* Title for sharing to instagram stories */
+"shareprovider.instagramstories.title" = "Stories do Instagram";
+
+/* Name of system messages app */
+"shareprovider.messages.title" = "Mensagens";
+
+/* Title for button launching system share dialog */
+"shareprovider.system.title" = "Partilhar via";
+
+/* Name of Twitter app */
+"shareprovider.twitter.title" = "Twitter";
+
+/* Whatsapp messages share destination */
+"shareprovider.whatsapp.title" = "WhatsApp";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "toque para retornar à chamada";
@@ -2251,9 +2281,6 @@
 
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Este usuário não está em sua lista de contatos.";
-
-/* Text that indicates the unlock action for a moment. */
-"unlock.title" = "Desbloquear";
 
 /* Body for alert appearing after clicking an external share link that failed to load */
 "urlrouter.externalShare.failed.message" = "Esta postagem pode ter expirado, sido excluída ou outra coisa.";

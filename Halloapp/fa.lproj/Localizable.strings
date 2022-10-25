@@ -1502,7 +1502,7 @@
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "شما دیگر در این گروه نیستید";
 
-/* Push notification for a comment to message */
+/* Push notification for a reaction to comment */
 "notification.comment.reaction" = "@% به یک نظر واکنش نشان داد";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
@@ -2212,9 +2212,6 @@
 
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "این فرستنده در لیست مخاطبین شما نیست.";
-
-/* Text that indicates the unlock action for a moment. */
-"unlock.title" = "باز کردن";
 
 /* Body for alert appearing after clicking an external share link that failed to load */
 "urlrouter.externalShare.failed.message" = "این پست احتمالاً یا منقضی یا حذف شده است.";

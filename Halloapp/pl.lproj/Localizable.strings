@@ -1645,9 +1645,6 @@
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Tego nadawcy nie ma wśród Twoich kontaktów.";
 
-/* Text that indicates the unlock action for a moment. */
-"unlock.title" = "Odblokuj";
-
 /* Button to confirm blocking user via profile page */
 "user.block" = "Zablokuj";
 

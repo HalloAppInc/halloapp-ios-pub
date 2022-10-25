@@ -136,7 +136,7 @@
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "Отменить";
 
-/* Push notification for a comment to message */
+/* Push notification for a reaction to comment */
 "notification.comment.reaction" = "Отреагировал %@ на комментарий";
 
 /* Push notification for a new comment. Parameter is the text of the comment */

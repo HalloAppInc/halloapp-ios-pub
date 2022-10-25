@@ -42,7 +42,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>%d people were added</string>
+			<string>%d orang telah ditambahkan</string>
 		</dict>
 	</dict>
 	<key>feed.collapsed.n.users.joined</key>
@@ -56,7 +56,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>%d people joined</string>
+			<string>%d orang bergabung</string>
 		</dict>
 	</dict>
 	<key>feed.collapsed.n.users.left</key>
@@ -70,7 +70,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>%d people left</string>
+			<string>%d orang keluar</string>
 		</dict>
 	</dict>
 	<key>feed.collapsed.n.users.removed</key>
@@ -84,7 +84,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>%d people were removed</string>
+			<string>%d orang telah dihapus</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.contacts.excluded</key>
@@ -290,7 +290,7 @@
 	<key>notification.n.documents</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@num_documents@</string>
+		<string>%#@no_dokumen@</string>
 		<key>num_documents</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
@@ -298,7 +298,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>📄 %d files</string>
+			<string>%d file</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>

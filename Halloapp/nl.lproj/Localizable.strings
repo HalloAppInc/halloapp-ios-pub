@@ -1419,7 +1419,7 @@
 "moment.contacts.disclaimer" = "Je moment wordt alleen gedeeld met je contacten op HalloApp";
 
 /* The format of a moment's location string. The first argument could be a point of interest or the name of a neighborhood, whereas the second could be a city or state name. E.g., "Brooklyn Bridge, New York". */
-"moment.location.format" = "1$@, %2$@";
+"moment.location.format" = "%1$@, %2$@";
 
 /* Text displayed the first time the user acts to post a second moment in the same day. */
 "moment.replacement.disclaimer" = "Dit nieuwe moment zal je vorige moment vervangen.";
@@ -1508,7 +1508,7 @@
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Je bent geen deelnemer meer van deze groep";
 
-/* Push notification for a comment to message */
+/* Push notification for a reaction to comment */
 "notification.comment.reaction" = "Reageerde met %@ op een reactie";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
@@ -1576,6 +1576,9 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
+
+/* Push notification for a reaction to post */
+"notification.post.reaction" = "Reageerde met %@ op een post";
 
 /* New moment unlock notification text to be shown to the user. */
 "notification.unlocked.moment.1" = "%@ heeft een nieuw moment gedeeld om die van jou te zien";
@@ -1698,7 +1701,7 @@
 "post.privacy.header.feeds" = "Feed";
 
 /* Header when selecting destinations to forward a message, this header appears above the frequently contacted section */
-"post.privacy.header.frequentlyContacted" = "Frequent Gecontacteerd";
+"post.privacy.header.frequentlyContacted" = "Frequent Gekozen";
 
 /* Header when selecting a group to share with */
 "post.privacy.header.groups" = "Alleen delen met een groep";
@@ -2275,9 +2278,6 @@
 
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Deze afzender staat niet in je contactenlijst.";
-
-/* Text that indicates the unlock action for a moment. */
-"unlock.title" = "Ontgrendelen";
 
 /* Body for alert appearing after clicking an external share link that failed to load */
 "urlrouter.externalShare.failed.message" = "Deze post kan zijn verlopen, verwijderd of er is iets anders mee.";

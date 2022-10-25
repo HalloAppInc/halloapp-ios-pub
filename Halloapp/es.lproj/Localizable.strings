@@ -1493,7 +1493,7 @@
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Ya no formas parte de este grupo";
 
-/* Push notification for a comment to message */
+/* Push notification for a reaction to comment */
 "notification.comment.reaction" = "Reaccionó %@ a un comentario";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
@@ -2257,9 +2257,6 @@
 
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Este remitente no está en tu lista de contactos";
-
-/* Text that indicates the unlock action for a moment. */
-"unlock.title" = "Desbloquear";
 
 /* Body for alert appearing after clicking an external share link that failed to load */
 "urlrouter.externalShare.failed.message" = "Esta publicación podría haber caducado, haber sido eliminada o algo más.";

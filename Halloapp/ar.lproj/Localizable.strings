@@ -1499,7 +1499,7 @@
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "لم تعد عضوًا في هذه المجموعة";
 
-/* Push notification for a comment to message */
+/* Push notification for a reaction to comment */
 "notification.comment.reaction" = "تفاعل بإضافة %@ إلى تعليق";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
@@ -2209,9 +2209,6 @@
 
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "هذا المُرسِل ليس ضمن قائمة جهات اتصالك.";
-
-/* Text that indicates the unlock action for a moment. */
-"unlock.title" = "إظهار";
 
 /* Body for alert appearing after clicking an external share link that failed to load */
 "urlrouter.externalShare.failed.message" = "ربما انتهت صلاحية هذا المنشور، أو تم حذفه، أو غير ذلك.";

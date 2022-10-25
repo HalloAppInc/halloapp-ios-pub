@@ -1511,7 +1511,7 @@
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Вы больше не входите в эту группу";
 
-/* Push notification for a comment to message */
+/* Push notification for a reaction to comment */
 "notification.comment.reaction" = "Отреагировал %@ на комментарий";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
@@ -2278,9 +2278,6 @@
 
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Этого номера нет в вашей контактной книге.";
-
-/* Text that indicates the unlock action for a moment. */
-"unlock.title" = "Разблокировать";
 
 /* Body for alert appearing after clicking an external share link that failed to load */
 "urlrouter.externalShare.failed.message" = "Это сообщение могло быть просрочено, удалено или что-то еще.";

@@ -1511,7 +1511,7 @@
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Você não está mais neste grupo";
 
-/* Push notification for a comment to message */
+/* Push notification for a reaction to comment */
 "notification.comment.reaction" = "Reagiu %@ a um comentário";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
@@ -1579,6 +1579,9 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 vídeo";
+
+/* Push notification for a reaction to post */
+"notification.post.reaction" = "Reagiu %@ a uma postagem";
 
 /* New moment unlock notification text to be shown to the user. */
 "notification.unlocked.moment.1" = "%@ compartilhou um momento novo para ver o seu";
@@ -2278,9 +2281,6 @@
 
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Este usuário não está em sua lista de contatos.";
-
-/* Text that indicates the unlock action for a moment. */
-"unlock.title" = "Desbloquear";
 
 /* Body for alert appearing after clicking an external share link that failed to load */
 "urlrouter.externalShare.failed.message" = "Esta postagem pode ter expirado, sido excluída ou outra coisa.";

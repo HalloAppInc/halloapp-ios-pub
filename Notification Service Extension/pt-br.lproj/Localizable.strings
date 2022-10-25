@@ -136,7 +136,7 @@
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "Descartar";
 
-/* Push notification for a comment to message */
+/* Push notification for a reaction to comment */
 "notification.comment.reaction" = "Reagiu %@ a um comentário";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
@@ -204,6 +204,9 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 vídeo";
+
+/* Push notification for a reaction to post */
+"notification.post.reaction" = "Reagiu %@ a uma postagem";
 
 /* New moment unlock notification text to be shown to the user. */
 "notification.unlocked.moment.1" = "%@ compartilhou um novo momento para ver o seu";

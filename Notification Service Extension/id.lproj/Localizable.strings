@@ -136,7 +136,7 @@
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "Buang";
 
-/* Push notification for a comment to message */
+/* Push notification for a reaction to comment */
 "notification.comment.reaction" = "Menanggapi %@ di komentar";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
@@ -172,6 +172,9 @@
 /* New moment screenshot notification text to be shown to the user. */
 "notification.moment.screenshot" = "%@ mengambil jepretan layar momen Anda";
 
+/* New post notification text when post is multiple documents without caption. */
+"notification.n.documents" = "notifikasi.n.multidokumen";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
 
@@ -193,11 +196,17 @@
 /* Title for the new feed post notification. */
 "notification.new.post" = "Postingan Baru";
 
+/* New post notification text when post is one document without caption. */
+"notification.one.document" = "file";
+
 /* New post notification text when post is one photo without caption. */
 "notification.one.photo" = "📷 foto";
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
+
+/* Push notification for a reaction to post */
+"notification.post.reaction" = "Bereaksi %@ untuk postingan";
 
 /* New moment unlock notification text to be shown to the user. */
 "notification.unlocked.moment.1" = "%@ membagikan momen baru untuk melihat momen Anda";

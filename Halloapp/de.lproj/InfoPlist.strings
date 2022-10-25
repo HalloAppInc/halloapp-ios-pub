@@ -8,7 +8,7 @@
 "NSContactsUsageDescription" = "Um selber Beiträge zu teilen und die deiner Freunde und Familie zu sehen, erlaube HalloApp deine Kontakte hochzuladen.";
 
 /* Privacy - Location When In Use Usage Description */
-"NSLocationWhenInUseUsageDescription" = "So kannst du Standorte in deiner Nähe durchsuchen und teilen.";
+"NSLocationWhenInUseUsageDescription" = "So kannst du in Kommentaren und Chats deinen aktuellen Standort oder Orte in der Nähe teilen.";
 
 /* Privacy - Microphone Usage Description */
 "NSMicrophoneUsageDescription" = "So kannst du Anrufe tätigen, Audiobeiträge und Nachrichten senden und Videos mit Ton aufnehmen.";

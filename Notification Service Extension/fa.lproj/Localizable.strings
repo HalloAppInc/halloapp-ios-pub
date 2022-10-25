@@ -136,7 +136,7 @@
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "لغو";
 
-/* Push notification for a comment to message */
+/* Push notification for a reaction to comment */
 "notification.comment.reaction" = "@% به یک نظر واکنش نشان داد";
 
 /* Push notification for a new comment. Parameter is the text of the comment */

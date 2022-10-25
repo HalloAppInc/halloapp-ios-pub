@@ -1355,7 +1355,7 @@
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Artık bu grupta değilsin";
 
-/* Push notification for a comment to message */
+/* Push notification for a reaction to comment */
 "notification.comment.reaction" = "Bir yoruma %@ bıraktı";
 
 /* Push notification for a new comment. Parameter is the text of the comment */
@@ -2038,9 +2038,6 @@
 
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Gönderici, kişi listende değil";
-
-/* Text that indicates the unlock action for a moment. */
-"unlock.title" = "Kilidi aç";
 
 /* Button to confirm blocking user via profile page */
 "user.block" = "Engelle";
