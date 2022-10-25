@@ -142,51 +142,40 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         tableView.tableHeaderView = UIView(frame: emptyHeaderViewFrame)
 
         dataSource = PostReceiptsDataSource(tableView: tableView) { (tableView, indexPath, row) in
-            if indexPath.section == 0 {
-                switch row {
-                case .contactRow(let contactRow):
-                    switch contactRow {
-                    case .contact(let receipt):
-                        if receipt.type == .placeholder {
-                            let cell = tableView.dequeueReusableCell(withIdentifier: Constants.placeholderCellReuseIdentifier, for: indexPath)
-                            cell.selectionStyle = .none
-                            cell.textLabel?.textAlignment = .center
-                            cell.textLabel?.textColor = .secondaryLabel
-                            cell.textLabel?.text = Localizations.postNotYetViewedByAnyone
-                            return cell
-                        }
-                        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
-                        cell.configureWithReceipt(receipt, using: MainAppContext.shared.avatarStore)
-                        return cell
-                    case .more:
-                        guard let cell = tableView.dequeueReusableCell(withIdentifier: Constants.actionCellReuseIdentifier, for: indexPath) as? ActionTableViewCell else { break }
-                        guard let image = UIImage(systemName: "chevron.down")?.withRenderingMode(.alwaysTemplate) else { break }
-                        cell.configure(icon: image, label: Localizations.buttonMore)
-                        cell.imageBgColor = .clear
-                        return cell
-                    }
-                default:
-                    break
-                }
-
-                return UITableViewCell()
-            } else {
-                let cell = tableView.dequeueReusableCell(withIdentifier: Constants.actionCellReuseIdentifier, for: indexPath) as! ActionTableViewCell
-                switch row.actionRow {
-                case .privacy:
-                    if let image = UIImage(named: "settingsPrivacy")?.withRenderingMode(.alwaysTemplate) {
-                        cell.color = .primaryBlue
-                        cell.imageBgColor = .clear
-                        cell.configure(icon: image, label: Localizations.myPostRowManagePrivacy)
-                    }
+            switch row {
+            case .receipt(let receipt):
+                if receipt.type == .placeholder {
+                    let cell = tableView.dequeueReusableCell(withIdentifier: Constants.placeholderCellReuseIdentifier, for: indexPath)
+                    cell.selectionStyle = .none
+                    cell.textLabel?.textAlignment = .center
+                    cell.textLabel?.textColor = .secondaryLabel
+                    cell.textLabel?.text = Localizations.postNotYetViewedByAnyone
                     return cell
-                case .invite:
-                    if let image = UIImage(named: "settingsInvite")?.withRenderingMode(.alwaysTemplate) {
-                        cell.color = .primaryBlue
-                        cell.imageBgColor = .clear
-                        cell.configure(icon: image, label: Localizations.myPostRowInvite)
-                    }
-                case .none: return cell
+                }
+                let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
+                cell.configureWithReceipt(receipt, using: MainAppContext.shared.avatarStore)
+                return cell
+            case .loadMore:
+                let cell = tableView.dequeueReusableCell(withIdentifier: Constants.actionCellReuseIdentifier, for: indexPath) as? ActionTableViewCell
+                if let image = UIImage(systemName: "chevron.down")?.withRenderingMode(.alwaysTemplate) {
+                    cell?.configure(icon: image, label: Localizations.buttonMore)
+                    cell?.imageBgColor = .clear
+                }
+                return cell
+            case .managePrivacy:
+                let cell = tableView.dequeueReusableCell(withIdentifier: Constants.actionCellReuseIdentifier, for: indexPath) as! ActionTableViewCell
+                if let image = UIImage(named: "settingsPrivacy")?.withRenderingMode(.alwaysTemplate) {
+                    cell.color = .primaryBlue
+                    cell.imageBgColor = .clear
+                    cell.configure(icon: image, label: Localizations.myPostRowManagePrivacy)
+                }
+                return cell
+            case .invite:
+                let cell = tableView.dequeueReusableCell(withIdentifier: Constants.actionCellReuseIdentifier, for: indexPath) as! ActionTableViewCell
+                if let image = UIImage(named: "settingsInvite")?.withRenderingMode(.alwaysTemplate) {
+                    cell.color = .primaryBlue
+                    cell.imageBgColor = .clear
+                    cell.configure(icon: image, label: Localizations.myPostRowInvite)
                 }
                 return cell
             }
@@ -233,33 +222,26 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
             seenReceipts.append(FeedPostReceipt(userId: "", type: .placeholder, contactName: nil, phoneNumber: nil, timestamp: Date(), savedTimestamp: nil, screenshotTimestamp: nil))
         }
 
-        var allContactRowContacts = [ContactRow]()
-        allContactRowContacts.append(contentsOf: seenReceipts.map { ContactRow.contact($0) })
-
         var allContactRows = [Row]()
-        allContactRows.append(contentsOf: allContactRowContacts.map { Row.contactRow($0) })
+        allContactRows.append(contentsOf: seenReceipts.map { Row.receipt($0) })
 
         var contactRows = [Row]()
 
         if !showAllContacts && (allContactRows.count > initialNumContactsToShow) {
             contactRows = Array(allContactRows.prefix(initialNumContactsToShow - 2)) // show 10
-            contactRows.append(Row.contactRow(ContactRow.more))
+            contactRows.append(.loadMore)
         } else {
             contactRows = Array(allContactRows)
         }
-
-        var actionRows = [Row]()
-        actionRows.append(Row.actionRow(.privacy))
-        actionRows.append(Row.actionRow(.invite))
 
         var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
         snapshot.appendSections([ .contacts ])
         snapshot.appendItems(contactRows, toSection: .contacts)
 
         // (Chris) Temporarily disable actions as per design feedback
-        // if !isGroupPost {
+        // if (feedPost.groupID ?? "").isEmpty {
         //     snapshot.appendSections([ .actions ])
-        //     snapshot.appendItems(actionRows, toSection: .actions)
+        //     snapshot.appendItems([.managePrivacy, .invite], toSection: .actions)
         // }
 
         dataSource?.defaultRowAnimation = .fade
@@ -299,57 +281,45 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
             tableView.deselectRow(at: indexPath, animated: true)
             return
         }
-        if indexPath.section == 0 {
 
-            switch row {
-            case .contactRow(let contactRow):
-                switch contactRow {
-                case .contact(let receipt):
-                    guard receipt.type != .placeholder else { break }
-                    let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-                    let contactName = MainAppContext.shared.contactStore.fullName(for: receipt.userId, in: contactsViewContext)
-                    let isUserAContact = MainAppContext.shared.contactStore.isContactInAddressBook(userId: receipt.userId, in: contactsViewContext)
+        switch row {
+        case .receipt(let receipt):
+            guard receipt.type != .placeholder else { break }
+            let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+            let contactName = MainAppContext.shared.contactStore.fullName(for: receipt.userId, in: contactsViewContext)
+            let isUserAContact = MainAppContext.shared.contactStore.isContactInAddressBook(userId: receipt.userId, in: contactsViewContext)
 
-                    let actionSheet = UIAlertController(title: contactName, message: nil, preferredStyle: .actionSheet)
-                    // View Profile
-                    actionSheet.addAction(UIAlertAction(title: Localizations.actionViewProfile, style: .default, handler: { (_) in
-                        delegate.postDashboardViewController(didRequestPerformAction: .profile(receipt.userId))
-                    }))
-                    // Message
-                    if isUserAContact {
-                        actionSheet.addAction(UIAlertAction(title: Localizations.actionMessage, style: .default, handler: { [feedPost] (_) in
-                            delegate.postDashboardViewController(didRequestPerformAction: .message(receipt.userId, feedPost.id))
-                        }))
-                    }
-                    actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
-                    present(actionSheet, animated: true) {
-                        tableView.deselectRow(at: indexPath, animated: true)
-                    }
-                case .more:
-                    tableView.deselectRow(at: indexPath, animated: false)
-                    showAllContactsTapped()
-                }
-            default:
-                break
+            let actionSheet = UIAlertController(title: contactName, message: nil, preferredStyle: .actionSheet)
+            // View Profile
+            actionSheet.addAction(UIAlertAction(title: Localizations.actionViewProfile, style: .default, handler: { (_) in
+                delegate.postDashboardViewController(didRequestPerformAction: .profile(receipt.userId))
+            }))
+            // Message
+            if isUserAContact {
+                actionSheet.addAction(UIAlertAction(title: Localizations.actionMessage, style: .default, handler: { [feedPost] (_) in
+                    delegate.postDashboardViewController(didRequestPerformAction: .message(receipt.userId, feedPost.id))
+                }))
             }
-        } else {
-            switch row.actionRow {
-            case .privacy:
-                let viewController = PrivacyViewController()
-                viewController.hidesBottomBarWhenPushed = false
-                navigationController?.pushViewController(viewController, animated: true)
-            case .invite:
-                guard ContactStore.contactsAccessAuthorized else {
-                    let inviteVC = InvitePermissionDeniedViewController()
-                    present(UINavigationController(rootViewController: inviteVC), animated: true)
-                    return
-                }
-                InviteManager.shared.requestInvitesIfNecessary()
-                let inviteVC = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
+            actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+            present(actionSheet, animated: true) {
+                tableView.deselectRow(at: indexPath, animated: true)
+            }
+        case .loadMore:
+            tableView.deselectRow(at: indexPath, animated: false)
+            showAllContactsTapped()
+        case .managePrivacy:
+            let viewController = PrivacyViewController()
+            viewController.hidesBottomBarWhenPushed = false
+            navigationController?.pushViewController(viewController, animated: true)
+        case .invite:
+            guard ContactStore.contactsAccessAuthorized else {
+                let inviteVC = InvitePermissionDeniedViewController()
                 present(UINavigationController(rootViewController: inviteVC), animated: true)
-            default:
-                break
+                return
             }
+            InviteManager.shared.requestInvitesIfNecessary()
+            let inviteVC = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
+            present(UINavigationController(rootViewController: inviteVC), animated: true)
         }
         tableView.deselectRow(at: indexPath, animated: true)
     }
@@ -377,38 +347,9 @@ fileprivate enum Section {
 }
 
 fileprivate enum Row: Hashable, Equatable {
-    case contactRow(ContactRow)
-    case actionRow(ActionRow)
-
-    var contactRow: ContactRow? {
-        switch self {
-        case .contactRow(let contactRow): return contactRow
-        case .actionRow: return nil
-        }
-    }
-
-    var actionRow: ActionRow? {
-        switch self {
-        case .contactRow: return nil
-        case .actionRow(let actionRow): return actionRow
-        }
-    }
-}
-
-fileprivate enum ContactRow: Hashable, Equatable {
-    case contact(FeedPostReceipt)
-    case more
-
-    var contact: FeedPostReceipt? {
-        switch self {
-        case .contact(let feedPostReceipt): return feedPostReceipt
-        case .more: return nil
-        }
-    }
-}
-
-fileprivate enum ActionRow {
-    case privacy
+    case receipt(FeedPostReceipt)
+    case loadMore
+    case managePrivacy
     case invite
 }
 
