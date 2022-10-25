@@ -64,9 +64,9 @@ extension ShareMenuPresenter {
         }
 
         if shareProvider == InstagramStoriesShareProvider.self {
-            shareProvider.share(text: nil,
-                                image: ExternalSharePreviewImageGenerator.image(for: feedPost, includeBackground: true),
-                                completion: completion)
+            InstagramStoriesShareProvider.share(stickerImage:  ExternalSharePreviewImageGenerator.image(for: feedPost),
+                                                backgroundImage: ExternalSharePreviewImageGenerator.backgroundImage(),
+                                                completion: completion)
         } else {
             generateExternalShareLink(postID: postID) { url, toast in
                 toast.hide()

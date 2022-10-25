@@ -21,43 +21,37 @@ class ExternalSharePreviewImageGenerator {
         static let momentWidth = postWidth - 16
     }
 
-    static func image(for post: FeedPost, includeBackground: Bool = false) -> UIImage {
+    static func image(for post: FeedPost) -> UIImage {
         let postView: UIView
         if post.isMoment {
             postView = ExternalSharePreviewMomentView(feedPost: post)
-            if !includeBackground {
-                postView.backgroundColor = .externalShareBackgound
-                postView.layer.cornerRadius = 12
-            }
+            postView.backgroundColor = .externalShareBackgound
+            postView.layer.cornerRadius = 12
         } else {
             postView = ExternalSharePreviewPostView(feedPost: post)
         }
 
-        let viewToRender: UIView
-        let viewToRenderSize: CGSize
-        if includeBackground {
-            viewToRender = ExternalSharePreviewBackgroundView(postView: postView)
-            viewToRenderSize = Constants.backgroundSize
-        } else {
-            viewToRender = postView
-            viewToRenderSize = postView.systemLayoutSizeFitting(CGSize(width: Constants.postWidth, height: 0),
-                                                                withHorizontalFittingPriority: .required,
-                                                                verticalFittingPriority: .fittingSizeLevel)
-        }
+        let postSize = postView.systemLayoutSizeFitting(CGSize(width: Constants.postWidth, height: 0),
+                                                        withHorizontalFittingPriority: .required,
+                                                        verticalFittingPriority: .fittingSizeLevel)
+        postView.frame = CGRect(origin: .zero, size: postSize)
 
         // always render in light mode
-        viewToRender.overrideUserInterfaceStyle = .light
-        viewToRender.frame = CGRect(origin: .zero, size: viewToRenderSize)
+        postView.overrideUserInterfaceStyle = .light
 
         let format = UIGraphicsImageRendererFormat()
-        format.opaque = includeBackground
+        format.opaque = false
 
-        let imageSize = CGSize(width: viewToRenderSize.width * 2, height: viewToRenderSize.height * 2)
-        let i = UIGraphicsImageRenderer(size: imageSize, format: format).image { context in
-            viewToRender.drawHierarchy(in: CGRect(origin: .zero, size: imageSize), afterScreenUpdates: true)
+        let imageSize = CGSize(width: postSize.width * 2, height: postSize.height * 2)
+        return UIGraphicsImageRenderer(size: imageSize, format: format).image { context in
+            postView.drawHierarchy(in: CGRect(origin: .zero, size: imageSize), afterScreenUpdates: true)
         }
+    }
 
-        return i
+    static func backgroundImage() -> UIImage {
+        return UIGraphicsImageRenderer(size: Constants.imageSizeWithBackgound).image { context in
+            ExternalSharePreviewBackgroundView(frame: CGRect(origin: .zero, size: Constants.backgroundSize)).drawHierarchy(in: context.format.bounds, afterScreenUpdates: true)
+        }
     }
 }
 
@@ -234,13 +228,10 @@ extension ExternalSharePreviewImageGenerator {
 
     private class ExternalSharePreviewBackgroundView: UIView {
 
-        init(postView: UIView) {
-            super.init(frame: .zero)
+        override init(frame: CGRect) {
+            super.init(frame: frame)
 
             backgroundColor = .externalShareBackgound
-
-            postView.translatesAutoresizingMaskIntoConstraints = false
-            addSubview(postView)
 
             let downloadLabel = UILabel()
             downloadLabel.font = .gothamFont(ofFixedSize: 13, weight: .medium)
@@ -258,22 +249,9 @@ extension ExternalSharePreviewImageGenerator {
             labelStack.translatesAutoresizingMaskIntoConstraints = false
             addSubview(labelStack)
 
-            let labelStackBottomPreferredConstraint = labelStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -50)
-            labelStackBottomPreferredConstraint.priority = UILayoutPriority(2)
-
-            let externalSharePostCenterYPreferredConstraint = postView.centerYAnchor.constraint(equalTo: centerYAnchor)
-            externalSharePostCenterYPreferredConstraint.priority = UILayoutPriority(1)
-
             NSLayoutConstraint.activate([
-                postView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Constants.postInset),
-                postView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -Constants.postInset),
-                postView.topAnchor.constraint(greaterThanOrEqualTo: topAnchor, constant: 50),
-                externalSharePostCenterYPreferredConstraint,
-
                 labelStack.centerXAnchor.constraint(equalTo: centerXAnchor),
-                labelStackBottomPreferredConstraint,
-                labelStack.topAnchor.constraint(greaterThanOrEqualTo: postView.bottomAnchor, constant: 24),
-                labelStack.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -8),
+                labelStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
             ])
         }
 
