@@ -389,19 +389,56 @@ open class AppContext: AppContextCommon {
         }
     }
 
+    /*
+     Add a completion handler for all active background tasks.  Used to cleanly exit the share extension when share is completed.
+     */
+    private var activeBackgroundTaskCount = 0
+    private var activeBackgroundTaskCompletions: [() -> Void] = []
+    private var activeBackgroundTaskCountQueue = DispatchQueue(label: "AppContext.activeBackgroundTaskCountQueue")
+
+    open func backgroundTaskStarted() {
+        activeBackgroundTaskCountQueue.sync {
+            activeBackgroundTaskCount += 1
+        }
+    }
+
+    open func backgroundTaskCompleted() {
+        activeBackgroundTaskCountQueue.sync {
+            activeBackgroundTaskCount -= 1
+        }
+    }
+
+    open func addBackgroundTaskCompletionHandler(_ handler: @escaping () -> Void) {
+        activeBackgroundTaskCountQueue.sync {
+            activeBackgroundTaskCompletions.append(handler)
+            callBackgroundTaskCompletionHandlersIfNeeded()
+        }
+    }
+
+    // must be called on activeBackgroundTaskQueue
+    private func callBackgroundTaskCompletionHandlersIfNeeded() {
+        guard activeBackgroundTaskCount == 0, !activeBackgroundTaskCompletions.isEmpty else {
+            return
+        }
+        activeBackgroundTaskCompletions.forEach { $0() }
+        activeBackgroundTaskCompletions.removeAll()
+    }
+
     open func startBackgroundTask(withName name: String, expirationHandler handler: (() -> Void)? = nil) -> () -> Void {
         DDLogInfo("AppContext/startBackgroundTask/starting: \(name)")
         let lock = NSLock()
-        ProcessInfo.processInfo.performExpiringActivity(withReason: name) { expired in
+        ProcessInfo.processInfo.performExpiringActivity(withReason: name) { [weak self] expired in
             if expired {
                 DDLogInfo("AppContext/startBackgroundTask/expiration called for \(name)")
                 handler?()
             } else {
+                self?.backgroundTaskStarted()
                 lock.lock()
             }
         }
-        return {
+        return { [weak self] in
             DDLogInfo("AppContext/startBackgroundTask/ending: \(name)")
+            self?.backgroundTaskCompleted()
             lock.unlock()
         }
     }

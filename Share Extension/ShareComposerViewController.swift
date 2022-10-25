@@ -797,7 +797,17 @@ class ShareComposerViewController: UIViewController {
                     // let the user observe the full progress
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
                         self.shareButton.isEnabled = true
+
+                        DDLogInfo("ShareComposerViewController/Extension context complete request")
                         self.extensionContext?.completeRequest(returningItems: nil)
+
+                        // We only have ~5 sec of background execution time in the share extension before it is force quit by the system.
+                        // Try to exit early if no background tasks are added, so we don't quit in the middle of any atomic operations.
+                        // Background tasks should be limited to background upload callbacks which will be handled by the main app.
+                        AppContext.shared.addBackgroundTaskCompletionHandler {
+                            DDLogInfo("ShareComposerViewController/All background tasks ended - exiting")
+                            exit(EX_OK)
+                        }
                     }
                 }
 

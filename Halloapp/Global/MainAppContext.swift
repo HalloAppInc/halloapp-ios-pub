@@ -411,6 +411,7 @@ class MainAppContext: AppContext {
                 UIApplication.shared.endBackgroundTask(taskID)
             }
             DDLogInfo("background task create [\(itemId)]")
+            backgroundTaskStarted()
             backgroundTaskIds[itemId] = UIApplication.shared.beginBackgroundTask(withName: "background-task-\(itemId)") { [weak self] in
                 guard let self = self else { return }
 
@@ -427,6 +428,7 @@ class MainAppContext: AppContext {
             guard let taskId = backgroundTaskIds[itemId] else { return }
             DDLogInfo("background task ended [\(itemId)]")
 
+            self.backgroundTaskCompleted()
             UIApplication.shared.endBackgroundTask(taskId)
             backgroundTaskIds.removeValue(forKey: itemId)
         }
@@ -435,12 +437,14 @@ class MainAppContext: AppContext {
     // Overrides extension safe version defined in AppContext
     override func startBackgroundTask(withName name: String, expirationHandler handler: (() -> Void)? = nil) -> () -> Void {
         DDLogInfo("MainAppContext/startBackgroundTask/starting: \(name)")
+        backgroundTaskStarted()
         let identifier = UIApplication.shared.beginBackgroundTask(withName: name) {
             DDLogInfo("MainAppContext/startBackgroundTask/expiration called for \(name)")
             handler?()
         }
-        return {
+        return { [weak self] in
             DDLogInfo("AppContext/startBackgroundTask/ending: \(name)")
+            self?.backgroundTaskCompleted()
             UIApplication.shared.endBackgroundTask(identifier)
         }
     }
