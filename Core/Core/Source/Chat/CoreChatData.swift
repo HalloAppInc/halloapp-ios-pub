@@ -76,6 +76,26 @@ public class CoreChatData {
         return chatGroups(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
     }
 
+    public func chatReceiptInfo(messageId: String, userId: UserID, in managedObjectContext: NSManagedObjectContext) -> ChatReceiptInfo? {
+        return self.chatReceiptInfoAll(predicate: NSPredicate(format: "chatMessageId == %@ && userId == %@", messageId, userId), in: managedObjectContext).first
+    }
+
+    private func chatReceiptInfoAll(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [ChatReceiptInfo] {
+        let fetchRequest: NSFetchRequest<ChatReceiptInfo> = ChatReceiptInfo.fetchRequest()
+        fetchRequest.predicate = predicate
+        fetchRequest.sortDescriptors = sortDescriptors
+        fetchRequest.returnsObjectsAsFaults = false
+
+        do {
+            let chatGroupMessageInfo = try managedObjectContext.fetch(fetchRequest)
+            return chatGroupMessageInfo
+        }
+        catch {
+            DDLogError("ChatData/chatMessageAllInfo/fetch-messageInfo/error  [\(error)]")
+            return []
+        }
+    }
+
     // MARK: Chat messgage upload and posting
 
     public func sendMessage(chatMessageRecipient: ChatMessageRecipient,
@@ -159,8 +179,24 @@ public class CoreChatData {
         chatMessage.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
         chatMessage.forwardCount = forwardCount
         chatMessage.incomingStatus = .none
-        chatMessage.outgoingStatus = isMsgToYourself ? .seen : .pending
-        chatMessage.timestamp = Date()
+        let timestamp = Date()
+        chatMessage.timestamp = timestamp
+        // Track outgoing status of all the group members
+        if let toGroupId = chatMessageRecipient.toGroupId, let chatGroup = self.chatGroup(groupId: toGroupId, in: context) {
+            if let members = chatGroup.members {
+                for member in members {
+                    guard member.userID != userData.userId else { continue }
+                    let messageInfo = ChatReceiptInfo(context: context)
+                    messageInfo.chatMessageId = chatMessage.id
+                    messageInfo.userId = member.userID
+                    messageInfo.outgoingStatus = .none
+                    messageInfo.chatMessage = chatMessage
+                    messageInfo.timestamp = timestamp
+                }
+            }
+        } else {
+            chatMessage.outgoingStatus = isMsgToYourself ? .seen : .pending
+        }
         let serialID = AppContext.shared.getchatMsgSerialId()
         DDLogDebug("CoreChatData/createChatMsg/\(messageId)/serialId [\(serialID)]")
         chatMessage.serialID = serialID

@@ -49,6 +49,7 @@ public extension ChatMessage {
     @NSManaged var toGroupID: String?
     @NSManaged var rawText: String?
     @NSManaged var media: Set<CommonMedia>?
+    @NSManaged var receiptInfo: Set<ChatReceiptInfo>?
 
     @NSManaged var feedPostID: String?
     @NSManaged var feedPostMediaIndex: Int32
@@ -172,6 +173,15 @@ public extension ChatMessage {
         }
 
         return allMedia
+    }
+
+    var orderedInfo: [ChatReceiptInfo] {
+        get {
+            guard let info = self.receiptInfo else { return [] }
+            return info.sorted {
+                return $0.timestamp < $1.timestamp
+            }
+        }
     }
 }
 

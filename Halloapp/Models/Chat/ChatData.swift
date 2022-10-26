@@ -3826,9 +3826,9 @@ extension ChatData {
             if let quotedFeedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: managedObjectContext) {
                 if quotedFeedPost.isMoment {
                     CoreChatData.copyQuotedMoment(to: chatMessage,
-                                                from: quotedFeedPost,
-                                       selfieLeading: quotedFeedPost.isMomentSelfieLeading,
-                                               using: managedObjectContext)
+                                                  from: quotedFeedPost,
+                                                  selfieLeading: quotedFeedPost.isMomentSelfieLeading,
+                                                  using: managedObjectContext)
                 } else {
                     CoreChatData.copyQuoted(to: chatMessage, from: quotedFeedPost, using: managedObjectContext)
                 }
@@ -3992,16 +3992,25 @@ extension ChatData {
     }
     
     // MARK: 1-1 Process Inbound Receipts
-
+    
+    private func processInboundMessageReceipt(with receipt: XMPPReceipt, chatMessage: ChatMessage) {
+        DDLogInfo("ChatData/processInboundMessageReceipt")
+        switch chatMessage.chatMessageRecipient.chatType {
+        case .oneToOne:
+            self.processInboundOneToOneMessageReceipt(with: receipt)
+        case .groupChat:
+            self.processInboundGroupMessageReceipt(with: receipt, chatMessage: chatMessage)
+        case .groupFeed:
+            DDLogError("ChatData/processInboundMessageReceipt/ invalid receipt type received")
+        }
+    }
     private func processInboundOneToOneMessageReceipt(with receipt: XMPPReceipt) {
-        DDLogInfo("ChatData/processInboundOneToOneMessageReceipt")
         let messageId = receipt.itemId
-        let receiptType = receipt.type
-
         updateChatMessage(with: messageId) { [weak self] (chatMessage) in
             guard let self = self else { return }
+            DDLogInfo("ChatData/processInboundOneToOneMessageReceipt")
+            let receiptType = receipt.type
             guard ![.played, .seen, .retracting, .retracted].contains(chatMessage.outgoingStatus) || receiptType == .played else { return }
-
             switch receiptType {
             case .delivery:
                 chatMessage.outgoingStatus = .delivered
@@ -4024,6 +4033,104 @@ extension ChatData {
                 case .screenshot, .saved:
                     break
                 }
+            }
+        }
+    }
+
+    private func processInboundGroupMessageReceipt(with receipt: XMPPReceipt, chatMessage: ChatMessage) {
+        DDLogInfo("ChatData/processInboundGroupMessageReceipt")
+        let receiptType = receipt.type
+        let messageId = receipt.itemId
+        // Group chat message has already been updated to its final state, no further updates needed
+        guard ![.played, .seen, .retracting, .retracted].contains(chatMessage.outgoingStatus) || receiptType == .played else { return }
+        switch receiptType {
+        case .delivery:
+            updateChatReceiptInfo(with: messageId, userId: receipt.userId) { [weak self] (chatReceiptInfo) in
+                guard let self = self else { return }
+                if chatReceiptInfo.outgoingStatus == .none {
+                    chatReceiptInfo.outgoingStatus = .delivered
+                    chatReceiptInfo.timestamp = Date()
+                }
+
+                let groupMessage = chatReceiptInfo.chatMessage
+                guard groupMessage.outgoingStatus != .seen && groupMessage.outgoingStatus != .played && groupMessage.outgoingStatus != .delivered else {
+                    return
+                }
+                let orderedInfo = groupMessage.orderedInfo
+                let delivered = orderedInfo.filter {
+                    $0.outgoingStatus == .delivered || $0.outgoingStatus == .seen
+                }
+
+                if delivered.count == orderedInfo.count {
+                    groupMessage.outgoingStatus = .delivered
+
+                    self.updateChatThreadStatus(chatMessageRecipient: groupMessage.chatMessageRecipient, messageId: groupMessage.id) { (chatThread) in
+                        chatThread.lastMsgStatus = .delivered
+                    }
+                }
+            }
+        case .read:
+            updateChatReceiptInfo(with: messageId, userId: receipt.userId) { [weak self] (chatReceiptInfo) in
+                guard let self = self else { return }
+                if (chatReceiptInfo.outgoingStatus == .none || chatReceiptInfo.outgoingStatus == .delivered) {
+                    chatReceiptInfo.outgoingStatus = .seen
+                    chatReceiptInfo.timestamp = Date()
+                }
+
+                let groupMessage = chatReceiptInfo.chatMessage
+                guard groupMessage.outgoingStatus != .seen && groupMessage.outgoingStatus != .played else { return }
+                let orderedInfo = groupMessage.orderedInfo
+                let seen = orderedInfo.filter {
+                    $0.outgoingStatus == .seen
+                }
+
+                if seen.count == orderedInfo.count {
+                    groupMessage.outgoingStatus = .seen
+
+                    self.updateChatThreadStatus(chatMessageRecipient: groupMessage.chatMessageRecipient, messageId: groupMessage.id) { (chatThread) in
+                        chatThread.lastMsgStatus = .seen
+                    }
+                }
+            }
+        case .played:
+            updateChatReceiptInfo(with: messageId, userId: receipt.userId) { [weak self] (chatReceiptInfo) in
+                guard let self = self else { return }
+                if (chatReceiptInfo.outgoingStatus == .none || chatReceiptInfo.outgoingStatus == .delivered || chatReceiptInfo.outgoingStatus == .seen) {
+                    chatReceiptInfo.outgoingStatus = .played
+                    chatReceiptInfo.timestamp = Date()
+                }
+
+                let groupMessage = chatReceiptInfo.chatMessage
+                guard groupMessage.outgoingStatus != .played else { return }
+                let orderedInfo = groupMessage.orderedInfo
+                let played = orderedInfo.filter {
+                    $0.outgoingStatus == .played
+                }
+
+                if played.count == orderedInfo.count {
+                    groupMessage.outgoingStatus = .played
+
+                    self.updateChatThreadStatus(chatMessageRecipient: groupMessage.chatMessageRecipient, messageId: groupMessage.id) { (chatThread) in
+                        chatThread.lastMsgStatus = .played
+                    }
+                }
+            }
+        case .screenshot, .saved:
+            DDLogError("ChatData/processInboundGroupMessageReceipt/processing invalid \(receiptType) receipt")
+            break
+        }
+    }
+
+    func updateChatReceiptInfo(with chatMessageId: String, userId: UserID, block: @escaping (ChatReceiptInfo) -> Void) {
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
+            guard let chatReceiptInfo = self.chatReceiptInfoForUser(messageId: chatMessageId, userId: userId, in: managedObjectContext) else {
+                DDLogError("ChatData/updateChatReceiptInfo/ missing message id: [\(chatMessageId)]")
+                return
+            }
+            DDLogVerbose("ChatData/updateChatReceiptInfo/update-messageInfo")
+            block(chatReceiptInfo)
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
             }
         }
     }
@@ -4807,8 +4914,8 @@ extension ChatData {
         }
     }
 
-    private func chatGroupMessageAllInfo(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [ChatGroupMessageInfo] {
-        let fetchRequest: NSFetchRequest<ChatGroupMessageInfo> = ChatGroupMessageInfo.fetchRequest()
+    private func chatReceiptInfoAll(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [ChatReceiptInfo] {
+        let fetchRequest: NSFetchRequest<ChatReceiptInfo> = ChatReceiptInfo.fetchRequest()
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = sortDescriptors
         fetchRequest.returnsObjectsAsFaults = false
@@ -4823,12 +4930,12 @@ extension ChatData {
         }
     }
 
-    func chatGroupMessageInfo(messageId: String, in managedObjectContext: NSManagedObjectContext) -> ChatGroupMessageInfo? {
-        return chatGroupMessageAllInfo(predicate: NSPredicate(format: "chatGroupMessageId == %@", messageId), in: managedObjectContext).first
+    func chatReceiptInfo(messageId: String, in managedObjectContext: NSManagedObjectContext) -> ChatReceiptInfo? {
+        return chatReceiptInfoAll(predicate: NSPredicate(format: "chatMessageId == %@", messageId), in: managedObjectContext).first
     }
 
-    func chatGroupMessageInfoForUser(messageId: String, userId: UserID, in managedObjectContext: NSManagedObjectContext) -> ChatGroupMessageInfo? {
-        return chatGroupMessageAllInfo(predicate: NSPredicate(format: "chatGroupMessageId == %@ && userId == %@", messageId, userId), in: managedObjectContext).first
+    func chatReceiptInfoForUser(messageId: String, userId: UserID, in managedObjectContext: NSManagedObjectContext) -> ChatReceiptInfo? {
+        return chatReceiptInfoAll(predicate: NSPredicate(format: "chatMessageId == %@ && userId == %@", messageId, userId), in: managedObjectContext).first
     }
 
     // MARK: Group Core Data Updating
@@ -5512,10 +5619,10 @@ extension ChatData: HalloChatDelegate {
         }
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            if self.commonReaction(with: receipt.itemId, in: managedObjectContext) != nil {
-                self.processInboundOneToOneReactionReceipt(with: receipt)
+            if let chatMessage = self.chatMessage(with: receipt.itemId, in: managedObjectContext) {
+                self.processInboundMessageReceipt(with: receipt, chatMessage: chatMessage)
             } else {
-                self.processInboundOneToOneMessageReceipt(with: receipt)
+                self.processInboundOneToOneReactionReceipt(with: receipt)
             }
         }
         ack?()
