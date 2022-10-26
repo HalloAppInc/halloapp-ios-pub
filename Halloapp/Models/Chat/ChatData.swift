@@ -1825,6 +1825,22 @@ extension ChatData {
         }
     }
 
+    func markSeenMessage(for id: String) {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            guard let message = self.chatMessage(with: id, in: managedObjectContext) else { return }
+            guard message.fromUserID != self.userData.userId else { return }
+            guard ![.haveSeen, .sentSeenReceipt].contains(message.incomingStatus) else { return }
+
+            self.sendSeenReceipt(for: message)
+            message.incomingStatus = .haveSeen
+
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
+
     func markPlayedMessage(for id: String) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }

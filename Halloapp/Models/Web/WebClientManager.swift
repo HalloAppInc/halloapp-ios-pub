@@ -130,40 +130,7 @@ final class WebClientManager {
                 DDLogError("WebClientManager/handleIncoming/error [deserialization]")
                 return
             }
-            switch container.payload {
-            case .feedResponse:
-                DDLogError("WebClientManager/handleIncoming/feedResponse/error [invalid-payload]")
-            case .feedUpdate:
-                DDLogError("WebClientManager/handleIncoming/feedUpdate/error [invalid-payload]")
-            case .privacyListResponse:
-                DDLogError("WebClientManager/handleIncoming/privacyListResponse/error [invalid-payload]")
-            case .groupResponse:
-                DDLogError("WebClientManager/handleIncoming/groupResponse/error [invalid-payload]")
-            case .groupRequest:
-                DDLogInfo("WebClientManager/handleIncoming/groupRequest/unsupported")
-            case .privacyListRequest:
-                DDLogInfo("WebClientManager/handleIncoming/privacyListRequest/unsupported")
-            case .receiptUpdate:
-                DDLogInfo("WebClientManager/handleIncoming/receiptUpdate/unsupported")
-            case .feedRequest(let request):
-                DispatchQueue.main.async {
-                    guard let response = self.feedResponse(for: request) else {
-                        DDLogError("WebClientManager/handleIncoming/feedResponse/error [no-response]")
-                        return
-                    }
-                    var webContainer = Web_WebContainer()
-                    webContainer.payload = .feedResponse(response)
-                    do {
-                        DDLogInfo("WebClientManager/handleIncoming/feedRequest/sending [\(response.items.count)]")
-                        let responseData = try webContainer.serializedData()
-                        self.send(responseData)
-                    } catch {
-                        DDLogError("WebClientManager/handleIncoming/feedRequest/error [serialization]")
-                    }
-                }
-            case .none:
-                DDLogError("WebClientManager/handleIncoming/error [missing-payload]")
-            }
+            self.handleIncomingContainer(container)
         }
     }
 
@@ -234,6 +201,67 @@ final class WebClientManager {
             selector: #selector(handleManagedObjectNotification),
             name: Notification.Name.NSManagedObjectContextDidSaveObjectIDs,
             object: MainAppContext.shared.feedData.viewContext)
+    }
+
+    private func handleIncomingContainer(_ container: Web_WebContainer) {
+        switch container.payload {
+        case .feedResponse:
+            DDLogError("WebClientManager/handleIncoming/feedResponse/error [invalid-payload]")
+        case .feedUpdate:
+            DDLogError("WebClientManager/handleIncoming/feedUpdate/error [invalid-payload]")
+        case .privacyListResponse:
+            DDLogError("WebClientManager/handleIncoming/privacyListResponse/error [invalid-payload]")
+        case .groupResponse:
+            DDLogError("WebClientManager/handleIncoming/groupResponse/error [invalid-payload]")
+        case .groupRequest(let request):
+            DispatchQueue.main.async {
+                let response = self.groupResponse(for: request)
+                var webContainer = Web_WebContainer()
+                webContainer.payload = .groupResponse(response)
+                do {
+                    DDLogInfo("WebClientManager/handleIncoming/groupRequest/sending [\(response.groups.count)]")
+                    let responseData = try webContainer.serializedData()
+                    self.send(responseData)
+                } catch {
+                    DDLogError("WebClientManager/handleIncoming/groupRequest/error [serialization]")
+                }
+            }
+        case .privacyListRequest(let request):
+            DispatchQueue.main.async {
+                let response = self.privacyListResponse(for: request)
+                var webContainer = Web_WebContainer()
+                webContainer.payload = .privacyListResponse(response)
+                do {
+                    DDLogInfo("WebClientManager/handleIncoming/privacyListRequest/sending [type=\(response.privacyLists.activeType)] [\(response.privacyLists.lists.count)]")
+                    let responseData = try webContainer.serializedData()
+                    self.send(responseData)
+                } catch {
+                    DDLogError("WebClientManager/handleIncoming/privacyListRequest/error [serialization]")
+                }
+            }
+        case .receiptUpdate(let update):
+            DispatchQueue.main.async {
+                self.handleReceiptUpdate(update)
+            }
+        case .feedRequest(let request):
+            DispatchQueue.main.async {
+                guard let response = self.feedResponse(for: request) else {
+                    DDLogError("WebClientManager/handleIncoming/feedResponse/error [no-response]")
+                    return
+                }
+                var webContainer = Web_WebContainer()
+                webContainer.payload = .feedResponse(response)
+                do {
+                    DDLogInfo("WebClientManager/handleIncoming/feedRequest/sending [\(response.items.count)]")
+                    let responseData = try webContainer.serializedData()
+                    self.send(responseData)
+                } catch {
+                    DDLogError("WebClientManager/handleIncoming/feedRequest/error [serialization]")
+                }
+            }
+        case .none:
+            DDLogError("WebClientManager/handleIncoming/error [missing-payload]")
+        }
     }
 
     @objc
@@ -446,6 +474,71 @@ final class WebClientManager {
         }
     }
 
+    // MARK: Receipts
+
+    private func handleReceiptUpdate(_ update: Web_ReceiptUpdate) {
+        guard let feedData = MainAppContext.shared.feedData else { return }
+        guard let chatData = MainAppContext.shared.chatData else { return }
+        if let post = feedData.feedPost(with: update.contentID, in: AppContext.shared.mainDataStore.viewContext) {
+            switch update.receipt.status {
+            case .delivered, .played, .UNRECOGNIZED:
+                DDLogError("WebClientManager/handleReceiptUpdate/post/error [invalid-status] [\(update.receipt.status)] [\(post.id)]")
+            case .seen:
+                DDLogInfo("WebClientManager/handleReceiptUpdate/post/seen [\(post.id)]")
+                feedData.sendSeenReceiptIfNecessary(for: post)
+            }
+        } else if let message = chatData.chatMessage(with: update.contentID, in: AppContext.shared.mainDataStore.viewContext) {
+            switch update.receipt.status {
+            case .delivered, .UNRECOGNIZED:
+                DDLogError("WebClientManager/handleReceiptUpdate/message/error [invalid-status] [\(update.receipt.status)] [\(message.id)]")
+            case .seen:
+                DDLogInfo("WebClientManager/handleReceiptUpdate/message/seen [\(message.id)]")
+                chatData.markSeenMessage(for: message.id)
+            case .played:
+                DDLogInfo("WebClientManager/handleReceiptUpdate/message/played [\(message.id)]")
+                chatData.markPlayedMessage(for: message.id)
+            }
+        } else {
+            DDLogError("WebClientManager/handleReceiptUpdate/error [content-not-found] [\(update.contentID)]")
+        }
+    }
+
+    // MARK: Privacy Lists
+
+    private func privacyListResponse(for request: Web_PrivacyListRequest) -> Web_PrivacyListResponse {
+        let privacy = MainAppContext.shared.privacySettings
+
+        var serverLists = Server_PrivacyLists()
+        if let activeType = privacy.activeType,
+            let serverType = Server_PrivacyLists.TypeEnum(activeType)
+        {
+            serverLists.activeType = serverType
+        }
+        serverLists.lists = privacy.allLists.map { serverPrivacyList(for: $0) }
+
+        var response = Web_PrivacyListResponse()
+        response.id = request.id
+        response.privacyLists = serverLists
+
+        return response
+    }
+
+    private func serverPrivacyList(for list: PrivacyList) -> Server_PrivacyList {
+        var serverList = Server_PrivacyList()
+        serverList.type = .init(list.type)
+        serverList.uidElements = list.items.compactMap {
+            guard let userID = Int64($0.userId), $0.state != .deleted else { return nil }
+            var element = Server_UidElement()
+            element.uid = userID
+            return element
+        }
+        serverList.usingPhones = false
+        if let hash = list.hash {
+            serverList.hash = hash
+        }
+        return serverList
+    }
+
     // MARK: Feed
 
     private lazy var homeFeedDataSource: FeedDataSource = {
@@ -482,6 +575,14 @@ final class WebClientManager {
         update.userDisplayInfo = userDisplayInfo(for: userIDs)
         update.postDisplayInfo = posts.map { Self.postDisplayInfo(for: $0, currentUserID: currentUserID) }
         return update
+    }
+
+    private func groupResponse(for request: Web_GroupRequest) -> Web_GroupResponse {
+        let groups = AppContext.shared.mainDataStore.feedGroups(in: AppContext.shared.mainDataStore.viewContext)
+        var response = Web_GroupResponse()
+        response.id = request.id
+        response.groups = groups.compactMap { groupDisplayInfo(for: $0) }
+        return response
     }
 
     private func feedResponse(for request: Web_FeedRequest) -> Web_FeedResponse? {

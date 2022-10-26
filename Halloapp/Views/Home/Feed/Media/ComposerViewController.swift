@@ -115,8 +115,7 @@ class ComposerViewController: UIViewController {
     private let showDestinationPicker: Bool
 
     private lazy var groups: [Group] = {
-        AppContext.shared.mainDataStore.groups(predicate: NSPredicate(format: "typeValue = %d", GroupType.groupFeed.rawValue),
-                                               in: AppContext.shared.mainDataStore.viewContext)
+        AppContext.shared.mainDataStore.feedGroups(in: AppContext.shared.mainDataStore.viewContext)
     }()
 
     private lazy var contacts: [ABContact] = {

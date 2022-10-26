@@ -48,7 +48,6 @@ final class WebClientConnectionViewController: UIViewController {
         stackView.distribution = .fillEqually
         view.addSubview(stackView)
 
-
         stackView.constrain(to: view)
 
         update()

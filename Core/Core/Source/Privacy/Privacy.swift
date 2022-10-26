@@ -180,6 +180,10 @@ open class PrivacySettings {
         activeType = .all
     }
 
+    public var allLists: [PrivacyList] {
+        return [whitelist, blacklist, muted, blocked]
+    }
+
     open var activeType: PrivacyListType? = nil {
         didSet {
             DDLogInfo("privacy/change-active From [\(oldValue?.rawValue ?? "none")] to [\(activeType?.rawValue ?? "none")]")

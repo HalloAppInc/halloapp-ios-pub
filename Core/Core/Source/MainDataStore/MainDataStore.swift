@@ -429,6 +429,11 @@ open class MainDataStore {
         }
     }
 
+    public func feedGroups(in managedObjectContext: NSManagedObjectContext) -> [Group] {
+        return groups(predicate: NSPredicate(format: "typeValue = %d", GroupType.groupFeed.rawValue),
+                                               in: managedObjectContext)
+    }
+
     public func group(id: GroupID, in managedObjectContext: NSManagedObjectContext) -> Group? {
         return groups(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
     }

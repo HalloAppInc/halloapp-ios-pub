@@ -133,3 +133,25 @@ extension Server_PrivacyList.TypeEnum {
         }
     }
 }
+
+extension Server_PrivacyLists.TypeEnum {
+    init?(_ privacyListType: PrivacyListType) {
+        switch privacyListType {
+        case .all: self = .all
+        case .whitelist: self = .only
+        case .blacklist: self = .except
+        case .muted: return nil
+        case .blocked: self = .block
+        }
+    }
+
+    var privacyListType: PrivacyListType? {
+        switch self {
+        case .all: return .all
+        case .block: return .blocked
+        case .except: return .blacklist
+        case .only: return .whitelist
+        case .UNRECOGNIZED: return nil
+        }
+    }
+}
