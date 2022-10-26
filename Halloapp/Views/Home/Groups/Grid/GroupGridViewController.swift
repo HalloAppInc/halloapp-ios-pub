@@ -140,11 +140,7 @@ class GroupGridViewController: UIViewController {
 
         dataSource.requestScrollToIndexPathSubject
             .sink { [weak self] indexPath in
-                guard let self = self else {
-                    return
-                }
-                self.scrollToTop(animated: true)
-                self.collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
+                self?.collectionView.scrollToItem(at: indexPath, at: [.top, .centeredHorizontally], animated: true)
             }
             .store(in: &cancellables)
 

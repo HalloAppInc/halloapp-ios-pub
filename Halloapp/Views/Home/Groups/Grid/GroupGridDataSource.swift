@@ -219,10 +219,16 @@ extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        reload(animated: true)
+        var selfPostID = selfPostIDAddedInLastUpdate
 
-        if let selfPostIDAddedInLastUpdate = selfPostIDAddedInLastUpdate, let indexPath = dataSource.indexPath(for: selfPostIDAddedInLastUpdate) {
-            requestScrollToIndexPathSubject.send(indexPath)
+        reload(animated: true) { [weak self] in
+            if let self = self, let selfPostID = selfPostID, let indexPath = self.dataSource.indexPath(for: selfPostID) {
+                self.requestScrollToIndexPathSubject.send(indexPath)
+            }
+        }
+
+        if selfPostID != nil {
+            requestScrollToTopAnimatedSubject.send(true)
         }
     }
 }
