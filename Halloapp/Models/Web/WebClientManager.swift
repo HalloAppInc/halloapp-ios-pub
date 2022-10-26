@@ -199,6 +199,30 @@ final class WebClientManager {
         }
     }
 
+    private func makeConnectionPayload() -> Data {
+        let userID = MainAppContext.shared.userData.userId
+
+        var userInfo = Web_UserDisplayInfo()
+        userInfo.contactName = MainAppContext.shared.userData.name
+        if let avatarID = MainAppContext.shared.avatarStore.avatarID(forUserID: userID) {
+            userInfo.avatarID = avatarID
+        }
+        if let uid = Int64(userID) {
+            userInfo.uid = uid
+        }
+
+        var info = Web_ConnectionInfo()
+        info.version = MainAppContext.userAgent
+        info.user = userInfo
+
+        do {
+            return try info.serializedData()
+        } catch {
+            DDLogError("WebClientManager/makeConnectionPayload/error [serialization]")
+            return Data()
+        }
+    }
+
     private func registerForManagedObjectNotifications() {
         NotificationCenter.default.addObserver(
             self,
@@ -308,7 +332,7 @@ final class WebClientManager {
                 rs: webStaticKey)
             let data = try handshake.readMessage(message: noiseMessage.content)
             DDLogInfo("WebClientManager/receiveHandshake/read [\(data.count) bytes]")
-            let msgB = try handshake.writeMessage(payload: Data())
+            let msgB = try handshake.writeMessage(payload: makeConnectionPayload())
             self.sendNoiseMessage(msgB, type: .kkB)
             let (receive, send) = try handshake.split()
             self.state.value = .connected(send, receive)
@@ -342,7 +366,7 @@ final class WebClientManager {
         }
         self.state.value = .handshaking(handshake)
         do {
-            let msgA = try handshake.writeMessage(payload: Data())
+            let msgA = try handshake.writeMessage(payload: makeConnectionPayload())
             self.sendNoiseMessage(msgA, type: useKK ? .kkA : .ikA)
             // TODO: Set timeout
         } catch {
