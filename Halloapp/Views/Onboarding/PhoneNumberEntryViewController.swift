@@ -166,13 +166,15 @@ class PhoneNumberEntryViewController: UIViewController {
         textField.withFlag = false
         textField.withExamplePlaceholder = true
         textField.withPrefix = false
+        textField.textContentType = .telephoneNumber
+        textField.autocorrectionType = .yes
 
         textField.addTarget(self, action: #selector(phoneNumberTextFieldDidChange), for: .editingChanged)
         textField.delegate = self
         return textField
     }()
 
-    private lazy var codeTextField: CountryCodeTextField = {
+    private lazy var countryCodeTextField: CountryCodeTextField = {
         let textField = CountryCodeTextField(frame: .zero)
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.semanticContentAttribute = .forceLeftToRight
@@ -295,7 +297,7 @@ class PhoneNumberEntryViewController: UIViewController {
         view.backgroundColor = .feedBackground
         navigationController?.setNavigationBarHidden(true, animated: false)
 
-        countryCodeTextFieldContainer.addSubview(codeTextField)
+        countryCodeTextFieldContainer.addSubview(countryCodeTextField)
         phoneNumberTextFieldContainer.addSubview(phoneNumberTextField)
         view.addSubview(logoView)
         view.addSubview(scrollView)
@@ -317,10 +319,10 @@ class PhoneNumberEntryViewController: UIViewController {
             scrollView.topAnchor.constraint(equalTo: logoView.bottomAnchor, constant: 10),
             scrollView.bottomAnchor.constraint(equalTo: footerStack.topAnchor),
 
-            codeTextField.leadingAnchor.constraint(equalTo: countryCodeTextFieldContainer.leadingAnchor, constant: textFieldInset),
-            codeTextField.trailingAnchor.constraint(equalTo: countryCodeTextFieldContainer.trailingAnchor, constant: -textFieldInset),
-            codeTextField.topAnchor.constraint(equalTo: countryCodeTextFieldContainer.topAnchor, constant: textFieldInset),
-            codeTextField.bottomAnchor.constraint(equalTo: countryCodeTextFieldContainer.bottomAnchor, constant: -textFieldInset),
+            countryCodeTextField.leadingAnchor.constraint(equalTo: countryCodeTextFieldContainer.leadingAnchor, constant: textFieldInset),
+            countryCodeTextField.trailingAnchor.constraint(equalTo: countryCodeTextFieldContainer.trailingAnchor, constant: -textFieldInset),
+            countryCodeTextField.topAnchor.constraint(equalTo: countryCodeTextFieldContainer.topAnchor, constant: textFieldInset),
+            countryCodeTextField.bottomAnchor.constraint(equalTo: countryCodeTextFieldContainer.bottomAnchor, constant: -textFieldInset),
 
             phoneNumberTextField.leadingAnchor.constraint(equalTo: phoneNumberTextFieldContainer.leadingAnchor, constant: textFieldInset),
             phoneNumberTextField.trailingAnchor.constraint(equalTo: phoneNumberTextFieldContainer.trailingAnchor, constant: -textFieldInset),
@@ -362,8 +364,8 @@ class PhoneNumberEntryViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        if codeTextField.text?.isEmpty ?? true {
-            codeTextField.becomeFirstResponder()
+        if countryCodeTextField.text?.isEmpty ?? true {
+            countryCodeTextField.becomeFirstResponder()
         } else {
             phoneNumberTextField.becomeFirstResponder()
         }
@@ -382,7 +384,7 @@ class PhoneNumberEntryViewController: UIViewController {
 
         $selectedCountry
             .compactMap { [weak self] in
-                self?.codeTextField.country = $0
+                self?.countryCodeTextField.country = $0
                 return $0
             }
             .sink { [weak self] (country: Country) in
@@ -419,7 +421,7 @@ class PhoneNumberEntryViewController: UIViewController {
 
     /// Updates constraints and the visibility of views when the keyboard shows/hides.
     private func updateLayout(using info: KeyboardNotificationInfo, keyboardShowing: Bool) {
-        let showTableView = (self.codeTextField.isFirstResponder || self.countryCodeSearchBar.isFirstResponder) && keyboardShowing
+        let showTableView = (self.countryCodeTextField.isFirstResponder || self.countryCodeSearchBar.isFirstResponder) && keyboardShowing
         if showTableView {
             self.showCountryCodeTableViewIfNeeded(info, keyboardShowing: keyboardShowing)
         } else {
@@ -648,7 +650,7 @@ fileprivate class CountryCodeTextField: PhoneNumberTextField {
 struct OnboardingConstants {
 
     static var bottomButtonBottomDistance: CGFloat {
-        65
+        50
     }
 
     static var bottomButtonInsets: UIEdgeInsets {

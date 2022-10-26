@@ -22,7 +22,7 @@ extension CountryCodePickerViewController.Country: Hashable {
         hasher.combine(code)
         hasher.combine(flag)
         hasher.combine(name)
-        hasher.combine(prefix)
+        hasher.combine(`prefix`)
     }
 }
 
@@ -54,6 +54,7 @@ class CountryCodeTableView: UITableView {
 
         separatorStyle = .none
         semanticContentAttribute = .forceLeftToRight
+        backgroundColor = .feedPostBackground
     }
 
     required init?(coder: NSCoder) {

@@ -267,6 +267,8 @@ fileprivate class UserCollectionViewCell: InsetCollectionViewCell {
         let titleDistance: CGFloat = diameter + 3
 
         titleStackLeadingConstraint.constant = titleDistance
+        let heightConstraint = avatarView.heightAnchor.constraint(equalToConstant: diameter)
+        heightConstraint.priority = .defaultHigh
 
         NSLayoutConstraint.activate([
             avatarView.leadingAnchor.constraint(equalTo: leadingViewContainer.leadingAnchor),
@@ -274,8 +276,8 @@ fileprivate class UserCollectionViewCell: InsetCollectionViewCell {
             avatarView.topAnchor.constraint(equalTo: leadingViewContainer.topAnchor),
             avatarView.bottomAnchor.constraint(equalTo: leadingViewContainer.bottomAnchor),
 
-            avatarView.heightAnchor.constraint(equalToConstant: diameter),
-            avatarView.widthAnchor.constraint(equalToConstant: diameter),
+            heightConstraint,
+            avatarView.widthAnchor.constraint(equalTo: avatarView.heightAnchor),
 
             button.leadingAnchor.constraint(equalTo: trailingViewContainer.leadingAnchor),
             button.trailingAnchor.constraint(equalTo: trailingViewContainer.trailingAnchor),

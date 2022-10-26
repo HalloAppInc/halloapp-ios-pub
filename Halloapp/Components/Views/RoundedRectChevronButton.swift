@@ -22,21 +22,23 @@ class RoundedRectChevronButton: RoundedRectButton {
     }
 
     private func commonInit() {
-        let font = UIFont.systemFont(forTextStyle: .body, weight: .medium, maximumPointSize: 22)
-        let config = UIImage.SymbolConfiguration(font: font)
-        let image = UIImage(systemName: "chevron.forward", withConfiguration: config)
+        let font = UIFont.systemFont(ofSize: 18, weight: .semibold)
+        let configuration = UIImage.SymbolConfiguration(font: font)
+        let image = UIImage(systemName: "chevron.right", withConfiguration: configuration)
 
         titleLabel?.font = font
-        setImage(image, for: .normal)
         imageView?.contentMode = .center
 
         let imageInset: CGFloat = 10
         switch effectiveUserInterfaceLayoutDirection {
         case .rightToLeft:
+            setImage(image?.imageFlippedForRightToLeftLayoutDirection(), for: .normal)
             semanticContentAttribute = .forceLeftToRight
             imageView?.semanticContentAttribute = .forceRightToLeft
             imageEdgeInsets = UIEdgeInsets(top: 0, left: -imageInset, bottom: 0, right: imageInset)
+
         case .leftToRight:
+            setImage(image?.imageFlippedForRightToLeftLayoutDirection(), for: .normal)
             semanticContentAttribute = .forceRightToLeft
             imageView?.semanticContentAttribute = .forceLeftToRight
             imageEdgeInsets = UIEdgeInsets(top: 0, left: imageInset, bottom: 0, right: -imageInset)

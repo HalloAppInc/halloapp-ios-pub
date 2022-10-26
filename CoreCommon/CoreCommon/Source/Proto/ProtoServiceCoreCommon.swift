@@ -16,6 +16,7 @@ public enum ResourceType: String {
 }
 
 fileprivate let userDefaultsKeyForRequestLogs = "serverRequestedLogs"
+fileprivate let userDefaultsKeyForNameSync = "xmpp.name-sent"
 
 open class ProtoServiceCoreCommon: NSObject, ObservableObject {
 
@@ -344,6 +345,8 @@ open class ProtoServiceCoreCommon: NSObject, ObservableObject {
         shouldReconnectOnConnectionLoss = isAutoReconnectEnabled
         reconnectDelay = 2
         resendAllPendingRequests()
+
+        resendNameIfNecessary()
     }
 
     open func didReceive(packet: Server_Packet) {
@@ -374,6 +377,17 @@ open class ProtoServiceCoreCommon: NSObject, ObservableObject {
             }
         }
     }
+
+    private func resendNameIfNecessary() {
+        guard
+            !UserDefaults.standard.bool(forKey: userDefaultsKeyForNameSync),
+            !AppContextCommon.shared.userData.name.isEmpty
+        else {
+            return
+        }
+
+        updateUsername(AppContextCommon.shared.userData.name)
+   }
 }
 
 extension ProtoServiceCoreCommon: NoiseDelegate {
@@ -487,6 +501,17 @@ extension ProtoServiceCoreCommon: CoreServiceCommon {
 
     public func joinGroupWithLink(inviteLink: String, completion: @escaping ServiceRequestCompletion<Server_GroupInviteLink>) {
         enqueue(request: ProtoJoinGroupWithLinkRequest(inviteLink: inviteLink, completion: completion))
+    }
+
+    // MARK: Profile
+
+    public func updateUsername(_ name: String) {
+        UserDefaults.standard.set(false, forKey: userDefaultsKeyForNameSync)
+        enqueue(request: ProtoSendNameRequest(name: name) { result in
+            if case .success = result {
+                UserDefaults.standard.set(true, forKey: userDefaultsKeyForNameSync)
+            }
+        })
     }
 
     // MARK: Avatar

@@ -31,6 +31,8 @@ class PermissionsExplainerView: ShadowView {
     private(set) lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.font = .gothamFont(forTextStyle: .subheadline, weight: .medium)
+        label.adjustsFontSizeToFitWidth = true
+        label.baselineAdjustment = .alignCenters
         return label
     }()
 

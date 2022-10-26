@@ -25,9 +25,6 @@ protocol HalloService: CoreService {
     var callDelegate: HalloCallDelegate? { get set }
     var readyToHandleCallMessages: Bool { get set }
 
-    // MARK: Profile
-    func updateUsername(_ name: String)
-
     // MARK: Feed requests
     func retractPost(_ id: FeedPostID, in groupID: GroupID?, completion: @escaping ServiceRequestCompletion<Void>)
     func retractComment(id: FeedPostCommentID, postID: FeedPostID, in groupID: GroupID?, completion: @escaping ServiceRequestCompletion<Void>)

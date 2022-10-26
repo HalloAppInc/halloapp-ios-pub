@@ -64,6 +64,9 @@ public protocol CoreServiceCommon {
     func requestCountOfOneTimeKeys(completion: @escaping ServiceRequestCompletion<Int32>)
     func requestAddOneTimeKeys(_ keys: [PreKey], completion: @escaping ServiceRequestCompletion<Void>)
 
+    // MARK: Profile
+    func updateUsername(_ name: String)
+
     // MARK: Avatar
     func updateAvatar(_ avatarData: AvatarData?, for userID: UserID, completion: @escaping ServiceRequestCompletion<AvatarID?>)
 

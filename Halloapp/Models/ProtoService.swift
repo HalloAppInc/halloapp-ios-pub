@@ -20,7 +20,6 @@ fileprivate let userDefaultsKeyForVOIPToken = "VoipPushToken"
 fileprivate let userDefaultsKeyForLangID = "langId"
 fileprivate let userDefaultsKeyForAPNSSyncTime = "apnsSyncTime"
 fileprivate let userDefaultsKeyForVOIPSyncTime = "voipSyncTime"
-fileprivate let userDefaultsKeyForNameSync = "xmpp.name-sent"
 
 final class ProtoService: ProtoServiceCore {
 
@@ -59,7 +58,6 @@ final class ProtoService: ProtoServiceCore {
             sendVOIPTokenIfNecessary(token)
         }
 
-        resendNameIfNecessary()
         if let userID = credentials?.userID {
             MainAppContext.shared.avatarStore.sendPendingAvatarIfNecessary(for: userID, using: self)
         }
@@ -597,13 +595,6 @@ final class ProtoService: ProtoServiceCore {
             DDLogError("proto/didReceive/unknown-packet \(requestID)")
         }
 
-    }
-    // MARK: User Name
-
-    private func resendNameIfNecessary() {
-        guard !UserDefaults.standard.bool(forKey: userDefaultsKeyForNameSync) else { return }
-        guard !AppContext.shared.userData.name.isEmpty else { return }
-        updateUsername(AppContext.shared.userData.name)
     }
 
     // MARK: Message
@@ -1625,15 +1616,6 @@ final class ProtoService: ProtoServiceCore {
 }
 
 extension ProtoService: HalloService {
-
-    func updateUsername(_ name: String) {
-        UserDefaults.standard.set(false, forKey: userDefaultsKeyForNameSync)
-        enqueue(request: ProtoSendNameRequest(name: name) { result in
-            if case .success = result {
-                UserDefaults.standard.set(true, forKey: userDefaultsKeyForNameSync)
-            }
-        })
-    }
 
     func retractComment(id: FeedPostCommentID, postID: FeedPostID, completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoRetractCommentRequest(id: id, postID: postID, completion: completion))

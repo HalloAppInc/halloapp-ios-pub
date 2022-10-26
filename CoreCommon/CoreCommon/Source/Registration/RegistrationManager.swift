@@ -14,6 +14,7 @@ public protocol RegistrationManager: AnyObject {
     var contactsAccessStatus: CNAuthorizationStatus { get }
     var formattedPhoneNumber: String? { get }
     func set(countryCode: String, nationalNumber: String, userName: String)
+    func set(userName: String)
     func requestVerificationCode(byVoice: Bool, completion: @escaping (Result<TimeInterval, RegistrationErrorResponse>) -> Void)
     func confirmVerificationCode(_ verificationCode: String, pushOS: String?, completion: @escaping (Result<Void, Error>) -> Void)
     func didCompleteRegistrationFlow()
@@ -89,6 +90,15 @@ public final class DefaultRegistrationManager: RegistrationManager {
         userData.normalizedPhoneNumber = countryCode.appending(nationalNumber)
         userData.name = userName
         userData.save(using: userData.viewContext)
+    }
+
+    public func set(userName: String) {
+        let userData = AppContextCommon.shared.userData
+
+        userData.name = userName
+        userData.save(using: userData.viewContext)
+
+        AppContextCommon.shared.coreServiceCommon.updateUsername(userName)
     }
 
     /// Completion block includes retry delay. May need to wait for hashcash solution to be computed before issuing request.

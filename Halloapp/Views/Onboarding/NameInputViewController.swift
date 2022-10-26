@@ -16,8 +16,9 @@ class NameInputViewController: UIViewController {
     let registrationManager: RegistrationManager
 
     private var cancellables: Set<AnyCancellable> = []
+    private var avatarUploadCancellable: AnyCancellable?
 
-    @Published private var username = ""
+    @Published private var userName = ""
 
     private lazy var scrollView: UIScrollView = {
         let scrollView = UIScrollView()
@@ -27,22 +28,27 @@ class NameInputViewController: UIViewController {
     }()
 
     private lazy var vStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [profileHeader.view, promptLabel, textFieldContainer, UIView()])
+        let stack = UIStackView(arrangedSubviews: [avatarPicker, promptLabel, textFieldContainer, UIView()])
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .vertical
         stack.isLayoutMarginsRelativeArrangement = true
         stack.layoutMargins = UIEdgeInsets(top: 40, left: 15, bottom: 0, right: 15)
         stack.spacing = 15
+        stack.setCustomSpacing(25, after: avatarPicker)
         stack.setCustomSpacing(10, after: promptLabel)
 
         return stack
     }()
 
-    private lazy var profileHeader: ProfileHeaderViewController = {
-        let header = ProfileHeaderViewController()
-        header.configureForCurrentUser(withName: "")
-        header.view.setContentHuggingPriority(.required, for: .vertical)
-        return header
+    private lazy var avatarPicker: OnboardingAvatarPicker = {
+        let picker = OnboardingAvatarPicker()
+        picker.avatarButton.configureWithMenu { [weak self] in
+            HAMenu.lazy {
+                self?.avatarMenu()
+            }
+        }
+
+        return picker
     }()
 
     private lazy var promptLabel: UILabel = {
@@ -74,8 +80,6 @@ class NameInputViewController: UIViewController {
         textField.delegate = self
         textField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
 
-        textField.autocapitalizationType = .words
-        textField.autocorrectionType = .no
         textField.textContentType = .name
         textField.returnKeyType = .done
         textField.spellCheckingType = .no
@@ -127,7 +131,6 @@ class NameInputViewController: UIViewController {
         navigationItem.hidesBackButton = true
         view.backgroundColor = .feedBackground
 
-        addChild(profileHeader)
         textFieldContainer.addSubview(textField)
         view.addSubview(nextButtonStack)
         view.addSubview(scrollView)
@@ -159,6 +162,8 @@ class NameInputViewController: UIViewController {
             vStack.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
         ])
 
+        avatarPicker.avatarButton.configure(userId: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
+
         let swipe = UISwipeGestureRecognizer(target: self, action: #selector(keyboardSwipe))
         swipe.direction = .down
         view.addGestureRecognizer(swipe)
@@ -186,7 +191,7 @@ class NameInputViewController: UIViewController {
             }
             .store(in: &cancellables)
 
-        $username
+        $userName
             .map { $0.isEmpty ? false : true }
             .assign(to: \.isEnabled, onWeak: nextButton)
             .store(in: &cancellables)
@@ -205,8 +210,7 @@ class NameInputViewController: UIViewController {
             return
         }
 
-        // TODO
-        //registrationManager.set(userName: name)
+        registrationManager.set(userName: userName)
 
         let onboardingManager: OnboardingManager
         if let demo = registrationManager as? DemoRegistrationManager {
@@ -228,6 +232,74 @@ class NameInputViewController: UIViewController {
     private func hideKeyboard() {
         view.endEditing(true)
     }
+
+    @HAMenuContentBuilder
+    private func avatarMenu() -> HAMenu.Content {
+        HAMenu {
+            HAMenuButton(title: Localizations.takeOrChoosePhoto) { [weak self] in
+                self?.presentPhotoPicker()
+            }
+        }
+        .displayInline()
+
+        if avatarPicker.avatarButton.avatarView.hasImage {
+            HAMenu {
+                HAMenuButton(title: Localizations.deletePhoto) { [weak self] in
+                    self?.deleteAvatar()
+                }
+                .destructive()
+            }
+            .displayInline()
+        }
+    }
+
+    private func presentPhotoPicker() {
+        let picker = MediaPickerViewController(config: .avatar) { viewController, _, media, cancelled in
+            guard !cancelled, let media = media.first else {
+                return viewController.dismiss(animated: true)
+            }
+
+            let cropper = self.makePhotoCropper(with: media)
+            cropper.modalPresentationStyle = .fullScreen
+
+            viewController.reset(destination: nil, selected: [])
+            viewController.present(cropper, animated: true)
+        }
+
+        let nc = UINavigationController(rootViewController: picker)
+        nc.modalPresentationStyle = .fullScreen
+
+        present(nc, animated: true)
+    }
+
+    private func makePhotoCropper(with media: PendingMedia) -> UIViewController {
+        let cropper = MediaEditViewController(config: .profile,
+                                         mediaToEdit: [media],
+                                            selected: 0) { viewController, media, _, cancelled in
+
+            guard !cancelled, let media = media.first else {
+                return viewController.dismiss(animated: true)
+            }
+
+            self.avatarUploadCancellable = media.ready
+                .first { $0 }
+                .compactMap { _ in media.image }
+                .sink { image in
+                    let context = MainAppContext.shared
+                    context.avatarStore.uploadAvatar(image: image, for: context.userData.userId, using: context.service)
+                }
+
+            // dismiss both the picker and the cropper
+            self.dismiss(animated: true)
+        }
+
+        return UINavigationController(rootViewController: cropper)
+    }
+
+    private func deleteAvatar() {
+        let context = MainAppContext.shared
+        context.avatarStore.removeAvatar(for: context.userData.userId, using: context.service)
+    }
 }
 
 // MARK: - UITextField delegate methods
@@ -237,7 +309,7 @@ extension NameInputViewController: UITextFieldDelegate {
     @objc
     private func textFieldDidChange(_ textField: UITextField) {
         let trimmed = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines)
-        username = trimmed ?? ""
+        userName = trimmed ?? ""
     }
 
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
@@ -254,6 +326,78 @@ extension NameInputViewController: UITextFieldDelegate {
     }
 }
 
+// MARK: - OnboardingAvatarPicker implementation
+
+fileprivate class OnboardingAvatarPicker: UIView {
+
+    private static let avatarDiameter: CGFloat = 115
+    private static let cameraViewDiameter: CGFloat = 40
+
+    private lazy var vStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [avatarButton, subtitleLabel])
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .vertical
+        stack.spacing = 10
+        stack.alignment = .center
+        return stack
+    }()
+
+    private(set) lazy var avatarButton: AvatarViewButton = {
+        let button = AvatarViewButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
+    private lazy var subtitleLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(forTextStyle: .footnote, maximumPointSize: 22)
+        label.textColor = .secondaryLabel
+        label.text = Localizations.optionalTitle
+        return label
+    }()
+
+    private lazy var cameraView: UIImageView = {
+        let view = UIImageView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.image = UIImage(systemName: "camera.fill")
+        view.contentMode = .center
+        view.backgroundColor = .primaryBlue
+        view.tintColor = .white
+
+        view.layer.cornerRadius = Self.cameraViewDiameter / 2
+
+        return view
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        addSubview(vStack)
+        vStack.addSubview(cameraView)
+
+        let constant = (sqrt(2) * Self.avatarDiameter / 2) / 2
+
+        NSLayoutConstraint.activate([
+            vStack.leadingAnchor.constraint(equalTo: leadingAnchor),
+            vStack.trailingAnchor.constraint(equalTo: trailingAnchor),
+            vStack.topAnchor.constraint(equalTo: topAnchor),
+            vStack.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            avatarButton.widthAnchor.constraint(equalToConstant: Self.avatarDiameter),
+            avatarButton.heightAnchor.constraint(equalToConstant: Self.avatarDiameter),
+
+            cameraView.widthAnchor.constraint(equalToConstant: Self.cameraViewDiameter),
+            cameraView.heightAnchor.constraint(equalTo: cameraView.widthAnchor),
+            cameraView.centerXAnchor.constraint(equalTo: avatarButton.centerXAnchor, constant: constant),
+            cameraView.centerYAnchor.constraint(equalTo: avatarButton.centerYAnchor, constant: constant),
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("OnboardingAvatarPicker coder init not implemented...")
+    }
+}
+
 // MARK: - Localizations
 
 extension Localizations {
@@ -262,5 +406,11 @@ extension Localizations {
         NSLocalizedString("registration.name.prompt",
                    value: "How should we call you?",
                  comment: "Text prompting the user for their push name.")
+    }
+
+    static var optionalTitle: String {
+        NSLocalizedString("optional.title",
+                   value: "Optional",
+                 comment: "Title that suggests something is optional.")
     }
 }

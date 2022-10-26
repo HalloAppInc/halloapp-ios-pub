@@ -24,82 +24,44 @@ class ExistingNetworkViewController: UIViewController, UserActionHandler {
         return scrollView
     }()
 
-    private lazy var vStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [titleStack, collectionView, collectionViewFooterLabel])
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        stack.axis = .vertical
-        stack.isLayoutMarginsRelativeArrangement = true
-        stack.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
-        stack.spacing = 10
-
-        stack.setCustomSpacing(fellowUserIDs.count == 0 ? 10 : 20, after: titleStack)
-        stack.setCustomSpacing(90, after: collectionViewFooterLabel)
-        return stack
-    }()
-
-    private lazy var titleStack: UIStackView = {
-        let emojiLabel = UILabel()
-        emojiLabel.text = "🤗"
-        emojiLabel.font = .systemFont(ofSize: 36)
-        emojiLabel.textAlignment = .center
-
-        let stack = UIStackView(arrangedSubviews: [emojiLabel, titleLabel])
-        stack.axis = .vertical
-        stack.spacing = 10
-        return stack
-    }()
-
-    private lazy var titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .gothamFont(forTextStyle: .title3, weight: .medium)
-        label.numberOfLines = 0
-        label.textAlignment = .center
-        label.text = Localizations.fellowContactsDescription(n: fellowUserIDs.count)
-        return label
-    }()
-
-    private lazy var collectionViewHeightConstraint: NSLayoutConstraint = {
-        let constraint = collectionView.heightAnchor.constraint(equalToConstant: 50)
-        constraint.priority = .defaultHigh
-        return constraint
-    }()
-
     private lazy var collectionView: InsetCollectionView = {
         let collectionView = InsetCollectionView()
-
         let section = InsetCollectionView.defaultLayoutSection
-        section.contentInsets = .zero
+        let edgeInset: CGFloat = 20
+
+        section.contentInsets = .init(top: 15, leading: edgeInset, bottom: 15, trailing: edgeInset)
+
+        let headerItem = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(44)),
+                                                                    elementKind: UICollectionView.elementKindSectionHeader,
+                                                                      alignment: .top)
+        let footerItem = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(44)),
+                                                                    elementKind: UICollectionView.elementKindSectionFooter,
+                                                                      alignment: .bottom)
+        section.boundarySupplementaryItems = [headerItem, footerItem]
+
         let layout = UICollectionViewCompositionalLayout(section: section)
-        let config = InsetCollectionView.defaultLayoutConfiguration
-        layout.configuration = config
+        let configuration = InsetCollectionView.defaultLayoutConfiguration
+        layout.configuration = configuration
         collectionView.collectionViewLayout = layout
+
+        collectionView.register(ExistingNetworkCollectionViewHeader.self,
+                                forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+                                withReuseIdentifier: ExistingNetworkCollectionViewHeader.reuseIdentifier)
+        collectionView.register(ExistingNetworkCollectionViewFooter.self,
+                                forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter,
+                                withReuseIdentifier: ExistingNetworkCollectionViewFooter.reuseIdentifier)
+
+        collectionView.data.supplementaryViewProvider = { [weak self] in
+            self?.supplementaryViewProvider($0, elementKind: $1, indexPath: $2)
+        }
 
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.backgroundColor = nil
-        collectionView.clipsToBounds = false
         collectionView.alwaysBounceVertical = false
-        collectionView.bounces = false
         collectionView.showsVerticalScrollIndicator = false
         collectionView.delegate = self
 
         return collectionView
-    }()
-
-    private lazy var collectionViewFooterLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(forTextStyle: .footnote)
-        label.textColor = .secondaryLabel
-        label.numberOfLines = 0
-
-        switch fellowUserIDs.count {
-        case 0:
-            label.textAlignment = .center
-            label.text = Localizations.fellowContactsWillArrive
-        default:
-            label.text = Localizations.contactsPrivacyDisclaimer(n: fellowUserIDs.count)
-        }
-
-        return label
     }()
 
     private lazy var bottomStack: UIStackView = {
@@ -157,43 +119,33 @@ class ExistingNetworkViewController: UIViewController, UserActionHandler {
         navigationController?.setNavigationBarHidden(false, animated: false)
 
         view.addSubview(bottomStack)
-        view.addSubview(scrollView)
-        scrollView.addSubview(vStack)
-
-        let vStackCenterYConstraint = vStack.centerYAnchor.constraint(equalTo: scrollView.centerYAnchor)
-        vStackCenterYConstraint.priority = .defaultHigh
+        view.addSubview(collectionView)
 
         NSLayoutConstraint.activate([
             bottomStack.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bottomStack.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             bottomStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -OnboardingConstants.bottomButtonBottomDistance),
 
-            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: bottomStack.topAnchor),
-
-            vStack.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-            vStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-            vStack.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
-            vStack.topAnchor.constraint(greaterThanOrEqualTo: scrollView.topAnchor),
-            vStack.bottomAnchor.constraint(lessThanOrEqualTo: scrollView.bottomAnchor),
-            vStackCenterYConstraint,
-
-            collectionViewHeightConstraint,
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: bottomStack.topAnchor),
         ])
 
         buildCollectionView()
     }
 
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
 
-        // we want to display all items in the collection view without scrolling
-        // (there will be at most 4 items in the collection view)
-        collectionViewHeightConstraint.constant = .greatestFiniteMagnitude
-        collectionView.layoutIfNeeded()
-        collectionViewHeightConstraint.constant = collectionView.contentSize.height
+        let contentHeight = collectionView.collectionViewLayout.collectionViewContentSize.height
+        let difference = collectionView.bounds.height - contentHeight
+
+        if contentHeight > 0, difference > 0 {
+            collectionView.contentInset.top = difference / 2
+        } else {
+            collectionView.contentInset.top = 0
+        }
     }
 
     private func buildCollectionView() {
@@ -210,6 +162,38 @@ class ExistingNetworkViewController: UIViewController, UserActionHandler {
             }
         }
         .separators())
+    }
+
+    private func supplementaryViewProvider(_ collectionView: UICollectionView, elementKind: String, indexPath: IndexPath) -> UICollectionReusableView {
+        switch elementKind {
+        case UICollectionView.elementKindSectionHeader:
+            let header = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader,
+                                                            withReuseIdentifier: ExistingNetworkCollectionViewHeader.reuseIdentifier,
+                                                                            for: indexPath)
+
+            (header as? ExistingNetworkCollectionViewHeader)?.titleLabel.text = Localizations.fellowContactsDescription(n: fellowUserIDs.count)
+            return header
+
+        case UICollectionView.elementKindSectionFooter:
+            let footer = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionFooter,
+                                                            withReuseIdentifier: ExistingNetworkCollectionViewFooter.reuseIdentifier,
+                                                                            for: indexPath)
+
+            let casted = footer as? ExistingNetworkCollectionViewFooter
+            switch fellowUserIDs.count {
+            case 0:
+                casted?.label.textAlignment = .center
+                casted?.label.text = Localizations.fellowContactsWillArrive
+            default:
+                casted?.label.textAlignment = .natural
+                casted?.label.text = Localizations.contactsPrivacyDisclaimer(n: fellowUserIDs.count)
+            }
+
+            return footer
+
+        default:
+            return UICollectionReusableView()
+        }
     }
 
     @objc
@@ -303,6 +287,86 @@ extension ExistingNetworkViewController: UICollectionViewDelegate {
         return false
     }
 }
+
+// MARK: - ExistingNetworkCollectionViewHeader implementation
+
+fileprivate class ExistingNetworkCollectionViewHeader: UICollectionReusableView {
+
+    static let reuseIdentifier = "existingNetworkHeader"
+
+    private lazy var vStack: UIStackView = {
+        let emojiLabel = UILabel()
+        emojiLabel.text = "🤗"
+        emojiLabel.font = .systemFont(ofSize: 36)
+        emojiLabel.textAlignment = .center
+
+        let stack = UIStackView(arrangedSubviews: [emojiLabel, titleLabel])
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .vertical
+        stack.spacing = 10
+        return stack
+    }()
+
+    private(set) lazy var titleLabel: UILabel = {
+        let label = UILabel()
+        label.font = .gothamFont(forTextStyle: .title3, weight: .medium)
+        label.numberOfLines = 0
+        label.textAlignment = .center
+        return label
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        addSubview(vStack)
+
+        NSLayoutConstraint.activate([
+            vStack.leadingAnchor.constraint(equalTo: leadingAnchor),
+            vStack.trailingAnchor.constraint(equalTo: trailingAnchor),
+            vStack.topAnchor.constraint(equalTo: topAnchor),
+            vStack.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("ExistingNetworkCollectionViewHeader coder init not implemented...")
+    }
+}
+
+// MARK: - ExistingNetworkCollectionViewFooter implementation
+
+fileprivate class ExistingNetworkCollectionViewFooter: UICollectionReusableView {
+
+    static let reuseIdentifier = "existingNetworkFooter"
+
+    private(set) lazy var label: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .systemFont(forTextStyle: .footnote)
+        label.textColor = .secondaryLabel
+        label.numberOfLines = 0
+        return label
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        addSubview(label)
+
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: leadingAnchor),
+            label.trailingAnchor.constraint(equalTo: trailingAnchor),
+            label.topAnchor.constraint(equalTo: topAnchor),
+            label.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("ExistingNetworkCollectionViewFooter coder init not implemented...")
+    }
+}
+
+
 
 // MARK: - Localization
 

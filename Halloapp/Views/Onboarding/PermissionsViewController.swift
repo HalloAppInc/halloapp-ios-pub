@@ -71,7 +71,7 @@ class PermissionsViewController: UIViewController {
 
     private lazy var getStartedButton: RoundedRectButton = {
         let button = RoundedRectButton()
-        let font = UIFont.systemFont(forTextStyle: .body, weight: .medium, maximumPointSize: 24)
+        let font = UIFont.systemFont(ofSize: 18, weight: .semibold)
 
         button.backgroundTintColor = .lavaOrange
         button.layer.cornerCurve = .continuous
