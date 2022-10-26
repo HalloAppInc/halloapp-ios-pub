@@ -39,14 +39,6 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 
 
-### ios upload_symbols
-
-```sh
-[bundle exec] fastlane ios upload_symbols
-```
-
-
-
 ### ios import_localizations
 
 ```sh

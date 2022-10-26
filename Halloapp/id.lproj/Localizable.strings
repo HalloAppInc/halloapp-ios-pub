@@ -739,6 +739,18 @@
 /* Indicates that an item has failed to be sent. */
 "failed.to.send" = "Gagal mengirim";
 
+/* Number of contacts added to a group. */
+"feed.collapsed.n.users.added" = "feed.collapsed.n.users.added";
+
+/* Number of contacts that joined a group. */
+"feed.collapsed.n.users.joined" = "feed.collapsed.n.users.joined";
+
+/* Number of contacts that left a group. */
+"feed.collapsed.n.users.left" = "feed.collapsed.n.users.left";
+
+/* Number of contacts removed from a group. */
+"feed.collapsed.n.users.removed" = "feed.collapsed.n.users.removed";
+
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "Menunggu komentar ini. Proses ini mungkin memerlukan waktu beberapa saat.";
 
@@ -1267,8 +1279,11 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Perbarui app Anda.";
 
+/* Title to indicate that a fetch operation is in progress. */
+"locating.title" = "Mencari";
+
 /* Displayed when a location fetch fails. */
-"location.fetch.error" = "Tidak dapat Menemukan Lokasi";
+"location.fetch.error" = "Lokasi Tidak Ditemukan";
 
 /* General message of the alert for failures in location sharing features. */
 "locationSharing.alert.error" = "Terjadi kesalahan. Silakan coba lagi nanti.";
@@ -1504,6 +1519,12 @@
 
 /* Content for unknown contact notification. */
 "notification.contact.unknown.content" = "Salah satu kontak Anda sekarang di HalloApp";
+
+/* Body of the daily moment notification. */
+"notification.daily.moment.body" = "Anda punya 2 menit untuk membagikan Momen";
+
+/* Title of the daily moment notification. */
+"notification.daily.moment.title" = "Momen Harian";
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ baru saja menerima undangan Anda untuk bergabung dengan HalloApp 🎉";

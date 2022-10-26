@@ -2,17 +2,17 @@
 "CFBundleName" = "هالوآب";
 
 /* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "يتيح لك هذا التقاط الصور والفيديوهات من داخل هالوآب مباشرةً.";
+"NSCameraUsageDescription" = "يتيح لك هذا إجراء مكالمات الفيديو والتقاط الصور والفيديوهات من هالوآب";
 
 /* Privacy - Contacts Usage Description */
-"NSContactsUsageDescription" = "يجب السماح لهالوآب بالوصول إلى جهات اتصالك لتتمكن أنت وأصدقاؤك وعائلتك من رؤية منشورات بعضكم البعض.";
+"NSContactsUsageDescription" = "يجب السماح لهالوآب بتحميل جهات اتصالك على خوادمها لتتمكن أنت وأصدقاؤك وعائلتك من رؤية منشورات بعضكم البعض ومشاركتها.";
 
 /* Privacy - Location When In Use Usage Description */
-"NSLocationWhenInUseUsageDescription" = "يتيح لك ذلك تصفُّح المواقع القريبة منك ومشاركتها.";
+"NSLocationWhenInUseUsageDescription" = "يتيح لك ذلك إرسال موقعك الحالي أو الأماكن القريبة في التعليقات والدردشات.";
 
 /* Privacy - Microphone Usage Description */
 "NSMicrophoneUsageDescription" = "يتيح لك هذا إجراء المكالمات وإرسال المنشورات والرسائل الصوتية وتسجيل الفيديوهات مع تضمين الصوت.";
 
 /* Privacy - Photo Library Usage Description */
-"NSPhotoLibraryUsageDescription" = "يتيح لك هذا مشاركة الصور والفيديوهات من مكتبتك وحفظ الملفات التي تلتقطها.";
+"NSPhotoLibraryUsageDescription" = "يتيح لك هذا إرسال الصور والفيديوهات من المعرض وحفظ الملفات التي تلتقطها.";
 

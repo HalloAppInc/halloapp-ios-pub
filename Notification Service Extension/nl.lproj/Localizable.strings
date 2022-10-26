@@ -145,6 +145,12 @@
 /* Content for unknown contact notification. */
 "notification.contact.unknown.content" = "Eén van je contacten gebruikt nu HalloApp";
 
+/* Body of the daily moment notification. */
+"notification.daily.moment.body" = "Je hebt 2 minuten de tijd om een Moment te delen";
+
+/* Title of the daily moment notification. */
+"notification.daily.moment.title" = "Dagelijks Moment";
+
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ heeft je uitnodiging voor HalloApp geaccepteerd 🎉";
 

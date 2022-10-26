@@ -145,6 +145,12 @@
 /* Content for unknown contact notification. */
 "notification.contact.unknown.content" = "إحدى جهات اتصالك على هالوآب الآن";
 
+/* Body of the daily moment notification. */
+"notification.daily.moment.body" = "لديك دقيقتان لمشاركة لحظة";
+
+/* Title of the daily moment notification. */
+"notification.daily.moment.title" = "اللحظة اليومية";
+
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ قبل دعوتك للانضمام إلى هالوآب 🎉";
 
@@ -204,6 +210,9 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 فيديو";
+
+/* Push notification for a reaction to post */
+"notification.post.reaction" = "تفاعل بإضافة %@ إلى منشور";
 
 /* New moment unlock notification text to be shown to the user. */
 "notification.unlocked.moment.1" = "شارك %@ لحظة جديدة لمشاهدة اللحظة الخاصة بك";

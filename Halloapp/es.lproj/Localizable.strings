@@ -1502,6 +1502,12 @@
 /* Content for unknown contact notification. */
 "notification.contact.unknown.content" = "Uno de tus contactos está ahora en HalloApp";
 
+/* Body of the daily moment notification. */
+"notification.daily.moment.body" = "Tienes 2 minutos para compartir un momento";
+
+/* Title of the daily moment notification. */
+"notification.daily.moment.title" = "Momento diario";
+
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ acaba de aceptar tu invitación a HalloApp 🎉";
 
@@ -1558,6 +1564,9 @@
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
+
+/* Push notification for a reaction to post */
+"notification.post.reaction" = "%@ reaccionó a una publicación";
 
 /* New moment unlock notification text to be shown to the user. */
 "notification.unlocked.moment.1" = "%@ compartió un nuevo momento y desbloqueó el tuyo";

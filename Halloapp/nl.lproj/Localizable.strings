@@ -715,6 +715,9 @@
 /* Title for posts that are externally shared, 'John Smith's HalloApp Post' */
 "externalShare.og.title3" = "HalloApp-post van %@";
 
+/* Attached to our logo as an image, 'Posted from HalloApp' */
+"externalshare.postedFrom" = "Gepost vanaf";
+
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Camera";
 
@@ -1151,7 +1154,7 @@
 "groupGrid.post.failed" = "Plaatsen is mislukt";
 
 /* More info menu item */
-"groupGridHeader.moreInfo" = "Meer Info";
+"groupGridHeader.moreInfo" = "Meer Informatie";
 
 /* Text shown in notification when the user is added to a new group */
 "groups.add.notification" = "Je bent toegevoegd aan een nieuwe groep";
@@ -1428,7 +1431,7 @@
 "moment.replacement.title" = "Opmerking";
 
 /* Text on a locked moment that explains the need to post your own in order to view it. */
-"moment.unlock.disclaimer" = "Om momenten te zien, deel je je eigen moment";
+"moment.unlock.disclaimer" = "Om Momenten te zien, deel je je eigen Moment";
 
 /* For indicating that there was an error while uploading the post. */
 "moment.uploading.failure" = "Fout";
@@ -1516,6 +1519,12 @@
 
 /* Content for unknown contact notification. */
 "notification.contact.unknown.content" = "Eén van je contacten gebruikt nu HalloApp";
+
+/* Body of the daily moment notification. */
+"notification.daily.moment.body" = "Je hebt 2 minuten de tijd om een Moment te delen";
+
+/* Title of the daily moment notification. */
+"notification.daily.moment.title" = "Dagelijks Moment";
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ heeft je uitnodiging voor HalloApp geaccepteerd 🎉";
@@ -1701,7 +1710,7 @@
 "post.privacy.header.feeds" = "Feed";
 
 /* Header when selecting destinations to forward a message, this header appears above the frequently contacted section */
-"post.privacy.header.frequentlyContacted" = "Frequent Gekozen";
+"post.privacy.header.frequentlyContacted" = "Veelgebruikt";
 
 /* Header when selecting a group to share with */
 "post.privacy.header.groups" = "Alleen delen met een groep";
@@ -2124,7 +2133,7 @@
 "share.destination.more" = "Laat meer zien...";
 
 /* Prompt for the user to share a moment. */
-"share.moment.prompt" = "Deel een moment";
+"share.moment.prompt" = "Deel een Moment";
 
 /* Text placed on the blurred overlay of someone else's moment. */
 "shared.moment" = "Moment van %@";
