@@ -2825,7 +2825,7 @@ extension ChatData {
                       chatMessageID: ChatMessageID) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            DDLogInfo("ChatData/sendReaction/createReaction/recipientId: \(chatMessageRecipient.recipientId) type: \(chatMessageRecipient.chatType)")
+            DDLogInfo("ChatData/sendReaction/createReaction/recipientId: \(String(describing: chatMessageRecipient.recipientId)) type: \(chatMessageRecipient.chatType)")
             self.createReaction(chatMessageRecipient: chatMessageRecipient,
                                 reaction: reaction,
                                 chatMessageID: chatMessageID,

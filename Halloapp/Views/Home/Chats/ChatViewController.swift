@@ -276,7 +276,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetChatStateInfo.sink { [weak self] chatStateInfo in
                 guard let self = self else { return }
-                DDLogInfo("ChatViewController/didGetChatStateInfo \(chatStateInfo)")
+                DDLogInfo("ChatViewController/didGetChatStateInfo \(String(describing: chatStateInfo))")
                 DispatchQueue.main.async {
                     self.configureTitleViewWithTypingIndicator()
                 }

@@ -105,7 +105,6 @@ extension CommonReaction {
     }
 
     public var commentData: CommentData? {
-        let mentionText = MentionText(collapsedText: "", mentions: [:])
         let content: CommentContent
 
         guard let comment = comment else {

@@ -219,7 +219,7 @@ extension GroupGridDataSource: NSFetchedResultsControllerDelegate {
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        var selfPostID = selfPostIDAddedInLastUpdate
+        let selfPostID = selfPostIDAddedInLastUpdate
 
         reload(animated: true) { [weak self] in
             if let self = self, let selfPostID = selfPostID, let indexPath = self.dataSource.indexPath(for: selfPostID) {
