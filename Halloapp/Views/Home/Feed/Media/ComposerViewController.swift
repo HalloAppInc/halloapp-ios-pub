@@ -112,6 +112,7 @@ class ComposerViewController: UIViewController {
     private var index = 0
     private var mediaErrorsCount = 0
     private var videoTooLong = false
+    private let showDestinationPicker: Bool
 
     private lazy var groups: [Group] = {
         AppContext.shared.mainDataStore.groups(predicate: NSPredicate(format: "typeValue = %d", GroupType.groupFeed.rawValue),
@@ -123,11 +124,9 @@ class ComposerViewController: UIViewController {
     }()
 
     public var isCompactShareFlow: Bool {
-        if case .contact(_, _, _) = config.destination {
+        if config.isOnboarding {
             return false
-        } else if case .group(_, _) = config.destination {
-            return false
-        } else if initialType == .unified {
+        } else if !showDestinationPicker {
             return false
         } else if AppContext.shared.userDefaults.bool(forKey: "forcePickerShare") {
             return false
@@ -157,12 +156,6 @@ class ComposerViewController: UIViewController {
 
         let button = UIButton(type: .custom)
         button.setImage(image, for: .normal)
-        if case .library = initialType {
-            button.setTitle(Localizations.addMore, for: .normal)
-        }
-
-        button.setTitleColor(.primaryBlue, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 16)
         button.addTarget(self, action: #selector(backAction), for: .touchUpInside)
 
         return UIBarButtonItem(customView: button)
@@ -444,31 +437,25 @@ class ComposerViewController: UIViewController {
         let rightContentInset: CGFloat
         let horizontalImageInset: CGFloat
 
-        if initialType == .unified {
-            icon = UIImage(named: "icon_share")
-            title = Localizations.buttonShare
-            leftContentInset = 20
-            rightContentInset = 16
-            horizontalImageInset = 8
-        } else if case .contact(_, _, _) = config.destination {
-            icon = nil
-            title = Localizations.buttonSend
-            leftContentInset = 16
-            rightContentInset = 16
-            horizontalImageInset = 0
-        } else if case .group(_, _) = config.destination {
-            icon = nil
-            title = Localizations.buttonSend
-            leftContentInset = 16
-            rightContentInset = 16
-            horizontalImageInset = 0
-        } else {
+        if showDestinationPicker, !isCompactShareFlow {
             // chevron left as the button's semantic content attribute is reversed
             icon = UIImage(systemName: "chevron.left")?.imageFlippedForRightToLeftLayoutDirection()
             title = Localizations.sendTo
             leftContentInset = 30
             rightContentInset = 36
             horizontalImageInset = 12
+        } else if case .contact(_, _, _) = config.destination {
+            icon = nil
+            title = Localizations.buttonSend
+            leftContentInset = 16
+            rightContentInset = 16
+            horizontalImageInset = 0
+        } else {
+            icon = UIImage(named: "icon_share")
+            title = Localizations.buttonShare
+            leftContentInset = 20
+            rightContentInset = 16
+            horizontalImageInset = 8
         }
 
         let button = RoundedRectButton()
@@ -508,6 +495,7 @@ class ComposerViewController: UIViewController {
     init(
         config: ComposerConfig,
         type: NewPostMediaSource,
+        showDestinationPicker: Bool,
         input: MentionInput,
         media: [PendingMedia],
         voiceNote: PendingMedia?,
@@ -515,6 +503,7 @@ class ComposerViewController: UIViewController {
     {
         self.config = config
         self.initialType = type
+        self.showDestinationPicker = showDestinationPicker
         self.input = input
         self.media = media
         self.voiceNote = voiceNote

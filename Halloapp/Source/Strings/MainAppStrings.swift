@@ -65,7 +65,13 @@ extension Localizations {
 
     static var fabMoment: String {
         NSLocalizedString("fab.moment.button",
-                   value: "Moment",
+                   value: "New Moment",
+                 comment: "Label for floating moment button on home feed.")
+    }
+
+    static var fabPost: String {
+        NSLocalizedString("fab.moment.button",
+                   value: "New Post",
                  comment: "Label for floating moment button on home feed.")
     }
 

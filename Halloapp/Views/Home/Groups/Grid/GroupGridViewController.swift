@@ -307,7 +307,7 @@ class GroupGridViewController: UIViewController {
 
         let destination = ShareDestination.destination(from: group)
         var viewControllerToDismiss: UIViewController?
-        let newPostViewController = NewPostViewController(source: .unified, destination: destination) { didPost in
+        let newPostViewController = NewPostViewController(source: .unified, destination: destination, showDestinationPicker: false) { didPost in
             guard let viewControllerToDismiss = viewControllerToDismiss else {
                 DDLogError("GroupGridViewController/Missing NewPostViewController to dismiss")
                 return

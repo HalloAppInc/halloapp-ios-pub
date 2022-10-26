@@ -68,11 +68,12 @@ final class NewPostViewController: UINavigationController {
         return .portrait
     }
 
-    init(source: NewPostMediaSource, destination: ShareDestination, usedInTabBar: Bool = false, didFinish: @escaping ((Bool) -> Void)) {
+    init(source: NewPostMediaSource, destination: ShareDestination, usedInTabBar: Bool = false, showDestinationPicker: Bool, didFinish: @escaping ((Bool) -> Void)) {
         self.didFinish = didFinish
         self.state = NewPostState(mediaSource: source)
         self.destination = destination
         self.usedInTabBar = usedInTabBar
+        self.showDestinationPicker = showDestinationPicker
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -98,6 +99,7 @@ final class NewPostViewController: UINavigationController {
     private var state: NewPostState
     private var destination: ShareDestination
     private let usedInTabBar: Bool
+    private let showDestinationPicker: Bool
 
     private func setupTabBarAppearance() {
         let appearance = UITabBarAppearance()
@@ -170,7 +172,12 @@ final class NewPostViewController: UINavigationController {
     }
 
     private func makeComposerViewController() -> UIViewController {
-        return ComposerViewController(config: .config(with: destination), type: state.mediaSource, input: state.pendingInput, media: state.pendingMedia, voiceNote: state.pendingVoiceNote) { [weak self] controller, result , success in
+        return ComposerViewController(config: .config(with: destination),
+                                      type: state.mediaSource,
+                                      showDestinationPicker: showDestinationPicker,
+                                      input: state.pendingInput,
+                                      media: state.pendingMedia,
+                                      voiceNote: state.pendingVoiceNote) { [weak self] controller, result , success in
             guard let self = self else { return }
 
             self.state.pendingInput = result.input
@@ -178,14 +185,12 @@ final class NewPostViewController: UINavigationController {
             self.state.pendingVoiceNote = result.voiceNote
 
             if success {
-                if controller.isCompactShareFlow || self.state.mediaSource == .unified {
-                    self.share(to: result.destinations, result: result)
-                } else if case .group(_, _) = self.destination {
-                    self.share(to: result.destinations, result: result)
-                } else {
+                if result.destinations.isEmpty || (!controller.isCompactShareFlow && self.showDestinationPicker) {
                     UIView.transition(with: self.view, duration: self.transitionDuration, options: [.transitionCrossDissolve]) {
                         self.pushViewController(self.makeDestinationPickerViewController(with: result), animated: false)
                     }
+                } else {
+                    self.share(to: result.destinations, result: result)
                 }
             } else {
                 UIView.transition(with: self.view, duration: self.transitionDuration, options: [.transitionCrossDissolve]) {

@@ -203,10 +203,11 @@ class ExistingNetworkViewController: UIViewController, UserActionHandler {
         let location = length == 0 ? 0 : length - 1
 
         let composer = ComposerViewController(config: .onboardingPost,
-                                                type: .unified,
-                                               input: .init(text: preset, mentions: [:], selectedRange: NSMakeRange(location, 0)),
-                                               media: [],
-                                           voiceNote: nil) { viewController, result, tappedShare in
+                                              type: .unified,
+                                              showDestinationPicker: true,
+                                              input: .init(text: preset, mentions: [:], selectedRange: NSMakeRange(location, 0)),
+                                              media: [],
+                                              voiceNote: nil) { viewController, result, tappedShare in
 
             if tappedShare {
                 self.showDestinationPicker(result: result)

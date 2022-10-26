@@ -1060,7 +1060,7 @@ extension GroupChatViewController: ContentInputDelegate {
         guard let groupDestination = groupDestination else { return }
 
         let input = MentionInput(text: contentInputView.textView.text, mentions: MentionRangeMap(), selectedRange: NSRange())
-        let composerController = ComposerViewController(config: .config(with: groupDestination), type: .library, input: input, media: media, voiceNote: nil) { [weak self] controller, result, success in
+        let composerController = ComposerViewController(config: .config(with: groupDestination), type: .library, showDestinationPicker: false, input: input, media: media, voiceNote: nil) { [weak self] controller, result, success in
             guard let self = self else { return }
 
             let text = result.text?.trimmed().collapsedText ?? ""

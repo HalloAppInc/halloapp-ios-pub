@@ -482,7 +482,7 @@ class GroupFeedViewController: FeedCollectionViewController {
     @objc private func presentNewPostController() {
         guard let group = group else { return }
 
-        let newPostViewController = NewPostViewController(source: .unified, destination: ShareDestination.destination(from: group)) { didPost in
+        let newPostViewController = NewPostViewController(source: .unified, destination: ShareDestination.destination(from: group), showDestinationPicker: false) { didPost in
             MainAppContext.shared.privacySettings.activeType = .all
             self.dismiss(animated: true)
             if didPost { self.scrollToTop(animated: true) }

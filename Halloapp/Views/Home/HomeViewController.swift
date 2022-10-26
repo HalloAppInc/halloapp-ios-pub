@@ -270,7 +270,7 @@ class HomeViewController: UITabBarController {
     }
 
     private func cameraNavigationController() -> UIViewController {
-        let controller = NewPostViewController(source: .camera, destination: .feed(.all), usedInTabBar: true) { didPost in
+        let controller = NewPostViewController(source: .camera, destination: .feed(.all), usedInTabBar: true, showDestinationPicker: true) { didPost in
 
         }
 
