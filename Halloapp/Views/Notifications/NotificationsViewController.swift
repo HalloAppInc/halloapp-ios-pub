@@ -352,11 +352,11 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
             guard let group = MainAppContext.shared.chatData.chatGroup(groupId: groupEvent.groupID, in: MainAppContext.shared.chatData.viewContext) else { return }
             switch group.type {
             case .groupFeed:
-                let groupFeedViewController = GroupFeedViewController(groupId: groupEvent.groupID)
+                let groupFeedViewController = GroupFeedViewController(group: group)
                 groupFeedViewController.groupEventToScrollTo = groupEvent
                 navigationController?.pushViewController(groupFeedViewController, animated: true)
             case .groupChat:
-                let groupChatViewController = GroupChatViewController(for: groupEvent.groupID)
+                let groupChatViewController = GroupChatViewController(for: group)
                 navigationController?.pushViewController(groupChatViewController, animated: true)
             case .oneToOne:
                 break

@@ -72,10 +72,10 @@ class GroupFeedViewController: FeedCollectionViewController {
         }
     }
 
-    init(groupId: GroupID, shouldShowInviteSheet: Bool = false) {
-        self.groupId = groupId
-        self.group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext)
-        self.theme = group?.background ?? 0
+    init(group: Group, shouldShowInviteSheet: Bool = false) {
+        self.groupId = group.id
+        self.group = group
+        self.theme = group.background ?? 0
         self.shouldShowInviteSheet = shouldShowInviteSheet
         shouldRestoreScrollPosition = Self.cachedScrollPositions[groupId] != nil
         super.init(title: nil, fetchRequest: FeedDataSource.groupFeedRequest(groupID: groupId))
@@ -89,11 +89,11 @@ class GroupFeedViewController: FeedCollectionViewController {
     convenience init?(metadata: NotificationMetadata) {
         guard
             let id = metadata.groupId,
-            let _ = MainAppContext.shared.chatData.chatGroup(groupId: id, in: MainAppContext.shared.chatData.viewContext)
+            let group = MainAppContext.shared.chatData.chatGroup(groupId: id, in: MainAppContext.shared.chatData.viewContext)
         else {
             return nil
         }
-        self.init(groupId: id)
+        self.init(group: group)
         self.feedPostIdToScrollTo = metadata.postId
     }
 
@@ -534,8 +534,8 @@ extension GroupFeedViewController: GroupTitleViewDelegate {
     }
 
     func groupTitleViewRequestsOpenGroupFeed(_ groupTitleView: GroupTitleView) {
-        if MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) != nil {
-            let vc = GroupFeedViewController(groupId: groupId)
+        if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
+            let vc = GroupFeedViewController(group: group)
             navigationController?.pushViewController(vc, animated: true)
         }
     }

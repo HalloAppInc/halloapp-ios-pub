@@ -492,8 +492,8 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Sh
     }
 
     private func showGroupFeed(for groupID: GroupID) {
-        guard MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext) != nil else { return }
-        let vc = GroupFeedViewController(groupId: groupID)
+        guard let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext) else { return }
+        let vc = GroupFeedViewController(group: group)
         navigationController?.pushViewController(vc, animated: true)
     }
 

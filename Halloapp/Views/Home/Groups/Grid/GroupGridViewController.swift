@@ -151,10 +151,18 @@ class GroupGridViewController: UIViewController {
         cancellableSet.insert(
             MainAppContext.shared.groupFeedFromGroupTabPresentRequest.sink { [weak self] (groupID) in
                 guard let self = self else { return }
-                guard let groupID = groupID else { return }
+                guard let groupID = groupID, let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext) else { return }
                 self.navigationController?.popToRootViewController(animated: false)
-                let vc = GroupFeedViewController(groupId: groupID)
-                self.navigationController?.pushViewController(vc, animated: false)
+                switch group.type {
+                case .groupFeed:
+                    let vc = GroupFeedViewController(group: group)
+                    self.navigationController?.pushViewController(vc, animated: false)
+                case .groupChat:
+                    let vc = GroupChatViewController(for: group)
+                    self.navigationController?.pushViewController(vc, animated: false)
+                case .oneToOne:
+                    break
+                }
             }
         )
     }
@@ -237,7 +245,7 @@ class GroupGridViewController: UIViewController {
                 let groupID = group.id
                 header.configure(with: group)
                 header.openGroupFeed = { [weak self] in
-                    self?.navigationController?.pushViewController(GroupFeedViewController(groupId: groupID), animated: true)
+                    self?.navigationController?.pushViewController(GroupFeedViewController(group: group), animated: true)
                 }
                 header.composeGroupPost = { [weak self] in self?.createPost(in: groupID) }
                 header.menuActions = { [weak self] in self?.menuActionsForGroup(groupID: groupID) ?? [] }
@@ -290,7 +298,9 @@ class GroupGridViewController: UIViewController {
             while viewControllers.last != self {
                 viewControllers.removeLast()
             }
-            viewControllers.append(GroupFeedViewController(groupId: groupID, shouldShowInviteSheet: true))
+            if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext) {
+                viewControllers.append(GroupFeedViewController(group: group, shouldShowInviteSheet: true))
+            }
 
             // A new group should be the first item in the list, scroll to top
             self.scrollToTop(animated: false)
@@ -422,7 +432,12 @@ extension GroupGridViewController: UICollectionViewDelegate {
         guard let feedPost = dataSource.feedPost(at: indexPath), let groupID = feedPost.groupID else {
             return
         }
-        let groupFeedViewController = GroupFeedViewController(groupId: groupID)
+        let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext)
+        guard let group = group else {
+            DDLogError("GroupGridViewController/ group not found")
+            return
+        }
+        let groupFeedViewController = GroupFeedViewController(group: group)
         groupFeedViewController.feedPostIdToScrollTo = feedPost.id
         navigationController?.pushViewController(groupFeedViewController, animated: true)
     }
@@ -462,12 +477,12 @@ extension GroupGridViewController: UIViewControllerHandleTapNotification {
 
         switch metadata.contentType {
         case .groupFeedPost, .groupFeedComment:
-            if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
+            if let groupId = metadata.groupId, let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
                 if let vc = GroupFeedViewController(metadata: metadata) {
                     vc.delegate = self
                     self.navigationController?.pushViewController(vc, animated: false)
                 } else {
-                    let vc = GroupFeedViewController(groupId: groupId)
+                    let vc = GroupFeedViewController(group: group)
                     vc.delegate = self
                     self.navigationController?.pushViewController(vc, animated: false)
                 }
@@ -492,10 +507,10 @@ extension GroupGridViewController: UIViewControllerHandleTapNotification {
         guard let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) else { return }
         switch group.type {
         case .groupFeed:
-            let groupFeedViewController = GroupFeedViewController(groupId: groupId)
+            let groupFeedViewController = GroupFeedViewController(group: group)
             navigationController?.pushViewController(groupFeedViewController, animated: true)
         case .groupChat:
-            let groupChatViewController = GroupChatViewController(for: groupId)
+            let groupChatViewController = GroupChatViewController(for: group)
             navigationController?.pushViewController(groupChatViewController, animated: true)
         case .oneToOne:
             break

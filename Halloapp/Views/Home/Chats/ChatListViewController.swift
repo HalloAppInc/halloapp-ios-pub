@@ -548,8 +548,8 @@ extension ChatListViewController: UIViewControllerHandleTapNotification {
     }
     
     private func routeTo(groupId: GroupID, animated: Bool) {
-        if let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
-            let vc = GroupChatViewController(for: groupId)
+        if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
+            let vc = GroupChatViewController(for: group)
             self.navigationController?.pushViewController(vc, animated: true)
         } else {
             AppContext.shared.errorLogger?.logError(NSError(domain: "missingGroup", code: 1013))
@@ -641,8 +641,8 @@ extension ChatListViewController: UITableViewDelegate {
             }
         }
         
-        if let groupId = chatThread.groupId {
-            let vc = GroupChatViewController(for: groupId)
+        if let groupId = chatThread.groupId, let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
+            let vc = GroupChatViewController(for: group)
             self.navigationController?.pushViewController(vc, animated: true)
         }
 
@@ -765,7 +765,8 @@ extension ChatListViewController: NewChatViewControllerDelegate {
     }
 
     func newChatViewController(_ controller: NewChatViewController, didSelectGroup groupId: GroupID) {
-        let vc = GroupChatViewController(for: groupId)
+        guard let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) else { return }
+        let vc = GroupChatViewController(for: group)
         self.navigationController?.pushViewController(vc, animated: true)
         DispatchQueue.main.async {
             vc.showKeyboard()

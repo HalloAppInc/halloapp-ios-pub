@@ -284,10 +284,10 @@ class GroupsInCommonViewController: UIViewController, NSFetchedResultsController
         guard let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) else { return }
         switch group.type {
         case .groupFeed:
-            let groupFeedViewController = GroupFeedViewController(groupId: groupId)
+            let groupFeedViewController = GroupFeedViewController(group: group)
             navigationController?.pushViewController(groupFeedViewController, animated: true)
         case .groupChat:
-            let groupChatViewController = GroupChatViewController(for: groupId)
+            let groupChatViewController = GroupChatViewController(for: group)
             navigationController?.pushViewController(groupChatViewController, animated: true)
         case .oneToOne:
             break

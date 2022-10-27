@@ -678,8 +678,8 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     
     @objc private func showGroupFeed(groupId: GroupID) {
         guard let feedPost = self.feedPost, let groupId = feedPost.groupId else { return }
-        guard MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.feedData.viewContext) != nil else { return }
-        let vc = GroupFeedViewController(groupId: groupId)
+        guard let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.feedData.viewContext) else { return }
+        let vc = GroupFeedViewController(group: group)
         navigationController?.pushViewController(vc, animated: true)
     }
 

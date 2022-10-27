@@ -356,14 +356,10 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
         return layout
     }
 
-    init(for groupId: GroupID) {
-        self.groupId = groupId
-        self.group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext)
+    init(for group: Group) {
+        self.groupId = group.id
+        self.group = group
         super.init(nibName: nil, bundle: nil)
-        guard let group else {
-            DDLogError("GroupChatViewController/init/ group does not exisit goupId: \(groupId)")
-            return
-        }
         DDLogDebug("GroupChatViewController/init/\(group.id) [\(group.name))]")
         self.hidesBottomBarWhenPushed = true
     }
