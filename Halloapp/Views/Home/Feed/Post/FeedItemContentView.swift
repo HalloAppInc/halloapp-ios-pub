@@ -1167,7 +1167,7 @@ final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
         var unreadNumber: Int32 = 0 {
             didSet {
                 guard unreadNumber != 0 else {
-                    self.numberView.isHidden = true
+                    numberView.isHidden = true
                     return
                 }
                 let style = NSMutableParagraphStyle()
@@ -1177,47 +1177,40 @@ final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
                 if unreadNumber < 100 {
                     let number = NSMutableAttributedString(string: String(unreadNumber))
                     number.setAttributes(numberAttribute, range: number.utf16Extent)
-                    self.numberView.attributedText = number
+                    numberView.attributedText = number
                 } else {
                     let number = NSMutableAttributedString(string: "!!!")
                     number.setAttributes(numberAttribute, range: number.utf16Extent)
-                    self.numberView.attributedText = number
+                    numberView.attributedText = number
                 }
+                numberView.isHidden = false
             }
         }
 
         var comment: CommentState = .noComment {
             didSet {
+                let isBadgeHidden: Bool
+                let image: UIImage?
+
                 switch self.comment {
                 case .noComment:
-                    self.badgeView.isHidden = true
-                    self.badgeOutlineView.isHidden = true
-                    self.numberView.isHidden = true
-                    self.setImage(UIImage(named: "FeedPostComment.empty"), for: .normal)
-                    self.tintColor = .label
-                    self.setTitleColor(.label, for: .normal)
+                    isBadgeHidden = true
+                    image = UIImage(named: "FeedPostComment.empty")?
+                        .withTintColor(.label.withAlphaComponent(0.7), renderingMode: .alwaysOriginal)
 
                 case .unread:
-                    self.badgeView.isHidden = true
-                    self.badgeOutlineView.isHidden = true
-                    self.numberView.isHidden = false
-                    self.setImage(UIImage(named: "FeedPostComment.fill"), for: .normal)
-                    self.tintColor = UIColor.commentIndicatorUnread
-                    self.setTitleColor(.label, for: .normal)
-
+                    isBadgeHidden = true
+                    image = UIImage(named: "FeedPostComment.fill")?
+                        .withTintColor(.systemBlue, renderingMode: .alwaysOriginal)
 
                 case .allRead:
-                    self.badgeView.isHidden = false
-                    self.badgeView.fillColor = .systemGray4
-                    self.badgeView.alpha = 1.0
-                    self.badgeOutlineView.isHidden = false
-                    self.badgeOutlineView.fillColor = UIColor.messageFooterBackground
-                    self.numberView.isHidden = true
-                    self.setImage(UIImage(named: "FeedPostComment.empty"), for: .normal)
-                    self.tintColor = .label
-                    self.setTitleColor(.label, for: .normal)
-
+                    isBadgeHidden = false
+                    image = UIImage(named: "FeedPostComment.empty")?
+                        .withTintColor(.label.withAlphaComponent(0.7), renderingMode: .alwaysOriginal)
                 }
+                badgeView.isHidden = isBadgeHidden
+                badgeOutlineView.isHidden = isBadgeHidden
+                setImage(image, for: .normal)
             }
         }
 
@@ -1226,8 +1219,12 @@ final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
         private let numberView = UILabel(frame: CGRect(origin: .zero, size: CGSize(width: 18, height: 14)))
         
         private func setupView() {
+            badgeOutlineView.fillColor = UIColor.messageFooterBackground
             self.addSubview(badgeOutlineView)
+
+            badgeView.fillColor = .systemGray4
             self.addSubview(badgeView)
+
             self.addSubview(numberView)
         }
 
@@ -1289,13 +1286,17 @@ final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
     lazy var trailingStackView: UIStackView = {
         let stackView = UIStackView(arrangedSubviews: [facePileView, reactionPileView, reactionButton, messageButton, shareButton])
         stackView.spacing = 16
+        stackView.setCustomSpacing(4, after: reactionPileView)
         return stackView
     }()
 
     // Gotham Medium, 15 pt (Subhead)
     lazy var messageButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(named: "FeedReplyButton"), for: .normal)
+        button.setImage(
+            UIImage(named: "FeedReplyButton")?
+                .withTintColor(.label.withAlphaComponent(0.7), renderingMode: .alwaysOriginal),
+            for: .normal)
         button.contentHorizontalAlignment = .trailing
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
@@ -1304,7 +1305,10 @@ final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
     lazy var reactionButton: UIButton = {
         let button = UIButton(type: .system)
         button.addTarget(self, action: #selector(reactButtonAction), for: .touchUpInside)
-        button.setImage(UIImage(named: "FeedReactionButton"), for: .normal)
+        button.setImage(
+            UIImage(named: "FeedReactionButton")?
+                .withTintColor(.label.withAlphaComponent(0.7), renderingMode: .alwaysOriginal),
+            for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -1337,7 +1341,7 @@ final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
         let shareButton = UIButton(type: .system)
         shareButton.addTarget(self, action: #selector(shareButtonAction), for: .touchUpInside)
         let shareIcon = UIImage(named: "shareButton")?
-            .withConfiguration(UIImage.SymbolConfiguration(pointSize: 12, weight: .semibold))
+            .withTintColor(.label.withAlphaComponent(0.7), renderingMode: .alwaysOriginal)
         shareButton.setImage(shareIcon, for: .normal)
         shareButton.translatesAutoresizingMaskIntoConstraints = false
         return shareButton
@@ -1371,8 +1375,8 @@ final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
 
     private func setupButton(_ button: UIButton, spacing: CGFloat = 4) {
         // Gotham Medium, 15 pt (Subhead)
-        let font = UIFont.gothamFont(forTextStyle: .footnote, weight: .medium, maximumPointSize: 18)
-        button.imageView?.tintColor = .label.withAlphaComponent(0.75)
+        let font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium, maximumPointSize: 18)
+        button.setTitleColor(.label.withAlphaComponent(0.75), for: .normal)
         button.titleLabel?.font = font
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.titleLabel?.lineBreakMode = .byWordWrapping
