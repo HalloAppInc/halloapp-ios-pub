@@ -175,8 +175,6 @@ open class CoreFeedData: NSObject {
                 DDLogError("FeedData/new-post/mention/\($0.userID) missing push name")
             }
 
-            let shouldStreamFeedVideo = ServerProperties.streamingSendingEnabled || ChunkedMediaTestConstants.STREAMING_FEED_GROUP_IDS.contains(feedPost.groupId ?? "")
-
             var mediaIDs: [CommonMediaID] = []
 
             // Add post media.
@@ -193,12 +191,12 @@ open class CoreFeedData: NSObject {
                 feedMedia.key = ""
                 feedMedia.sha256 = ""
                 feedMedia.order = Int16(index)
-                feedMedia.blobVersion = (mediaItem.type == .video && shouldStreamFeedVideo) ? .chunked : .default
+                feedMedia.blobVersion = (mediaItem.type == .video && ServerProperties.streamingSendingEnabled) ? .chunked : .default
                 feedMedia.post = feedPost
                 feedMedia.mediaDirectory = .commonMedia
 
                 if let url = mediaItem.fileURL {
-                    ImageServer.shared.attach(for: url, id: mediaID, index: index)
+                    ImageServer.shared.associate(url: url, with: mediaID)
                 }
 
                 // Copying depends on all data fields being set, so do this last.
@@ -455,20 +453,14 @@ open class CoreFeedData: NSObject {
         for mediaItem in media {
             let mediaID = mediaItem.id
             let mediaItemProgressPublisher = mediaItem.statusPublisher
-                .flatMap { [weak commonMediaUploader] status -> AnyPublisher<Float, Never> in
+                .flatMap(maxPublishers: .max(1)) { [weak commonMediaUploader] status -> AnyPublisher<Float, Never> in
                     switch status {
                     case .uploaded:
                         return Just(Float(1)).eraseToAnyPublisher()
                     case .none, .readyToUpload, .uploadError:
-                        let imageServerProgress: AnyPublisher<Float, Never> = ImageServer.shared.progress
-                            .prepend(mediaID)
-                            .filter { $0 == mediaID }
-                            .map { _ -> Float in
-                                let (processingCount, processingProgress) = ImageServer.shared.progress(for: mediaID)
-                                return 0.5 * processingProgress * Float(processingCount) / Float(mediaCount) // Assume half of progress is for uploading
-                            }
+                        return ImageServer.shared.progress(mediaID: mediaID)
+                            .map { $0 * 0.5 }
                             .eraseToAnyPublisher()
-                        return imageServerProgress
                     case .processedForUpload, .uploading:
                         if let commonMediaUploader = commonMediaUploader {
                             return commonMediaUploader.progress(for: mediaID)

@@ -637,7 +637,7 @@ extension CommonMediaUploader {
 
     private func encodeMedia(mediaID: CommonMediaID, type: CommonMediaType, mediaURL: URL, blobVersion: BlobVersion) async throws -> ImageServerResult {
         return try await withCheckedThrowingContinuation { continuation in
-            ImageServer.shared.prepare(type, url: mediaURL, for: mediaID, shouldStreamVideo: blobVersion == .chunked) { result in
+            ImageServer.shared.prepare(type, url: mediaURL, mediaID: mediaID, shouldStreamVideo: blobVersion == .chunked) { result in
                 continuation.resume(with: result)
             }
         }
@@ -714,7 +714,7 @@ extension CommonMediaUploader {
 
     public func progress(for mediaID: CommonMediaID) -> AnyPublisher<Float, Never> {
         return taskPublisher(for: mediaID)
-            .flatMap { $0.progressPublisher }
+            .flatMap(maxPublishers: .max(1)) { $0.progressPublisher }
             .eraseToAnyPublisher()
     }
 
@@ -837,7 +837,7 @@ extension CommonMediaUploader: URLSessionTaskDelegate {
                     uploadTask.currentURLTask = urlSessionUploadTask
                 } else {
                     await uploadTaskManager.cancelAndRemoveTask(for: mediaID)
-                    ImageServer.shared.clearAllTasks(for: mediaID)
+                    ImageServer.shared.clearTask(for: mediaID)
                 }
             case .failure:
                 try? await self.updateMedia(with: mediaID) { media in
@@ -845,7 +845,7 @@ extension CommonMediaUploader: URLSessionTaskDelegate {
                 }
                 dispatchMediaStatusChanged(with: mediaID)
                 await uploadTaskManager.cancelAndRemoveTask(for: mediaID)
-                ImageServer.shared.clearAllTasks(for: mediaID)
+                ImageServer.shared.clearTask(for: mediaID)
             }
             backgroundTaskCompletion()
         }

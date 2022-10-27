@@ -410,7 +410,7 @@ class PostComposerViewController: UIViewController {
                         ImageServer.shared.clearTask(for: previous)
                     }
 
-                    ImageServer.shared.prepare(item.type, url: url, shouldStreamVideo: false)
+                    ImageServer.shared.prepare(item.type, url: url, shouldStreamVideo: item.type == .video && ServerProperties.streamingSendingEnabled)
                 }
 
                 if item.ready.value {

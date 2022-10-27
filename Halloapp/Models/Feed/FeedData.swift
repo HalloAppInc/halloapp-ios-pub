@@ -3143,8 +3143,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogError("FeedData/new-post/mention/\($0.userID) missing push name")
         }
 
-        let shouldStreamFeedVideo = ServerProperties.streamingSendingEnabled || ChunkedMediaTestConstants.STREAMING_FEED_GROUP_IDS.contains(feedPost.groupId ?? "")
-
         // Add post media.
         for (index, mediaItem) in media.enumerated() {
             DDLogDebug("FeedData/new-post/add-media [\(mediaItem.fileURL!)]")
@@ -3157,7 +3155,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedMedia.key = ""
             feedMedia.sha256 = ""
             feedMedia.order = Int16(index)
-            feedMedia.blobVersion = (mediaItem.type == .video && shouldStreamFeedVideo) ? .chunked : .default
+            feedMedia.blobVersion = (mediaItem.type == .video && ServerProperties.streamingSendingEnabled) ? .chunked : .default
             feedMedia.post = feedPost
             feedMedia.mediaDirectory = .commonMedia
 

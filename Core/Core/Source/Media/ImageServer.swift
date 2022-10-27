@@ -92,8 +92,13 @@ public class ImageServer {
     public typealias Completion = (Result<ImageServerResult, Error>) -> ()
 
     private class Task {
+        // legacy identifiers
         var id: String?
         var index: Int?
+
+        // new uploader identifiers
+        var associatedMediaIDs = Set<FeedPostID>()
+
         var url: URL
         var shouldStreamVideo: Bool
         var progress: Float {
@@ -101,8 +106,10 @@ public class ImageServer {
                 if let id = self.id {
                     ImageServer.shared.progress.send(id)
                 }
+                progressPublisher.send(progress)
             }
         }
+        var progressPublisher = CurrentValueSubject<Float, Never>(0)
         var result: Result<ImageServerResult, Error>? {
             didSet {
                 guard let result = self.result else { return }
@@ -119,13 +126,16 @@ public class ImageServer {
         var callbacks: [Completion] = []
         var videoExporter: CancelableExporter?
 
-        internal init(id: String?, index: Int?, url: URL, shouldStreamVideo: Bool, completion: Completion?) {
+        internal init(id: String?, index: Int?, mediaID: CommonMediaID?, url: URL, shouldStreamVideo: Bool, completion: Completion?) {
             if let completion = completion {
                 self.callbacks.append(completion)
             }
 
             self.id = id
             self.index = index
+            if let mediaID = mediaID {
+                associatedMediaIDs.insert(mediaID)
+            }
             self.url = url
             self.shouldStreamVideo = shouldStreamVideo
             self.progress = 0
@@ -138,6 +148,7 @@ public class ImageServer {
     private let processingQueue = DispatchQueue(label: "ImageServer.MediaProcessing", qos: .userInitiated)
     private var tasks = [Task]()
     public let progress = PassthroughSubject<String, Never>()
+    private let taskCreatedPublisher = PassthroughSubject<Task, Never>()
     private let chunkSize = 512 * 1024 // 0.5MB
 
     private init() {}
@@ -149,6 +160,18 @@ public class ImageServer {
 
             let total = items.reduce(into: Float(0)) { $0 += $1.progress }
             return (items.count, total / Float(items.count))
+        }
+    }
+
+    public func progress(mediaID: String) -> AnyPublisher<Float, Never> {
+        taskQueue.sync {
+            if let task = tasks.first(where: { $0.associatedMediaIDs.contains(mediaID) }) {
+                return task.progressPublisher.eraseToAnyPublisher()
+            }
+            return taskCreatedPublisher
+                .filter { $0.associatedMediaIDs.contains(mediaID) }
+                .flatMap { $0.progressPublisher }
+                .eraseToAnyPublisher()
         }
     }
 
@@ -202,12 +225,32 @@ public class ImageServer {
         }
     }
 
+    public func clearTask(for mediaID: CommonMediaID, keepFiles: Bool = true) {
+        taskQueue.sync { [weak self] in
+            self?.tasks.removeAll { task in
+                if task.associatedMediaIDs.contains(mediaID) {
+                    if task.associatedMediaIDs.count == 1 {
+                        task.videoExporter?.cancel()
+                        if case .success(let result) = task.result, !keepFiles {
+                            result.clear()
+                        }
+                        return true
+                    } else {
+                        task.associatedMediaIDs.remove(mediaID)
+                        return false
+                    }
+                }
+                return false
+            }
+        }
+    }
+
     public func clearUnattachedTasks(keepFiles: Bool = true) {
         taskQueue.sync { [weak self] in
             guard let self = self else { return }
 
             for task in self.tasks {
-                guard task.id == nil else { continue }
+                guard task.id == nil, task.associatedMediaIDs.isEmpty else { continue }
                 task.videoExporter?.cancel()
 
                 if case .success(let result) = task.result, !keepFiles {
@@ -222,15 +265,27 @@ public class ImageServer {
     // Prevents having more than 3 instances of AVAssetReader
     private static let mediaProcessingSemaphore = DispatchSemaphore(value: 3)
 
-    private func find(url: URL, id: String? = nil, index: Int? = nil, shouldStreamVideo: Bool? = nil) -> Task? {
+    private func find(url: URL, id: String? = nil, index: Int? = nil, mediaID: CommonMediaID? = nil, shouldStreamVideo: Bool? = nil) -> Task? {
         taskQueue.sync {
-            if let t = (tasks.first { $0.url == url && (shouldStreamVideo == nil || $0.shouldStreamVideo == shouldStreamVideo) }) {
-                return t
-            } else if let id = id, let index = index, let t = (tasks.first { $0.id == id && $0.index == index && (shouldStreamVideo == nil || $0.shouldStreamVideo == shouldStreamVideo) }) {
-                return t
-            }
+            return tasks.first { task in
+                guard shouldStreamVideo == nil || task.shouldStreamVideo == shouldStreamVideo else {
+                    return false
+                }
 
-            return nil
+                if url == task.url {
+                    return true
+                }
+
+                if let id = id, let index = index, task.id == id, task.index == index {
+                    return true
+                }
+
+                if let mediaID = mediaID, task.associatedMediaIDs.contains(mediaID) {
+                    return true
+                }
+
+                return false
+            }
         }
     }
 
@@ -245,13 +300,22 @@ public class ImageServer {
         }
     }
 
-    public func prepare(_ type: CommonMediaType, url: URL, for id: String? = nil, index: Int? = nil, shouldStreamVideo: Bool, completion: Completion? = nil) {
+    public func associate(url: URL, with mediaID: CommonMediaID) {
+        if let task = self.find(url: url, mediaID: mediaID) {
+            task.associatedMediaIDs.insert(mediaID)
+        }
+    }
+
+    public func prepare(_ type: CommonMediaType, url: URL, for id: String? = nil, index: Int? = nil, mediaID: CommonMediaID? = nil, shouldStreamVideo: Bool, completion: Completion? = nil) {
         processingQueue.async { [weak self] in
             guard let self = self else { return }
 
-            if let task = self.find(url: url, id: id, index: index, shouldStreamVideo: shouldStreamVideo) {
+            if let task = self.find(url: url, id: id, index: index, mediaID: mediaID, shouldStreamVideo: shouldStreamVideo) {
                 task.id = id
                 task.index = index
+                if let mediaID = mediaID {
+                    task.associatedMediaIDs.insert(mediaID)
+                }
 
                 if let completion = completion {
                     task.callbacks.append(completion)
@@ -264,8 +328,9 @@ public class ImageServer {
                 return
             }
 
-            let task = Task(id: id, index: index, url: url, shouldStreamVideo: shouldStreamVideo, completion: completion)
+            let task = Task(id: id, index: index, mediaID: mediaID, url: url, shouldStreamVideo: shouldStreamVideo, completion: completion)
             self.tasks.append(task)
+            self.taskCreatedPublisher.send(task)
 
             let onCompletion: (Result<(URL, CGSize), Error>) -> Void = { [weak self] result in
                 guard let self = self else { return }

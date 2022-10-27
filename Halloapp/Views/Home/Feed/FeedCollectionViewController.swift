@@ -1015,6 +1015,9 @@ extension FeedCollectionViewController {
         cell.reactAction = { reaction in
             MainAppContext.shared.feedData.updatePostReaction(reaction, for: postId)
         }
+        cell.deleteAction = { [weak self] in
+            MainAppContext.shared.feedData.deleteUnsentPost(postID: postId)
+        }
         cell.delegate = self
     }
 

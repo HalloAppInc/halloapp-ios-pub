@@ -327,8 +327,7 @@ class DataStore: ShareExtensionDataStore {
                 }
 
                 // Code for streaming upload/download.
-                let shouldStreamFeedVideo = ServerProperties.streamingSendingEnabled || ChunkedMediaTestConstants.STREAMING_FEED_GROUP_IDS.contains(group.id)
-                if shouldStreamFeedVideo {
+                if ServerProperties.streamingSendingEnabled {
                     feedPost.media?.forEach({ $0.blobVersion = ($0.type == .video) ? .chunked : .default })
                 }
             } else {

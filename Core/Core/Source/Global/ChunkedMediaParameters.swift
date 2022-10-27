@@ -8,10 +8,6 @@
 
 import Foundation
 
-public struct ChunkedMediaTestConstants {
-    public static let STREAMING_FEED_GROUP_IDS = ["gmYchx3MBOXerd7QTmWqsO", "gGSFDZYubalo4izDKhE-Vv"]
-}
-
 enum ChunkedMediaParametersError: Error {
     case chunkSizeNotAligned
     case chunkSizeTooSmall
