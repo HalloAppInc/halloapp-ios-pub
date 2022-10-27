@@ -187,6 +187,12 @@ class MessageCellViewQuoted: MessageCellViewBase {
     override func configureWith(message: ChatMessage, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
         super.configureWith(message: message, userColorAssignment: userColorAssignment, parentUserColorAssignment: parentUserColorAssignment, isPreviousMessageFromSameSender: isPreviousMessageFromSameSender)
         audioMediaStatusCancellable?.cancel()
+
+        if message.chatMessageRecipient.chatType == .groupChat {
+            setNameLabel(for: message.fromUserID)
+            nameContentTimeRow.addArrangedSubview(nameRow)
+        }
+
         guard message.chatReplyMessageID != nil || message.feedPostId != nil else { return }
         configureText(chatMessage: message)
         // Configure parent chat view
