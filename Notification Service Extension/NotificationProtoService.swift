@@ -656,7 +656,7 @@ final class NotificationProtoService: ProtoServiceCore {
             DDLogError("NotificationExtension/processCommentData/failed to get commentData, contentId: \(metadata.contentId)")
             return
         }
-        if case .commentReaction(value: _) = commentData.content {
+        if case .reaction(value: _) = commentData.content {
             self.processReaction(reaction: commentData, metadata: metadata, ack: ack)
             return
         }

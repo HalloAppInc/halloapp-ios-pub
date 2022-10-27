@@ -577,7 +577,7 @@ public extension CommentData {
             var voiceNote = Clients_VoiceNote()
             voiceNote.audio = protoResource
             commentContainer.voiceNote = voiceNote
-        case .commentReaction(let emoji):
+        case .reaction(let emoji):
             var reaction = Clients_Reaction()
             reaction.emoji = emoji
             commentContainer.reaction = reaction
@@ -601,8 +601,8 @@ public extension CommentData {
         comment.publisherUid = Int64(userId) ?? 0
         comment.timestamp = Int64(timestamp.timeIntervalSince1970)
         switch content {
-        case .commentReaction:
-            comment.commentType = .commentReaction
+        case .reaction:
+            comment.commentType = parentId == nil ? .postReaction : .commentReaction
         case .text, .voiceNote, .album, .unsupported, .retracted, .waiting:
             comment.commentType = .comment
         }

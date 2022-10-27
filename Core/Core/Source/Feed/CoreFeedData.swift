@@ -652,7 +652,7 @@ open class CoreFeedData: NSObject {
         return self.commonReactions(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
     }
 
-    public func commonReaction(from userID: UserID, on commentID: FeedPostCommentID, in managedObjectContext: NSManagedObjectContext) -> CommonReaction? {
+    public func commonReaction(from userID: UserID, onComment commentID: FeedPostCommentID, in managedObjectContext: NSManagedObjectContext) -> CommonReaction? {
         let fetchRequest: NSFetchRequest<CommonReaction> = CommonReaction.fetchRequest()
 
         fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
@@ -663,7 +663,23 @@ open class CoreFeedData: NSObject {
             let reactions = try managedObjectContext.fetch(fetchRequest)
             return reactions.first
         } catch {
-            DDLogError("NotificationProtoService/fetch-posts/error  [\(error)]")
+            DDLogError("NotificationProtoService/fetch-reaction-on-comment/error  [\(error)]")
+            fatalError("Failed to fetch reactions.")
+        }
+    }
+
+    public func commonReaction(from userID: UserID, onPost postID: FeedPostID, in managedObjectContext: NSManagedObjectContext) -> CommonReaction? {
+        let fetchRequest: NSFetchRequest<CommonReaction> = CommonReaction.fetchRequest()
+
+        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(format: "fromUserID == %@ && post.id == %@", userID, postID)
+        ])
+        fetchRequest.returnsObjectsAsFaults = false
+        do {
+            let reactions = try managedObjectContext.fetch(fetchRequest)
+            return reactions.first
+        } catch {
+            DDLogError("NotificationProtoService/fetch-reaction-on-post/error  [\(error)]")
             fatalError("Failed to fetch reactions.")
         }
     }
@@ -903,7 +919,7 @@ open class CoreFeedData: NSObject {
 
             // Status
             switch commentData.content {
-            case .album, .text, .voiceNote, .commentReaction:
+            case .album, .text, .voiceNote, .reaction:
                 if commentData.status == .rerequesting {
                     feedComment.status = .rerequesting
                 } else {
@@ -989,11 +1005,16 @@ open class CoreFeedData: NSObject {
             }
 
             // Remove reaction from the same author on the same content if any.
-            if let parentId = xmppReaction.parentId {
-                if let duplicateReaction = self.commonReaction(from: xmppReaction.userId, on: parentId, in: managedObjectContext) {
-                    managedObjectContext.delete(duplicateReaction)
-                    DDLogInfo("CoreFeedData/process/saveReactionData/remove-old-reaction/reactionID [\(duplicateReaction.id)]")
+            let duplicateReaction: CommonReaction? = {
+                if let parentId = xmppReaction.parentId {
+                    return self.commonReaction(from: xmppReaction.userId, onComment: parentId, in: managedObjectContext)
+                } else {
+                    return self.commonReaction(from: xmppReaction.userId, onPost: xmppReaction.feedPostId, in: managedObjectContext)
                 }
+            }()
+            if let duplicateReaction = duplicateReaction {
+                managedObjectContext.delete(duplicateReaction)
+                DDLogInfo("CoreFeedData/process/saveReactionData/remove-old-reaction/reactionID [\(duplicateReaction.id)]")
             }
 
             // Find reaction's post.
@@ -1045,7 +1066,7 @@ open class CoreFeedData: NSObject {
             commonReaction.id = xmppReaction.id
             commonReaction.fromUserID = xmppReaction.userId
             switch xmppReaction.content {
-            case .commentReaction(let emoji):
+            case .reaction(let emoji):
                 commonReaction.emoji = emoji
             case .album, .text, .voiceNote, .unsupported, .retracted, .waiting:
                 DDLogError("CoreFeedData/process-reaction content not reaction type")
@@ -1056,7 +1077,7 @@ open class CoreFeedData: NSObject {
 
             // Set status for each comment appropriately.
             switch xmppReaction.content {
-            case .commentReaction:
+            case .reaction:
                 if commonReaction.fromUserID == currentUserId {
                     commonReaction.outgoingStatus = .sentOut
                 } else {
@@ -1349,7 +1370,7 @@ open class CoreFeedData: NSObject {
                                                   timestamp: commentReaction.timestamp,
                                                   feedPostId: parentComment.post.id,
                                                   parentId: parentComment.id,
-                                                  content: .commentReaction(commentReaction.emoji),
+                                                  content: .reaction(commentReaction.emoji),
                                                   status: .sent)
                     self.service.resendComment(commentData, groupId: groupId, rerequestCount: Int32(rerequestCount), to: userID) { result in
                         switch result {
@@ -1505,7 +1526,7 @@ open class CoreFeedData: NSObject {
                                                   timestamp: commentReaction.timestamp,
                                                   feedPostId: parentComment.post.id,
                                                   parentId: parentComment.id,
-                                                  content: .commentReaction(commentReaction.emoji),
+                                                  content: .reaction(commentReaction.emoji),
                                                   status: .sent)
                     self.service.resendComment(commentData, groupId: nil, rerequestCount: Int32(rerequestCount), to: userID) { result in
                         switch result {

@@ -404,7 +404,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         } else {
                             homeFeedElements.append(.comment(commentData, publisherName: nil))
                         }
-                    case .commentReaction:
+                    case .reaction:
                         DDLogInfo("FeedData/processUnsupportedItems/comments/reaction/migrating [\(comment.id)]")
                         if let groupID = comment.post.groupId {
                             var elements = groupFeedElements[groupID] ?? []
@@ -1479,7 +1479,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     feedCommentMedia.order = 0
                     feedCommentMedia.sha256 = media.sha256
                     feedCommentMedia.comment = comment
-                case .commentReaction(let emoji):
+                case .reaction(let emoji):
                     comment.rawText = emoji
                 case .retracted:
                     comment.rawText = ""
@@ -1492,7 +1492,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
                 // Set status for each comment appropriately.
                 switch xmppComment.content {
-                case .album, .text, .commentReaction, .voiceNote:
+                case .album, .text, .reaction, .voiceNote:
                     // Mark our own comments as seen in case server sends us old comments following re-registration
                     if comment.userId == userData.userId {
                         comment.status = .sent
@@ -1590,11 +1590,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
 
             // Remove reaction from the same author on the same content if any.
-            if let parentId = xmppReaction.parentId {
-                if let duplicateReaction = self.coreFeedData.commonReaction(from: xmppReaction.userId, on: parentId, in: managedObjectContext) {
-                    managedObjectContext.delete(duplicateReaction)
-                    DDLogInfo("FeedData/process-reactions/saveReactionData/remove-old-reaction/reactionID [\(duplicateReaction.id)]")
+            let duplicateReaction: CommonReaction? = {
+                if let parentId = xmppReaction.parentId {
+                    return self.coreFeedData.commonReaction(from: xmppReaction.userId, onComment: parentId, in: managedObjectContext)
+                } else {
+                    return self.coreFeedData.commonReaction(from: xmppReaction.userId, onPost: xmppReaction.feedPostId, in: managedObjectContext)
                 }
+            }()
+            if let duplicateReaction = duplicateReaction {
+                managedObjectContext.delete(duplicateReaction)
+                DDLogInfo("FeedData/process-reactions/saveReactionData/remove-old-reaction/reactionID [\(duplicateReaction.id)]")
             }
 
             // Find reaction's post.
@@ -1624,11 +1629,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
 
             // Check if parent comment exists
-            guard let parentId = xmppReaction.parentId, let parentComment = comments[parentId] else {
-                DDLogError("FeedData/process-reactions/no-parent-comment for reaction [\(xmppReaction.id)]")
-                ignoredReactionIds.insert(xmppReaction.id)
-                // TODO: handle reactions that arrive before corresponding comment
-                continue
+            let parentComment: FeedPostComment?
+            if let parentId = xmppReaction.parentId {
+                parentComment = comments[parentId]
+                if parentComment == nil {
+                    DDLogError("FeedData/process-reactions/no-parent-comment for reaction [\(xmppReaction.id)]")
+                    ignoredReactionIds.insert(xmppReaction.id)
+                    // TODO: handle reactions that arrive before corresponding comment
+                    continue
+                }
+            } else {
+                parentComment = nil
             }
 
             DDLogDebug("FeedData/process-reactions [\(xmppReaction.id)]")
@@ -1650,18 +1661,23 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             commonReaction.id = xmppReaction.id
             commonReaction.fromUserID = xmppReaction.userId
             switch xmppReaction.content {
-            case .commentReaction(let emoji):
+            case .reaction(let emoji):
                 commonReaction.emoji = emoji
             case .album, .text, .voiceNote, .unsupported, .retracted, .waiting:
                 DDLogError("FeedData/process-reaction content not reaction type")
             }
-            commonReaction.comment = parentComment
+            if let parentComment = parentComment {
+                commonReaction.comment = parentComment
+            } else {
+                // Reactions without parent comment must be post reactions
+                commonReaction.post = feedPost
+            }
             commonReaction.timestamp = xmppReaction.timestamp
             feedPost.lastUpdated = feedPost.lastUpdated.flatMap { max($0, commonReaction.timestamp) } ?? commonReaction.timestamp
 
             // Set status for each comment appropriately.
             switch xmppReaction.content {
-            case .commentReaction:
+            case .reaction:
                 if commonReaction.fromUserID == userData.userId {
                     commonReaction.outgoingStatus = .sentOut
                 } else {
@@ -1714,7 +1730,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             case .comment(let comment, let name):
                 switch comment.content {
-                case .commentReaction:
+                case .reaction:
                     reactions.append(comment)
                 case .voiceNote, .text, .unsupported, .album, .retracted, .waiting:
                     comments.append(comment)
@@ -2234,13 +2250,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 return
             }
             DDLogInfo("FeedData/retract-reaction [\(reactionId)]")
-            guard let parentComment = reaction.comment else {
-                DDLogError("FeedData/retract-reaction/no parent comment")
-                return
-            }
-            if let reactionToDelete = parentComment.sortedReactionsList.filter({ $0.id == reaction.id }).last {
-                managedObjectContext.delete(reactionToDelete)
-            }
+            // TODO: Should we actually delete this or just mark as retracted?
+            managedObjectContext.delete(reaction)
 
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
@@ -2379,11 +2390,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     
     func retract(reaction: CommonReaction) {
         DDLogInfo("FeedData/retract-reaction/reactionID: [\(reaction.id)]")
-        guard let parentComment = reaction.comment else {
-            DDLogError("FeedData/retract-reaction/no parent comment")
+        guard let post = reaction.post ?? reaction.comment?.post else {
+            DDLogError("FeedData/retract-reaction/error [no associated post]")
             return
         }
-        let reactionId = reaction.id
+        let reactionID = reaction.id
 
         // Mark reaction as "being retracted".
         reaction.outgoingStatus = .retracting
@@ -2392,14 +2403,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         // Request to retract.
-        service.retractComment(id: reaction.id, postID: parentComment.post.id, in: parentComment.post.groupId) { result in
+        service.retractComment(id: reactionID, postID: post.id, in: post.groupId) { result in
             switch result {
             case .success:
-                self.processReactionRetract(reactionId) {}
+                self.processReactionRetract(reactionID) {}
             case .failure(_):
                 // TODO: Retry retractions on next connection
-                DDLogError("FeedData/retract-reaction/failed to retract reaction [\(reactionId)]")
-                self.updateReaction(with: reactionId) { (reaction) in
+                DDLogError("FeedData/retract-reaction/failed to retract reaction [\(reactionID)]")
+                self.updateReaction(with: reactionID) { (reaction) in
                     reaction.outgoingStatus = .sentOut
                 }
             }
@@ -2496,6 +2507,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     map[userID] = contact
                 }
             }
+            let reactions: [UserID: String] = Dictionary(
+                feedPost.reactions?.compactMap { ($0.fromUserID, $0.emoji) } ?? [],
+                uniquingKeysWith: { (s1, s2) in s1 })
 
             for (userId, receipt) in seenReceipts {
                 guard let seenDate = receipt.seenDate else { continue }
@@ -2515,7 +2529,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                            phoneNumber: phoneNumber,
                                              timestamp: seenDate,
                                         savedTimestamp: receipt.savedDate,
-                                   screenshotTimestamp: receipt.screenshotDate))
+                                   screenshotTimestamp: receipt.screenshotDate,
+                                              reaction: reactions[userId]))
             }
             receipts.sort(by: { $0.timestamp > $1.timestamp })
         }
@@ -3331,8 +3346,60 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }
     }
+
+    func updatePostReaction(_ reaction: String?, for postID: FeedPostID) {
+        performSeriallyOnBackgroundContext { managedObjectContext in
+            guard let post = self.feedPost(with: postID, in: managedObjectContext) else {
+                DDLogError("FeedData/postReactions/error [post-not-found] [\(postID)]")
+                return
+            }
+
+            // Retract old reaction
+            if let existingReaction = post.reactions?.first(where: { $0.fromUserID == self.userData.userId }) {
+                if existingReaction.emoji == reaction {
+                    DDLogInfo("FeedData/postReactions/skipping [already-reacted] [\(postID)] [\(reaction ?? "nil")]")
+                    return
+                } else {
+                    self.retract(reaction: existingReaction)
+                }
+            }
+
+            // Send new reaction
+            if let reaction = reaction {
+                self.sendPostReaction(reaction, to: postID)
+            }
+        }
+
+    }
+
+    private func sendPostReaction(_ reaction: String, to feedPostID: FeedPostID) {
+        performSeriallyOnBackgroundContext { managedObjectContext in
+            let reactionId: CommonReactionID = PacketID.generate()
+
+            // Create and save CommonReaction
+            guard let post = self.feedPost(with: feedPostID, in: managedObjectContext) else {
+                DDLogError("FeedData/sendPostReaction/error  Missing post with id=[\(feedPostID)]")
+                return
+            }
+
+            DDLogDebug("FeedData/new-reaction/create id=[\(reactionId)]")
+            let commonReaction = CommonReaction(context: managedObjectContext)
+            commonReaction.id = reactionId
+            commonReaction.fromUserID = self.userData.userId
+            commonReaction.emoji = reaction
+            commonReaction.post = post
+            commonReaction.incomingStatus = .none
+            commonReaction.outgoingStatus = .pending
+            commonReaction.timestamp = Date()
+
+            self.save(managedObjectContext)
+
+            self.send(reaction: commonReaction)
+        }
+
+    }
     
-    func sendReaction(reaction: String, replyingTo parentCommentId: FeedPostCommentID) {
+    func sendCommentReaction(_ reaction: String, replyingTo parentCommentId: FeedPostCommentID) {
         performSeriallyOnBackgroundContext { managedObjectContext in
             let reactionId: CommonReactionID = PacketID.generate()
 
@@ -3435,50 +3502,56 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
     
     private func send(reaction: CommonReaction) {
-        DDLogInfo("FeedData/send-reaction/reactionID: \(reaction.id)")
-        guard let parentComment = reaction.comment else {
-            DDLogError("FeedData/send-reaction/no parent comment")
+        guard let post = reaction.post ?? reaction.comment?.post else {
+            DDLogError("FeedData/send-reaction/error [no associated post]")
             return
         }
-        let reactionId = reaction.id
-        let groupId = parentComment.post.groupId
-        let postId = parentComment.post.id
 
-        guard !contentInFlight.contains(reactionId) else {
-            DDLogInfo("FeedData/send-reaction/reactionID: \(parentComment.id) already-in-flight")
+        let reactionID = reaction.id
+        let parentID = reaction.comment?.id
+        let groupID = post.groupId
+        let postID = post.id
+
+        guard !contentInFlight.contains(reactionID) else {
+            DDLogInfo("FeedData/send-reaction/reactionID: \(reactionID) already-in-flight")
             return
         }
-        DDLogInfo("FeedData/send-reaction/reactionID: \(parentComment.id) begin")
-        contentInFlight.insert(reactionId)
+        DDLogInfo("FeedData/send-reaction/reactionID: \(reactionID) begin")
+        contentInFlight.insert(reactionID)
+
+        let commentData = CommentData(
+            id: reactionID,
+            userId: reaction.fromUserID,
+            timestamp: reaction.timestamp,
+            feedPostId: postID,
+            parentId: parentID,
+            content: .reaction(reaction.emoji),
+            status: FeedItemStatus.sent)
         
-        var content: CommentContent
-        content = .commentReaction(reaction.emoji)
-        let commentData = CommentData(id: reaction.id, userId: reaction.fromUserID, timestamp: reaction.timestamp, feedPostId: parentComment.post.id, parentId: parentComment.id, content: content, status: FeedItemStatus.sent)
-        
-        service.publishComment(commentData, groupId: groupId) { result in
+        service.publishComment(commentData, groupId: groupID) { result in
             switch result {
             case .success(let timestamp):
-                DDLogInfo("FeedData/send-reaction/reactionID: \(reactionId) success")
-                self.contentInFlight.remove(reactionId)
-                self.updateReaction(with: reactionId) { (reaction) in
+                DDLogInfo("FeedData/send-reaction/reactionID: \(reactionID) success")
+                self.contentInFlight.remove(reactionID)
+                self.updateReaction(with: reactionID) { (reaction) in
                     reaction.timestamp = timestamp
                     reaction.outgoingStatus = .sentOut
 
                     MainAppContext.shared.endBackgroundTask(reaction.id)
                 }
-                if groupId != nil {
+                if groupID != nil {
                     var interestedPosts = AppContext.shared.userDefaults.value(forKey: AppContext.commentedGroupPostsKey) as? [FeedPostID] ?? []
-                    interestedPosts.append(postId)
+                    interestedPosts.append(postID)
                     AppContext.shared.userDefaults.set(Array(Set(interestedPosts)), forKey: AppContext.commentedGroupPostsKey)
-                    self.coreFeedData.addIntent(groupId: groupId)
+                    self.coreFeedData.addIntent(groupId: groupID)
                 }
 
             case .failure(let error):
-                DDLogError("FeedData/send-reaction/reactionID: \(reactionId) error \(error)")
-                self.contentInFlight.remove(reactionId)
+                DDLogError("FeedData/send-reaction/reactionID: \(reactionID) error \(error)")
+                self.contentInFlight.remove(reactionID)
                 // TODO: Track this state more precisely. Even if this attempt was a definite failure, a previous attempt may have succeeded.
                 if error.isKnownFailure {
-                    self.updateReaction(with: reactionId) { (reaction) in
+                    self.updateReaction(with: reactionID) { (reaction) in
                         reaction.outgoingStatus = .error
                         MainAppContext.shared.endBackgroundTask(reaction.id)
                     }

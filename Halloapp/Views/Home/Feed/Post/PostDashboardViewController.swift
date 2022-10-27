@@ -26,6 +26,11 @@ struct FeedPostReceipt {
     let savedTimestamp: Date?
     /// - note: Moments only.
     let screenshotTimestamp: Date?
+    let reaction: String?
+
+    static var placeholder: FeedPostReceipt {
+        FeedPostReceipt(userId: "", type: .placeholder, contactName: nil, phoneNumber: nil, timestamp: Date(), savedTimestamp: nil, screenshotTimestamp: nil, reaction: nil)
+    }
 }
 
 extension FeedPostReceipt : Hashable {
@@ -49,37 +54,64 @@ fileprivate extension ContactTableViewCell {
         nameLabel.text = receipt.contactName
         subtitleLabel.text = receipt.phoneNumber
 
+        let accessoryString = NSMutableAttributedString()
         if receipt.savedTimestamp != nil {
-            accessoryLabel.attributedText = savedString
+            accessoryString.append(savedString)
         } else if receipt.screenshotTimestamp != nil {
-            accessoryLabel.attributedText = screenshotString
+            accessoryString.append(screenshotString)
         }
+        if let reaction = receipt.reaction {
+            accessoryString.append(NSAttributedString(string: " \(reaction)"))
+        }
+        accessoryLabel.attributedText = accessoryString
 
         contentView.heightAnchor.constraint(greaterThanOrEqualToConstant: 62).isActive = true
     }
 
-    private var screenshotString: NSAttributedString? {
-        guard let image = UIImage(systemName: "camera.viewfinder") else {
-            return nil
-        }
-
+    private var screenshotString: NSAttributedString {
         let string = NSLocalizedString("screenshot.title",
                                 value: "Screenshot",
                               comment: "Title that indicates that someone took a screenshot.")
 
-        return NSMutableAttributedString.string(string, with: image)
+        if let image = UIImage(systemName: "camera.viewfinder") {
+            return NSMutableAttributedString.string(string, with: image)
+        } else {
+            return NSAttributedString(string: string)
+        }
     }
 
-    private var savedString: NSAttributedString? {
-        guard let image = UIImage(systemName: "arrow.down.circle") else {
-            return nil
-        }
-
+    private var savedString: NSAttributedString {
         let string = NSLocalizedString("downloaded.title",
                                 value: "Downloaded",
                               comment: "Title that indicates that someone downloaded media from a post.")
 
-        return NSMutableAttributedString.string(string, with: image)
+        if let image = UIImage(systemName: "arrow.down.circle") {
+            return NSMutableAttributedString.string(string, with: image)
+        } else {
+            return NSAttributedString(string: string)
+        }
+    }
+}
+
+private class ReactionTableViewCell: ContactTableViewCell {
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        contentView.heightAnchor.constraint(greaterThanOrEqualToConstant: 62).isActive = true
+        accessoryLabel.font = UIFont.scaledSystemFont(ofSize: 24)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func configureWithReaction(_ reaction: CommonReaction, using avatarStore: AvatarStore) {
+        let contactStore = MainAppContext.shared.contactStore
+
+        contactImage.configure(with: reaction.fromUserID, using: avatarStore)
+
+        nameLabel.text = contactStore.fullName(for: reaction.fromUserID, in: contactStore.viewContext)
+        accessoryLabel.text = reaction.emoji
     }
 }
 
@@ -106,12 +138,13 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
     private struct Constants {
         static let cellReuseIdentifier = "contactCell"
         static let placeholderCellReuseIdentifier = "placeholderCell"
+        static let reactionCellReuseIdentifier = "reactionCell"
         static let actionCellReuseIdentifier = "rowActionCell"
         static let headerReuseIdentifier = "header"
     }
 
-    private var dataSource: PostReceiptsDataSource!
-    private var fetchedResultsController: NSFetchedResultsController<FeedPost>!
+    private var dataSource: PostReceiptsDataSource?
+    private var fetchedResultsController: NSFetchedResultsController<FeedPost>?
 
     weak var delegate: PostDashboardViewControllerDelegate?
 
@@ -132,6 +165,7 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
 
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: Constants.placeholderCellReuseIdentifier)
         tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
+        tableView.register(ReactionTableViewCell.self, forCellReuseIdentifier: Constants.reactionCellReuseIdentifier)
         tableView.register(ActionTableViewCell.self, forCellReuseIdentifier: Constants.actionCellReuseIdentifier)
         tableView.backgroundColor = .feedBackground
         tableView.delegate = self
@@ -152,9 +186,15 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
                     cell.textLabel?.text = Localizations.postNotYetViewedByAnyone
                     return cell
                 }
-                let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
-                cell.configureWithReceipt(receipt, using: MainAppContext.shared.avatarStore)
-                return cell
+                if receipt.reaction != nil {
+                    let cell = tableView.dequeueReusableCell(withIdentifier: Constants.reactionCellReuseIdentifier, for: indexPath) as! ContactTableViewCell
+                    cell.configureWithReceipt(receipt, using: MainAppContext.shared.avatarStore)
+                    return cell
+                } else {
+                    let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
+                    cell.configureWithReceipt(receipt, using: MainAppContext.shared.avatarStore)
+                    return cell
+                }
             case .loadMore:
                 let cell = tableView.dequeueReusableCell(withIdentifier: Constants.actionCellReuseIdentifier, for: indexPath) as? ActionTableViewCell
                 if let image = UIImage(systemName: "chevron.down")?.withRenderingMode(.alwaysTemplate) {
@@ -185,10 +225,10 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         fetchRequest.predicate = NSPredicate(format: "id == %@", feedPost.id)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: true) ]
         fetchedResultsController = NSFetchedResultsController<FeedPost>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.feedData.viewContext, sectionNameKeyPath: nil, cacheName: nil)
-        fetchedResultsController.delegate = self
+        fetchedResultsController?.delegate = self
         do {
-            try fetchedResultsController.performFetch()
-            if let feedPost = fetchedResultsController.fetchedObjects?.first {
+            try fetchedResultsController?.performFetch()
+            if let feedPost = fetchedResultsController?.fetchedObjects?.first {
                 reloadData(from: feedPost)
             }
         }
@@ -211,7 +251,7 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
 
     private func showAllContactsTapped() {
         showAllContacts = true
-        if let feedPost = fetchedResultsController.fetchedObjects?.first {
+        if let feedPost = fetchedResultsController?.fetchedObjects?.first {
             reloadData(from: feedPost)
         }
     }
@@ -219,7 +259,7 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
     private func reloadData(from feedPost: FeedPost) {
         var seenReceipts = MainAppContext.shared.feedData.seenReceipts(for: feedPost)
         if seenReceipts.isEmpty {
-            seenReceipts.append(FeedPostReceipt(userId: "", type: .placeholder, contactName: nil, phoneNumber: nil, timestamp: Date(), savedTimestamp: nil, screenshotTimestamp: nil))
+            seenReceipts.append(FeedPostReceipt.placeholder)
         }
 
         var allContactRows = [Row]()
@@ -277,7 +317,7 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
     // MARK: Contact Actions
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let row = dataSource.itemIdentifier(for: indexPath), let delegate = delegate else {
+        guard let row = dataSource?.itemIdentifier(for: indexPath), let delegate = delegate else {
             tableView.deselectRow(at: indexPath, animated: true)
             return
         }

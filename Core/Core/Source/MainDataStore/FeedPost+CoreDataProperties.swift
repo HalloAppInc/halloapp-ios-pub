@@ -40,6 +40,7 @@ public extension FeedPost {
     @NSManaged var groupID: GroupID?
     @NSManaged var comments: Set<FeedPostComment>?
     @NSManaged var media: Set<CommonMedia>?
+    @NSManaged var reactions: Set<CommonReaction>?
     @NSManaged private var mentionsValue: Any?
     var mentions: [MentionData] {
         get { return mentionsValue as? [MentionData] ?? [] }
@@ -205,6 +206,11 @@ extension FeedPost {
      public var orderedMedia: [FeedMediaProtocol] {
          return media?.sorted { $0.order < $1.order } ?? []
      }
+
+    public var sortedReactionsList: [CommonReaction] {
+        guard let reactions = self.reactions else { return [] }
+        return reactions.sorted { $0.timestamp > $1.timestamp }
+    }
 
      // Includes all media, even including link previews
      public var allAssociatedMedia: [CommonMedia] {

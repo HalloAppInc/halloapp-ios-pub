@@ -1022,8 +1022,7 @@ extension FlatCommentsViewController: MessageViewCommentDelegate, ReactionViewCo
     }
 
     func sendReaction(feedPostComment: FeedPostComment, reaction: String) {
-        MainAppContext.shared.feedData.sendReaction(reaction: reaction,
-                                            replyingTo: feedPostComment.id)
+        MainAppContext.shared.feedData.sendCommentReaction(reaction, replyingTo: feedPostComment.id)
     }
 
     func removeReaction(feedPostComment: FeedPostComment, reaction: CommonReaction) {

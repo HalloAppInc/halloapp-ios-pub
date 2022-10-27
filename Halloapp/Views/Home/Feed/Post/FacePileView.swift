@@ -12,6 +12,7 @@ import UIKit
 
 class FacePileView: UIControl {
     var avatarViews: [AvatarView] = []
+    var reactionViews: [UILabel] = []
     let numberOfFaces = 3
 
     override init(frame: CGRect) {
@@ -33,8 +34,14 @@ class FacePileView: UIControl {
             avatarView.isHidden = true
             avatarView.translatesAutoresizingMaskIntoConstraints = false
 
+            let reactionView = UILabel()
+            reactionView.isHidden = true
+            reactionView.translatesAutoresizingMaskIntoConstraints = false
+
             self.addSubview(avatarView)
+            self.addSubview(reactionView)
             avatarViews.append(avatarView)
+            reactionViews.append(reactionView)
 
             if index == 0 {
                 // The rightmost avatar
@@ -44,27 +51,37 @@ class FacePileView: UIControl {
                 avatarView.trailingAnchor.constraint(equalTo: previousView.centerXAnchor, constant: -3).isActive = true
             }
 
+            let diameter: CGFloat = 27
+
             avatarView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
-            avatarView.heightAnchor.constraint(equalToConstant: 27).isActive = true
+            avatarView.heightAnchor.constraint(equalToConstant: diameter).isActive = true
             avatarView.widthAnchor.constraint(equalTo: avatarView.heightAnchor).isActive = true
+
+            let offset = diameter / 2 * (M_SQRT2 - 1) / M_SQRT2
+            reactionView.centerXAnchor.constraint(equalTo: avatarView.trailingAnchor, constant: -offset).isActive = true
+            reactionView.centerYAnchor.constraint(equalTo: avatarView.bottomAnchor, constant: -offset).isActive = true
         }
 
-        let lastView = avatarViews.last!
-        self.leadingAnchor.constraint(equalTo: lastView.leadingAnchor).isActive = true
-        self.topAnchor.constraint(equalTo: lastView.topAnchor).isActive = true
-        self.bottomAnchor.constraint(equalTo: lastView.bottomAnchor).isActive = true
+        if let lastView = avatarViews.last {
+            self.leadingAnchor.constraint(equalTo: lastView.leadingAnchor).isActive = true
+            self.topAnchor.constraint(equalTo: lastView.topAnchor).isActive = true
+            self.bottomAnchor.constraint(equalTo: lastView.bottomAnchor).isActive = true
+        }
     }
 
     func configure(with post: FeedPostDisplayable) {
-        let seenReceipts = post.seenReceipts
-        let usersToShow = seenReceipts.prefix(numberOfFaces).map { $0.userId }.reversed()
-        let avatarsToShow = usersToShow.map { MainAppContext.shared.avatarStore.userAvatar(forUserId: $0) }
+        let receiptsToShow = post.seenReceipts.prefix(numberOfFaces).reversed()
 
-        if !avatarsToShow.isEmpty {
-            for (userIndex, avatar) in avatarsToShow.enumerated() {
+        if !receiptsToShow.isEmpty {
+            for (userIndex, receipt) in receiptsToShow.enumerated() {
+                let avatar = MainAppContext.shared.avatarStore.userAvatar(forUserId: receipt.userId)
                 let avatarView = avatarViews[userIndex]
                 avatarView.isHidden = false
                 avatarView.configure(with: avatar, using: MainAppContext.shared.avatarStore)
+
+                let reactionView = reactionViews[userIndex]
+                reactionView.text = receipt.reaction
+                reactionView.isHidden = (receipt.reaction ?? "").isEmpty
             }
         } else { // No one has seen this post. Just show a dummy avatar.
             guard let avatarView = avatarViews.first else { return }
@@ -78,6 +95,74 @@ class FacePileView: UIControl {
         for avatarView in avatarViews {
             avatarView.prepareForReuse()
             avatarView.isHidden = true
+        }
+
+        for reactionView in reactionViews {
+            reactionView.isHidden = true
+        }
+    }
+}
+
+class ReactionPileView: UIControl {
+    var reactionViews: [UILabel] = []
+    let numberOfReactions = 3
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupView()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupView()
+    }
+
+    private func setupView() {
+        for index in 0 ..< numberOfReactions {
+            // The reactions are added from right to left
+
+            let reactionView = UILabel()
+            reactionView.isHidden = true
+            reactionView.translatesAutoresizingMaskIntoConstraints = false
+
+            self.addSubview(reactionView)
+            reactionViews.append(reactionView)
+
+            if index == 0 {
+                // The rightmost reaction
+                reactionView.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
+            } else {
+                let previousView = self.reactionViews[index - 1]
+                reactionView.trailingAnchor.constraint(equalTo: previousView.centerXAnchor, constant: -3).isActive = true
+            }
+
+            let diameter: CGFloat = 27
+
+            reactionView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
+            reactionView.heightAnchor.constraint(equalToConstant: diameter).isActive = true
+            reactionView.widthAnchor.constraint(equalTo: reactionView.heightAnchor).isActive = true
+        }
+
+        if let lastView = reactionViews.last {
+            self.leadingAnchor.constraint(equalTo: lastView.leadingAnchor).isActive = true
+            self.topAnchor.constraint(equalTo: lastView.topAnchor).isActive = true
+            self.bottomAnchor.constraint(equalTo: lastView.bottomAnchor).isActive = true
+        }
+    }
+
+    func configure(with post: FeedPostDisplayable) {
+        let reactionsToShow = post.postReactions.suffix(numberOfReactions)
+
+        for (userIndex, (_, reaction)) in reactionsToShow.enumerated() {
+            let reactionView = reactionViews[userIndex]
+            reactionView.text = reaction
+            reactionView.isHidden = reaction.isEmpty
+        }
+    }
+
+    func prepareForReuse() {
+        for reactionView in reactionViews {
+            reactionView.isHidden = true
         }
     }
 }

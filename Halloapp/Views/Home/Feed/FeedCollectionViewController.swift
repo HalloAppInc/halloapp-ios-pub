@@ -474,9 +474,15 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Sh
     }
 
     private func showSeenByView(for post: FeedPost) {
-        let viewController = PostDashboardViewController(feedPost: post)
-        viewController.delegate = self
-        present(UINavigationController(rootViewController: viewController), animated: true)
+        if post.userID == MainAppContext.shared.userData.userId {
+            let viewController = PostDashboardViewController(feedPost: post)
+            viewController.delegate = self
+            present(UINavigationController(rootViewController: viewController), animated: true)
+        } else {
+            let viewController = ReactionListViewController(feedPost: post)
+            viewController.delegate = self
+            present(UINavigationController(rootViewController: viewController), animated: true)
+        }
     }
 
     private func showUserFeed(for userID: UserID) {
@@ -1006,6 +1012,9 @@ extension FeedCollectionViewController {
         cell.shareAction = { [weak self] in
             self?.presentShareMenu(for: feedPost)
         }
+        cell.reactAction = { reaction in
+            MainAppContext.shared.feedData.updatePostReaction(reaction, for: postId)
+        }
         cell.delegate = self
     }
 
@@ -1198,6 +1207,12 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
             context.invalidateItems(at: [indexPath])
             self.collectionView.collectionViewLayout.invalidateLayout(with: context)
         }
+    }
+}
+
+extension FeedCollectionViewController: ReactionListViewControllerDelegate {
+    func removeReaction(reaction: CommonReaction) {
+        MainAppContext.shared.feedData.retract(reaction: reaction)
     }
 }
 

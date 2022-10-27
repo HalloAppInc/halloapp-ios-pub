@@ -30,6 +30,7 @@ protocol FeedPostDisplayable {
     var canSaveMedia: Bool { get }
     var linkPreview: LinkPreviewDisplayable? { get }
     var seenReceipts: [FeedPostReceipt] { get }
+    var postReactions: [(UserID, String)] { get }
     var isWaiting: Bool { get }
     var rawText: String? { get }
     var hasAudio: Bool { get }
@@ -37,6 +38,7 @@ protocol FeedPostDisplayable {
     var canSharePost: Bool { get }
     var canComment: Bool { get }
     var canReplyPrivately: Bool { get }
+    var canReact: Bool { get }
     var posterFullName: String { get }
     var expiration: Date? { get }
     var fromExternalShare: Bool { get }
@@ -101,6 +103,10 @@ extension FeedPost: FeedPostDisplayable {
         return MainAppContext.shared.feedData.seenReceipts(for: self)
     }
 
+    var postReactions: [(UserID, String)] {
+        return reactions?.filter { !$0.isRetracted }.map { ($0.fromUserID, $0.emoji) } ?? []
+    }
+
     var linkPreview: LinkPreviewDisplayable? {
         return linkPreviews?.first
     }
@@ -123,8 +129,14 @@ extension FeedPost: FeedPostDisplayable {
     }
 
     var canReplyPrivately: Bool {
-        return MainAppContext.shared.contactStore.isContactInAddressBook(userId: userId,
-                                                                         in: MainAppContext.shared.contactStore.viewContext)
+        return MainAppContext.shared.contactStore.isContactInAddressBook(
+            userId: userId,
+            in: MainAppContext.shared.contactStore.viewContext) &&
+        MainAppContext.shared.userData.userId != userId
+    }
+
+    var canReact: Bool {
+        return !fromExternalShare && !(userId == MainAppContext.shared.userData.userId)
     }
 
     var posterFullName: String {

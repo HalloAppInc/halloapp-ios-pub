@@ -5873,7 +5873,7 @@ extension ChatData: HalloChatDelegate {
                    continue
                case .retracted:
                    serverGroupFeedItem.action = .retract
-               case .album, .text, .commentReaction, .voiceNote:
+               case .album, .text, .reaction, .voiceNote:
                    serverGroupFeedItem.action = .publish
                }
                 serverGroupFeedItem.comment = serverComment

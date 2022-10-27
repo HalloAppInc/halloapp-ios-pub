@@ -19,6 +19,7 @@ class ReactionListViewController: UITableViewController {
 
     var chatMessage: ChatMessage?
     var feedPostComment: FeedPostComment?
+    var feedPost: FeedPost?
     
     var sortedReactionsList: [CommonReaction]
     
@@ -39,6 +40,12 @@ class ReactionListViewController: UITableViewController {
     required init(feedPostComment: FeedPostComment) {
         self.feedPostComment = feedPostComment
         self.sortedReactionsList = feedPostComment.sortedReactionsList
+        super.init(style: .insetGrouped)
+    }
+
+    required init(feedPost: FeedPost) {
+        self.feedPost = feedPost
+        self.sortedReactionsList = feedPost.sortedReactionsList
         super.init(style: .insetGrouped)
     }
     

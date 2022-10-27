@@ -107,6 +107,7 @@
 		6832F4FC24FEE97800A9C202 /* HalloService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4F924FEE97800A9C202 /* HalloService.swift */; };
 		6832F4FD24FEE97800A9C202 /* ProtoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4FB24FEE97800A9C202 /* ProtoService.swift */; };
 		6832F4FF24FEE9A500A9C202 /* ProtoRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4FE24FEE9A500A9C202 /* ProtoRequests.swift */; };
+		683330A028A71DFB0086491E /* ReactionPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6833309F28A71DFB0086491E /* ReactionPicker.swift */; };
 		6854CCEB2735035D00F1BF8A /* PhoneNumberMetadata.json.lz4 in Resources */ = {isa = PBXBuildFile; fileRef = 6854CCEA2735035D00F1BF8A /* PhoneNumberMetadata.json.lz4 */; };
 		6854CCEC2735035D00F1BF8A /* PhoneNumberMetadata.json.lz4 in Resources */ = {isa = PBXBuildFile; fileRef = 6854CCEA2735035D00F1BF8A /* PhoneNumberMetadata.json.lz4 */; };
 		685B509B25E075FE00F782F9 /* Reachability in Frameworks */ = {isa = PBXBuildFile; productRef = 685B509A25E075FE00F782F9 /* Reachability */; };
@@ -822,6 +823,7 @@
 		6832F4F924FEE97800A9C202 /* HalloService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HalloService.swift; sourceTree = "<group>"; };
 		6832F4FB24FEE97800A9C202 /* ProtoService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoService.swift; sourceTree = "<group>"; };
 		6832F4FE24FEE9A500A9C202 /* ProtoRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoRequests.swift; sourceTree = "<group>"; };
+		6833309F28A71DFB0086491E /* ReactionPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionPicker.swift; sourceTree = "<group>"; };
 		685479E5269E5B6800815BE0 /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		685479E6269E5B6800815BE0 /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/Localizable.strings; sourceTree = "<group>"; };
 		6854CCEA2735035D00F1BF8A /* PhoneNumberMetadata.json.lz4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = PhoneNumberMetadata.json.lz4; sourceTree = "<group>"; };
@@ -2114,6 +2116,7 @@
 				F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */,
 				F41FAA5127E54F2800FC5090 /* FeedPostMenuViewController.swift */,
 				F445A73827FFB8270046D382 /* ShareMenuPresenter.swift */,
+				6833309F28A71DFB0086491E /* ReactionPicker.swift */,
 			);
 			path = Feed;
 			sourceTree = "<group>";
@@ -3364,6 +3367,7 @@
 				E5CE660226B354EC0093944A /* ArchiveViewController.swift in Sources */,
 				76B5B52C2501EE790055E712 /* NotificationMetadata.swift in Sources */,
 				F88E5C95275A14D500290A89 /* MediaPickerPreview.swift in Sources */,
+				683330A028A71DFB0086491E /* ReactionPicker.swift in Sources */,
 				A11272EC2856E47B0009EBD7 /* MomentComposerViewController.swift in Sources */,
 				68C5696927AC600F00637B28 /* ChatDateMarkerCell.swift in Sources */,
 				76DF9FF62412E6E700F49CA4 /* ContactStore.swift in Sources */,

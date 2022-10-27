@@ -599,7 +599,7 @@ final class WebClientManager {
             DDLogInfo("WebClientManager/handleIncoming/feedRequest/comment/\(request.contentID)")
             response = commentFeed(id: request.contentID, cursor: cursor, limit: Int(request.limit))
         case .UNRECOGNIZED:
-            DDLogInfo("WebClientManager/handleIncoming/feedRequest/unsupported [\(request.type)]")
+            DDLogInfo("WebClientManager/handleIncoming/feedRequest/unsupported [\(request.type.rawValue)]")
             return nil
         }
         response.id = request.id

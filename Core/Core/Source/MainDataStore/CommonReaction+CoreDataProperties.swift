@@ -50,6 +50,7 @@ public extension CommonReaction {
 
     @NSManaged var message: ChatMessage?
     @NSManaged var comment: FeedPostComment?
+    @NSManaged var post: FeedPost?
 
     var incomingStatus: IncomingStatus {
         get {
@@ -104,6 +105,13 @@ extension CommonReaction {
         }
     }
 
+    public var isRetracted: Bool {
+        get {
+            return [.retracted].contains(incomingStatus) ||
+            [.retracted, .retracting].contains(outgoingStatus)
+        }
+    }
+
     public var commentData: CommentData? {
         let content: CommentContent
 
@@ -119,7 +127,7 @@ extension CommonReaction {
         } else if emoji.isEmpty && incomingStatus == .rerequesting {
             content = .waiting
         } else {
-            content = .commentReaction(emoji)
+            content = .reaction(emoji)
         }
 
         return CommentData(

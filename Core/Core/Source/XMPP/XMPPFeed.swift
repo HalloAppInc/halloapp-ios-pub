@@ -542,7 +542,7 @@ public enum CommentContent {
     case text(MentionText, [LinkPreviewData])
     case album(MentionText, [FeedMediaData])
     case voiceNote(FeedMediaData)
-    case commentReaction(String)
+    case reaction(String)
     case unsupported(Data)
     case retracted
     case waiting
@@ -570,7 +570,7 @@ public struct CommentData {
             return mentionText.collapsedText
         case .album(let mentionText, _):
             return mentionText.collapsedText
-        case .commentReaction(let emoji):
+        case .reaction(let emoji):
             return emoji
         }
     }
@@ -581,7 +581,7 @@ public struct CommentData {
             return media
         case .voiceNote(let mediaItem):
             return [mediaItem]
-        case .retracted, .text, .commentReaction, .unsupported, .waiting:
+        case .retracted, .text, .reaction, .unsupported, .waiting:
             return []
         }
     }
@@ -589,7 +589,7 @@ public struct CommentData {
     public var orderedMentions: [FeedMentionProtocol] {
         let mentions: [Int: MentionedUser] = {
             switch content {
-            case .retracted, .unsupported, .voiceNote, .commentReaction, .waiting:
+            case .retracted, .unsupported, .voiceNote, .reaction, .waiting:
                 return [:]
             case .text(let mentionText, _):
                 return mentionText.mentions
@@ -606,7 +606,7 @@ public struct CommentData {
     
     public var linkPreviewData: [LinkPreviewProtocol] {
         switch content {
-        case .retracted, .unsupported, .album, .voiceNote, .commentReaction, .waiting:
+        case .retracted, .unsupported, .album, .voiceNote, .reaction, .waiting:
             return []
         case .text(_, let linkPreviewData):
             return linkPreviewData
@@ -625,7 +625,7 @@ public struct CommentData {
             return MediaCounters()
         case .voiceNote:
             return MediaCounters(numImages: 0, numVideos: 0, numAudio: 1)
-        case .retracted, .unsupported, .commentReaction, .waiting:
+        case .retracted, .unsupported, .reaction, .waiting:
             return MediaCounters()
         }
     }
@@ -722,7 +722,7 @@ public struct CommentData {
                 }
                 return .voiceNote(media)
             case .reaction(let reaction):
-                return .commentReaction(reaction.emoji)
+                return .reaction(reaction.emoji)
             case .none:
                 return .unsupported(payload)
             }

@@ -33,6 +33,7 @@ class FeedPostView: UIView {
     var deleteAction: (() -> ())?
     var contextAction: ((UserAction) -> ())?
     var shareAction: (() -> ())?
+    var reactAction: (() -> ())?
 
     weak var delegate: FeedPostViewDelegate?
 
@@ -67,7 +68,13 @@ class FeedPostView: UIView {
     private let headerView = FeedItemHeaderView()
     private let itemContentView = FeedItemContentView()
 
-    private let footerView = FeedItemFooterView()
+    private lazy var footerView: FeedItemFooterProtocol = {
+        if ServerProperties.postReactions {
+            return FeedItemFooterReactionView()
+        } else {
+            return FeedItemFooterView()
+        }
+    }()
     private var backgroundView: UIView?
     
     private var contentTopConstraint: NSLayoutConstraint? = nil
@@ -135,9 +142,13 @@ class FeedPostView: UIView {
         ])
 
         // Connect actions of footer view buttons
-        footerView.commentButton.addTarget(self, action: #selector(showComments), for: .touchUpInside)
         footerView.messageButton.addTarget(self, action: #selector(messageContact), for: .touchUpInside)
-        footerView.facePileView.addTarget(self, action: #selector(showSeenBy), for: .touchUpInside)
+        footerView.commentAction = { [weak self] in
+            self?.commentAction?()
+        }
+        footerView.seenByAction = { [weak self] in
+            self?.showSeenByAction?()
+        }
         footerView.cancelAction = { [weak self] in
             self?.cancelSendingAction?()
         }
@@ -149,6 +160,9 @@ class FeedPostView: UIView {
         }
         footerView.shareAction = { [weak self] in
             self?.shareAction?()
+        }
+        footerView.reactAction = { [weak self] in
+            self?.reactAction?()
         }
     }
 
@@ -258,19 +272,9 @@ class FeedPostView: UIView {
 
     // MARK: Button actions
 
-    @objc(showComments)
-    private func showComments() {
-        commentAction?()
-    }
-
     @objc(messageContact)
     private func messageContact() {
         messageAction?()
-    }
-
-    @objc(showSeenBy)
-    private func showSeenBy() {
-        showSeenByAction?()
     }
 }
 

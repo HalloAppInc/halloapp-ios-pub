@@ -42,6 +42,7 @@ public struct ServerProperties {
         case enableSentryPerfTracking = "enable_sentry_perf_tracking"
         case enableGroupExpiry = "group_expiry"
         case preAnswerCalls = "pre_answer_calls"
+        case postReactions = "post_reactions"
         case chatReactions = "chat_reactions"
         case commentReactions = "comment_reactions"
         case enableNewMediaUploader = "background_upload"
@@ -88,6 +89,7 @@ public struct ServerProperties {
         static let enableSentryPerfTracking = false
         static let enableGroupExpiry = false
         static let preAnswerCalls = false
+        static let postReactions = false
         static let chatReactions = false
         static let commentReactions = false
         static let enableNewMediaUploader = false
@@ -355,6 +357,10 @@ public struct ServerProperties {
 
     public static var preAnswerCalls: Bool {
         ServerProperties.bool(forKey: .preAnswerCalls) ?? Defaults.preAnswerCalls
+    }
+
+    public static var postReactions: Bool {
+        ServerProperties.bool(forKey: .postReactions) ?? Defaults.postReactions
     }
     
     public static var chatReactions: Bool {

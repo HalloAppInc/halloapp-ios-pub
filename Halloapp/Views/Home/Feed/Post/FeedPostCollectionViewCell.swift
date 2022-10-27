@@ -34,6 +34,7 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
     var deleteAction: (() -> ())?
     var contextAction: ((UserAction) -> ())?
     var shareAction: (() -> ())?
+    var reactAction: ((String?) -> ())?
 
     weak var delegate: FeedPostCollectionViewCellDelegate?
 
@@ -67,7 +68,14 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
     private let backgroundPanelView = FeedItemBackgroundPanelView()
     private let headerView = FeedItemHeaderView()
     private let itemContentView = FeedItemContentView()
-    private let footerView = FeedItemFooterView()
+    private lazy var footerView: FeedItemFooterProtocol = {
+        if ServerProperties.postReactions {
+            return FeedItemFooterReactionView()
+        } else {
+            return FeedItemFooterView()
+        }
+    }()
+    private let reactionView = ReactionPicker()
     
     private var contentTopConstraint: NSLayoutConstraint? = nil
     private var backgroundPanelLeadingConstraint: NSLayoutConstraint?
@@ -94,6 +102,11 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
 
         footerView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(footerView)
+        
+        reactionView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(reactionView)
+        reactionView.isUserInteractionEnabled = true
+        reactionView.isHidden = false
 
         let contentTopConstraint = itemContentView.topAnchor.constraint(equalTo: headerView.bottomAnchor)
         self.contentTopConstraint = contentTopConstraint
@@ -139,12 +152,23 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
             // Separator in the footer view needs to be extended past view bounds to be the same width as background "card".
             footerView.separator.leadingAnchor.constraint(equalTo: backgroundPanelView.leadingAnchor),
             footerView.separator.trailingAnchor.constraint(equalTo: backgroundPanelView.trailingAnchor),
+            
+            // Reaction picker
+            reactionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 2),
+            reactionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -2),
+            reactionView.bottomAnchor.constraint(equalTo: footerView.topAnchor, constant: 12),
+            reactionView.heightAnchor.constraint(equalToConstant: 59),
+
         ])
 
         // Connect actions of footer view buttons
-        footerView.commentButton.addTarget(self, action: #selector(showComments), for: .touchUpInside)
         footerView.messageButton.addTarget(self, action: #selector(messageContact), for: .touchUpInside)
-        footerView.facePileView.addTarget(self, action: #selector(showSeenBy), for: .touchUpInside)
+        footerView.reactAction = { [weak self] in
+            self?.toggleEmojiPicker()
+        }
+        footerView.commentAction = { [weak self] in
+            self?.commentAction?()
+        }
         footerView.cancelAction = { [weak self] in
             self?.cancelSendingAction?()
         }
@@ -156,6 +180,9 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         }
         footerView.shareAction = { [weak self] in
             self?.shareAction?()
+        }
+        footerView.seenByAction = { [weak self] in
+            self?.showSeenByAction?()
         }
     }
 
@@ -231,6 +258,8 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
         contentTopConstraint?.constant = Self.contentTopSpacing(forPost: post)
 
         footerView.configure(with: post, contentWidth: contentWidth)
+
+        reactionView.isHidden = true
     }
 
     static func contentTopSpacing(forPost post: FeedPost) -> CGFloat {
@@ -239,19 +268,34 @@ class FeedPostCollectionViewCell: UICollectionViewCell {
   
     // MARK: Button actions
 
-    @objc(showComments)
-    private func showComments() {
-        commentAction?()
-    }
-
     @objc(messageContact)
     private func messageContact() {
         messageAction?()
     }
+    
+    @objc(toggleEmojiPicker)
+    private func toggleEmojiPicker() {
+        if reactionView.isHidden {
+            reactionView.arrowXPosition = footerView.convert(footerView.reactButtonLocation ?? .zero, to: reactionView).x
+            reactionView.delegate = self
+            reactionView.currentReaction = {
+                guard let feedData = MainAppContext.shared.feedData,
+                      let postID = postId,
+                      let post = feedData.feedPost(with: postID, in: feedData.viewContext) else
+                {
+                    return nil
+                }
+                return post.reactions?.first(where: { $0.fromUserID == MainAppContext.shared.userData.userId })?.emoji
+            }()
+        }
+        reactionView.isHidden = !reactionView.isHidden
+    }
+}
 
-    @objc(showSeenBy)
-    private func showSeenBy() {
-        showSeenByAction?()
+extension FeedPostCollectionViewCell: ReactionPickerDelegate {
+    func reactionPicker(_ reactionPicker: ReactionPicker, didSelectReaction reaction: String?) {
+        reactAction?(reaction)
+        toggleEmojiPicker()
     }
 }
 

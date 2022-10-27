@@ -132,6 +132,7 @@
         <attribute name="toUserID" optional="YES" attributeType="String"/>
         <relationship name="comment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="reactions" inverseEntity="FeedPostComment"/>
         <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMessage" inverseName="reactions" inverseEntity="ChatMessage"/>
+        <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="reactions" inverseEntity="FeedPost"/>
         <uniquenessConstraints>
             <uniquenessConstraint>
                 <constraint value="id"/>
@@ -210,6 +211,7 @@
         <relationship name="info" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ContentPublishInfo" inverseName="post" inverseEntity="ContentPublishInfo"/>
         <relationship name="linkPreviews" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonLinkPreview" inverseName="post" inverseEntity="CommonLinkPreview"/>
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonMedia" inverseName="post" inverseEntity="CommonMedia"/>
+        <relationship name="reactions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonReaction" inverseName="post" inverseEntity="CommonReaction"/>
         <uniquenessConstraints>
             <uniquenessConstraint>
                 <constraint value="id"/>

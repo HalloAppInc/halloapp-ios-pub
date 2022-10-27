@@ -404,6 +404,10 @@ extension UIColor {
         UIColor(named: "ReactionGradientBgBottom")!
     }
 
+    class var reactionGradientBorder: UIColor {
+        UIColor(named: "ReactionGradientBorder")!
+    }
+
     class var reactionSelected: UIColor {
         UIColor(named: "ReactionSelected")!
     }

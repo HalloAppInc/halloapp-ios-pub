@@ -11,6 +11,7 @@ import Combine
 import Core
 import CoreCommon
 import UIKit
+import CoreGraphics
 
 final class FeedItemBackgroundPanelView: UIView {
 
@@ -733,8 +734,25 @@ final class FeedItemHeaderView: UIView {
     }
 }
 
-final class FeedItemFooterView: UIView {
+protocol FeedItemFooterProtocol: UIView {
+    func configure(with post: FeedPostDisplayable, contentWidth: CGFloat)
+    func prepareForReuse()
 
+    var deleteAction: (() -> ())? { get set }
+    var cancelAction: (() -> ())? { get set }
+    var retryAction: (() -> ())? { get set }
+    var shareAction: (() -> ())? { get set }
+    var commentAction: (() -> ())? { get set }
+    var reactAction: (() -> ())? { get set }
+    var seenByAction: (() -> ())? { get set }
+
+    var messageButton: UIButton { get }
+    var separator: UIView { get }
+
+    var reactButtonLocation: CGPoint? { get }
+}
+
+final class FeedItemFooterView: UIView, FeedItemFooterProtocol {
     class ButtonWithBadge: UIButton {
 
         enum BadgeState {
@@ -807,7 +825,13 @@ final class FeedItemFooterView: UIView {
     var deleteAction: (() -> ())?
     var cancelAction: (() -> ())?
     var retryAction: (() -> ())?
+    var seenByAction: (() -> ())?
     var shareAction: (() -> ())?
+    var commentAction: (() -> ())?
+
+    // Reactions unsupported in legacy footer
+    var reactAction: (() -> ())? = nil
+    var reactButtonLocation: CGPoint? = nil
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -824,6 +848,7 @@ final class FeedItemFooterView: UIView {
         setupButton(button)
         button.setTitle(Localizations.feedComment, for: .normal)
         button.setImage(UIImage(named: "FeedPostComment"), for: .normal)
+        button.addTarget(self, action: #selector(commentButtonAction), for: .touchUpInside)
 
         if effectiveUserInterfaceLayoutDirection == .leftToRight {
             button.contentEdgeInsets.left = 20
@@ -855,6 +880,7 @@ final class FeedItemFooterView: UIView {
         let view = FacePileView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.isUserInteractionEnabled = true
+        view.addTarget(self, action: #selector(facePileAction), for: .touchUpInside)
         return view
     }()
 
@@ -1026,7 +1052,7 @@ final class FeedItemFooterView: UIView {
             addSubview(progressView)
             progressView.constrain(to: buttonStack)
         }
-        
+
         progressView.configure(with: post)
         progressView.isHidden = false
     }
@@ -1107,6 +1133,458 @@ final class FeedItemFooterView: UIView {
 
     @objc private func shareButtonAction() {
         shareAction?()
+    }
+
+    @objc private func commentButtonAction() {
+        commentAction?()
+    }
+
+    @objc private func facePileAction() {
+        seenByAction?()
+    }
+}
+
+final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
+
+    class CommentButton: UIButton {
+
+        enum CommentState {
+            case noComment
+            case unread
+            case allRead
+        }
+
+        override init(frame: CGRect) {
+            super.init(frame: frame)
+            self.setupView()
+        }
+
+        required init?(coder: NSCoder) {
+            super.init(coder: coder)
+            self.setupView()
+        }
+        
+        var unreadNumber: Int32 = 0 {
+            didSet {
+                guard unreadNumber != 0 else {
+                    self.numberView.isHidden = true
+                    return
+                }
+                let style = NSMutableParagraphStyle()
+                style.alignment = NSTextAlignment.center
+                let numberAttribute: [NSAttributedString.Key: Any] = [.font: UIFont.boldSystemFont(ofSize: 15), .foregroundColor: UIColor.white, .paragraphStyle: style]
+                
+                if unreadNumber < 100 {
+                    let number = NSMutableAttributedString(string: String(unreadNumber))
+                    number.setAttributes(numberAttribute, range: number.utf16Extent)
+                    self.numberView.attributedText = number
+                } else {
+                    let number = NSMutableAttributedString(string: "!!!")
+                    number.setAttributes(numberAttribute, range: number.utf16Extent)
+                    self.numberView.attributedText = number
+                }
+            }
+        }
+
+        var comment: CommentState = .noComment {
+            didSet {
+                switch self.comment {
+                case .noComment:
+                    self.badgeView.isHidden = true
+                    self.badgeOutlineView.isHidden = true
+                    self.numberView.isHidden = true
+                    self.setImage(UIImage(named: "FeedPostComment.empty"), for: .normal)
+                    self.tintColor = .label
+                    self.setTitleColor(.label, for: .normal)
+
+                case .unread:
+                    self.badgeView.isHidden = true
+                    self.badgeOutlineView.isHidden = true
+                    self.numberView.isHidden = false
+                    self.setImage(UIImage(named: "FeedPostComment.fill"), for: .normal)
+                    self.tintColor = UIColor.commentIndicatorUnread
+                    self.setTitleColor(.label, for: .normal)
+
+
+                case .allRead:
+                    self.badgeView.isHidden = false
+                    self.badgeView.fillColor = .systemGray4
+                    self.badgeView.alpha = 1.0
+                    self.badgeOutlineView.isHidden = false
+                    self.badgeOutlineView.fillColor = UIColor.messageFooterBackground
+                    self.numberView.isHidden = true
+                    self.setImage(UIImage(named: "FeedPostComment.empty"), for: .normal)
+                    self.tintColor = .label
+                    self.setTitleColor(.label, for: .normal)
+
+                }
+            }
+        }
+
+        private let badgeView = CircleView(frame: CGRect(origin: .zero, size: CGSize(width: 7, height: 7)))
+        private let badgeOutlineView = CircleView(frame: CGRect(origin: .zero, size: CGSize(width: 12, height: 12)))
+        private let numberView = UILabel(frame: CGRect(origin: .zero, size: CGSize(width: 18, height: 14)))
+        
+        private func setupView() {
+            self.addSubview(badgeOutlineView)
+            self.addSubview(badgeView)
+            self.addSubview(numberView)
+        }
+
+        override func layoutSubviews() {
+            super.layoutSubviews()
+            
+            guard let imageView = self.imageView else { return }
+            self.badgeView.center = self.badgeView.alignedCenter(from: CGPoint(x: imageView.frame.maxX * 7 / 8, y: imageView.frame.maxY * 16 / 20))
+            self.badgeOutlineView.center = self.badgeView.alignedCenter(from: CGPoint(x: imageView.frame.maxX * 7 / 8, y: imageView.frame.maxY * 16 / 20))
+            self.numberView.center = self.numberView.alignedCenter(from: CGPoint(x: imageView.frame.midX, y: imageView.frame.midY - 1))
+        }
+
+    }
+
+    private enum SenderCategory {
+        case ownPost
+        case contact
+        case nonContact
+    }
+
+    private enum State: Equatable {
+        case normal(SenderCategory)
+        case sending
+        case retracting
+        case error
+    }
+
+    var deleteAction: (() -> ())?
+    var cancelAction: (() -> ())?
+    var retryAction: (() -> ())?
+    var shareAction: (() -> ())?
+    var commentAction: (() -> ())?
+    var reactAction: (() -> ())?
+    var seenByAction: (() -> ())?
+
+    var reactButtonLocation: CGPoint? {
+        return convert(reactionButton.center, from: reactionButton.superview ?? self)
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        self.setupView()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupView()
+    }
+
+    lazy var commentButton: CommentButton = {
+        let button = CommentButton(type: .system)
+        setupButton(button)
+        button.setTitle(Localizations.feedComments, for: .normal)
+        button.contentHorizontalAlignment = .leading
+        button.addTarget(self, action: #selector(commentButtonAction), for: .touchUpInside)
+        return button
+    }()
+
+    lazy var trailingStackView: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [facePileView, reactionPileView, reactionButton, messageButton, shareButton])
+        stackView.spacing = 16
+        return stackView
+    }()
+
+    // Gotham Medium, 15 pt (Subhead)
+    lazy var messageButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(named: "FeedReplyButton"), for: .normal)
+        button.contentHorizontalAlignment = .trailing
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
+    lazy var reactionButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.addTarget(self, action: #selector(reactButtonAction), for: .touchUpInside)
+        button.setImage(UIImage(named: "FeedReactionButton"), for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
+    lazy var facePileView: FacePileView = {
+        let view = FacePileView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isUserInteractionEnabled = true
+        view.addTarget(self, action: #selector(facePileAction), for: .touchUpInside)
+        return view
+    }()
+
+    lazy var reactionPileView: ReactionPileView = {
+        let view = ReactionPileView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isUserInteractionEnabled = true
+        view.addTarget(self, action: #selector(reactionPileAction), for: .touchUpInside)
+        return view
+    }()
+
+    lazy var separator: UIView = {
+        let separator = UIView()
+        separator.backgroundColor = .separator
+        separator.translatesAutoresizingMaskIntoConstraints = false
+        separator.heightAnchor.constraint(equalToConstant: 1 / UIScreen.main.scale).isActive = true
+        return separator
+    }()
+
+    lazy var shareButton: UIButton = {
+        let shareButton = UIButton(type: .system)
+        shareButton.addTarget(self, action: #selector(shareButtonAction), for: .touchUpInside)
+        let shareIcon = UIImage(named: "shareButton")?
+            .withConfiguration(UIImage.SymbolConfiguration(pointSize: 12, weight: .semibold))
+        shareButton.setImage(shareIcon, for: .normal)
+        shareButton.translatesAutoresizingMaskIntoConstraints = false
+        return shareButton
+    }()
+
+    private func setupView() {
+        isUserInteractionEnabled = true
+
+        addSubview(separator)
+
+        separator.topAnchor.constraint(equalTo: topAnchor).isActive = true
+
+        addSubview(commentButton)
+        commentButton.translatesAutoresizingMaskIntoConstraints = false
+
+        addSubview(trailingStackView)
+        trailingStackView.translatesAutoresizingMaskIntoConstraints = false
+
+        let shareButtonCenterXConstraint = shareButton.centerXAnchor.constraint(equalTo: centerXAnchor)
+        shareButtonCenterXConstraint.priority = .defaultLow
+
+        NSLayoutConstraint.activate([
+            commentButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 15),
+            commentButton.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 3),
+            commentButton.heightAnchor.constraint(equalTo: heightAnchor),
+
+            trailingStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -15),
+            trailingStackView.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 3),
+        ])
+    }
+
+    private func setupButton(_ button: UIButton, spacing: CGFloat = 4) {
+        // Gotham Medium, 15 pt (Subhead)
+        let font = UIFont.gothamFont(forTextStyle: .footnote, weight: .medium, maximumPointSize: 18)
+        button.imageView?.tintColor = .label.withAlphaComponent(0.75)
+        button.titleLabel?.font = font
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
+        button.titleLabel?.lineBreakMode = .byWordWrapping
+        button.contentEdgeInsets.top = 15
+        button.contentEdgeInsets.bottom = 9
+        let isLTR = effectiveUserInterfaceLayoutDirection == .leftToRight
+        let adjustedSpacing = isLTR ? spacing : -spacing
+        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: adjustedSpacing / 2, bottom: 0, right: -adjustedSpacing / 2)
+        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -adjustedSpacing / 2, bottom: 0, right: adjustedSpacing / 2)
+    }
+
+    private class func senderCategory(for post: FeedPostDisplayable) -> SenderCategory {
+        if post.userId == MainAppContext.shared.userData.userId {
+            return .ownPost
+        }
+        if MainAppContext.shared.contactStore.isContactInAddressBook(userId: post.userId, in: MainAppContext.shared.contactStore.viewContext) {
+            return .contact
+        }
+        return .nonContact
+    }
+
+    private class func state(for post: FeedPostDisplayable) -> State {
+        switch post.status {
+        case .sending: return .sending
+        case .sendError: return .error
+        case .retracting: return .retracting
+        default: return .normal(senderCategory(for: post))
+        }
+    }
+
+    func configure(with post: FeedPostDisplayable, contentWidth: CGFloat) {
+        let state = Self.state(for: post)
+
+        commentButton.isHidden = state == .sending || state == .error || state == .retracting
+        reactionButton.isHidden = state == .sending || state == .error || state == .retracting
+        messageButton.isHidden = state == .sending || state == .error || state == .retracting
+        facePileView.isHidden = true
+        reactionPileView.isHidden = true
+        separator.isHidden = post.hideFooterSeparator
+
+        commentButton.isEnabled = post.canComment
+        reactionButton.isHidden = !post.canReact
+
+
+        if case .normal = state, post.canSharePost {
+            shareButton.isHidden = false
+        } else {
+            shareButton.isHidden = true
+        }
+
+        switch state {
+        case .normal(let sender):
+            hideProgressView()
+            hideErrorView()
+
+            commentButton.comment = post.hasComments ? (post.unreadCount > 0 ? .unread : .allRead) : .noComment
+            commentButton.unreadNumber = post.unreadCount
+            messageButton.isHidden = !post.canReplyPrivately
+            messageButton.isEnabled = post.canReplyPrivately
+            if sender == .ownPost {
+                facePileView.isHidden = false
+                facePileView.configure(with: post)
+            } else {
+                reactionPileView.isHidden = false
+                reactionPileView.configure(with: post)
+            }
+        case .sending, .retracting:
+            showProgressView(post)
+            hideErrorView()
+
+            if post.mediaCount > 0 {
+                progressView.isIndeterminate = false
+
+                uploadProgressCancellable = post.uploadProgressPublisher
+                    .receive(on: DispatchQueue.main)
+                    .sink { [weak progressView] progress in
+                        progressView?.progress = progress
+                    }
+            } else {
+                progressView.progress = 0.5
+            }
+        case .error:
+            showSendErrorView()
+            hideProgressView()
+        }
+    }
+
+    func prepareForReuse() {
+        uploadProgressCancellable?.cancel()
+        uploadProgressCancellable = nil
+
+        facePileView.prepareForReuse()
+        reactionPileView.prepareForReuse()
+    }
+
+    // MARK: Upload Progress
+
+    static private let progressViewTag = 1
+
+    private var uploadProgressCancellable: AnyCancellable?
+
+    private lazy var progressView: PostingProgressView = {
+        let view = PostingProgressView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 4, leading: 8, bottom: 0, trailing: 0)
+        view.tag = Self.progressViewTag
+        view.cancelButton.addTarget(self, action: #selector(cancelButtonAction), for: .touchUpInside)
+        return view
+    }()
+
+    private func showProgressView(_ post: FeedPostDisplayable) {
+        if progressView.superview == nil {
+            addSubview(progressView)
+            progressView.constrain(to: self)
+        }
+        
+        progressView.configure(with: post)
+        progressView.isHidden = false
+    }
+
+    private func hideProgressView() {
+        uploadProgressCancellable?.cancel()
+        uploadProgressCancellable = nil
+
+        subviews.first(where: { $0.tag == Self.progressViewTag })?.isHidden = true
+    }
+
+    @objc private func cancelButtonAction() {
+        cancelAction?()
+    }
+
+    // MARK: Error / retry View
+
+    static private let errorViewTag = 2
+
+    private lazy var errorView: UIView = {
+        let errorText = UILabel()
+        errorText.translatesAutoresizingMaskIntoConstraints = false
+        errorText.font = .preferredFont(forTextStyle: .subheadline)
+        errorText.numberOfLines = 0
+        errorText.textColor = .systemRed
+        errorText.text = Localizations.feedPostFailed
+
+        let deleteButton = UIButton(type: .system)
+        deleteButton.translatesAutoresizingMaskIntoConstraints = false
+        deleteButton.setImage(UIImage(systemName: "trash.fill", withConfiguration: UIImage.SymbolConfiguration(textStyle: .subheadline)), for: .normal)
+        deleteButton.addTarget(self, action: #selector(deleteButtonAction), for: .touchUpInside)
+
+        let retryButton = UIButton(type: .system)
+        retryButton.translatesAutoresizingMaskIntoConstraints = false
+        retryButton.setImage(UIImage(systemName: "arrow.counterclockwise.circle", withConfiguration: UIImage.SymbolConfiguration(textStyle: .headline)), for: .normal)
+        retryButton.addTarget(self, action: #selector(retryButtonAction), for: .touchUpInside)
+
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 4, leading: 8, bottom: 0, trailing: 0)
+        view.tag = Self.errorViewTag
+        view.addSubview(errorText)
+        view.addSubview(deleteButton)
+        view.addSubview(retryButton)
+
+        errorText.constrainMargins([ .leading, .top, .bottom ], to: view)
+
+        deleteButton.constrainMargins([ .top, .bottom ], to: view)
+        deleteButton.widthAnchor.constraint(equalTo: deleteButton.heightAnchor).isActive = true
+        deleteButton.leadingAnchor.constraint(equalToSystemSpacingAfter: errorText.trailingAnchor, multiplier: 1).isActive = true
+
+        retryButton.constrainMargins([ .trailing, .top, .bottom ], to: view)
+        retryButton.widthAnchor.constraint(equalTo: retryButton.heightAnchor).isActive = true
+        retryButton.leadingAnchor.constraint(equalToSystemSpacingAfter: deleteButton.trailingAnchor, multiplier: 1).isActive = true
+
+        return view
+    }()
+
+    private func showSendErrorView() {
+        if errorView.superview == nil {
+            addSubview(errorView)
+            errorView.constrain(to: self)
+        }
+        errorView.isHidden = false
+    }
+
+    private func hideErrorView() {
+        subviews.first(where: { $0.tag == Self.errorViewTag })?.isHidden = true
+    }
+
+    @objc private func retryButtonAction() {
+        retryAction?()
+    }
+
+    @objc private func deleteButtonAction() {
+        deleteAction?()
+    }
+
+    @objc private func shareButtonAction() {
+        shareAction?()
+    }
+
+    @objc private func commentButtonAction() {
+        commentAction?()
+    }
+
+    @objc private func reactButtonAction() {
+        reactAction?()
+    }
+
+    @objc private func facePileAction() {
+        seenByAction?()
+    }
+
+    @objc private func reactionPileAction() {
+        seenByAction?()
     }
 }
 
@@ -1235,5 +1713,8 @@ extension Localizations {
     }
     static var feedComment: String {
         NSLocalizedString("feedpost.button.comment", value: "Comment", comment: "Button under someone's post. Verb.")
+    }
+    static var feedComments: String {
+        NSLocalizedString("feedpost.button.comments", value: "Comments", comment: "Button under someone's post. Noun.")
     }
 }
