@@ -34,16 +34,22 @@ class SceneDelegate: UIResponder {
         }
 
         if isLoggedIn ?? MainAppContext.shared.userData.isLoggedIn {
+            if MainAppContext.shared.userData.name.isEmpty {
+                // placeholder that we use before the user enters their name
+                return .nameInput
+            }
+
             let initializationComplete = ContactStore.contactsAccessDenied ||
                 (ContactStore.contactsAccessAuthorized && MainAppContext.shared.contactStore.isInitialSyncCompleted)
-            return initializationComplete ? .mainInterface : .initializing
+
+            return initializationComplete ? .mainInterface : .permissions
         }
 
         return .registration
     }
 
-    private func transition(to newState: UserInterfaceState) {
-        rootViewController.transition(to: newState)
+    private func transition(to newState: UserInterfaceState, completion: (() -> Void)? = nil) {
+        rootViewController.transition(to: newState, completion: completion)
     }
 
     private func hideCallViewController() {
@@ -129,14 +135,6 @@ extension SceneDelegate: UIWindowSceneDelegate {
         })
 
         cancellables.insert(
-            MainAppContext.shared.syncManager.$isSyncInProgress.sink { [weak self] _ in
-                guard let self = self else { return }
-                DispatchQueue.main.async {
-                    self.transition(to: self.state())
-                }
-        })
-
-        cancellables.insert(
             MainAppContext.shared.contactStore.contactsAccessRequestCompleted.sink { [weak self] isContactAccessAuthorized in
                 guard let self = self else { return }
                 DispatchQueue.main.async {
@@ -208,6 +206,17 @@ extension SceneDelegate: UIWindowSceneDelegate {
             })
         )
 
+        NotificationCenter.default.publisher(for: DefaultOnboardingManager.didCompleteOnboarding)
+            .sink { _ in
+                self.transition(to: self.state()) {
+                    Task {
+                        // show the notifications prompt once the user has entered the main interface
+                        await (UIApplication.shared.delegate as? AppDelegate)?.checkNotificationsPermission()
+                    }
+                }
+            }
+            .store(in: &cancellables)
+
         MainAppContext.shared.callManager.callViewDelegate = self
         rootViewController.delegate = self
         
@@ -273,8 +282,14 @@ extension SceneDelegate: UIWindowSceneDelegate {
         appDelegate.endBackgroundConnectionTask()
         appDelegate.resumeMediaDownloads()
 
-        DispatchQueue.main.async {
-            appDelegate.checkNotificationsAuthorizationStatus()
+        Task {
+            let state = rootViewController.state
+            guard state != .registration, state != .nameInput, state != .permissions else {
+                // don't show notifications permission prompt during onboarding
+                return
+            }
+
+            await appDelegate.checkNotificationsPermission()
         }
 
         guard MainAppContext.shared.userData.isLoggedIn else { return }

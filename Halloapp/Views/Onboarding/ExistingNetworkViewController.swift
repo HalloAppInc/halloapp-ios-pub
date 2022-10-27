@@ -102,6 +102,10 @@ class ExistingNetworkViewController: UIViewController, UserActionHandler {
         return button
     }()
 
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        .portrait
+    }
+
     init(onboardingManager: OnboardingManager, userIDs: [UserID]) {
         self.onboardingManager = onboardingManager
         self.fellowUserIDs = userIDs
@@ -135,10 +139,10 @@ class ExistingNetworkViewController: UIViewController, UserActionHandler {
         buildCollectionView()
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
 
-        let contentHeight = collectionView.collectionViewLayout.collectionViewContentSize.height
+        let contentHeight = collectionView.contentSize.height
         let difference = collectionView.bounds.height - contentHeight
 
         if contentHeight > 0, difference > 0 {
@@ -217,6 +221,7 @@ class ExistingNetworkViewController: UIViewController, UserActionHandler {
         }
 
         composer.onCancel = { [onboardingManager] in
+            composer.view.endEditing(true)
             onboardingManager.didCompleteOnboardingFlow()
         }
 

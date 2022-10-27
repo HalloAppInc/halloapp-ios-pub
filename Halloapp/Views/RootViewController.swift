@@ -13,8 +13,9 @@ import UIKit
 
 enum UserInterfaceState {
     case expiredVersion
-    case initializing
     case registration
+    case nameInput
+    case permissions
     case mainInterface
     case initial
     case migrating
@@ -32,6 +33,9 @@ final class RootViewController: UIViewController {
 
     var primaryViewContainer = UIView()
     var primaryViewController = UIViewController()
+
+    @UserDefault(key: "shownRegistrationSplashScreen", defaultValue: false)
+    private var hasShownRegistrationSplashScreen: Bool
 
     var state: UserInterfaceState = .initial
     weak var delegate: RootViewControllerDelegate?
@@ -58,7 +62,7 @@ final class RootViewController: UIViewController {
         return [.portrait]
     }
 
-    func transition(to newState: UserInterfaceState) {
+    func transition(to newState: UserInterfaceState, completion: (() -> Void)? = nil) {
         guard newState != .initial else {
             DDLogError("RootViewController/transition/aborting [should-not-transition-to-initial-state]")
             return
@@ -69,7 +73,18 @@ final class RootViewController: UIViewController {
         }
 
         DDLogInfo("RootViewController/transition [\(state) => \(newState)]")
+        let oldState = state
         state = newState
+
+        switch (oldState, newState) {
+        case (.registration, .nameInput):
+            // registration will lead to name input without having to change it here
+            return
+        case (.permissions, .mainInterface), (.nameInput, .mainInterface):
+            return animateMainInterfaceAfterRegistration(completion)
+        default:
+            break
+        }
 
         // Remove old view
         primaryViewController.willMove(toParent: nil)
@@ -83,6 +98,32 @@ final class RootViewController: UIViewController {
         primaryViewContainer.addSubview(primaryViewController.view)
         primaryViewController.view.constrain(to: primaryViewContainer)
         primaryViewController.didMove(toParent: self)
+
+        completion?()
+    }
+
+    private func animateMainInterfaceAfterRegistration(_ completion: (() -> Void)? = nil) {
+        let nextViewController = viewController(forUserInterfaceState: state)
+        let currentViewController = primaryViewController
+
+        primaryViewContainer.insertSubview(nextViewController.view, belowSubview: currentViewController.view)
+        nextViewController.view.translatesAutoresizingMaskIntoConstraints = false
+        nextViewController.view.constrain(to: primaryViewContainer)
+        addChild(nextViewController)
+        nextViewController.didMove(toParent: self)
+
+        currentViewController.willMove(toParent: nil)
+        currentViewController.removeFromParent()
+
+        primaryViewController = nextViewController
+
+        UIView.animate(withDuration: 0.35) {
+            currentViewController.view.transform = CGAffineTransform(scaleX: 1.5, y: 1.5)
+            currentViewController.view.alpha = 0
+        } completion: { _ in
+            currentViewController.view.removeFromSuperview()
+            completion?()
+        }
     }
 
     func updateCallUI(with call: Call?, animated: Bool) {
@@ -122,11 +163,22 @@ final class RootViewController: UIViewController {
         case .initial:
             return UIViewController()
 
-        case .initializing:
-            return InitializingViewController()
+        case .registration where !hasShownRegistrationSplashScreen:
+            let vc = RegistrationSplashScreenViewController(registrationManager: makeRegistrationManager())
+            hasShownRegistrationSplashScreen = true
+            return UINavigationController(rootViewController: vc)
 
         case .registration:
-            return VerificationViewController(registrationManager: makeRegistrationManager())
+            let vc = PhoneNumberEntryViewController(registrationManager: makeRegistrationManager())
+            return UINavigationController(rootViewController: vc)
+
+        case .nameInput:
+            let vc = NameInputViewController(registrationManager: makeRegistrationManager())
+            return UINavigationController(rootViewController: vc)
+
+        case .permissions:
+            let vc = PermissionsViewController(onboardingManager: makeOnboardingManager())
+            return UINavigationController(rootViewController: vc)
 
         case .mainInterface:
             return HomeViewController()
@@ -147,6 +199,11 @@ final class RootViewController: UIViewController {
         }
         let noiseService = NoiseRegistrationService(noiseKeys: noiseKeys)
         return DefaultRegistrationManager(registrationService: noiseService)
+    }
+
+    private func makeOnboardingManager() -> OnboardingManager {
+        let manager = DefaultOnboardingManager()
+        return manager
     }
 
     @objc

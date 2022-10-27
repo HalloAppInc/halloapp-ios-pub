@@ -96,6 +96,10 @@ class RegistrationSplashScreenViewController: UIViewController {
         return gradient
     }()
 
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        .portrait
+    }
+
     init(registrationManager: RegistrationManager) {
         self.registrationManager = registrationManager
         super.init(nibName: nil, bundle: nil)

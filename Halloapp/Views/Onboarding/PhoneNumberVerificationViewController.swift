@@ -193,6 +193,10 @@ class PhoneNumberVerificationViewController: UIViewController {
         return stack
     }()
 
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        .portrait
+    }
+
     init(registrationManager: RegistrationManager, registrationNumber: RegistrationPhoneNumber) {
         self.registrationManager = registrationManager
         self.registrationNumber = registrationNumber

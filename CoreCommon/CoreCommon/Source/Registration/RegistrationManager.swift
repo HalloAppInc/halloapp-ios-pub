@@ -58,6 +58,8 @@ public final class DefaultRegistrationManager: RegistrationManager {
 
     private let registrationService: RegistrationService
 
+    private static let placeholderRegistrationName = "New User"
+
     // Explicitly track country code provided by user for use in hashcash request
     // (UserData provides a default country code that we don't want to fall back to).
     private var userDefinedCountryCode: String?
@@ -120,6 +122,7 @@ public final class DefaultRegistrationManager: RegistrationManager {
     public func confirmVerificationCode(_ verificationCode: String, pushOS: String?, completion: @escaping (Result<Void, Error>) -> Void) {
         let userData = AppContextCommon.shared.userData
         let keyData = AppContextCommon.shared.keyData
+        let name = userData.name.isEmpty ? Self.placeholderRegistrationName : userData.name
 
         guard let noiseKeys = NoiseKeys(),
               let userKeys = keyData?.generateUserKeys() else
@@ -130,7 +133,7 @@ public final class DefaultRegistrationManager: RegistrationManager {
 
         registrationService.validateVerificationCode(
             verificationCode,
-            name: userData.name,
+            name: name,
             normalizedPhoneNumber: userData.normalizedPhoneNumber,
             noiseKeys: noiseKeys,
             groupInviteToken: userData.groupInviteToken,

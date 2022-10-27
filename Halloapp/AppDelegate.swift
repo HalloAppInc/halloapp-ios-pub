@@ -101,18 +101,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     private var needsAPNSToken = true
 
-    func checkNotificationsAuthorizationStatus() {
-        // Do not allow to ask about access to notifications until user is done with Contacts access prompt.
-        guard !ContactStore.contactsAccessRequestNecessary else { return }
+    func checkNotificationsPermission() async {
+        DDLogInfo("AppDelegate/checkNotificationsPermission")
+        let notificationCenter = UNUserNotificationCenter.current()
 
-        DDLogInfo("appdelegate/notifications/authorization/request")
-        UNUserNotificationCenter.current().requestAuthorization(options: [.sound, .alert, .badge]) { (granted, error) in
-            DDLogInfo("appdelegate/notifications/authorization granted=[\(granted)]")
-            if self.needsAPNSToken || !MainAppContext.shared.service.hasValidAPNSPushToken {
-                DispatchQueue.main.async {
-                    UIApplication.shared.registerForRemoteNotifications()
-                }
+        do {
+            let isAuthorized = try await notificationCenter.requestAuthorization(options: [.sound, .alert, .badge])
+            DDLogInfo("AppDelegate/checkNotificationsPermission/request completed with authorization [\(isAuthorized)]")
+
+            DispatchQueue.main.async {
+                UIApplication.shared.registerForRemoteNotifications()
             }
+
+        } catch {
+            DDLogError("AppDelegate/checkNotificationsPermission/request failed with error [\(String(describing: error))]")
         }
     }
 
@@ -173,47 +175,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     // MARK: Privacy Access Requests
-
-    /**
-     This variable is necessary because presenting Contacts access request popup makes the app to go into "inactive" state
-     and then back to "active" when popup is closed (by either approving or rejecting access request).
-     */
-    private var contactsAccessRequestInProgress = false
-
-    private func checkContactsAuthorizationStatus(completion: @escaping (Bool, Bool) -> Void) {
-        // Authorization status will be unknown on first launch or after privacy settings reset.
-        // We need to excplicitly request access in this case.
-        if ContactStore.contactsAccessRequestNecessary {
-            DDLogInfo("appdelegate/contacts/access-request Prompting user now")
-            let contactStore = CNContactStore()
-            contactStore.requestAccess(for: .contacts) { authorized, error in
-                DispatchQueue.main.async {
-                    AppContext.shared.contactStore.contactsAccessRequestCompleted.send(authorized)
-                    completion(true, authorized)
-                }
-            }
-        } else {
-            completion(false, ContactStore.contactsAccessAuthorized)
-        }
-    }
-
-    func requestAccessToContactsAndNotifications() {
-        guard !contactsAccessRequestInProgress else {
-            DDLogWarn("appdelegate/contacts/access-request Already in progress")
-            return
-        }
-        contactsAccessRequestInProgress = true
-        checkContactsAuthorizationStatus { requestPresented, accessAuthorized in
-            DDLogInfo("appdelegate/contacts/access-request Granted: [\(accessAuthorized)] Request presented: [\(requestPresented)]")
-            self.contactsAccessRequestInProgress = false
-            MainAppContext.shared.contactStore.reloadContactsIfNecessary()
-            if requestPresented {
-                // This is likely the first app launch and now that Contacts access popup is gone,
-                // time to request access to notifications.
-                self.checkNotificationsAuthorizationStatus()
-            }
-        }
-    }
 
     func application(_ application: UIApplication, handleEventsForBackgroundURLSession identifier: String, completionHandler: @escaping () -> Void) {
         DDLogDebug("CommonMediaUploader - restarting app for backgroundURLSession: \(identifier)")

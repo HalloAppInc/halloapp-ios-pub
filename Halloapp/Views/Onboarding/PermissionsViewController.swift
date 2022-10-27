@@ -111,6 +111,10 @@ class PermissionsViewController: UIViewController {
         return progressView
     }()
 
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        .portrait
+    }
+
     init(onboardingManager: OnboardingManager) {
         self.onboardingManager = onboardingManager
         super.init(nibName: nil, bundle: nil)
@@ -156,26 +160,38 @@ class PermissionsViewController: UIViewController {
             getStartedButtonStack.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             getStartedButtonStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -OnboardingConstants.bottomButtonBottomDistance),
         ])
+
+        if onboardingManager.hasContactsPermission {
+            DDLogInfo("PermissionsViewController/viewDidLoad/has contacts permission")
+            // possible that the user gave permissions and then killed the app during the initial sync
+            getStartedButton.isEnabled = false
+            Task { await listenForSyncProgress() }
+        }
     }
 
     @objc
     private func getStartedButtonPushed(_ button: UIButton) {
         getStartedButton.isEnabled = false
-        Task { await requestContactAccess() }
+
+        Task {
+            guard await onboardingManager.requestContactsPermission() else {
+                // denied permission; enter the app
+                return onboardingManager.didCompleteOnboardingFlow()
+            }
+
+            await listenForSyncProgress()
+        }
     }
 
     @MainActor
-    private func requestContactAccess() async {
-        guard await onboardingManager.hasContactsPermission else {
-            // enter the app without permission
-            return onboardingManager.didCompleteOnboardingFlow()
-        }
+    private func listenForSyncProgress() async {
+        DDLogInfo("PermissionsViewController/listenForSyncProgress")
 
         for await progress in onboardingManager.contactsSyncProgress {
             updateSyncProgress(progress)
         }
 
-        goToNextScreen()
+        showNextScreen()
     }
 
     private func updateSyncProgress(_ progress: Double) {
@@ -212,7 +228,7 @@ class PermissionsViewController: UIViewController {
         syncProgressStack.arrangedSubviews.forEach { $0.isHidden = false }
     }
 
-    private func goToNextScreen() {
+    private func showNextScreen() {
         let contacts = onboardingManager.fellowContactIDs()
 
         if contacts.count < 5 {

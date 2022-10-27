@@ -122,11 +122,7 @@ final class InitializingViewController: UIViewController {
 
         let alert = UIAlertController(title: Localizations.registrationContactPermissionsTitle, message: Localizations.registrationContactPermissionsContent, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: Localizations.buttonNext, style: .default, handler: { _ in
-            guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-                DDLogError("InitializingViewController/requestPermissions/error app delegate unavailable")
-                return
-            }
-            appDelegate.requestAccessToContactsAndNotifications()
+
         }))
         present(alert, animated: true, completion: nil)
     }

@@ -283,6 +283,10 @@ class PhoneNumberEntryViewController: UIViewController {
         return label
     }()
 
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        .portrait
+    }
+
     init(registrationManager: RegistrationManager) {
         self.registrationManager = registrationManager
         super.init(nibName: nil, bundle: nil)
