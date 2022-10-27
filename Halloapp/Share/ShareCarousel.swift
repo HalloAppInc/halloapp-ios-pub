@@ -36,7 +36,8 @@ class ShareCarousel: UIView {
     private lazy var shareDestinations: [ShareDestination] = {
         return [
             ShareDestination(icon: UIImage(named: "ShareAppIconShareVia"), shareProvider: SystemShareProvider.self),
-            ShareDestination(icon: UIImage(named: "ShareAppIconWhatsApp"), shareProvider: WhatsAppShareProvider.self),
+            // Temporarily disable as we cannot share images via direct link
+            //ShareDestination(icon: UIImage(named: "ShareAppIconWhatsApp"), shareProvider: WhatsAppShareProvider.self),
             ShareDestination(icon: UIImage(named: "ShareAppIconMessages"), shareProvider: MessagesShareProvider.self),
             ShareDestination(icon: UIImage(named: "ShareAppIconTwitter"), shareProvider: TwitterShareProvider.self),
             ShareDestination(icon: UIImage(named: "ShareAppIconInstagram"), shareProvider: InstagramStoriesShareProvider.self),
