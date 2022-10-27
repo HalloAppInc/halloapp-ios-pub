@@ -190,7 +190,7 @@ class DestinationCell: UICollectionViewCell {
         configureSelected(isSelected)
     }
 
-    public func configureUser(_ userID: UserID, name: String?, phone: String?, isSelected: Bool) {
+    public func configureUser(_ userID: UserID, name: String?, phone: String?, enableSelection: Bool = true, isSelected: Bool = false) {
         subtitle.isHidden = false
         homeView.isHidden = true
         favoritesView.isHidden = true
@@ -200,7 +200,11 @@ class DestinationCell: UICollectionViewCell {
         subtitle.text = phone
         avatarView.configure(with: userID, using: MainAppContext.shared.avatarStore)
 
-        configureSelected(isSelected)
+        if enableSelection {
+            configureSelected(isSelected)
+        } else {
+            selectedView.isHidden = true
+        }
     }
 
     private func configureSelected(_ isSelected: Bool) {

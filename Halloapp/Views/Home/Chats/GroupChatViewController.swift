@@ -1530,6 +1530,11 @@ extension GroupChatViewController: MessageViewChatDelegate, ReactionViewControll
         present(UINavigationController(rootViewController: vc), animated: true)
     }
 
+    func showMessageInfo(for chatMessage: ChatMessage) {
+        let vc = MessageReceiptInfoView(chatMessage: chatMessage)
+        self.navigationController?.pushViewController(vc, animated: true)
+    }
+
     func showDeletionConfirmationMenu(for chatMessage: ChatMessage) {
         let chatMessageId = chatMessage.id
         let alertController = UIAlertController(title: Localizations.chatDeleteTitle, message: nil, preferredStyle: .actionSheet)

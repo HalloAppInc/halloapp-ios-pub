@@ -1620,6 +1620,9 @@ extension ChatViewControllerNew: UIDocumentPickerDelegate {
 }
 
 extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewControllerChatDelegate, ReactionListViewControllerDelegate {
+    func showMessageInfo(for chatMessage: Core.ChatMessage) {
+        // no op
+    }
 
     func messageView(_ messageViewCell: MessageCellViewBase, didTapUserId userId: UserID) {
 

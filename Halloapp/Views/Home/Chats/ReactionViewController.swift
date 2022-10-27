@@ -17,6 +17,7 @@ protocol ReactionViewControllerChatDelegate: AnyObject {
     func handleQuotedReply(msg chatMessage: ChatMessage)
     func handleForwarding(msg chatMessage: ChatMessage)
     func showDeletionConfirmationMenu(for chatMessage: ChatMessage)
+    func showMessageInfo(for chatMessage: ChatMessage)
     func sendReaction(chatMessage: ChatMessage, reaction: String)
     func removeReaction(reaction: CommonReaction)
 }
@@ -222,6 +223,13 @@ public class ReactionViewController: UIViewController {
                 items.append(space)
             }
 
+            if chatMessage.chatMessageRecipient.chatType == .groupChat, chatMessage.orderedInfo.count > 0 {
+                let infoButton = createMenuButton(imageName: "info.circle", labelName: Localizations.messageInfo)
+                infoButton.addTarget(self, action: #selector(handleInfo), for: .touchUpInside)
+                items.append(UIBarButtonItem(customView: infoButton))
+                items.append(space)
+            }
+
             let deleteButton = createMenuButton(imageName: "trash", labelName: Localizations.messageDelete)
             deleteButton.addTarget(self, action: #selector(handleDelete), for: .touchUpInside)
             items.append(UIBarButtonItem(customView: deleteButton))
@@ -353,6 +361,15 @@ public class ReactionViewController: UIViewController {
             let pasteboard = UIPasteboard.general
             pasteboard.string = messageText
         }
+        dismiss(animated: true)
+    }
+
+    @objc
+    private func handleInfo() {
+        guard let chatMessage = chatMessage, let delegate = chatDelegate else {
+            return
+        }
+        delegate.showMessageInfo(for: chatMessage)
         dismiss(animated: true)
     }
     
