@@ -55,6 +55,7 @@ class GroupFeedViewController: FeedCollectionViewController {
     private var shouldRestoreScrollPosition: Bool
 
     private var recentSelfPostIDs = Set<FeedPostID>()
+    private var recentSelfPostShareCarouselDisplayTimes = Dictionary<FeedPostID, Date>()
 
     override var feedPostIdToScrollTo: FeedPostID? {
         didSet {
@@ -321,14 +322,21 @@ class GroupFeedViewController: FeedCollectionViewController {
                 break
             }
         }
+
+        if let feedItem = feedDataSource.item(at: indexPath.item), case .shareCarousel(let feedPostID) = feedItem {
+            recentSelfPostShareCarouselDisplayTimes[feedPostID] = Date()
+        }
     }
 
     override func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         super.collectionView(collectionView, didEndDisplaying: cell, forItemAt: indexPath)
 
         if let feedItem = feedDataSource.item(at: indexPath.item), case .shareCarousel(let feedPostID) = feedItem {
-            recentSelfPostIDs.remove(feedPostID)
-            feedDataSource.removeItem(feedItem)
+            if let displayStart = recentSelfPostShareCarouselDisplayTimes[feedPostID], -displayStart.timeIntervalSinceNow > 2 {
+                recentSelfPostIDs.remove(feedPostID)
+                feedDataSource.removeItem(feedItem)
+            }
+            recentSelfPostShareCarouselDisplayTimes[feedPostID] = nil
         }
     }
 

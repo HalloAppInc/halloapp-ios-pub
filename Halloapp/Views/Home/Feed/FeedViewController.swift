@@ -21,6 +21,7 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
     private var cancellables: Set<AnyCancellable> = []
 
     private var recentSelfPostIDs = Set<FeedPostID>()
+    private var recentSelfPostShareCarouselDisplayTimes = Dictionary<FeedPostID, Date>()
 
     private lazy var canInvite = {
         return isWhatsAppAvailable || isIMessageAvailable
@@ -131,12 +132,23 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         DispatchQueue.main.async { [weak self] in self?.floatingMenu.setAccessoryState(fabAccessoryState, animated: true) }
     }
 
+    override func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        super.collectionView(collectionView, willDisplay: cell, forItemAt: indexPath)
+
+        if let feedItem = feedDataSource.item(at: indexPath.item), case .shareCarousel(let feedPostID) = feedItem {
+            recentSelfPostShareCarouselDisplayTimes[feedPostID] = Date()
+        }
+    }
+
     override func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         super.collectionView(collectionView, didEndDisplaying: cell, forItemAt: indexPath)
 
         if let feedItem = feedDataSource.item(at: indexPath.item), case .shareCarousel(let feedPostID) = feedItem {
-            recentSelfPostIDs.remove(feedPostID)
-            feedDataSource.removeItem(feedItem)
+            if let displayStart = recentSelfPostShareCarouselDisplayTimes[feedPostID], -displayStart.timeIntervalSinceNow > 2 {
+                recentSelfPostIDs.remove(feedPostID)
+                feedDataSource.removeItem(feedItem)
+            }
+            recentSelfPostShareCarouselDisplayTimes[feedPostID] = nil
         }
     }
 
