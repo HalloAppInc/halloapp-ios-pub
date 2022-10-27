@@ -34,7 +34,7 @@ class NewGroupChatHeaderView: UIView {
 
         let newGroupImageView = UIImageView()
         newGroupImageView.contentMode = .scaleAspectFill
-        newGroupImageView.image = UIImage(named: "ProfileHeaderCamera")?.withRenderingMode(.alwaysTemplate)
+        newGroupImageView.image = UIImage(systemName: "person.2.fill")?.withRenderingMode(.alwaysTemplate)
         newGroupImageView.tintColor = .secondarySystemGroupedBackground
         newGroupImageView.translatesAutoresizingMaskIntoConstraints = false
         newGroupChatIconView.addSubview(newGroupImageView)
