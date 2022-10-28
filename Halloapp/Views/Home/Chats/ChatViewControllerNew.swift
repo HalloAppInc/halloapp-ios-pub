@@ -611,7 +611,11 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         navigationItem.rightBarButtonItems = rightBarButtons
         // Setup title view
         navigationItem.titleView = titleView
-        titleView.update(with: fromUserId, status: UserPresenceType.none, lastSeen: nil)
+        if let presenceInfo = MainAppContext.shared.chatData.presenceInfoOfUser(fromUserId) {
+            titleView.update(with: fromUserId, status: presenceInfo.0, lastSeen: presenceInfo.1)
+        } else {
+            titleView.update(with: fromUserId, status: UserPresenceType.none, lastSeen: nil)
+        }
         titleView.checkIfUnknownContactWithPushNumber(userID: fromUserId)
         
         view.addSubview(collectionView)

@@ -68,6 +68,7 @@ class ChatData: ObservableObject {
     private let mediaUploader: MediaUploader
 
     private var currentlySubscribedUsers: [UserID] = []
+    private var recentUsersPresenceInfo = [UserID: (UserPresenceType, Date?)]()
     
     private var chatStateInfoList: [ChatStateInfo] = []
     private var chatStateDebounceTimer: Timer? = nil
@@ -2122,18 +2123,13 @@ extension ChatData {
 extension ChatData {
     
     func setCurrentlyChattingWithUserId(for chatWithUserId: String?) {
-        // Clear out previously chatting with 1:1 userId
-        currentSubscribersQueue.sync {
-            if let previouslyChattingWithUserId = coreChatData.getCurrentlyChattingWithUserId(), let userIndex = currentlySubscribedUsers.firstIndex(of: previouslyChattingWithUserId) {
-                currentlySubscribedUsers.remove(at: userIndex)
-            }
-        }
         coreChatData.setCurrentlyChattingWithUserId(for: chatWithUserId)
     }
 
     func clearAllUserSubscriptions() {
         currentSubscribersQueue.sync {
             self.currentlySubscribedUsers = []
+            self.recentUsersPresenceInfo.removeAll()
         }
     }
 
@@ -2144,6 +2140,12 @@ extension ChatData {
     func isSubscribedToUser(userId: UserID) -> Bool {
         currentSubscribersQueue.sync {
             return currentlySubscribedUsers.contains(userId)
+        }
+    }
+
+    func presenceInfoOfUser(_ userID: UserID) -> (UserPresenceType, Date?)? {
+        currentSubscribersQueue.sync {
+            return recentUsersPresenceInfo[userID]
         }
     }
             
@@ -4292,6 +4294,10 @@ extension ChatData {
                 presenceStatus = UserPresenceType.available
                 presenceLastSeen = presenceInfo.lastSeen
             }
+        }
+
+        currentSubscribersQueue.async {
+            self.recentUsersPresenceInfo[presenceInfo.userID] = (presenceStatus, presenceLastSeen)
         }
                 
         // notify chatViewController
