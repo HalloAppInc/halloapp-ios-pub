@@ -20,6 +20,7 @@
 		320AC73927D17EC30069048D /* HalloAppClip.app in Embed AppClip */ = {isa = PBXBuildFile; fileRef = 329E03F8268247BC00C2D250 /* HalloAppClip.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3213A78E2909A72C00D0450A /* MessageReceiptInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3213A78D2909A72C00D0450A /* MessageReceiptInfoView.swift */; };
 		3213A7902909DB5D00D0450A /* EmptyDestinationCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3213A78F2909DB5D00D0450A /* EmptyDestinationCell.swift */; };
+		3213A792290B36E800D0450A /* DisableMessageSendSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3213A791290B36E800D0450A /* DisableMessageSendSheetViewController.swift */; };
 		32151C1D28207B330057D794 /* ChatViewControllerNew.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32151C1C28207B330057D794 /* ChatViewControllerNew.swift */; };
 		321A70112704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 321A70102704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift */; };
 		321A70132704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 321A70122704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift */; };
@@ -690,6 +691,7 @@
 		24D743DD24B3D199001111BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3213A78D2909A72C00D0450A /* MessageReceiptInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageReceiptInfoView.swift; sourceTree = "<group>"; };
 		3213A78F2909DB5D00D0450A /* EmptyDestinationCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyDestinationCell.swift; sourceTree = "<group>"; };
+		3213A791290B36E800D0450A /* DisableMessageSendSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisableMessageSendSheetViewController.swift; sourceTree = "<group>"; };
 		32151C1C28207B330057D794 /* ChatViewControllerNew.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewControllerNew.swift; sourceTree = "<group>"; };
 		321A700E2704FD3A005603B8 /* Feed5.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed5.xcdatamodel; sourceTree = "<group>"; };
 		321A70102704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedLinkPreview+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -2052,6 +2054,7 @@
 				EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */,
 				EA7B36432783C87100C82D2F /* ChatEventViewCell.swift */,
 				68C5696827AC600F00637B28 /* ChatDateMarkerCell.swift */,
+				3213A791290B36E800D0450A /* DisableMessageSendSheetViewController.swift */,
 			);
 			path = Message;
 			sourceTree = "<group>";
@@ -3192,6 +3195,7 @@
 				32C83FBD268FD6B000BEB4F5 /* NewGroupMembersPermissionDeniedController.swift in Sources */,
 				F4063F2F276836F50068B9ED /* ShareButton.swift in Sources */,
 				EABBF72B24E72C6200FE1F1F /* CreateGroupViewController.swift in Sources */,
+				3213A792290B36E800D0450A /* DisableMessageSendSheetViewController.swift in Sources */,
 				F445A73927FFB8270046D382 /* ShareMenuPresenter.swift in Sources */,
 				EA796B9B2469DDF100BC795E /* ChatQuotedLegacy+CoreDataClass.swift in Sources */,
 				322DDDE52739A2A6006BE1E0 /* ChatLinkPreviewView.swift in Sources */,

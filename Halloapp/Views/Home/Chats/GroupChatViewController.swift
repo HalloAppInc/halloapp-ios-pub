@@ -124,6 +124,17 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
     fileprivate typealias ChatDataSource = UICollectionViewDiffableDataSource<Section, MessageRow>
     fileprivate typealias ChatMessageSnapshot = NSDiffableDataSourceSnapshot<Section, MessageRow>
 
+    private var userBelongsToGroup: Bool {
+        MainAppContext.shared.chatData.chatGroupMember(
+            groupId: groupId,
+            memberUserId: MainAppContext.shared.userData.userId,
+            in: MainAppContext.shared.chatData.viewContext) != nil
+    }
+
+    private lazy var disableMessageSendSheet: DisableMessageSendSheetViewController = {
+        return DisableMessageSendSheetViewController()
+    }()
+
     private lazy var titleView: ChatTitleView = {
         let titleView = ChatTitleView()
         titleView.translatesAutoresizingMaskIntoConstraints = false
@@ -415,6 +426,26 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
                 }
             }
         )
+
+        cancellableSet.insert(
+            MainAppContext.shared.chatData.didGetAGroupEvent.sink { [weak self] (groupID) in
+                guard groupID == self?.groupId else { return }
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext)
+                    self.updateFooter()
+                }
+            }
+        )
+    }
+
+    private func updateFooter() {
+        if !userBelongsToGroup {
+            present(disableMessageSendSheet, animated: true)
+            return
+        } else {
+            disableMessageSendSheet.dismiss(animated: false)
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -445,6 +476,7 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
         
         updateJumpButtonVisibility()
         isFirstLaunch = false
+        updateFooter()
     }
 
     override func viewDidLayoutSubviews() {

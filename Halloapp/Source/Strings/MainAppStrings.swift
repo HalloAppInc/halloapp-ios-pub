@@ -292,6 +292,10 @@ extension Localizations {
         NSLocalizedString("chat.contact.is.blocked.title.label", value: "Contact is blocked, you won't receive any messages until you unblock them.", comment: "Title of the bottom sheet shown in the chat screen of a contact that is blocked. The bottom sheet contains an unblock button.")
     }
 
+    static var nonMemberLabel: String {
+        NSLocalizedString("group.chat.contact.is.not.member", value: "You can’t send messages to this group because you’re no longer a member of this group.", comment: "When a user is no longer a member of a chat group, this message is displyed at the bottom of the chat, preventing them from sending messages.")
+    }
+
     static var momentLabel: String {
         NSLocalizedString("chat.quoted.moment.label", value: "Moment", comment: "When user replies to a moment, it sends a quoted message to the author of the moment via chat. This label is displyed in the chat bubble to indicate a moment reply.")
     }
