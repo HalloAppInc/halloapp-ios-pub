@@ -497,6 +497,7 @@ public class AvatarStore: ServiceAvatarDelegate {
     }
     
     public func processContactSync(_ avatarDict: [UserID: AvatarID]) {
+        DDLogInfo("AvatarStore/processContactSync")
         performOnBackgroundContextAndWait { [weak self] (managedObjectContext) in
             for (userId, avatarId) in avatarDict {
                 _ = self?.insertAvatar(avatarId: avatarId, forUserId: userId, using: managedObjectContext)
@@ -506,6 +507,21 @@ public class AvatarStore: ServiceAvatarDelegate {
             } catch let error as NSError {
                 DDLogError("AvatarStore/processContactSync/error [\(error)]")
             }
+
+            DispatchQueue.main.async {
+                self?.updateCachedAvatarsAfterContactSync(avatarDict)
+            }
+        }
+    }
+
+    private func updateCachedAvatarsAfterContactSync(_ avatarDict: [UserID: AvatarID]) {
+        for (userID, avatarID) in avatarDict {
+            let cachedAvatar = userAvatars.object(forKey: userID as NSString)
+
+            cachedAvatar?.image = nil
+            cachedAvatar?.fileURL = nil
+            cachedAvatar?.avatarId = avatarID
+            cachedAvatar?.loadThumbnailImage(using: self)
         }
     }
 }

@@ -852,6 +852,19 @@ class ContactStoreMain: ContactStoreCore {
                 self.notifyAboutNewUsers(userIdsToSharePostsWith)
             }
         }
+
+        let contactAvatarMap = xmppContacts
+            .compactMap { contact -> (UserID, AvatarID)? in
+                guard let userID = contact.userid, let avatarID = contact.avatarid else {
+                    return nil
+                }
+                return (userID, avatarID)
+            }
+            .reduce(into: [UserID: AvatarID]()) { map, contact in
+                map[contact.0] = contact.1
+            }
+
+        MainAppContext.shared.avatarStore.processContactSync(contactAvatarMap)
     }
 
     func processNotification(contactHashes: [Data], using managedObjectContext: NSManagedObjectContext) {
