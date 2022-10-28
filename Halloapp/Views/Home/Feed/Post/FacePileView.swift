@@ -36,6 +36,7 @@ class FacePileView: UIControl {
 
             let reactionView = UILabel()
             reactionView.isHidden = true
+            reactionView.font = .systemFont(ofSize: 14)
             reactionView.translatesAutoresizingMaskIntoConstraints = false
 
             self.addSubview(avatarView)
