@@ -4491,11 +4491,16 @@ extension ChatData {
         let timestamp = Date(timeIntervalSinceReferenceDate: ts)
         let protoContainer = xmppChatMessage.protoContainer
         let protobufData = try? protoContainer?.serializedData()
+        var groupName: String? = nil
+        if let groupId = xmppChatMessage.chatMessageRecipient.toGroupId, let group = chatGroup(groupId: groupId, in: viewContext) {
+            groupName = group.name
+        }
         let metadata = NotificationMetadata(contentId: xmppChatMessage.id,
-                                            contentType: .chatMessage,
+                                            contentType: xmppChatMessage.chatMessageRecipient.chatType == .groupChat ? .groupChatMessage : .chatMessage,
                                             fromId: userID,
                                             groupId: xmppChatMessage.chatMessageRecipient.toGroupId,
                                             groupType: xmppChatMessage.chatMessageRecipient.chatType,
+                                            groupName: groupName,
                                             timestamp: timestamp,
                                             data: protobufData,
                                             messageId: xmppChatMessage.id)
@@ -5613,11 +5618,11 @@ extension ChatData {
                                             fromId: userID,
                                             groupId: xmppGroup.groupId,
                                             groupType: xmppGroup.groupType,
+                                            groupName: xmppGroup.name,
                                             timestamp: nil,
                                             data: nil,
                                             messageId: messageID)
         metadata.groupId = xmppGroup.groupId
-        metadata.groupName = xmppGroup.name
         // create and add a notification to the notification center.
         NotificationRequest.createAndShow(from: metadata)
     }

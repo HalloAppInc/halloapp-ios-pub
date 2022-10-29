@@ -804,6 +804,7 @@ final class CallManager: NSObject, CXProviderDelegate {
                                             fromId: peerUserID,
                                             groupId: nil,
                                             groupType: nil,
+                                            groupName: nil,
                                             timestamp: Date(),
                                             data: nil,
                                             messageId: nil,

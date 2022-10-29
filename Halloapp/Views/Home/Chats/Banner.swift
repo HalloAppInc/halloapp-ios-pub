@@ -230,7 +230,7 @@ fileprivate class BannerView: UIView, UIGestureRecognizerDelegate {
     private func gotoChat(_ sender: UIView) {
         var id: String? = nil
         var notificationType: NotificationContentType
-    
+
         if type == .oneToOne {
             notificationType = .chatMessage
             id = userID
@@ -245,6 +245,7 @@ fileprivate class BannerView: UIView, UIGestureRecognizerDelegate {
                                             fromId: contentId,
                                             groupId: groupID,
                                             groupType: type,
+                                            groupName: nil,
                                             timestamp: nil,
                                             data: nil,
                                             messageId: nil)

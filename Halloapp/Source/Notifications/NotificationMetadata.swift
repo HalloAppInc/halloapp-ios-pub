@@ -254,12 +254,13 @@ class NotificationMetadata: Codable {
     }
 
     init(contentId: String, contentType: NotificationContentType, fromId: UserID, groupId: GroupID?,
-         groupType: GroupType?, timestamp: Date?, data: Data?, messageId: String?, pushName: String? = nil) {
+         groupType: GroupType?, groupName: String?, timestamp: Date?, data: Data?, messageId: String?, pushName: String? = nil) {
         self.contentId = contentId
         self.contentType = contentType
         self.fromId = fromId
         self.groupId = groupId
         self.groupType = groupType
+        self.groupName = groupName
         self.timestamp = timestamp
         self.data = data
         // messageId could be nil for local pushes when app is alive - in those cases: this field is not that important.

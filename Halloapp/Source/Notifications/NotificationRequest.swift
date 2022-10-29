@@ -116,6 +116,7 @@ final class NotificationRequest {
                                                 fromId: lastMoment.userId,
                                                 groupId: nil,
                                                 groupType: nil,
+                                                groupName: nil,
                                                 timestamp: lastMoment.timestamp,
                                                 data: try lastMoment.postData.clientContainer.serializedData(),
                                                 messageId: nil,

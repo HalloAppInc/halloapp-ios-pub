@@ -2036,6 +2036,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                                         fromId: comment.userId,
                                                         groupId: nil,
                                                         groupType: nil,
+                                                        groupName: nil,
                                                         timestamp: comment.timestamp,
                                                         data: protobufData,
                                                         messageId: nil)
@@ -2085,6 +2086,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                                         fromId: feedPost.userId,
                                                         groupId: nil,
                                                         groupType: nil,
+                                                        groupName: nil,
                                                         timestamp: feedPost.timestamp,
                                                         data: protobufData,
                                                         messageId: nil)
@@ -2119,6 +2121,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                             fromId: receipt.userId,
                                             groupId: nil,
                                             groupType: nil,
+                                            groupName: nil,
                                             timestamp: receipt.timestamp,
                                             data: nil,
                                             messageId: nil)
@@ -2138,6 +2141,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                                fromId: "",
                                               groupId: nil,
                                             groupType: nil,
+                                            groupName: nil,
                                             timestamp: Date(timeIntervalSince1970: TimeInterval(timestamp)),
                                                  data: nil,
                                             messageId: nil)
