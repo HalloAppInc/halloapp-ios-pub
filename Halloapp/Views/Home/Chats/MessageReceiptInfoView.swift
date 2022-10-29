@@ -172,7 +172,7 @@ class MessageReceiptInfoView: UIViewController, NSFetchedResultsControllerDelega
     override func viewDidLoad() {
         view.backgroundColor = .primaryBg
 
-        navigationItem.title = Localizations.sendTo
+        navigationItem.title = Localizations.messageInfoTitle
         navigationItem.leftBarButtonItem = leftBarButtonItem
 
         view.addSubview(collectionView)

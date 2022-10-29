@@ -348,6 +348,10 @@ extension Localizations {
         NSLocalizedString("destination.send.to", value: "Send To", comment: "Send to button and screen title")
     }
 
+    static var messageInfoTitle: String {
+        NSLocalizedString("message.info", value: "Message Info", comment: "Title of the view that displays receipt info for a message.")
+    }
+
     static var addMedia: String {
         NSLocalizedString("composer.addmedia", value: "Add media", comment: "Label for add media button in post composer")
     }
