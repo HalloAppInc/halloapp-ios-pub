@@ -1953,9 +1953,20 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    public func rerequestGroupChatMessageIfNecessary(id messageId: String, groupID: GroupID, contentType: GroupFeedRerequestContentType, failure: GroupDecryptionFailure, completion: @escaping ServiceRequestCompletion<Void>) {
+    public func rerequestGroupChatMessageIfNecessary(id messageId: String, groupID: GroupID, contentType: Server_GroupChatStanza.ChatType, failure: GroupDecryptionFailure, completion: @escaping ServiceRequestCompletion<Void>) {
         guard let authorUserID = failure.fromUserId else {
             DDLogError("proto/rerequestGroupChatMessageIfNecessary/\(messageId)/decrypt/authorUserID missing")
+            completion(.failure(.aborted))
+            return
+        }
+        let rerequestContentType: GroupFeedRerequestContentType
+        switch contentType {
+        case .chat:
+            rerequestContentType = .message
+        case .chatReaction:
+            rerequestContentType = .messageReaction
+        case .UNRECOGNIZED:
+            DDLogError("proto/rerequestGroupChatMessageIfNecessary/\(messageId)/invalid contentType")
             completion(.failure(.aborted))
             return
         }
@@ -1966,7 +1977,7 @@ extension ProtoServiceCore: CoreService {
                                         groupID: groupID,
                                         authorUserID: authorUserID,
                                         rerequestType: failure.rerequestType,
-                                        contentType: contentType,
+                                        contentType: rerequestContentType,
                                         completion: completion)
         } else {
             DDLogInfo("proto/rerequestGroupChatMessageIfNecessary/\(messageId)/decrypt/content already exists")
@@ -2114,7 +2125,7 @@ extension ProtoServiceCore: CoreService {
                                         groupID: "", timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
         case .groupChatReaction:
             // Update group stats.
-            reportGroupDecryptionResult(error: error, contentID: contentID, contentType: .chat,
+            reportGroupDecryptionResult(error: error, contentID: contentID, contentType: .chatReaction,
                                         groupID: "", timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
         case .groupChat:
             // Update group stats.

@@ -28,6 +28,7 @@ public enum GroupDecryptionReportContentType: String {
     case postReaction
     case commentReaction
     case chat
+    case chatReaction
 }
 
 public enum HomeDecryptionReportContentType: String {

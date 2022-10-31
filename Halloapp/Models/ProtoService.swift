@@ -718,7 +718,7 @@ final class ProtoService: ProtoServiceCore {
                 }
                 if let groupDecryptionFailure = groupDecryptionFailure {
                     DDLogError("proto/handleGrouChatStanza/\(msg.id)/\(msg.id)/decrypt/error \(groupDecryptionFailure.error)")
-                    self.rerequestGroupChatMessageIfNecessary(id: msg.id, groupID: serverGroupChatStanza.gid, contentType: .message, failure: groupDecryptionFailure) { result in
+                    self.rerequestGroupChatMessageIfNecessary(id: msg.id, groupID: serverGroupChatStanza.gid, contentType: serverGroupChatStanza.chatType, failure: groupDecryptionFailure) { result in
                         switch result {
                         case .success:
                             // Ack only on successful rereq
@@ -740,10 +740,14 @@ final class ProtoService: ProtoServiceCore {
                 if !serverGroupChatStanza.senderLogInfo.isEmpty {
                     DDLogInfo("proto/didReceive/groupChatMessage/\(msg.id)/senderLog [\(serverGroupChatStanza.senderLogInfo)]")
                 }
+                var decryptionReportContentType: GroupDecryptionReportContentType = .chat
+                if serverGroupChatStanza.chatType == .chatReaction {
+                    decryptionReportContentType = .chatReaction
+                }
                 self.reportGroupDecryptionResult(
                     error: groupDecryptionFailure?.error,
                     contentID: contentID,
-                    contentType: .chat,
+                    contentType: decryptionReportContentType,
                     groupID: groupID,
                     timestamp: Date(),
                     sender: UserAgent(string: serverGroupChatStanza.senderClientVersion),
@@ -890,25 +894,17 @@ final class ProtoService: ProtoServiceCore {
                 break
             }
 
-            let contentType: HomeDecryptionReportContentType
             let postID: FeedPostID
             switch item.item {
             case .post(let post):
-                contentType = .post
                 postID = post.id
             case .comment(let comment):
-                switch comment.commentType {
-                case .commentReaction:
-                    contentType = .commentReaction
-                case .postReaction:
-                    contentType = .postReaction
-                case .comment:
-                    contentType = .comment
-                case .UNRECOGNIZED:
-                    contentType = .comment
-                }
                 postID = comment.postID
             default:
+                DDLogError("proto/handleFeedItem/invalid item stanza")
+                return
+            }
+            guard let reportContentType = item.reportContentType else {
                 DDLogError("proto/handleFeedItem/invalid item stanza")
                 return
             }
@@ -957,7 +953,7 @@ final class ProtoService: ProtoServiceCore {
                                             self.reportHomeDecryptionResult(
                                                 error: .postNotFound,
                                                 contentID: contentID,
-                                                contentType: contentType,
+                                                contentType: reportContentType,
                                                 type: item.sessionType,
                                                 timestamp: receiptTimestamp,
                                                 sender: UserAgent(string: item.senderClientVersion),
@@ -979,7 +975,7 @@ final class ProtoService: ProtoServiceCore {
                         self.reportHomeDecryptionResult(
                             error: homeDecryptionFailure?.error,
                             contentID: contentID,
-                            contentType: contentType,
+                            contentType: reportContentType,
                             type: item.sessionType,
                             timestamp: receiptTimestamp,
                             sender: UserAgent(string: item.senderClientVersion),
@@ -1024,7 +1020,7 @@ final class ProtoService: ProtoServiceCore {
                     self.updateHomeDecryptionResult(
                         error: nil,
                         contentID: contentID,
-                        contentType: contentType,
+                        contentType: reportContentType,
                         type: item.sessionType,
                         timestamp: Date(),
                         sender: UserAgent(string: item.senderClientVersion),
@@ -1067,26 +1063,18 @@ final class ProtoService: ProtoServiceCore {
                 break
             }
 
-            let contentType: GroupDecryptionReportContentType
             let contentID: String
             switch item.item {
             case .post(let serverPost):
-                contentType = .post
                 contentID = serverPost.id
             case .comment(let serverComment):
-                switch serverComment.commentType {
-                case .comment:
-                    contentType = .comment
-                case .commentReaction:
-                    contentType = .commentReaction
-                case .postReaction:
-                    contentType = .postReaction
-                case .UNRECOGNIZED:
-                    contentType = .comment
-                }
                 contentID = serverComment.id
             default:
                 DDLogError("proto/handleGroupFeedItem/\(msg.id)/decrypt/invalid content")
+                return
+            }
+            guard let reportContentType = item.reportContentType else {
+                DDLogError("proto/handleFeedItem/invalid item stanza")
                 return
             }
 
@@ -1106,9 +1094,9 @@ final class ProtoService: ProtoServiceCore {
                     let completion = {
                         // Ack only on saves and successful rerequest if necessary.
                         if let failure = groupDecryptionFailure,
-                           let contentType = item.contentType {
+                           let rerequestContentType = item.contentType {
                             DDLogError("proto/handleGroupFeedItem/\(msg.id)/\(contentID)/decrypt/error \(failure.error)")
-                            self.rerequestGroupFeedItemIfNecessary(id: contentID, groupID: item.gid, contentType: contentType, failure: failure) { result in
+                            self.rerequestGroupFeedItemIfNecessary(id: contentID, groupID: item.gid, contentType: rerequestContentType, failure: failure) { result in
                                 switch result {
                                 case .success:
                                     self.updateMessageStatus(id: msg.id, status: .rerequested)
@@ -1128,7 +1116,7 @@ final class ProtoService: ProtoServiceCore {
                         self.reportGroupDecryptionResult(
                             error: groupDecryptionFailure?.error,
                             contentID: contentID,
-                            contentType: contentType,
+                            contentType: reportContentType,
                             groupID: item.gid,
                             timestamp: receiptTimestamp,
                             sender: UserAgent(string: item.senderClientVersion),
@@ -1172,7 +1160,7 @@ final class ProtoService: ProtoServiceCore {
                     self.updateGroupDecryptionResult(
                         error: nil,
                         contentID: contentID,
-                        contentType: contentType,
+                        contentType: reportContentType,
                         groupID: item.gid,
                         timestamp: Date(),
                         sender: UserAgent(string: item.senderClientVersion),
@@ -1209,14 +1197,14 @@ final class ProtoService: ProtoServiceCore {
 
             // Handle rerequesting payload properly.
             switch rerequest.contentType {
-            case .message:
+            case .message, .messageReaction:
                 hasAckBeenDelegated = true
                 chatDelegate.halloService(self, didRerequestGroupChatMessage: rerequest.id, contentType: rerequest.contentType, groupID: rerequest.gid, from: userID, ack: ack)
             case .post, .comment, .postReaction, .commentReaction, .historyResend:
                 hasAckBeenDelegated = true
                 // we are acking the message here - what if we fail to reset the session properly
                 feedDelegate.halloService(self, didRerequestGroupFeedItem: rerequest.id, contentType: rerequest.contentType, from: userID, ack: ack)
-            case .UNRECOGNIZED, .unknown, .messageReaction:
+            case .UNRECOGNIZED, .unknown:
                 return
             }
 

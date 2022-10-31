@@ -705,16 +705,14 @@ final class NotificationProtoService: ProtoServiceCore {
                 postID = comment.postID
             default:
                 DDLogError("proto/decryptAndProcessHomeFeedItem/invalid item stanza")
+                ack()
                 return
             }
-            let contentTypeValue: HomeDecryptionReportContentType = {
-                switch contentType {
-                case .post:
-                    return .post
-                case .comment:
-                    return .comment
-                }
-            }()
+            guard let reportContentType = item.reportContentType else {
+                DDLogError("proto/decryptAndProcessHomeFeedItem/invalid item stanza")
+                ack()
+                return
+            }
 
             if let content = content, homeDecryptionFailure == nil {
                 DDLogError("NotificationExtension/decryptAndProcessHomeFeedItem/contentID/\(contentID)/success")
@@ -778,7 +776,7 @@ final class NotificationProtoService: ProtoServiceCore {
                                     self.reportHomeDecryptionResult(
                                         error: .postNotFound,
                                         contentID: contentID,
-                                        contentType: contentTypeValue,
+                                        contentType: reportContentType,
                                         type: item.sessionType,
                                         timestamp: Date(),
                                         sender: UserAgent(string: item.senderClientVersion),
@@ -795,7 +793,7 @@ final class NotificationProtoService: ProtoServiceCore {
             self.reportHomeDecryptionResult(
                 error: homeDecryptionFailure?.error,
                 contentID: contentID,
-                contentType: contentTypeValue,
+                contentType: reportContentType,
                 type: item.sessionType,
                 timestamp: Date(),
                 sender: UserAgent(string: item.senderClientVersion),
@@ -851,18 +849,15 @@ final class NotificationProtoService: ProtoServiceCore {
                     }
                 }
             }
-            let contentTypeValue: GroupDecryptionReportContentType = {
-                switch contentType {
-                case .post:
-                    return .post
-                case .comment:
-                    return .comment
-                }
-            }()
+            guard let reportContentType = item.reportContentType else {
+                DDLogError("proto/decryptAndProcessHomeFeedItem/invalid item stanza")
+                ack()
+                return
+            }
             self.reportGroupDecryptionResult(
                 error: groupDecryptionFailure?.error,
                 contentID: contentID,
-                contentType: contentTypeValue,
+                contentType: reportContentType,
                 groupID: item.gid,
                 timestamp: Date(),
                 sender: UserAgent(string: item.senderClientVersion),
@@ -901,6 +896,12 @@ final class NotificationProtoService: ProtoServiceCore {
                     DDLogInfo("NotificationExtension/decryptChat/failed/save tombstone \(messageId)/result: \(result)")
                 }
             }
+            let contentType: DecryptionReportContentType
+            if serverChatStanza.chatType == .chatReaction {
+                contentType = .chatReaction
+            } else {
+                contentType = .chat
+            }
 
             if let senderClientVersion = metadata.senderClientVersion {
                 DDLogInfo("NotificationExtension/decryptAndProcessChat/report result \(String(describing: decryptionFailure?.error))/ msg: \(messageId)")
@@ -910,11 +911,11 @@ final class NotificationProtoService: ProtoServiceCore {
                     timestamp: Date(timeIntervalSince1970: TimeInterval(serverChatStanza.timestamp)),
                     sender: UserAgent(string: senderClientVersion),
                     rerequestCount: Int(metadata.rerequestCount),
-                    contentType: .chat)
+                    contentType: contentType)
             } else {
                 DDLogError("NotificationExtension/decryptAndProcessChat/could not report result, messageId: \(messageId)")
             }
-            self.processChat(chatContent: content, failure: decryptionFailure, metadata: metadata)
+            self.processChat(chatContent: content, chatType: serverChatStanza.chatType, failure: decryptionFailure, metadata: metadata)
         }
     }
 
@@ -959,7 +960,7 @@ final class NotificationProtoService: ProtoServiceCore {
             } else {
                 DDLogError("NotificationExtension/decryptAndProcessGroupChat/could not report result, messageId: \(messageId)")
             }
-            self.processGroupChat(chatContent: content, groupDecryptionFailure: groupDecryptionFailure, metadata: metadata)
+            self.processGroupChat(chatContent: content, chatType: serverGroupChatStanza.chatType, groupDecryptionFailure: groupDecryptionFailure, metadata: metadata)
         }
     }
 
@@ -992,7 +993,7 @@ final class NotificationProtoService: ProtoServiceCore {
     }
 
     // Process Group Chats - ack/rerequest/download media if necessary.
-    private func processGroupChat(chatContent: ChatContent?, groupDecryptionFailure: GroupDecryptionFailure?, metadata: NotificationMetadata) {
+    private func processGroupChat(chatContent: ChatContent?, chatType: Server_GroupChatStanza.ChatType, groupDecryptionFailure: GroupDecryptionFailure?, metadata: NotificationMetadata) {
         let messageId = metadata.messageId
         guard let groupID = metadata.groupId else {
             return
@@ -1000,7 +1001,7 @@ final class NotificationProtoService: ProtoServiceCore {
 
         if let groupDecryptionFailure = groupDecryptionFailure {
             DDLogError("proto/handleGrouChatStanza/\(messageId)/decrypt/error \(groupDecryptionFailure.error)")
-            self.rerequestGroupChatMessageIfNecessary(id: messageId, groupID: groupID, contentType: .message, failure: groupDecryptionFailure) { result in
+            self.rerequestGroupChatMessageIfNecessary(id: messageId, groupID: groupID, contentType: chatType, failure: groupDecryptionFailure) { result in
                 switch result {
                 case .success:
                     // Ack only on successful rereq
@@ -1068,15 +1069,25 @@ final class NotificationProtoService: ProtoServiceCore {
     }
 
     // Process Chats - ack/rerequest/download media if necessary.
-    private func processChat(chatContent: ChatContent?, failure: DecryptionFailure?, metadata: NotificationMetadata) {
+    private func processChat(chatContent: ChatContent?, chatType: Server_ChatStanza.ChatType, failure: DecryptionFailure?, metadata: NotificationMetadata) {
         let messageId = metadata.messageId
+        let rerequestContentType: Server_Rerequest.ContentType
+        switch chatType {
+        case .chat:
+            rerequestContentType = .chat
+        case .chatReaction:
+            rerequestContentType = .chatReaction
+        case .UNRECOGNIZED:
+            DDLogError("NotificationExtension/processChat/sendRerequest/messageId: \(messageId)/invalid content type")
+            return
+        }
 
         if let failure = failure {
             self.logChatPushDecryptionError(with: metadata, error: failure.error)
             // We must first rerequest messages and then ack them.
             if let failedEphemeralKey = failure.ephemeralKey {
                 let fromUserID = metadata.fromId
-                rerequestMessage(messageId, senderID: fromUserID, failedEphemeralKey: failedEphemeralKey, contentType: .chat) { [weak self] result in
+                rerequestMessage(messageId, senderID: fromUserID, failedEphemeralKey: failedEphemeralKey, contentType: rerequestContentType) { [weak self] result in
                     guard let self = self else { return }
                     switch result {
                     case .success(_):

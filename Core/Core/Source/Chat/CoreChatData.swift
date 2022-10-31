@@ -1008,9 +1008,9 @@ public class CoreChatData {
             resendInfo.retryCount += 1
             // retryCount indicates number of times content has been rerequested until now: increment and use it when sending.
             let rerequestCount = resendInfo.retryCount
-            DDLogInfo("FeedData/handleRerequest/\(contentID)/userID: \(userID)/rerequestCount: \(rerequestCount)")
+            DDLogInfo("CoreChatData/handleRerequest/\(contentID)/userID: \(userID)/rerequestCount: \(rerequestCount)")
             guard rerequestCount <= 5 else {
-                DDLogError("FeedData/handleRerequest/\(contentID)/userID: \(userID)/rerequestCount: \(rerequestCount) - aborting")
+                DDLogError("CoreChatData/handleRerequest/\(contentID)/userID: \(userID)/rerequestCount: \(rerequestCount) - aborting")
                 completion(.failure(.aborted))
                 return
             }
@@ -1088,6 +1088,63 @@ public class CoreChatData {
             default:
                 let xmppReaction = XMPPReaction(reaction: chatReaction)
                 self.service.sendChatMessage(xmppReaction, completion: completion)
+            }
+        }
+    }
+
+    public func handleReactionRerequest(for reactionID: String, in groupID: GroupID, from userID: UserID, ack: (() -> Void)?) {
+        handleReactionRerequest(for: reactionID, in: groupID, from: userID) { result in
+            switch result {
+            case .failure(let error):
+                DDLogError("CoreChatData/handleReactionRerequest/\(reactionID)/error: \(error)/from: \(userID)")
+                if error.canAck {
+                    ack?()
+                }
+            case .success:
+                DDLogInfo("CoreChatData/handleReactionRerequest/\(reactionID)/success/from: \(userID)")
+                ack?()
+            }
+        }
+    }
+
+    public func handleReactionRerequest(for reactionID: String, in groupID: GroupID, from userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+        mainDataStore.saveSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else {
+                completion(.failure(.aborted))
+                return
+            }
+            let resendInfo = self.mainDataStore.fetchContentResendInfo(for: reactionID, userID: userID, in: managedObjectContext)
+            resendInfo.retryCount += 1
+            // retryCount indicates number of times content has been rerequested until now: increment and use it when sending.
+            let rerequestCount = resendInfo.retryCount
+            DDLogInfo("CoreChatData/handleReactionRerequest/\(reactionID)/userID: \(userID)/rerequestCount: \(rerequestCount)")
+            guard rerequestCount <= 5 else {
+                DDLogError("CoreChatData/handleReactionRerequest/\(reactionID)/userID: \(userID)/rerequestCount: \(rerequestCount) - aborting")
+                completion(.failure(.aborted))
+                return
+            }
+
+            guard let chatReaction = self.commonReaction(with: reactionID, in: managedObjectContext) else {
+                DDLogError("CoreChatData/handleReactionRerequest/\(reactionID)/error could not find message")
+                self.service.sendContentMissing(id: reactionID, type: .groupChatReaction, to: userID) { result in
+                    completion(result)
+                }
+                return
+            }
+            guard groupID == chatReaction.toGroupID else {
+                DDLogError("CoreChatData/handleReactionRerequest/\(reactionID)/error group mismatch [original: \(String(describing: chatReaction.toGroupID))] [rerequest: \(groupID)]")
+                completion(.failure(.aborted))
+                return
+            }
+
+            switch chatReaction.outgoingStatus {
+            case .retracted, .retracting:
+                let retractID = chatReaction.retractID.isEmpty ? PacketID.generate() : chatReaction.retractID
+                chatReaction.retractID = retractID
+                self.service.retractGroupChatMessage(messageID: retractID, groupID: groupID, to: userID, messageToRetractID: reactionID, completion: completion)
+            default:
+                let xmppReaction = XMPPReaction(reaction: chatReaction)
+                self.service.resendGroupChatMessage(xmppReaction, groupId: groupID, to: userID, rerequestCount: resendInfo.retryCount, completion: completion)
             }
         }
     }

@@ -5659,7 +5659,15 @@ extension ChatData: HalloChatDelegate {
 
     func halloService(_ halloService: HalloService, didRerequestGroupChatMessage contentID: String, contentType: GroupFeedRerequestContentType, groupID: GroupID, from userID: UserID, ack: (() -> Void)?) {
         DDLogDebug("FeedData/didRerequestGroupChatMessage [\(contentID)] - [\(contentType)] - from: \(userID) - in: \(groupID)")
-        coreChatData.handleRerequest(for: contentID, in: groupID, from: userID, ack: ack)
+        switch contentType {
+        case .message:
+            coreChatData.handleRerequest(for: contentID, in: groupID, from: userID, ack: ack)
+        case .messageReaction:
+            coreChatData.handleReactionRerequest(for: contentID, in: groupID, from: userID, ack: ack)
+        case .post, .postReaction, .comment, .commentReaction, .unknown, .UNRECOGNIZED, .historyResend:
+            // These cases are handled separately in feedData.
+            break
+        }
     }
 
     func halloService(_ halloService: HalloService, didRerequestMessage messageID: String, from userID: UserID, ack: (() -> Void)?) {

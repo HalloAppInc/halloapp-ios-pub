@@ -781,6 +781,20 @@ extension Server_GroupFeedItem {
         }
     }
 
+    public var reportContentType: GroupDecryptionReportContentType? {
+        switch self.item {
+        case .post: return .post
+        case .comment(let comment):
+            switch comment.commentType {
+            case .comment: return .comment
+            case .commentReaction: return .commentReaction
+            case .postReaction: return .postReaction
+            case .UNRECOGNIZED: return .comment
+            }
+        default: return nil
+        }
+    }
+
     public var itemAction: ItemAction {
         switch self.action {
         case .retract:
@@ -821,6 +835,20 @@ extension Server_FeedItem {
     }
 
     public var contentType: HomeFeedRerequestContentType? {
+        switch self.item {
+        case .post: return .post
+        case .comment(let comment):
+            switch comment.commentType {
+            case .comment: return .comment
+            case .commentReaction: return .commentReaction
+            case .postReaction: return .postReaction
+            case .UNRECOGNIZED: return .comment
+            }
+        default: return nil
+        }
+    }
+
+    public var reportContentType: HomeDecryptionReportContentType? {
         switch self.item {
         case .post: return .post
         case .comment(let comment):
