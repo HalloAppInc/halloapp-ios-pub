@@ -245,6 +245,8 @@ extension SceneDelegate: UIWindowSceneDelegate {
     func sceneDidBecomeActive(_ scene: UIScene) {
         DDLogInfo("application/didBecomeActive")
 
+        Analytics.log(event: .appForegrounded)
+
         // Clear icon badges (currently used to track only chat messages)
         // Set to -1 instead of 0
         // If set to 0 from X, iOS will delete all local notifications including feed, comments, messages, etc.
@@ -304,6 +306,8 @@ extension SceneDelegate: UIWindowSceneDelegate {
 
     func sceneDidEnterBackground(_ scene: UIScene) {
         DDLogInfo("application/didEnterBackground")
+
+        Analytics.log(event: .appBackgrounded)
 
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
 

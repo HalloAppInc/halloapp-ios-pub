@@ -539,6 +539,7 @@ extension DestinationPickerViewController: UICollectionViewDelegate {
     @objc private func createGroupAction() {
         let controller = CreateGroupViewController(groupType: GroupType.groupFeed) { [weak self] groupID in
             guard let self = self else { return }
+            Analytics.log(event: .createGroup, properties: [.groupType: "feed"])
             self.dismiss(animated: true)
         }
 

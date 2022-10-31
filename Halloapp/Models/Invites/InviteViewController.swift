@@ -131,6 +131,8 @@ final class InviteViewController: UIViewController, InviteContactViewController 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
+        Analytics.openScreen(.invite)
+
         if opensInSearch {
             opensInSearch = false
             // Needs to be dispatched asynchronously otherwise it will have no effect

@@ -62,6 +62,7 @@ class NotificationService: UNNotificationServiceExtension  {
             self.cancellableSet.insert(
                 coreService.didDisconnect.sink { [weak self] in
                     guard let self = self else { return }
+                    Analytics.flushEvents()
                     DispatchQueue.main.asyncAfter(deadline: .now() + self.finalCleanupRunTimeSec) {
                         self.terminateNseAndInvokeHandler()
                     }
@@ -80,6 +81,7 @@ class NotificationService: UNNotificationServiceExtension  {
         DispatchQueue.main.asyncAfter(deadline: .now() + extensionRunTimeSec) { [self] in
             DDLogInfo("disconnect now")
             service?.disconnect()
+            Analytics.flushEvents()
             DispatchQueue.main.asyncAfter(deadline: .now() + finalCleanupRunTimeSec) { [self] in
                 DDLogInfo("Invoking completion handler now")
                 terminateNseAndInvokeHandler()
@@ -99,6 +101,7 @@ class NotificationService: UNNotificationServiceExtension  {
         // Called just before the extension will be terminated by the system.
         // Use this as an opportunity to deliver your "best attempt" at modified content, otherwise the original push payload will be used.
         service?.disconnectImmediately()
+        Analytics.flushEvents()
         DDLogInfo("Invoking completion handler now")
         terminateNseAndInvokeHandler()
     }

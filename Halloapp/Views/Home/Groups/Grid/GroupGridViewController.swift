@@ -170,6 +170,8 @@ class GroupGridViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
+        Analytics.openScreen(.groupList)
+
         // reload contents if we've been gone for > 10 min
         if let lastDisappearDate = lastDisappearDate, -lastDisappearDate.timeIntervalSinceNow > 60 * 10 {
             self.lastDisappearDate = nil
@@ -292,6 +294,8 @@ class GroupGridViewController: UIViewController {
             guard let self = self, let navigationController = self.navigationController else {
                 return
             }
+
+            Analytics.log(event: .createGroup, properties: [.groupType: "feed"])
 
             // Use setViewControllers to animate in the GroupFeedViewController while removing the group creation assiciated ones.
             var viewControllers = navigationController.viewControllers

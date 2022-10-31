@@ -174,6 +174,8 @@ class GroupFeedViewController: FeedCollectionViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
+        Analytics.openScreen(.groupFeed)
+
         if shouldShowInviteSheet {
             shouldShowInviteSheet = false
 

@@ -93,6 +93,12 @@ final class NewPostViewController: UINavigationController {
         }
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        Analytics.openScreen(usedInTabBar ? .camera : .composer)
+    }
+
     // MARK: Private
 
     private let didFinish: ((Bool) -> Void)
@@ -224,6 +230,44 @@ final class NewPostViewController: UINavigationController {
 
     private func share(to destinations: [ShareDestination], result: ComposerResult) {
         guard let text = result.text else { return }
+
+        var postProperties = Analytics.EventProperties()
+        if !text.isEmpty() {
+            postProperties[.hasText] = true
+        }
+        result.media.forEach { media in
+            switch media.type {
+            case .audio:
+                postProperties[.attachedAudioCount] = (postProperties[.attachedAudioCount] as? Int ?? 0) + 1
+            case .image:
+                postProperties[.attachedImageCount] = (postProperties[.attachedImageCount] as? Int ?? 0) + 1
+            case .video:
+                postProperties[.attachedVideoCount] = (postProperties[.attachedVideoCount] as? Int ?? 0) + 1
+            case .document:
+                postProperties[.attachedDocumentCount] = (postProperties[.attachedDocumentCount] as? Int ?? 0) + 1
+            }
+        }
+        if result.linkPreviewData != nil {
+            postProperties[.attachedLinkPreviewCount] = 1
+        }
+        destinations.forEach { destination in
+            switch destination {
+            case .feed(let privacyListType):
+                switch privacyListType {
+                case .all:
+                    postProperties[.destinationSendToAll] = true
+                case .whitelist:
+                    postProperties[.destinationSendToFavorites] = true
+                default:
+                    break
+                }
+            case .contact:
+                postProperties[.destinationNumContacts] = (postProperties[.destinationNumContacts] as? Int ?? 0) + 1
+            case .group:
+                postProperties[.destinationNumGroups] = (postProperties[.destinationNumGroups] as? Int ?? 0) + 1
+            }
+        }
+        Analytics.log(event: .sendPost, properties: postProperties)
 
         for destination in destinations {
             switch destination {

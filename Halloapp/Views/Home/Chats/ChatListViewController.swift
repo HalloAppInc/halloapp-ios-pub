@@ -262,6 +262,8 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         DDLogInfo("ChatListViewController/viewWillAppear")
         super.viewWillAppear(animated)
         reloadData(animated: false)
+
+        Analytics.openScreen(.chatList)
     }
 
     override func viewDidAppear(_ animated: Bool) {

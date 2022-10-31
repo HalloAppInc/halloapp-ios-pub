@@ -11,6 +11,10 @@ import UIKit
 
 class SystemShareProvider: ShareProvider {
 
+    static var analyticsShareDestination: String {
+        return "system"
+    }
+
     static var title: String {
         return NSLocalizedString("shareprovider.system.title", value: "Share via", comment: "Title for button launching system share dialog")
     }

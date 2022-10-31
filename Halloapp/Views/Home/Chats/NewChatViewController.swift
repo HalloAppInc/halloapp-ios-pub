@@ -101,6 +101,7 @@ class NewChatViewController: NewChatTableViewController {
     }
 
     private func didCreateNewGroup(_ groupId: GroupID) {
+        Analytics.log(event: .createGroup, properties: [.groupType: "chat"])
         dismiss(animated: false)
         delegate?.newChatViewController(self, didSelectGroup: groupId)
     }

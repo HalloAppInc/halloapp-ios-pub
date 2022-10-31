@@ -13,7 +13,7 @@ public struct ServerProperties {
 
     // MARK: Keys
 
-    private enum Key: String {
+    private enum Key: String, CaseIterable {
         case internalUser = "dev"
         case maxGroupSize = "max_group_size"
         case groupSyncTime = "group_sync_time"
@@ -121,6 +121,10 @@ public struct ServerProperties {
         }
         if loadedProperties == nil {
             DDLogInfo("serverprops/default")
+        }
+        // prevent reentrant queue access
+        DispatchQueue.main.async {
+            updateAnalyticsServerProperties()
         }
     }
 
@@ -232,6 +236,92 @@ public struct ServerProperties {
         }
         
         return try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+    }
+
+    // MARK: Analytics
+
+    private static func updateAnalyticsServerProperties() {
+        let currentServerProperties: [String: Any] = Key.allCases.reduce(into: [:]) { partialResult, key in
+            let value: Any
+            switch key {
+            case .internalUser:
+                value = isInternalUser
+            case .maxGroupSize:
+                value = maxGroupSize
+            case .groupSyncTime:
+                value = groupSyncTime
+            case .maxFeedVideoDuration:
+                value = maxFeedVideoDuration
+            case .maxChatVideoDuration:
+                value = maxChatVideoDuration
+            case .maxVideoBitRate:
+                value = maxVideoBitRate
+            case .targetVideoBitRate:
+                value = targetVideoBitRate
+            case .targetVideoResolution:
+                value = targetVideoResolution
+            case .contactSyncFrequency:
+                value = contactSyncFrequency
+            case .callWaitTimeoutSec:
+                value = callWaitTimeoutSec
+            case .canHoldCalls:
+                value = canHoldCalls
+            case .streamingUploadChunkSize:
+                value = streamingUploadChunkSize
+            case .streamingInitialDownloadSize:
+                value = streamingInitialDownloadSize
+            case .streamingSendingEnabled:
+                value = streamingSendingEnabled
+            case .isMediaDrawingEnabled:
+                value = isMediaDrawingEnabled
+            case .isGroupCommentNotificationsEnabled:
+                value = isGroupCommentNotificationsEnabled
+            case .isHomeCommentNotificationsEnabled:
+                value = isHomeCommentNotificationsEnabled
+            case .isFileSharingEnabled:
+                value = isFileSharingEnabled
+            case .inviteStrings:
+                value = inviteString ?? ""
+            case .nseRuntimeSec:
+                value = nseRuntimeSec
+            case .newChatUI:
+                value = newChatUI
+            case .maxPostMediaItems:
+                value = maxPostMediaItems
+            case .maxChatMediaItems:
+                value = maxChatMediaItems
+            case .sendClearTextHomeFeedContent:
+                value = sendClearTextHomeFeedContent
+            case .useClearTextHomeFeedContent:
+                value = useClearTextHomeFeedContent
+            case .enableSentryPerfTracking:
+                value = enableSentryPerfTracking
+            case .enableGroupExpiry:
+                value = enableGroupExpiry
+            case .preAnswerCalls:
+                value = preAnswerCalls
+            case .postReactions:
+                value = postReactions
+            case .chatReactions:
+                value = chatReactions
+            case .commentReactions:
+                value = commentReactions
+            case .enableNewMediaUploader:
+                value = enableNewMediaUploader
+            case .enableChatLocationSharing:
+                value = enableChatLocationSharing
+            case .closeFriendRecommendations:
+                value = closeFriendRecommendations
+            case .enableGroupChat:
+                value = enableGroupChat
+            case .sendClearTextGroupFeedContent:
+                value = sendClearTextGroupFeedContent
+            case .useClearTextGroupFeedContent:
+                value = useClearTextGroupFeedContent
+            }
+            partialResult[key.rawValue] = value
+        }
+        Analytics.setUserProperties([.serverProperties: currentServerProperties])
     }
 
     // MARK: Getters

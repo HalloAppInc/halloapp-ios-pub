@@ -1230,6 +1230,7 @@ final class NotificationProtoService: ProtoServiceCore {
 
     private func presentScreenshotNotification(for metadata: NotificationMetadata) {
         runIfNotificationWasNotPresented(for: metadata.identifier) { [self] in
+            Analytics.log(event: .notificationReceived, properties: [.notificationType: metadata.contentType.rawValue])
             let notificationContent = UNMutableNotificationContent()
             notificationContent.populateScreenshotBody(using: metadata, contactStore: AppExtensionContext.shared.contactStore)
             notificationContent.sound = .default
@@ -1271,6 +1272,7 @@ final class NotificationProtoService: ProtoServiceCore {
     // Used to present contact/inviter notifications.
     private func presentNotification(for metadata: NotificationMetadata) {
         runIfNotificationWasNotPresented(for: metadata.identifier) { [self] in
+            Analytics.log(event: .notificationReceived, properties: [.notificationType: metadata.contentType.rawValue])
             DDLogDebug("ProtoService/presentNotification")
             let notificationContent = UNMutableNotificationContent()
             notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
@@ -1287,6 +1289,7 @@ final class NotificationProtoService: ProtoServiceCore {
 
     private func presentDailyMomentNotification(for metadata: NotificationMetadata) {
         runIfNotificationWasNotPresented(for: metadata.identifier) { [self] in
+            Analytics.log(event: .notificationReceived, properties: [.notificationType: metadata.contentType.rawValue])
             DDLogDebug("ProtoService/presentNotification")
             let notificationContent = UNMutableNotificationContent()
             notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
@@ -1340,6 +1343,7 @@ final class NotificationProtoService: ProtoServiceCore {
                     DDLogDebug("ProtoService/CommentNotification - skip due to userPreferences")
                     return
                 }
+                Analytics.log(event: .notificationReceived, properties: [.notificationType: metadata.contentType.rawValue])
                 DDLogDebug("ProtoService/presentCommentNotification")
                 let notificationContent = UNMutableNotificationContent()
                 notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
@@ -1462,6 +1466,7 @@ final class NotificationProtoService: ProtoServiceCore {
         let sound = checkForDuplicates ? UNNotificationSound.default : nil
         // Completion block to present the notification.
         let completion: () -> Void = {
+            Analytics.log(event: .notificationReceived, properties: [.notificationType: metadata.contentType.rawValue])
             DDLogInfo("ProtoService/presentNotification/\(identifier)")
             let notificationContent = UNMutableNotificationContent()
             notificationContent.title = content.title

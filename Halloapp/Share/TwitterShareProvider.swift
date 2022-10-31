@@ -14,6 +14,10 @@ class TwitterShareProvider: ShareProvider {
     // Equivalent to SLServiceTypeTwitter, but avoids the deprecation warning
     private static let twitterServiceType = "com.apple.social.twitter"
 
+    static var analyticsShareDestination: String {
+        return "twitter"
+    }
+
     static var title: String {
         return NSLocalizedString("shareprovider.twitter.title", value: "Twitter", comment: "Name of Twitter app")
     }

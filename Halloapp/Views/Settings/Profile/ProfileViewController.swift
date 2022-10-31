@@ -67,6 +67,12 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate {
         buildCollection()
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        Analytics.openScreen(.profile)
+    }
+
     private func buildCollection() {
         let showDeveloperMenu: Bool
         #if DEBUG

@@ -6,8 +6,9 @@
 //  Copyright © 2022 HalloApp, Inc. All rights reserved.
 //
 
-import UIKit
+import Core
 import CoreCommon
+import UIKit
 
 class SettingsViewController: UIViewController, UICollectionViewDelegate {
     private typealias Section = InsetCollectionView.Section
@@ -40,6 +41,12 @@ class SettingsViewController: UIViewController, UICollectionViewDelegate {
         collectionView.backgroundColor = .primaryBg
         
         buildCollection()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        Analytics.openScreen(.settings)
     }
     
     private func buildCollection() {

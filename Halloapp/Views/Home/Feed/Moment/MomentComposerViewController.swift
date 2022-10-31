@@ -575,6 +575,7 @@ extension FeedData {
 
     func postMoment(info: PendingMomentInfo, media: [PendingMedia]) {
         DDLogInfo("FeedData/postMoment/start")
+        Analytics.log(event: .sendMoment, properties: [.hasSelfie: media.count == 2, .isUnlock: info.unlockUserID != nil])
         MainAppContext.shared.feedData.post(text: MentionText(collapsedText: "", mentionArray: []),
                                            media: media,
                                  linkPreviewData: nil,

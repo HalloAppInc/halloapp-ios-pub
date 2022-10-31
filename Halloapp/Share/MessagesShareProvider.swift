@@ -12,6 +12,10 @@ import MessageUI
 
 class MessagesShareProvider: DestinationShareProvider {
 
+    static var analyticsShareDestination: String {
+        return "sms"
+    }
+
     static var title: String {
         return NSLocalizedString("shareprovider.messages.title", value: "Messages", comment: "Name of system messages app")
     }

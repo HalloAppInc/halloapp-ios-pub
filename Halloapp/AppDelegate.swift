@@ -106,8 +106,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let notificationCenter = UNUserNotificationCenter.current()
 
         do {
+            let didPromptForNotificationAuthorization = await notificationCenter.notificationSettings().authorizationStatus == .notDetermined
+
             let isAuthorized = try await notificationCenter.requestAuthorization(options: [.sound, .alert, .badge])
             DDLogInfo("AppDelegate/checkNotificationsPermission/request completed with authorization [\(isAuthorized)]")
+
+            if didPromptForNotificationAuthorization {
+                Analytics.log(event: .promptedNotificationPermission, properties: [.granted: isAuthorized])
+            }
+            Analytics.setUserProperties([.notificationPermissionEnabled: isAuthorized])
 
             DispatchQueue.main.async {
                 UIApplication.shared.registerForRemoteNotifications()
@@ -378,6 +385,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
 
         if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
             if let metadata = NotificationMetadata.load(from: response) {
+                Analytics.log(event: .notificationOpened, properties: [.notificationType: metadata.contentType.rawValue])
                 DDLogInfo("appdelegate/notifications/user-response MetaData=\(metadata)")
                 metadata.saveToUserDefaults()
                 MainAppContext.shared.didTapNotification.send(metadata)

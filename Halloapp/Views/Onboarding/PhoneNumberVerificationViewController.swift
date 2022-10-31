@@ -421,11 +421,13 @@ class PhoneNumberVerificationViewController: UIViewController {
 
         switch result {
         case .success:
+            Analytics.log(event: .onboardingEnteredOTP, properties: [.valid: true])
             DDLogInfo("PhoneNumberVerificationViewController/confirmVerificationCode/valid code [\(code)]")
             registrationManager.didCompleteRegistrationFlow()
             state = .validCode
 
         case .failure(let error):
+            Analytics.log(event: .onboardingEnteredOTP, properties: [.valid: false])
             DDLogError("PhoneNumberVerificationViewController/confirmVerificationCode/invalid code [\(code)] error: [\(String(describing: error))]")
             state = .invalidCode
         }
@@ -478,11 +480,13 @@ extension PhoneNumberVerificationViewController {
 
     @objc
     private func resendCodeButtonPushed(_ button: UIButton) {
+        Analytics.log(event: .onboardingRerequestOTP)
         requestCodeTask = Task { await requestVerificationCode(byVoice: false) }
     }
 
     @objc
     private func requestVoiceButtonPushed(_ button: UIButton) {
+        Analytics.log(event: .onboardingRequestOTPCall)
         requestCodeTask = Task { await requestVerificationCode(byVoice: true) }
     }
 }

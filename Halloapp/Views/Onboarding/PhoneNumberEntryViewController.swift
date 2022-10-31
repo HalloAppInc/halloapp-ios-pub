@@ -6,6 +6,7 @@
 //  Copyright © 2022 HalloApp, Inc. All rights reserved.
 //
 
+import Core
 import UIKit
 import Combine
 import PhoneNumberKit
@@ -526,6 +527,8 @@ class PhoneNumberEntryViewController: UIViewController {
 
         registrationManager.set(countryCode: number.countryCode, nationalNumber: number.nationalNumber, userName: "")
         hideKeyboard()
+
+        Analytics.log(event: .onboardingEnteredPhoneValidNumber)
 
         let vc = PhoneNumberVerificationViewController(registrationManager: registrationManager, registrationNumber: number)
         navigationController?.pushViewController(vc, animated: true)

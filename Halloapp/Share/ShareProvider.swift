@@ -15,6 +15,8 @@ enum ShareProviderResult {
 
 protocol ShareProvider {
 
+    static var analyticsShareDestination: String { get }
+
     static var title: String { get }
 
     static var canShare: Bool { get }

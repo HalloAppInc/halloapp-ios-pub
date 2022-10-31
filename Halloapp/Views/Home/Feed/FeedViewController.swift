@@ -69,6 +69,7 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         showNUXIfNecessary()
+        Analytics.openScreen(.homeFeed)
 
         if isNearTop(100) {
             MainAppContext.shared.feedData.didGetRemoveHomeTabIndicator.send()
@@ -340,13 +341,19 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         let camButton = FloatingMenuButton.standardActionButton(
             iconTemplate: UIImage(named: "icon_fab_moment")?.withRenderingMode(.alwaysTemplate),
             accessibilityLabel: Localizations.fabMoment,
-            action: { [weak self] in self?.createNewMoment() })
+            action: { [weak self] in
+                Analytics.log(event: .fabSelect, properties: [.fabSelection: "moment"])
+                self?.createNewMoment()
+            })
         composeCamPostButton = camButton
 
         let voiceNoteButton = FloatingMenuButton.standardActionButton(
             iconTemplate: UIImage(named: "icon_fab_compose_voice")?.withRenderingMode(.alwaysTemplate),
             accessibilityLabel: Localizations.fabAccessibilityVoiceNote,
-            action: { [weak self] in self?.presentNewPostViewController(source: .voiceNote) })
+            action: { [weak self] in
+                Analytics.log(event: .fabSelect, properties: [.fabSelection: "audio"])
+                self?.presentNewPostViewController(source: .voiceNote)
+            })
         composeVoiceNoteButton = voiceNoteButton
 
         let symbolConfiguration = UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold, scale: .medium)
@@ -357,12 +364,18 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             .standardActionButton(
                 iconTemplate: UIImage(systemName: "photo.fill")?.withConfiguration(symbolConfiguration),
                 accessibilityLabel: Localizations.fabAccessibilityPhotoLibrary,
-                action: { [weak self] in self?.presentNewPostViewController(source: .library) }),
+                action: { [weak self] in
+                    Analytics.log(event: .fabSelect, properties: [.fabSelection: "photo_video"])
+                    self?.presentNewPostViewController(source: .library)
+                }),
             voiceNoteButton,
             .standardActionButton(
                 iconTemplate: textIcon,
                 accessibilityLabel: Localizations.fabAccessibilityTextPost,
-                action: { [weak self] in self?.presentNewPostViewController(source: .noMedia) }),
+                action: { [weak self] in
+                    Analytics.log(event: .fabSelect, properties: [.fabSelection: "text"])
+                    self?.presentNewPostViewController(source: .noMedia)
+                }),
             camButton
         ]
 

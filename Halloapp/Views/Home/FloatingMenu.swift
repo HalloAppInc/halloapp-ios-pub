@@ -8,6 +8,7 @@
 
 import CocoaLumberjackSwift
 import Combine
+import Core
 import UIKit
 
 final class FloatingMenuButton: UIView {
@@ -116,6 +117,7 @@ extension FloatingMenuPresenter {
     func toggledFloatingMenu(to state: FloatingMenu.ExpansionState) -> Future<Void, Never> {
         switch state {
         case .collapsed:
+            Analytics.log(event: .fabCancel)
             guard presentedViewController === floatingMenu else { return Future<Void, Never>.guarantee(()) }
             return Future { [weak self] promise in
                 self?.dismiss(animated: true) {
@@ -123,6 +125,7 @@ extension FloatingMenuPresenter {
                 }
             }
         case .expanded:
+            Analytics.log(event: .fabOpen)
             guard presentedViewController == nil else { return Future<Void, Never>.guarantee(()) }
             return Future { [weak self] promise in
                 guard let self = self else {

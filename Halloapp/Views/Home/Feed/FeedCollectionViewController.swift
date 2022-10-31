@@ -1013,6 +1013,9 @@ extension FeedCollectionViewController {
             self?.presentShareMenu(for: feedPost)
         }
         cell.reactAction = { reaction in
+            if let reaction = reaction, !reaction.isEmpty {
+                Analytics.log(event: .sendPostReaction)
+            }
             MainAppContext.shared.feedData.updatePostReaction(reaction, for: postId)
         }
         cell.deleteAction = { [weak self] in

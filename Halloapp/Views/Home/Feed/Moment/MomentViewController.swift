@@ -852,6 +852,27 @@ extension MomentViewController: ContentInputDelegate {
 
         showToast()
 
+        var chatProperties = Analytics.EventProperties()
+        chatProperties[.chatType] = "oneToOne"
+        chatProperties[.replyType] = "moment"
+        if !text.isEmpty {
+            chatProperties[.hasText] = true
+        }
+        content.media.forEach { media in
+            switch media.type {
+            case .audio:
+                chatProperties[.attachedAudioCount] = (chatProperties[.attachedAudioCount] as? Int ?? 0) + 1
+            case .image:
+                chatProperties[.attachedImageCount] = (chatProperties[.attachedImageCount] as? Int ?? 0) + 1
+            case .video:
+                chatProperties[.attachedVideoCount] = (chatProperties[.attachedVideoCount] as? Int ?? 0) + 1
+            case .document:
+                chatProperties[.attachedDocumentCount] = (chatProperties[.attachedDocumentCount] as? Int ?? 0) + 1
+            }
+        }
+        chatProperties[.attachedDocumentCount] = (chatProperties[.attachedDocumentCount] as? Int ?? 0) + content.files.count
+        Analytics.log(event: .sendChatMessage, properties: chatProperties)
+
         Task { @MainActor [weak self] in
             guard let message = await MainAppContext.shared.chatData.sendMomentReply(chatMessageRecipient: .oneToOneChat(toUserId: post.userId, fromUserId: MainAppContext.shared.userData.userId), postID: post.id, text: text, media: content.media, files: content.files) else {
                 self?.finalizeToast(success: false)

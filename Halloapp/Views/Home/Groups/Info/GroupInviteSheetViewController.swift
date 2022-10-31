@@ -155,6 +155,7 @@ class GroupInviteSheetViewController: BottomSheetViewController {
                   DDLogError("GroupInviteSheetViewController/Unable to create Whatsapp URL")
                   return
               }
+        Analytics.log(event: .sendInvite, properties: [.service: "whatsapp"])
         UIApplication.shared.open(url, options: [:], completionHandler: nil)
     }
 
@@ -192,6 +193,9 @@ private class GroupInviteSheetMessageComposeViewController: MFMessageComposeView
     }
 
     func messageComposeViewController(_ controller: MFMessageComposeViewController, didFinishWith result: MessageComposeResult) {
+        if result == .sent {
+            controller.recipients?.forEach { _ in Analytics.log(event: .sendInvite, properties: [.service: "sms"]) }
+        }
         dismiss(animated: true)
     }
 }

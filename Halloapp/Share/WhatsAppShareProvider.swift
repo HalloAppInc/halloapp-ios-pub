@@ -11,6 +11,10 @@ import UIKit
 
 class WhatsAppShareProvider: DestinationShareProvider {
 
+    static var analyticsShareDestination: String {
+        return "whatsapp"
+    }
+
     static var title: String {
         NSLocalizedString("shareprovider.whatsapp.title", value: "WhatsApp", comment: "Whatsapp messages share destination")
     }

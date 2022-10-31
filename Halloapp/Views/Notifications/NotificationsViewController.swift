@@ -158,6 +158,8 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         super.viewDidAppear(animated)
         // remove the red dot when the user navigates to this screen
         navigationController?.tabBarItem.badgeValue = nil
+
+        Analytics.openScreen(.activity)
     }
 
     private func updateUI() {

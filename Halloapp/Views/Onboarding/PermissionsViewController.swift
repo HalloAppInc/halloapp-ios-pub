@@ -8,6 +8,7 @@
 
 import UIKit
 import Combine
+import Core
 import CoreCommon
 import CocoaLumberjackSwift
 
@@ -175,10 +176,12 @@ class PermissionsViewController: UIViewController {
 
         Task {
             guard await onboardingManager.requestContactsPermission() else {
+                Analytics.log(event: .promptedContactPermission, properties: [.granted: false])
                 // denied permission; enter the app
                 return onboardingManager.didCompleteOnboardingFlow()
             }
 
+            Analytics.log(event: .promptedContactPermission, properties: [.granted: true])
             await listenForSyncProgress()
         }
     }

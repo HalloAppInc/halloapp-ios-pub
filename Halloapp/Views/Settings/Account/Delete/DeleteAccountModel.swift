@@ -8,6 +8,7 @@
 
 import SwiftUI
 import CocoaLumberjackSwift
+import Core
 
 protocol DeleteAccountModelDelegate: AnyObject {
     func deleteAccountModelDidRequestCancel(_ model: DeleteAccountModel)
@@ -73,6 +74,8 @@ class DeleteAccountModel: ObservableObject {
         MainAppContext.shared.deleteDocumentsDirectory()
         try? FileManager().removeItem(atPath: NSTemporaryDirectory())
         UserDefaults.standard.set(true, forKey: Self.deletedAccountKey)
+
+        Analytics.logout()
     }
     
     static let deletedAccountKey = "didDeleteAccount" // Also in `PhoneInputViewController` due to being inaccessible

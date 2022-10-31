@@ -7,6 +7,7 @@
 //
 
 import CocoaLumberjackSwift
+import Core
 import CoreCommon
 import MessageUI
 import UIKit
@@ -115,6 +116,7 @@ extension InviteContactViewController {
                 {
                     return
                 }
+                Analytics.log(event: .sendInvite, properties: [.service: "whatsapp"])
                 UIApplication.shared.open(whatsAppURL, options: [:], completionHandler: nil)
             case .failure(let reason):
                 self?.presentFailureAlert(for: reason)
@@ -170,6 +172,10 @@ private class InviteContactMessageComposerViewController: MFMessageComposeViewCo
         }
         controller.recipients?.forEach { recipient in
             MainAppContext.shared.eventMonitor.observe(.inviteResult(phoneNumber: recipient, type: type))
+        }
+
+        if result == .sent {
+            controller.recipients?.forEach { _ in Analytics.log(event: .sendInvite, properties: [.service: "sms"]) }
         }
 
         guard result == .cancelled else { return }

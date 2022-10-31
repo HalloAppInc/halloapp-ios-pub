@@ -214,6 +214,8 @@ class NameInputViewController: UIViewController {
             return
         }
 
+        Analytics.log(event: .onboardingEnteredName)
+
         registrationManager.set(userName: userName)
 
         let onboardingManager: OnboardingManager
@@ -284,6 +286,8 @@ class NameInputViewController: UIViewController {
             guard !cancelled, let media = media.first else {
                 return viewController.dismiss(animated: true)
             }
+
+            Analytics.log(event: .onboardingAddedProfilePhoto)
 
             self.avatarUploadCancellable = media.ready
                 .first { $0 }

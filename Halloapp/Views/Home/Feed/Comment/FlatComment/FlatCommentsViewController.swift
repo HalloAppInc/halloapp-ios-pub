@@ -415,6 +415,8 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
+        Analytics.openScreen(.comments)
+
         if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext) {
             MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
         }
@@ -1022,6 +1024,7 @@ extension FlatCommentsViewController: MessageViewCommentDelegate, ReactionViewCo
     }
 
     func sendReaction(feedPostComment: FeedPostComment, reaction: String) {
+        Analytics.log(event: .sendCommentReaction)
         MainAppContext.shared.feedData.sendCommentReaction(reaction, replyingTo: feedPostComment.id)
     }
 
@@ -1279,6 +1282,28 @@ extension FlatCommentsViewController: ContentInputDelegate {
         if let media = media {
             sendMedia.append(media)
         }
+
+        var commentProperties = Analytics.EventProperties()
+        if !text.collapsedText.isEmpty {
+            commentProperties[.hasText] = true
+        }
+        sendMedia.forEach { media in
+            switch media.type {
+            case .audio:
+                commentProperties[.attachedAudioCount] = (commentProperties[.attachedAudioCount] as? Int ?? 0) + 1
+            case .image:
+                commentProperties[.attachedImageCount] = (commentProperties[.attachedImageCount] as? Int ?? 0) + 1
+            case .video:
+                commentProperties[.attachedVideoCount] = (commentProperties[.attachedVideoCount] as? Int ?? 0) + 1
+            case .document:
+                commentProperties[.attachedDocumentCount] = (commentProperties[.attachedDocumentCount] as? Int ?? 0) + 1
+            }
+        }
+        if linkPreviewData != nil {
+            commentProperties[.attachedLinkPreviewCount] = 1
+        }
+        Analytics.log(event: .sendComment, properties: commentProperties)
+
         MainAppContext.shared.feedData.post(comment: text,
                                               media: sendMedia,
                                     linkPreviewData: linkPreviewData,

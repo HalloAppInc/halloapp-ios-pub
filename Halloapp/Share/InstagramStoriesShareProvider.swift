@@ -12,6 +12,10 @@ class InstagramStoriesShareProvider: ShareProvider {
 
     private static let appID = "5856403147724250"
 
+    static var analyticsShareDestination: String {
+        return "instagram_stories"
+    }
+
     static var title: String {
         return NSLocalizedString("shareprovider.instagramstories.title", value: "Instagram Stories", comment: "Title for sharing to instagram stories")
     }

@@ -466,6 +466,9 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+
+        Analytics.openScreen(.groupChat)
+
         MainAppContext.shared.chatData.markSeenMessages(type: .groupChat, for: groupId)
         MainAppContext.shared.chatData.setCurrentlyChattingInGroup(in: groupId)
         // Add jump to last message button
@@ -727,6 +730,31 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
     }
 
     func sendMessage(text: String, media: [PendingMedia], files: [FileSharingData], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, location: ChatLocationProtocol? = nil) {
+        var chatProperties = Analytics.EventProperties()
+        chatProperties[.chatType] = "group"
+        if !text.isEmpty {
+            chatProperties[.hasText] = true
+        }
+        media.forEach { media in
+            switch media.type {
+            case .audio:
+                chatProperties[.attachedAudioCount] = (chatProperties[.attachedAudioCount] as? Int ?? 0) + 1
+            case .image:
+                chatProperties[.attachedImageCount] = (chatProperties[.attachedImageCount] as? Int ?? 0) + 1
+            case .video:
+                chatProperties[.attachedVideoCount] = (chatProperties[.attachedVideoCount] as? Int ?? 0) + 1
+            case .document:
+                chatProperties[.attachedDocumentCount] = (chatProperties[.attachedDocumentCount] as? Int ?? 0) + 1
+            }
+        }
+        chatProperties[.attachedDocumentCount] = (chatProperties[.attachedDocumentCount] as? Int ?? 0) + files.count
+        if linkPreviewData != nil {
+            chatProperties[.attachedLinkPreviewCount] = 1
+        }
+        if location != nil {
+            chatProperties[.attachedLocationCount] = 1
+        }
+        Analytics.log(event: .sendChatMessage, properties: chatProperties)
 
         MainAppContext.shared.chatData.sendMessage(chatMessageRecipient: .groupChat(toGroupId: groupId, fromUserId: MainAppContext.shared.userData.userId),
                                                        text: text,
@@ -1584,6 +1612,7 @@ extension GroupChatViewController: MessageViewChatDelegate, ReactionViewControll
     }
     
     func sendReaction(chatMessage: ChatMessage, reaction: String) {
+        Analytics.log(event: .sendChatMessageReaction, properties: [.chatType: "group"])
         let reactionMessageRecipient: ChatMessageRecipient = .groupChat(toGroupId: groupId, fromUserId: AppContext.shared.userData.userId)
         MainAppContext.shared.chatData.sendReaction(chatMessageRecipient: reactionMessageRecipient,
                                                     reaction: reaction,

@@ -257,8 +257,11 @@ class ContactStoreMain: ContactStoreCore {
         }
 
         let syncManager = MainAppContext.shared.syncManager!
+        let contactsAccessEnabled = ContactStore.contactsAccessAuthorized
+
+        Analytics.setUserProperties([.notificationPermissionEnabled: contactsAccessEnabled])
         
-        guard ContactStore.contactsAccessAuthorized else {
+        guard contactsAccessEnabled else {
             // TODO: delete local contact cache
             self.deleteAllContacts()
             
@@ -300,6 +303,8 @@ class ContactStoreMain: ContactStoreCore {
                                 
                                 self.didAddressBookChange.send()
                             }
+
+                            Analytics.setUserProperties([.numberOfContacts: self.allRegisteredContactIDs(in: managedObjectContext).count])
 
                             DispatchQueue.main.async {
                                 // Wait 2 seconds to allow incoming needReloadContacts requests to coalesce, and then
@@ -817,6 +822,8 @@ class ContactStoreMain: ContactStoreCore {
                 }
             }
         }
+
+        Analytics.setUserProperties([.numberOfContacts: discoveredUsers.count])
 
         DDLogInfo("contacts/sync/process-results/finish time=[\(Date().timeIntervalSince(startTime))]")
     }

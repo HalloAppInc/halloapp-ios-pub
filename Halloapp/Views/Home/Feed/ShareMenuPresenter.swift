@@ -36,6 +36,7 @@ extension ShareMenuPresenter {
                                                 icon: UIImage(named: "ExternalShareLink"),
                                                 title: Localizations.copyLink) { [weak self] _ in
                     self?.generateExternalShareLink(postID: postID, success: { url, toast in
+                        Analytics.log(event: .externalShare, properties: [.shareDestination: "copy_link"])
                         toast.update(type: .icon(UIImage(systemName: "checkmark")), text: Localizations.externalShareLinkCopied)
                         UIPasteboard.general.url = url
                     })
@@ -62,6 +63,8 @@ extension ShareMenuPresenter {
         let completion: (ShareProviderResult) -> Void = { result in
             DDLogInfo("ShareMenuPresenter/shareWithShareProvider/didCompleteShare/\(shareProvider.title)/\(result)")
         }
+
+        Analytics.log(event: .externalShare, properties: [.shareDestination: shareProvider.analyticsShareDestination])
 
         if shareProvider == InstagramStoriesShareProvider.self {
             InstagramStoriesShareProvider.share(stickerImage:  ExternalSharePreviewImageGenerator.image(for: feedPost),

@@ -712,6 +712,9 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+
+        Analytics.openScreen(.userChat)
+
         if let chatWithUserId = self.fromUserId {
             // This marks the initial set of unread messages on first launch as seen.  Any future incoming messages are marked read as they come in.
             MainAppContext.shared.chatData.markSeenMessages(type: .oneToOne, for: chatWithUserId)
@@ -1008,6 +1011,37 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
     func sendMessage(text: String, media: [PendingMedia], files: [FileSharingData], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, location: ChatLocationProtocol? = nil) {
         guard let sendToUserId = self.fromUserId else { return }
+
+        var chatProperties = Analytics.EventProperties()
+        chatProperties[.chatType] = "oneToOne"
+        if !text.isEmpty {
+            chatProperties[.hasText] = true
+        }
+        media.forEach { media in
+            switch media.type {
+            case .audio:
+                chatProperties[.attachedAudioCount] = (chatProperties[.attachedAudioCount] as? Int ?? 0) + 1
+            case .image:
+                chatProperties[.attachedImageCount] = (chatProperties[.attachedImageCount] as? Int ?? 0) + 1
+            case .video:
+                chatProperties[.attachedVideoCount] = (chatProperties[.attachedVideoCount] as? Int ?? 0) + 1
+            case .document:
+                chatProperties[.attachedDocumentCount] = (chatProperties[.attachedDocumentCount] as? Int ?? 0) + 1
+            }
+        }
+        chatProperties[.attachedDocumentCount] = (chatProperties[.attachedDocumentCount] as? Int ?? 0) + files.count
+        if linkPreviewData != nil {
+            chatProperties[.attachedLinkPreviewCount] = 1
+        }
+        if location != nil {
+            chatProperties[.attachedLocationCount] = 1
+        }
+        if chatReplyMessageID != nil {
+            chatProperties[.replyType] = "chatMessage"
+        } else if feedPostId != nil {
+            chatProperties[.replyType] = "post"
+        }
+        Analytics.log(event: .sendChatMessage, properties: chatProperties)
 
         MainAppContext.shared.chatData.sendMessage(chatMessageRecipient: .oneToOneChat(toUserId: sendToUserId, fromUserId: MainAppContext.shared.userData.userId),
                                                        text: text,
@@ -1841,6 +1875,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
     
     func sendReaction(chatMessage: ChatMessage, reaction: String) {
         guard let sendToUserId = self.fromUserId else { return }
+        Analytics.log(event: .sendChatMessageReaction, properties: [.chatType: "oneToOne"])
         let reactionMessageRecipient: ChatMessageRecipient = .oneToOneChat(toUserId: sendToUserId, fromUserId: AppContext.shared.userData.userId)
         MainAppContext.shared.chatData.sendReaction(chatMessageRecipient: reactionMessageRecipient,
                                                     reaction: reaction,
