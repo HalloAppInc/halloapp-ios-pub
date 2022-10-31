@@ -2112,7 +2112,18 @@ extension ProtoServiceCore: CoreService {
             // Update group stats.
             reportGroupDecryptionResult(error: error, contentID: contentID, contentType: .comment,
                                         groupID: "", timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
-
+        case .groupChatReaction:
+            // Update group stats.
+            reportGroupDecryptionResult(error: error, contentID: contentID, contentType: .chat,
+                                        groupID: "", timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
+        case .groupChat:
+            // Update group stats.
+            reportGroupDecryptionResult(error: error, contentID: contentID, contentType: .chat,
+                                        groupID: "", timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
+        case .groupPostReaction:
+            // Update group stats.
+            reportGroupDecryptionResult(error: error, contentID: contentID, contentType: .postReaction,
+                                        groupID: "", timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
         case .historyResend:
             // Update group stats.
             reportGroupDecryptionResult(error: error, contentID: contentID, contentType: .historyResend,
@@ -2134,10 +2145,11 @@ extension ProtoServiceCore: CoreService {
         case .homeCommentReaction:
             reportHomeDecryptionResult(error: error, contentID: contentID, contentType: .commentReaction,
                                        type: .all, timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
+        case .homePostReaction:
+            reportHomeDecryptionResult(error: error, contentID: contentID, contentType: .post,
+                                       type: .all, timestamp: Date(), sender: senderUserAgent, rerequestCount: maxCount)
 
-        case .groupChat, .groupPostReaction, .homePostReaction:
-            // TODO: Handle these cases
-            break
+
         case .UNRECOGNIZED, .unknown:
             break
         }
