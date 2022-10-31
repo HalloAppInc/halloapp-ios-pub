@@ -796,6 +796,14 @@ class MomentView: UIView {
         facePileView.alpha = 0
         uploadProgressIndicator.setState(.hidden, animated: false)
     }
+
+    func hideFooterViews() {
+        footerContainer.isHidden = true
+    }
+
+    func showFooterViews() {
+        footerContainer.isHidden = false
+    }
 }
 
 // MARK: - UIGestureRecognizerDelegate methods

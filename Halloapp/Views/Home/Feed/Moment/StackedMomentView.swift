@@ -376,13 +376,13 @@ extension StackedMomentView {
             return
         }
 
-        if let ftuxLabel = ftuxLabel, let momentView = ftuxLabel.superview as? MomentView {
+        if let ftuxLabel, let momentView = ftuxLabel.superview as? MomentView {
             // it's possible that the FTUX was attached to a view that is now somewhere else in the stack
             ftuxLabel.removeFromSuperview()
-            momentView.footerLabel.alpha = 1
+            momentView.showFooterViews()
         }
 
-        topMoment.footerLabel.alpha = 0
+        topMoment.hideFooterViews()
         let string = NSMutableAttributedString.string(Localizations.swipeForMore,
                                                 with: swipeImage,
                                              spacing: 2,
@@ -410,7 +410,7 @@ extension StackedMomentView {
             return
         }
 
-        momentView.footerLabel.alpha = 1
+        momentView.showFooterViews()
         ftuxLabel.removeFromSuperview()
         self.ftuxLabel = nil
 

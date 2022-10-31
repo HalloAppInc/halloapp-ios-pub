@@ -220,7 +220,7 @@ fileprivate extension Localizations {
 
     static var describingMoments: String {
         NSLocalizedString("describing.moments",
-                   value: "Unlock your friends’ moments by sharing your own. Moments are casual, they disappear after you view them once.",
+                   value: "See your friends’ moments by sharing your own. Moments are casual, they disappear after 24 hours.",
                  comment: "Body of the bottom sheet that is presented only once to explain the moments feature.")
     }
 
