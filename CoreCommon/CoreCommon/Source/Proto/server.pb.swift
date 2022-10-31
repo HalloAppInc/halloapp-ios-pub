@@ -3663,6 +3663,7 @@ public struct Server_ContentMissing {
     case homeCommentReaction // = 12
     case homePostReaction // = 13
     case groupChat // = 14
+    case groupChatReaction // = 15
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -3686,6 +3687,7 @@ public struct Server_ContentMissing {
       case 12: self = .homeCommentReaction
       case 13: self = .homePostReaction
       case 14: self = .groupChat
+      case 15: self = .groupChatReaction
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -3707,6 +3709,7 @@ public struct Server_ContentMissing {
       case .homeCommentReaction: return 12
       case .homePostReaction: return 13
       case .groupChat: return 14
+      case .groupChatReaction: return 15
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -3736,6 +3739,7 @@ extension Server_ContentMissing.ContentType: CaseIterable {
     .homeCommentReaction,
     .homePostReaction,
     .groupChat,
+    .groupChatReaction,
   ]
 }
 
@@ -12699,6 +12703,7 @@ extension Server_ContentMissing.ContentType: SwiftProtobuf._ProtoNameProviding {
     12: .same(proto: "HOME_COMMENT_REACTION"),
     13: .same(proto: "HOME_POST_REACTION"),
     14: .same(proto: "GROUP_CHAT"),
+    15: .same(proto: "GROUP_CHAT_REACTION"),
   ]
 }
 
