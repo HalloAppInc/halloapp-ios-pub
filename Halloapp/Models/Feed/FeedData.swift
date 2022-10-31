@@ -3111,6 +3111,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         if case .group(let groupID, _) = destination {
             feedPost.groupId = groupID
             if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: managedObjectContext) {
+                guard group.type != .groupChat else { return }
                 feedPost.expiration = group.postExpirationDate(from: timestamp)
             } else {
                 DDLogError("FeedData/createTombstones/groupID: \(groupID) not found, setting default expiration...")

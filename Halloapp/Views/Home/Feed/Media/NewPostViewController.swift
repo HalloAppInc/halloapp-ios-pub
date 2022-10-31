@@ -226,10 +226,10 @@ final class NewPostViewController: UINavigationController {
         guard let text = result.text else { return }
 
         for destination in destinations {
-            // TODO @Nandini support sending to group chats
-            if case .contact(let userID, _, _) = destination {
-                MainAppContext.shared.chatData.sendMessage(
-                    chatMessageRecipient: .oneToOneChat(toUserId: userID, fromUserId: AppContext.shared.userData.userId),
+            switch destination {
+            case .contact(let userId, _, _):
+                sendChatMessage(
+                    chatMessageRecipient: .oneToOneChat(toUserId: userId, fromUserId: AppContext.shared.userData.userId),
                     text: text.trimmed().collapsedText,
                     media: result.media,
                     files: [],
@@ -239,18 +239,84 @@ final class NewPostViewController: UINavigationController {
                     feedPostMediaIndex: 0,
                     chatReplyMessageID: nil,
                     chatReplyMessageSenderID: nil,
-                    chatReplyMessageMediaIndex: 0)
-            } else {
-                MainAppContext.shared.feedData.post(
+                    chatReplyMessageMediaIndex: 0,
+                    result: result)
+            case .group(let groupId, _):
+                if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.feedData.viewContext) {
+                    switch group.type {
+                    case .groupFeed:
+                        makePost(
+                            text: text,
+                            media: result.media,
+                            linkPreviewData: result.linkPreviewData,
+                            linkPreviewMedia: result.linkPreviewMedia,
+                            to: destination, result: result)
+                    case .groupChat:
+                        sendChatMessage(
+                            chatMessageRecipient: .groupChat(toGroupId: groupId, fromUserId: AppContext.shared.userData.userId),
+                            text: text.trimmed().collapsedText,
+                            media: result.media,
+                            files: [],
+                            linkPreviewData: result.linkPreviewData,
+                            linkPreviewMedia: result.linkPreviewMedia,
+                            feedPostId: nil,
+                            feedPostMediaIndex: 0,
+                            chatReplyMessageID: nil,
+                            chatReplyMessageSenderID: nil,
+                            chatReplyMessageMediaIndex: 0,
+                            result: result)
+                    case .oneToOne:
+                        break
+                    }
+                }
+            case .feed(_):
+                makePost(
                     text: text,
                     media: result.media,
                     linkPreviewData: result.linkPreviewData,
                     linkPreviewMedia: result.linkPreviewMedia,
-                    to: destination)
+                    to: destination, result: result)
             }
         }
 
         cleanupAndFinish(didPost: true)
+    }
+
+    private func sendChatMessage(chatMessageRecipient: ChatMessageRecipient,
+                                 text: String,
+                                 media: [PendingMedia],
+                                 files: [FileSharingData],
+                                 linkPreviewData: LinkPreviewData? = nil,
+                                 linkPreviewMedia : PendingMedia? = nil,
+                                 location: ChatLocationProtocol? = nil,
+                                 feedPostId: String?,
+                                 feedPostMediaIndex: Int32,
+                                 chatReplyMessageID: String? = nil,
+                                 chatReplyMessageSenderID: UserID? = nil,
+                                 chatReplyMessageMediaIndex: Int32,
+                                 result: ComposerResult) {
+        MainAppContext.shared.chatData.sendMessage(
+            chatMessageRecipient: chatMessageRecipient,
+            text: text,
+            media: result.media,
+            files: [],
+            linkPreviewData: result.linkPreviewData,
+            linkPreviewMedia: result.linkPreviewMedia,
+            feedPostId: nil,
+            feedPostMediaIndex: 0,
+            chatReplyMessageID: nil,
+            chatReplyMessageSenderID: nil,
+            chatReplyMessageMediaIndex: 0)
+        
+    }
+
+    private func makePost(text: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, to destination: ShareDestination, momentInfo: PendingMomentInfo? = nil, result: ComposerResult) {
+        MainAppContext.shared.feedData.post(
+            text: text,
+            media: result.media,
+            linkPreviewData: result.linkPreviewData,
+            linkPreviewMedia: result.linkPreviewMedia,
+            to: destination)
     }
 
     private func makeNewCameraViewController() -> UIViewController {

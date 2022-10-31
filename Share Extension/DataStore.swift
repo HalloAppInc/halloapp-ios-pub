@@ -559,11 +559,17 @@ class DataStore: ShareExtensionDataStore {
         } else {
             DDLogDebug("NotificationExtension/DataStore//updateChatThread/\(chatMessage.id)/new-thread")
             chatThread = CommonThread(context: context)
+            switch chatMessageRecipient.chatType {
+            case .oneToOne:
+                chatThread.userID = isIncomingMsg ? chatMessage.fromUserId : chatMessage.toUserId
+            case .groupChat:
+                chatThread.groupId = chatMessage.toGroupId
+            default:
+                break
+            }
             
         }
         chatThread.type = chatMessageRecipient.chatType
-        chatThread.userID = chatMessage.toUserId
-        chatThread.groupId = chatMessage.toGroupId
         chatThread.lastMsgId = chatMessage.id
         chatThread.lastMsgUserId = chatMessage.fromUserId
         chatThread.lastMsgText = chatMessage.rawText

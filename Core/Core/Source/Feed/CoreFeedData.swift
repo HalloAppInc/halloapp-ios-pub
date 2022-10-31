@@ -140,6 +140,10 @@ open class CoreFeedData: NSObject {
             if case .group(let groupID, _) = destination {
                 feedPost.groupId = groupID
                 if let group = self.chatData.chatGroup(groupId: groupID, in: managedObjectContext) {
+                    guard group.type != .groupChat else {
+                        DDLogError("FeedData/createPost/error wrong group type (group.type)")
+                        return
+                    }
                     feedPost.expiration = group.postExpirationDate(from: timestamp)
                 } else {
                     DDLogError("FeedData/createTombstones/groupID: \(groupID) not found, setting default expiration...")

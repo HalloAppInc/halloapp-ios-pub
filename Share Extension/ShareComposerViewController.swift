@@ -829,13 +829,30 @@ class ShareComposerViewController: UIViewController {
 
             case .group(let groupListSyncItem):
                 let destination: Core.ShareDestination = .group(id: groupListSyncItem.id, name: groupListSyncItem.name)
-                AppContext.shared.coreFeedData.post(text: mentionText,
-                                                    media: media,
-                                                    linkPreviewData: linkPreviewData,
-                                                    linkPreviewMedia: linkPreviewMedia,
-                                                    to: destination,
-                                                    didCreatePost: showProcessingAlertIfNeeded,
-                                                    didBeginUpload: checkCompletionCountAndCompleteIfNeeded)
+                switch groupListSyncItem.type {
+                case .groupFeed:
+                    AppContext.shared.coreFeedData.post(text: mentionText,
+                                                        media: media,
+                                                        linkPreviewData: linkPreviewData,
+                                                        linkPreviewMedia: linkPreviewMedia,
+                                                        to: destination,
+                                                        didCreatePost: showProcessingAlertIfNeeded,
+                                                        didBeginUpload: checkCompletionCountAndCompleteIfNeeded)
+                case .groupChat:
+                    AppContext.shared.coreChatData.sendMessage(chatMessageRecipient: .groupChat(toGroupId: groupListSyncItem.id, fromUserId: AppContext.shared.userData.userId),
+                                                               text: text,
+                                                               media: media,
+                                                               files: [],
+                                                               linkPreviewData: linkPreviewData,
+                                                               linkPreviewMedia: linkPreviewMedia,
+                                                               didCreateMessage: showProcessingAlertIfNeeded,
+                                                               didBeginUpload: checkCompletionCountAndCompleteIfNeeded)
+                case .oneToOne:
+                    break
+                    
+                }
+                
+                
             case .chat(let chatListSyncItem):
                 AppContext.shared.coreChatData.sendMessage(chatMessageRecipient: .oneToOneChat(toUserId: chatListSyncItem.userId, fromUserId: AppContext.shared.userData.userId),
                                                            text: text,
@@ -872,11 +889,23 @@ class ShareComposerViewController: UIViewController {
                     uploadDispatchGroup.leave()
                 }
             case .group(let group):
-                DDLogInfo("ShareComposerViewController/upload group")
-                ShareExtensionContext.shared.dataStore.post(group: group, text: mentionText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia) {
-                    results.append($0)
-                    uploadDispatchGroup.leave()
+                switch group.type {
+                case .groupFeed:
+                    DDLogInfo("ShareComposerViewController/upload group feed")
+                    ShareExtensionContext.shared.dataStore.post(group: group, text: mentionText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia) {
+                        results.append($0)
+                        uploadDispatchGroup.leave()
+                    }
+                case .groupChat:
+                    DDLogInfo("ShareComposerViewController/upload group chat")
+                    ShareExtensionContext.shared.dataStore.send(chatMessageRecipient: .groupChat(toGroupId: group.id, fromUserId: AppContext.shared.userData.userId), text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia) {
+                        results.append($0)
+                        uploadDispatchGroup.leave()
+                    }
+                case .oneToOne:
+                    break
                 }
+                
                 addIntent(chatGroup: group)
             case .chat(let chat):
                 DDLogInfo("ShareComposerViewController/upload contact")

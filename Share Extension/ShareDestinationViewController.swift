@@ -171,7 +171,7 @@ class ShareDestinationViewController: UIViewController, UITableViewDelegate, UIT
                     self?.onSelectionChange(destinations: destinations)
                 }, animated: false)
             } else if conversationID.conversationType == .group {
-                guard let group = groups.first(where: { group in
+                guard let group = allGroups.first(where: { group in
                     group.id == conversationID.id
                 }) else {
                     DDLogError("ShareDestinationViewController/intent/error missing group id=[\(conversationID.id)]")
