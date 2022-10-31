@@ -1040,11 +1040,22 @@ open class CoreFeedData: NSObject {
                 return
             }
 
-            // Check if parent comment exists
-            guard let parentId = xmppReaction.parentId, let parentComment = self.feedComment(with: parentId, in: managedObjectContext) else {
-                DDLogError("CoreFeedData/process-reactions/no-parent-comment for reaction [\(xmppReaction.id)], ignored reaction: \(xmppReaction.id)")
-                // TODO: handle reactions that arrive before corresponding comment
-                return
+            // Set either parent post or parent comment.
+            // Could be a post reaction or a comment reaction.
+            let parentComment: FeedPostComment?
+            let parentPost: FeedPost?
+            if let parentId = xmppReaction.parentId {
+                // Check this only for comment reactions.
+                guard let feedComment = self.feedComment(with: parentId, in: managedObjectContext) else {
+                    DDLogError("CoreFeedData/process-reactions/no-parent-comment for reaction [\(xmppReaction.id)], ignored reaction: \(xmppReaction.id)")
+                    // TODO: handle reactions that arrive before corresponding comment
+                    return
+                }
+                parentComment = feedComment
+                parentPost = nil
+            } else {
+                parentComment = nil
+                parentPost = feedPost
             }
 
             DDLogDebug("CoreFeedData/process-reactions [\(xmppReaction.id)]")
@@ -1071,7 +1082,9 @@ open class CoreFeedData: NSObject {
             case .album, .text, .voiceNote, .unsupported, .retracted, .waiting:
                 DDLogError("CoreFeedData/process-reaction content not reaction type")
             }
+            //
             commonReaction.comment = parentComment
+            commonReaction.post = parentPost
             commonReaction.timestamp = xmppReaction.timestamp
             feedPost.lastUpdated = feedPost.lastUpdated.flatMap { max($0, commonReaction.timestamp) } ?? commonReaction.timestamp
 

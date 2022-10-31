@@ -681,11 +681,11 @@ final class NotificationProtoService: ProtoServiceCore {
         self.coreFeedData.saveReactionData(reaction: reaction, in: metadata.groupId, currentUserId: AppContext.shared.userData.userId, hasBeenProcessed: false) { result in
             switch result {
             case .success:
-                DDLogInfo("NotificationExtension/processReaction/success saving reaction [\(reaction.id)] for comment: \(reaction.parentId ?? "")")
+                DDLogInfo("NotificationExtension/processReaction/success saving reaction [\(reaction.id)] for comment: \(reaction.parentId ?? "") for post: \(reaction.feedPostId)")
                 ack()
                 self.presentCommentNotification(for: metadata, using: reaction)
             case .failure(let error):
-                DDLogError("NotificationExtension/processReaction/error saving reaction [\(reaction.id)] for comment: \(reaction.parentId ?? "") /error: \(error)")
+                DDLogError("NotificationExtension/processReaction/error saving reaction [\(reaction.id)] for comment: \(reaction.parentId ?? "") for post: \(reaction.feedPostId) /error: \(error)")
             }
         }
     }

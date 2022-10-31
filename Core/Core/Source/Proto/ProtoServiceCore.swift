@@ -1145,7 +1145,7 @@ extension ProtoServiceCore: CoreService {
                     }
                     DDLogInfo("ProtoServiceCore/decryptHomeFeedPayload/contentId/\(sessionType)/\(contentId), publisherUid: \(publisherUid)/end")
                 }
-            case .comment, .commentReaction:
+            case .comment, .commentReaction, .postReaction:
                 DDLogInfo("ProtoServiceCore/decryptHomeFeedPayload/contentId/\(sessionType)/\(contentId), publisherUid: \(publisherUid)/begin")
                 self.decryptHomeCommentPayload(encryptedPayload, commentID: contentId, postID: item.comment.postID, type: sessionType, from: publisherUid) { result in
                     switch result {
@@ -1157,7 +1157,7 @@ extension ProtoServiceCore: CoreService {
                     DDLogInfo("ProtoServiceCore/decryptHomeFeedPayload/contentId/\(sessionType)/\(contentId), publisherUid: \(publisherUid)/end")
                 }
 
-            case .unknown, .UNRECOGNIZED, .postReaction:
+            case .unknown, .UNRECOGNIZED:
                 newCompletion(nil, HomeDecryptionFailure(contentId, publisherUid, .invalidPayload, .payload))
             }
         }
