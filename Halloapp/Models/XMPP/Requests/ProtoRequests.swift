@@ -585,6 +585,7 @@ extension Server_GroupStanza.Action {
         case .modifyAdmins: self = .modifyAdmins
         case .modifyMembers: self = .modifyMembers
         case .changeExpiry: self = .changeExpiry
+        case .autoPromoteAdmins: self = .autoPromoteAdmins
         }
     }
 }

@@ -115,6 +115,13 @@ extension GroupEvent {
                 default:
                     return nil
                 }
+            case .autoPromoteAdmins:
+                if memberUserID == MainAppContext.shared.userData.userId {
+                    return Localizations.groupEventCurrentUserAutoPromoted
+                } else {
+                    guard let memberName = memberName else { return nil }
+                    return Localizations.groupEventMemberAutopromoted(memberName: memberName)
+                }
             case .changeExpiry:
                 return Localizations.groupEventChangeExpiry(subject: subject, expirationType: groupExpirationType, expirationTime: groupExpirationTime)
             default:
@@ -242,6 +249,15 @@ extension Localizations {
             let format = NSLocalizedString("chat.group.event.member.left", value: "%@ left", comment: "Message text shown with the user who left the group")
             return String(format: format, senderName)
         }
+    }
+
+    static var groupEventCurrentUserAutoPromoted: String {
+        return NSLocalizedString("chat.group.event.member.autopromoted.you", value: "You were auto-promoted to admin", comment: "Message text shown when you are auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin")
+    }
+
+    static func groupEventMemberAutopromoted(memberName: String) -> String {
+        let format =  NSLocalizedString("chat.group.event.member.autopromoted", value: "%@ was auto-promoted to admin", comment: "Message text shown when a group member is auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin")
+        return String(format: format, memberName)
     }
 
     private static let expiryTimeFormatter: DateComponentsFormatter = {

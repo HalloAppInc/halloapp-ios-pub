@@ -114,14 +114,15 @@ public struct XMPPGroup {
             case .modifyAdmins: return .modifyAdmins
             case .modifyMembers: return .modifyMembers
             case .setName: return nil
-            case .autoPromoteAdmins: return nil
+            case .autoPromoteAdmins: return .autoPromoteAdmins
             case .join: return .join
             case .preview: return nil
             case .setBackground: return .setBackground
             case .getMemberIdentityKeys: return nil // TODO: Does this need to be handled?
             case .shareHistory: return nil
             case .changeExpiry: return .changeExpiry
-            case .UNRECOGNIZED(_): return nil
+            case .UNRECOGNIZED(_):
+                return nil
             }
         }()
         

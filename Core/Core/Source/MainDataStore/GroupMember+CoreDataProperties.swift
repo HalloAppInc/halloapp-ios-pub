@@ -21,6 +21,7 @@ public enum GroupAction: String {
     case modifyAdmins = "modify_admins"
     case get = "get"
     case changeExpiry = "change_expiry"
+    case autoPromoteAdmins = "auto_promote_admins"
 }
 
 public enum GroupMemberType: Int {

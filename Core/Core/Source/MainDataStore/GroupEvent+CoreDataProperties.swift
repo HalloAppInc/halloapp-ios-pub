@@ -29,6 +29,7 @@ public extension GroupEvent {
         case changeDescription = 11
 
         case changeExpiry = 12
+        case autoPromoteAdmins = 13
     }
 
     enum MemberAction: Int16 {

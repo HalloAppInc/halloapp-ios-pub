@@ -5159,7 +5159,7 @@ extension ChatData {
             processGroupJoinAction(xmppGroup: xmppGroup, in: managedObjectContext)
         case .leave:
             processGroupLeaveAction(xmppGroup: xmppGroup, in: managedObjectContext)
-        case .modifyMembers, .modifyAdmins:
+        case .modifyMembers, .modifyAdmins, .autoPromoteAdmins:
             processGroupModifyMembersAction(xmppGroup: xmppGroup, in: managedObjectContext)
         case .changeName:
             processGroupChangeNameAction(xmppGroup: xmppGroup, in: managedObjectContext)
@@ -5174,6 +5174,7 @@ extension ChatData {
             syncGroup(xmppGroup)
         case .changeExpiry:
             processGroupChangeExpiryAction(xmppGroup: xmppGroup, in: managedObjectContext)
+            
         default: break
         }
 
@@ -5487,6 +5488,7 @@ extension ChatData {
             case .modifyAdmins: return .modifyAdmins
             case .modifyMembers: return .modifyMembers
             case .changeExpiry: return .changeExpiry
+            case .autoPromoteAdmins: return .autoPromoteAdmins
             default: return .none
             }
         }()

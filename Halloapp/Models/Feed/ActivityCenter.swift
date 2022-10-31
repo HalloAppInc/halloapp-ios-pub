@@ -477,7 +477,7 @@ extension GroupEvent {
                                               comment: "Notification that a user changed a group's expiration")
             }
             eventText = String(format: formatString, Group.formattedExpirationTime(type: groupExpirationType, time: groupExpirationTime))
-        case .none, .get, .delete:
+        case .none, .get, .delete, .autoPromoteAdmins:
             eventText = nil
         }
 
