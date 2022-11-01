@@ -55,7 +55,9 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         navigationItem.rightBarButtonItem = inviteButton
 
         cancellables.insert(MainAppContext.shared.callManager.isAnyCallOngoing.sink(receiveValue: { [weak self] activeCall in
+            let hasActiveCall = activeCall != nil
             let isVideoCallOngoing = activeCall?.isVideoCall ?? false
+            self?.composeVoiceNoteButton?.button.isEnabled = !hasActiveCall
             self?.composeCamPostButton?.button.isEnabled = !isVideoCallOngoing
         }))
         
@@ -328,6 +330,7 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
 
     // MARK: New post
 
+    private var composeVoiceNoteButton: FloatingMenuButton?
     private var composeCamPostButton: FloatingMenuButton?
 
     private(set) lazy var floatingMenu: FloatingMenu = {
@@ -337,14 +340,27 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             action: { [weak self] in self?.createNewMoment() })
         composeCamPostButton = camButton
 
+        let voiceNoteButton = FloatingMenuButton.standardActionButton(
+            iconTemplate: UIImage(named: "icon_fab_compose_voice")?.withRenderingMode(.alwaysTemplate),
+            accessibilityLabel: Localizations.fabAccessibilityVoiceNote,
+            action: { [weak self] in self?.presentNewPostViewController(source: .voiceNote) })
+        composeVoiceNoteButton = voiceNoteButton
+
         let symbolConfiguration = UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold, scale: .medium)
+        let textIconName = view.effectiveUserInterfaceLayoutDirection == .leftToRight ? "text.alignleft" : "text.alignright"
+        let textIcon = UIImage(systemName: textIconName)?.withConfiguration(symbolConfiguration)
 
         var expandedButtons: [FloatingMenuButton] = [
             .standardActionButton(
-                iconTemplate: UIImage(systemName: "plus", withConfiguration: symbolConfiguration)?.withRenderingMode(.alwaysTemplate),
-                accessibilityLabel: Localizations.fabPost,
-                action: { [weak self] in self?.presentNewPostViewController(source: .unified) }),
-            camButton,
+                iconTemplate: UIImage(systemName: "photo.fill")?.withConfiguration(symbolConfiguration),
+                accessibilityLabel: Localizations.fabAccessibilityPhotoLibrary,
+                action: { [weak self] in self?.presentNewPostViewController(source: .library) }),
+            voiceNoteButton,
+            .standardActionButton(
+                iconTemplate: textIcon,
+                accessibilityLabel: Localizations.fabAccessibilityTextPost,
+                action: { [weak self] in self?.presentNewPostViewController(source: .noMedia) }),
+            camButton
         ]
 
         return FloatingMenu(presenter: self, expandedButtons: expandedButtons)
@@ -416,17 +432,28 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         case .unified:
             fabActionType = nil
         }
-        if let fabActionType = fabActionType {
-            AppContext.shared.observeAndSave(event: .fabAction(type: fabActionType))
+
+        if source == .voiceNote && MainAppContext.shared.callManager.isAnyCallActive {
+            // When we have an active call ongoing: we should not record audio.
+            // We should present an alert saying that this action is not allowed.
+            let alert = UIAlertController(
+                title: Localizations.failedActionDuringCallTitle,
+                message: Localizations.failedActionDuringCallNoticeText,
+                preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { action in
+                DDLogInfo("FeedViewController/presentNewPostViewController/failedActionDuringCall/dismiss")
+            }))
+            present(alert, animated: true)
+        } else {
+            let newPostViewController = NewPostViewController(source: source, destination: .feed(.all), showDestinationPicker: true) { didPost in
+                // Reset back to all
+                MainAppContext.shared.privacySettings.activeType = .all
+                self.dismiss(animated: true)
+                if didPost { self.scrollToTop(animated: true) }
+            }
+            newPostViewController.modalPresentationStyle = .fullScreen
+            present(newPostViewController, animated: true)
         }
-        let newPostViewController = NewPostViewController(source: source, destination: .feed(.all), showDestinationPicker: true) { didPost in
-            // Reset back to all
-            MainAppContext.shared.privacySettings.activeType = .all
-            self.dismiss(animated: true)
-            if didPost { self.scrollToTop(animated: true) }
-        }
-        newPostViewController.modalPresentationStyle = .fullScreen
-        present(newPostViewController, animated: true)
     }
 }
 
