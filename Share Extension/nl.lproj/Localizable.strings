@@ -29,7 +29,7 @@
 "button.dismiss" = "Negeren";
 
 /* Title for generic Done button. Mostly used to complete some modal flow. */
-"button.done" = "Klaar";
+"button.done" = "Gereed";
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
 "button.go.to.settings" = "Ga naar Instellingen";

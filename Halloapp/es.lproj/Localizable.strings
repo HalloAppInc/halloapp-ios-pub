@@ -334,6 +334,12 @@
 /* Message text shown when you join a group via invite link */
 "chat.group.event.join.you" = "Te uniste al grupo a través de un enlace de invitación de grupo";
 
+/* Message text shown when a group member is auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
+"chat.group.event.member.autopromoted" = "%@ fue autopromovido a admin";
+
+/* Message text shown when you are auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
+"chat.group.event.member.autopromoted.you" = "Fuiste autopromovido a administrador";
+
 /* Message text shown with the user who left the group */
 "chat.group.event.member.left" = "%@ se salió";
 
@@ -516,6 +522,15 @@
 
 /* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has expired. */
 "chat.quoted.post.expired.label" = "Publicación caducada";
+
+/* Section title showing all the users to whom a particular message has been delivered to in a group chat */
+"chat.status.delivered.to" = "Entregado a";
+
+/* Section title showing all the users who have played a particular audio message in group chat */
+"chat.status.played.by" = "Jugado por";
+
+/* Section title showing all the users who have read a particular message in group chat */
+"chat.status.read.by" = "Leído por";
 
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "escribiendo...";
@@ -898,6 +913,9 @@
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Comentar";
 
+/* Button under someone's post. Noun. */
+"feedpost.button.comments" = "Comentarios";
+
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "Responder en privado";
 
@@ -915,6 +933,9 @@
 
 /* Title of group background screen */
 "group.bg.title" = "Fondo de pantalla";
+
+/* When a user is no longer a member of a chat group, this message is displyed at the bottom of the chat, preventing them from sending messages. */
+"group.chat.contact.is.not.member" = "No puedes enviar mensajes a este grupo porque ya no eres miembro del mismo.";
 
 /* Label shown above group description input box */
 "group.description.label" = "Descripción del grupo";
@@ -1400,6 +1421,10 @@
 /* label on a chat message to indicate the chat message has been forwarded */
 "message.forwarded" = "Enviado";
 
+/* Message action which shows receipt info when tapped. Verb.
+   Title of the view that displays receipt info for a message. */
+"message.info" = "Info";
+
 /* Message action. Verb. */
 "message.reply" = "Responder";
 
@@ -1627,6 +1652,9 @@
 
 /* Menu option to open a location in (Apple) Maps. */
 "openInMapsApp.maps" = "Abrir en mapas";
+
+/* Title that suggests something is optional. */
+"optional.title" = "Opcional";
 
 /* button to launch photo and video library */
 "photo.and.video.library" = "Galería de fotos y videos";

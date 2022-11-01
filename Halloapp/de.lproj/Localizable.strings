@@ -731,7 +731,7 @@
 "fab.accessibility.voice" = "Audio";
 
 /* Label for floating moment button on home feed. */
-"fab.moment.button" = "Moment";
+"fab.moment.button" = "Ein neuer Moment";
 
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Beitrag";
@@ -1523,6 +1523,9 @@
 /* Body of the daily moment notification. */
 "notification.daily.moment.body" = "Du hast zwei Minuten Zeit, um einen Moment zu teilen";
 
+/* Title of the daily moment notification. */
+"notification.daily.moment.title" = "Täglicher Moment";
+
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ hat deine HalloApp-Einladung angenommen 🎉";
 
@@ -1646,6 +1649,9 @@
 /* Menu option to open a location in (Apple) Maps. */
 "openInMapsApp.maps" = "In Karten öffnen";
 
+/* Title that suggests something is optional. */
+"optional.title" = "Optional";
+
 /* button to launch photo and video library */
 "photo.and.video.library" = "Foto- und Videothek";
 
@@ -1713,7 +1719,7 @@
 "post.privacy.header.groups" = "Nur mit einer Gruppe teilen";
 
 /* Header when selecting destinations to forward a message, this header appears above the recent section */
-"post.privacy.header.recent" = "Zuletzt verwendet";
+"post.privacy.header.recent" = "Letzte Kontakte";
 
 /* Controller title for changing destination and privacy */
 "post.privacy.title" = "Teilen mit...";

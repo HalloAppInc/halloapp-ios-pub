@@ -517,6 +517,15 @@
 /* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has expired. */
 "chat.quoted.post.expired.label" = "Postagem expirada";
 
+/* Section title showing all the users to whom a particular message has been delivered to in a group chat */
+"chat.status.delivered.to" = "Enviado para";
+
+/* Section title showing all the users who have played a particular audio message in group chat */
+"chat.status.played.by" = "Visualizado por";
+
+/* Section title showing all the users who have read a particular message in group chat */
+"chat.status.read.by" = "Lido por";
+
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "escrevendo...";
 
@@ -909,6 +918,9 @@
 
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Comentar";
+
+/* Button under someone's post. Noun. */
+"feedpost.button.comments" = "Comentários";
 
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "Responder em privado";
@@ -1412,6 +1424,10 @@
 /* label on a chat message to indicate the chat message has been forwarded */
 "message.forwarded" = "Encaminhada";
 
+/* Message action which shows receipt info when tapped. Verb.
+   Title of the view that displays receipt info for a message. */
+"message.info" = "Informação";
+
 /* Message action. Verb. */
 "message.reply" = "Responder";
 
@@ -1519,6 +1535,12 @@
 
 /* Content for unknown contact notification. */
 "notification.contact.unknown.content" = "Um dos seus contatos está agora no HalloApp";
+
+/* Body of the daily moment notification. */
+"notification.daily.moment.body" = "Você tem 2 minutos para compartilhar um Momento";
+
+/* Title of the daily moment notification. */
+"notification.daily.moment.title" = "Momento Diário";
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ acabou de aceitar o seu convite para se juntar ao HalloApp 🎉";
@@ -1642,6 +1664,9 @@
 
 /* Menu option to open a location in (Apple) Maps. */
 "openInMapsApp.maps" = "Abrir em Mapas";
+
+/* Title that suggests something is optional. */
+"optional.title" = "Opcional";
 
 /* button to launch photo and video library */
 "photo.and.video.library" = "Biblioteca de Fotos e Vídeos";

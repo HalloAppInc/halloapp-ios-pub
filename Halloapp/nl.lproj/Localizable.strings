@@ -62,13 +62,13 @@
 "alert.no.internet.try.again" = "Controleer of je internetverbinding hebt en probeer het opnieuw.";
 
 /* Title of the activity tab when contacts permissions aren't given. */
-"allow.contacts.for.activity" = "Om updates van je vrienden te ontvangen, sta HalloApp toegang tot je contacten toe.";
+"allow.contacts.for.activity" = "Om updates van je vrienden te ontvangen, sta toegang tot je contacten toe.";
 
 /* Title of the chats tab when contacts permissions aren't given. */
-"allow.contacts.for.chat" = "Om te beginnen met chatten, sta HalloApp toegang tot je contacten toe";
+"allow.contacts.for.chat" = "Om te beginnen met chatten, sta toegang tot je contacten toe";
 
 /* Message used in the app to explain the need for contacts permission. */
-"allow.contacts.permission.message" = "HalloApp heeft de toegang tot je contacten alleen nodig om je te kunnen verbinden met je vrienden & familie. HalloApp stuurt nooit iemand berichten namens jou.";
+"allow.contacts.permission.message" = "HalloApp heeft de toegang tot je contacten alleen nodig om je te verbinden met je vrienden & familie. HalloApp stuurt nooit iemand berichten namens jou.";
 
 /* Displayed in the sticky header that's on the feed when the user has not given contacts access. */
 "allow.contacts.permission.posts.prompt" = "Om je te verbinden met je vrienden & familie en hun posts te zien, sta HalloApp toegang tot je contacten toe.";
@@ -128,7 +128,7 @@
 "button.dismiss" = "Negeren";
 
 /* Title for generic Done button. Mostly used to complete some modal flow. */
-"button.done" = "Klaar";
+"button.done" = "Gereed";
 
 /* Title for button that will take user to iOS settings (e.g., to enable some permission we need). */
 "button.go.to.settings" = "Ga naar Instellingen";
@@ -334,6 +334,12 @@
 /* Message text shown when you join a group via invite link */
 "chat.group.event.join.you" = "Je neemt deel aan de groep via een uitnodigingslink";
 
+/* Message text shown when a group member is auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
+"chat.group.event.member.autopromoted" = "%@ is automatisch beheerder geworden";
+
+/* Message text shown when you are auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
+"chat.group.event.member.autopromoted.you" = "Je bent automatisch beheerder geworden";
+
 /* Message text shown with the user who left the group */
 "chat.group.event.member.left" = "%@ heeft de groep verlaten";
 
@@ -365,10 +371,10 @@
 "chat.group.info.demote" = "Verwijderen Als Beheerder";
 
 /* Error message when changing group expiry fails */
-"chat.group.info.expiry.set.error" = "Bijwerken van verlooptijd inhoud mislukt";
+"chat.group.info.expiry.set.error" = "Bijwerken van verlooptijd van inhoud mislukt";
 
 /* Title of groups info section that controls when group content expires */
-"chat.group.info.expiry.title" = "Verlooptijd Inhoud";
+"chat.group.info.expiry.title" = "Verlooptijd Van Inhoud";
 
 /* Action label for leaving group */
 "chat.group.info.leave.group" = "Groep verlaten";
@@ -516,6 +522,15 @@
 
 /* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has expired. */
 "chat.quoted.post.expired.label" = "Post verlopen";
+
+/* Section title showing all the users to whom a particular message has been delivered to in a group chat */
+"chat.status.delivered.to" = "Afgeleverd Aan";
+
+/* Section title showing all the users who have played a particular audio message in group chat */
+"chat.status.played.by" = "Afgespeeld Door";
+
+/* Section title showing all the users who have read a particular message in group chat */
+"chat.status.read.by" = "Gelezen Door";
 
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "aan het typen...";
@@ -683,7 +698,7 @@
 "Delete" = "Verwijderen";
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
-"describing.moments" = "Ontgrendel momenten van je vrienden door je eigen moment te delen. Momenten zijn tijdelijk en verdwijnen nadat je ze één keer hebt bekeken.";
+"describing.moments" = "Ontgrendel momenten van je vrienden door je eigen moment te delen. Momenten zijn tijdelijk en verdwijnen na 24 uur.";
 
 /* Send to button and screen title */
 "destination.send.to" = "Verzenden Naar";
@@ -731,7 +746,7 @@
 "fab.accessibility.voice" = "Audio";
 
 /* Label for floating moment button on home feed. */
-"fab.moment.button" = "Moment";
+"fab.moment.button" = "Nieuw Moment";
 
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Post";
@@ -910,6 +925,9 @@
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Reageren";
 
+/* Button under someone's post. Noun. */
+"feedpost.button.comments" = "Reacties";
+
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "Privé Beantwoorden";
 
@@ -927,6 +945,9 @@
 
 /* Title of group background screen */
 "group.bg.title" = "Achtergrond";
+
+/* When a user is no longer a member of a chat group, this message is displyed at the bottom of the chat, preventing them from sending messages. */
+"group.chat.contact.is.not.member" = "Je kunt geen berichten naar deze groep sturen omdat je geen deelnemer meer bent van deze groep.";
 
 /* Label shown above group description input box */
 "group.description.label" = "Groepsomschrijving";
@@ -1052,10 +1073,10 @@
 "group.notification.changeDescription.you" = "Je hebt de omschrijving van de groep <$groupname$> gewijzigd";
 
 /* Notification that a user changed a group's expiration */
-"group.notification.changeExpiry" = "<$sender$> heeft de verlooptijd van de groep <$groupname$> gewijzigd naar %1@";
+"group.notification.changeExpiry" = "<$sender$> heeft de verlooptijd voor de groep <$groupname$> gewijzigd naar %1@";
 
 /* Notification that you changed a group's expiration */
-"group.notification.changeExpiry.you" = "Je hebt de verlooptijd van de groep <$groupname$> gewijzigd naar %1@";
+"group.notification.changeExpiry.you" = "Je hebt de verlooptijd voor de groep <$groupname$> gewijzigd naar %1@";
 
 /* Notification that a user changed a groups name */
 "group.notification.changeName" = "<$sender$> heeft de naam van een groep gewijzigd in <$groupname$>";
@@ -1412,6 +1433,10 @@
 /* label on a chat message to indicate the chat message has been forwarded */
 "message.forwarded" = "Doorgestuurd";
 
+/* Message action which shows receipt info when tapped. Verb.
+   Title of the view that displays receipt info for a message. */
+"message.info" = "Informatie";
+
 /* Message action. Verb. */
 "message.reply" = "Beantwoorden";
 
@@ -1648,6 +1673,9 @@
 
 /* Menu option to open a location in (Apple) Maps. */
 "openInMapsApp.maps" = "Openen in Kaarten";
+
+/* Title that suggests something is optional. */
+"optional.title" = "Optioneel";
 
 /* button to launch photo and video library */
 "photo.and.video.library" = "Foto- & Videobibliotheek";
