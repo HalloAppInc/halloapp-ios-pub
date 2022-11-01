@@ -448,7 +448,14 @@ extension FeedViewController: UIViewControllerHandleTapNotification {
                 DDLogError("FeedViewController/notification/could not get commentData - failed to scroll \(metadata.contentId)")
                 return
             }
-            showCommentsView(for: commentData.feedPostId, highlighting: commentData.id)
+            if let postId = metadata.postId,
+               metadata.isPostReaction || metadata.isGroupPostReaction,
+               let feedPost = MainAppContext.shared.feedData.feedPost(with: postId, in: MainAppContext.shared.feedData.viewContext) {
+                showSeenByView(for: feedPost)
+            } else {
+                showCommentsView(for: commentData.feedPostId, highlighting: commentData.id)
+            }
+
         case .feedPost:
             guard let postData = metadata.postData() else {
                 DDLogError("FeedViewController/notification/could not get postData - failed to scroll \(metadata.contentId)")

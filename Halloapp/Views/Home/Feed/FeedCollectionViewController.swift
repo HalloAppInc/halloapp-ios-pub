@@ -473,7 +473,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Sh
         }
     }
 
-    private func showSeenByView(for post: FeedPost) {
+    func showSeenByView(for post: FeedPost) {
         if post.userID == MainAppContext.shared.userData.userId {
             let viewController = PostDashboardViewController(feedPost: post)
             viewController.delegate = self

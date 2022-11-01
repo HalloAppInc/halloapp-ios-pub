@@ -152,6 +152,7 @@ class NotificationMetadata: Codable {
     var groupName: String? = nil
     var normalizedPhone: String? = nil
     var momentContext: MomentType? = nil
+    var isReaction: Bool = false
 
     // TODO: We use this string to dedup batched notifications.
     // This is okay for now - but using mentioned postIds/userIds would be better.
@@ -349,6 +350,12 @@ class NotificationMetadata: Codable {
                 default:
                     return nil
                 }
+                switch comment.commentType {
+                case .postReaction, .commentReaction:
+                    isReaction = true
+                case .comment, .UNRECOGNIZED:
+                    isReaction = false
+                }
                 fromId = UserID(comment.publisherUid)
                 timestamp = Date(timeIntervalSince1970: TimeInterval(comment.timestamp))
                 data = comment.payload
@@ -404,6 +411,12 @@ class NotificationMetadata: Codable {
                 default:
                     return nil
                 }
+                switch comment.commentType {
+                case .postReaction, .commentReaction:
+                    isReaction = true
+                case .comment, .UNRECOGNIZED:
+                    isReaction = false
+                }
                 fromId = UserID(comment.publisherUid)
                 timestamp = Date(timeIntervalSince1970: TimeInterval(comment.timestamp))
                 data = comment.payload.isEmpty ? nil : comment.payload
@@ -433,6 +446,12 @@ class NotificationMetadata: Codable {
             if let phone = pushNumber, !phone.isEmpty {
                 AppContext.shared.contactStore.addPushNumbers([ fromId : phone ])
             }
+            switch chatMsg.chatType {
+            case .chatReaction:
+                isReaction = true
+            case .chat, .UNRECOGNIZED:
+                isReaction = false
+            }
 
             do {
                 serverChatStanzaPb = try chatMsg.serializedData()
@@ -453,6 +472,13 @@ class NotificationMetadata: Codable {
             groupId = groupChatMsg.gid
             groupType = .groupChat
             groupName = groupChatMsg.name
+
+            switch groupChatMsg.chatType {
+            case .chatReaction:
+                isReaction = true
+            case .chat, .UNRECOGNIZED:
+                isReaction = false
+            }
 
             // Save pushNumber from the message received.
             if let phone = pushNumber, !phone.isEmpty {
@@ -992,6 +1018,27 @@ extension NotificationMetadata {
             return true
         case .chatMessageRetract, .groupChatMessageRetract, .feedCommentRetract, .groupFeedCommentRetract, .feedPostRetract, .groupFeedPostRetract, .chatRerequest, .missedAudioCall, .missedVideoCall:
             return false
+        }
+    }
+
+    var isPostReaction: Bool {
+        isReaction && contentType == .feedComment && parentId == nil
+    }
+    var isCommentReaction: Bool {
+        isReaction && contentType == .feedComment
+    }
+    var isChatReaction: Bool {
+        isReaction && contentType == .chatMessage
+    }
+    var isGroupPostReaction: Bool {
+        isReaction && contentType == .groupFeedComment && parentId == nil
+    }
+    var isGroupCommentReaction: Bool {
+        isReaction && contentType == .groupFeedComment
+    }
+    var isGroupChatReaction: Bool {
+        get {
+            return isReaction && contentType == .groupChatMessage
         }
     }
 
