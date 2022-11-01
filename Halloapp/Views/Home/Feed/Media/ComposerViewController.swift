@@ -535,7 +535,7 @@ class ComposerViewController: UIViewController {
         configureUI()
 
         // show the favorites education modal only once to the user
-        if !AppContext.shared.userDefaults.bool(forKey: "hasFavoritesModalBeenShown") {
+        if !config.isOnboarding, !AppContext.shared.userDefaults.bool(forKey: "hasFavoritesModalBeenShown") {
             AppContext.shared.userDefaults.set(true, forKey: "hasFavoritesModalBeenShown")
 
             let vc = FavoritesInformationViewController() { privacyListType in

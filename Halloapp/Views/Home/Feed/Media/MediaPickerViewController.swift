@@ -87,6 +87,7 @@ struct MediaPickerConfig {
     var isCameraEnabled = false
     var onlyRecentItems = false
     var maxNumberOfItems = ServerProperties.maxPostMediaItems
+    var canShowFavoritesPromo = true
 
     static func config(with destination: ShareDestination) -> MediaPickerConfig {
         switch destination {
@@ -123,7 +124,7 @@ struct MediaPickerConfig {
 #else
         onlyRecentItems = true
 #endif
-        return MediaPickerConfig(destination: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: false, onlyRecentItems: onlyRecentItems)
+        return MediaPickerConfig(destination: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: false, onlyRecentItems: onlyRecentItems, canShowFavoritesPromo: false)
     }
 
     static var image: MediaPickerConfig {
@@ -131,7 +132,7 @@ struct MediaPickerConfig {
     }
 
     static var avatar: MediaPickerConfig {
-        MediaPickerConfig(destination: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: true, maxNumberOfItems: 1)
+        MediaPickerConfig(destination: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: true, maxNumberOfItems: 1, canShowFavoritesPromo: false)
     }
 
     static var more: MediaPickerConfig {
@@ -423,7 +424,7 @@ class MediaPickerViewController: UIViewController {
         }
 
         //Show the favorites education modal only once to the user
-        if !AppContext.shared.userDefaults.bool(forKey: "hasFavoritesModalBeenShown") {
+        if config.canShowFavoritesPromo, !AppContext.shared.userDefaults.bool(forKey: "hasFavoritesModalBeenShown") {
             AppContext.shared.userDefaults.set(true, forKey: "hasFavoritesModalBeenShown")
             let favoritesVC = FavoritesInformationViewController() { privacyListType in
                 self.config.destination = .feed(privacyListType)
