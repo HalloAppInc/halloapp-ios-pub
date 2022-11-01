@@ -149,8 +149,8 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             if let displayStart = recentSelfPostShareCarouselDisplayTimes[feedPostID], -displayStart.timeIntervalSinceNow > 2 {
                 // Dispatch_async to prevent data source updates while applying snapshot
                 DispatchQueue.main.async {
-                    recentSelfPostIDs.remove(feedPostID)
-                    feedDataSource.removeItem(feedItem)
+                    self.recentSelfPostIDs.remove(feedPostID)
+                    self.feedDataSource.removeItem(feedItem)
                 }
             }
             recentSelfPostShareCarouselDisplayTimes[feedPostID] = nil
