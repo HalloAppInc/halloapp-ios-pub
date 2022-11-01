@@ -538,7 +538,7 @@ public extension PostData {
         serverPost.timestamp = Int64(timestamp.timeIntervalSince1970)
 
         if case let .moment(momentContent) = content {
-            serverPost.tag = .secretPost
+            serverPost.tag = .moment
             if let unlockedUserID = momentContent.unlockUserID, let asInteger = Int64(unlockedUserID) {
                 serverPost.momentUnlockUid = asInteger
             }

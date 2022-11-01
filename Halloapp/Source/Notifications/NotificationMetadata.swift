@@ -331,9 +331,9 @@ class NotificationMetadata: Codable {
                 data = post.payload
                 pushName = post.publisherName
                 switch post.tag {
-                case .secretPost where post.momentUnlockUid == Int64(AppContextCommon.shared.userData.userId):
+                case .moment where post.momentUnlockUid == Int64(AppContextCommon.shared.userData.userId):
                     momentContext = .unlock
-                case .secretPost:
+                case .moment:
                     momentContext = .normal
                 default:
                     break
