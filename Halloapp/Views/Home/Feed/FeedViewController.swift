@@ -147,8 +147,11 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
 
         if let feedItem = feedDataSource.item(at: indexPath.item), case .shareCarousel(let feedPostID) = feedItem {
             if let displayStart = recentSelfPostShareCarouselDisplayTimes[feedPostID], -displayStart.timeIntervalSinceNow > 2 {
-                recentSelfPostIDs.remove(feedPostID)
-                feedDataSource.removeItem(feedItem)
+                // Dispatch_async to prevent data source updates while applying snapshot
+                DispatchQueue.main.async {
+                    recentSelfPostIDs.remove(feedPostID)
+                    feedDataSource.removeItem(feedItem)
+                }
             }
             recentSelfPostShareCarouselDisplayTimes[feedPostID] = nil
         }
