@@ -75,7 +75,7 @@ public final class ReactionPicker: UIControl {
 
     private lazy var emojiStack: UIStackView = {
         let emojiStack = UIStackView(arrangedSubviews: emojiButtons)
-        emojiStack.distribution = .fillEqually
+        emojiStack.distribution = .equalSpacing
         emojiStack.axis = .horizontal
         emojiStack.spacing = 5
         emojiStack.layoutMargins = UIEdgeInsets(top: 3, left: 3, bottom: 3, right: 3)
