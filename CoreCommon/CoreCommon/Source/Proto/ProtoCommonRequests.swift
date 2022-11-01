@@ -269,10 +269,10 @@ private extension DiscreteEvent {
             }
             callReport.answered = answered
             callReport.connected = connected
-            callReport.durationMs = UInt64(duration_ms)
+            callReport.durationMs = UInt64(max(0, duration_ms))
             callReport.endCallReason = endCallReason
             callReport.localEndCall = localEndCall
-            callReport.iceTimeTakenMs = UInt64(iceTimeTakenMs)
+            callReport.iceTimeTakenMs = UInt64(max(0, iceTimeTakenMs))
             callReport.webrtcStats = webrtcStats
             return .call(callReport)
 
