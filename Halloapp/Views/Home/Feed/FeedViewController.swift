@@ -481,6 +481,13 @@ extension FeedViewController: UIViewControllerHandleTapNotification {
             if let postId = metadata.postId,
                metadata.isPostReaction || metadata.isGroupPostReaction,
                let feedPost = MainAppContext.shared.feedData.feedPost(with: postId, in: MainAppContext.shared.feedData.viewContext) {
+                // Scroll to feed post now.
+                let result = scrollTo(postId: feedPost.id)
+                // If we could not display the feedPost then try to postpone the scrolling.
+                if !result {
+                    feedPostIdToScrollTo = feedPost.id
+                }
+                DDLogDebug("FeedViewController/scroll-to-post-for-reaction/ \(feedPost.id)/result: \(result)")
                 showSeenByView(for: feedPost)
             } else {
                 showCommentsView(for: commentData.feedPostId, highlighting: commentData.id)
