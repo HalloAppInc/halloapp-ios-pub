@@ -318,12 +318,62 @@ public struct Web_GroupDisplayInfo {
   /// Clears the value of `expiryInfo`. Subsequent reads from it will return its default value.
   public mutating func clearExpiryInfo() {self._expiryInfo = nil}
 
+  public var membershipStatus: Web_GroupDisplayInfo.MembershipStatus = .unknown
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum MembershipStatus: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknown // = 0
+    case notMember // = 1
+    case member // = 2
+    case admin // = 3
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknown
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknown
+      case 1: self = .notMember
+      case 2: self = .member
+      case 3: self = .admin
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknown: return 0
+      case .notMember: return 1
+      case .member: return 2
+      case .admin: return 3
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
 
   public init() {}
 
   fileprivate var _expiryInfo: Server_ExpiryInfo? = nil
 }
+
+#if swift(>=4.2)
+
+extension Web_GroupDisplayInfo.MembershipStatus: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Web_GroupDisplayInfo.MembershipStatus] = [
+    .unknown,
+    .notMember,
+    .member,
+    .admin,
+  ]
+}
+
+#endif  // swift(>=4.2)
 
 public struct Web_PostDisplayInfo {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -743,6 +793,7 @@ extension Web_ReceiptInfo: @unchecked Sendable {}
 extension Web_ReceiptInfo.Status: @unchecked Sendable {}
 extension Web_UserDisplayInfo: @unchecked Sendable {}
 extension Web_GroupDisplayInfo: @unchecked Sendable {}
+extension Web_GroupDisplayInfo.MembershipStatus: @unchecked Sendable {}
 extension Web_PostDisplayInfo: @unchecked Sendable {}
 extension Web_PostDisplayInfo.SeenState: @unchecked Sendable {}
 extension Web_PostDisplayInfo.TransferState: @unchecked Sendable {}
@@ -1097,6 +1148,7 @@ extension Web_GroupDisplayInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     4: .same(proto: "description"),
     5: .same(proto: "background"),
     6: .standard(proto: "expiry_info"),
+    7: .standard(proto: "membership_status"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1111,6 +1163,7 @@ extension Web_GroupDisplayInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
       case 4: try { try decoder.decodeSingularStringField(value: &self.description_p) }()
       case 5: try { try decoder.decodeSingularStringField(value: &self.background) }()
       case 6: try { try decoder.decodeSingularMessageField(value: &self._expiryInfo) }()
+      case 7: try { try decoder.decodeSingularEnumField(value: &self.membershipStatus) }()
       default: break
       }
     }
@@ -1139,6 +1192,9 @@ extension Web_GroupDisplayInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     try { if let v = self._expiryInfo {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
     } }()
+    if self.membershipStatus != .unknown {
+      try visitor.visitSingularEnumField(value: self.membershipStatus, fieldNumber: 7)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -1149,9 +1205,19 @@ extension Web_GroupDisplayInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     if lhs.description_p != rhs.description_p {return false}
     if lhs.background != rhs.background {return false}
     if lhs._expiryInfo != rhs._expiryInfo {return false}
+    if lhs.membershipStatus != rhs.membershipStatus {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
+}
+
+extension Web_GroupDisplayInfo.MembershipStatus: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN"),
+    1: .same(proto: "NOT_MEMBER"),
+    2: .same(proto: "MEMBER"),
+    3: .same(proto: "ADMIN"),
+  ]
 }
 
 extension Web_PostDisplayInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
