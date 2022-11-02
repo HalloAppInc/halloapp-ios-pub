@@ -3869,8 +3869,8 @@ extension ChatData {
 
         var isCurrentlyChattingWithUser = false
         switch chatMessage.chatMessageRecipient {
-        case .oneToOneChat(let toUserId, _):
-            isCurrentlyChattingWithUser = coreChatData.isCurrentlyChatting(with: toUserId)
+        case .oneToOneChat(_, let fromUserId):
+            isCurrentlyChattingWithUser = coreChatData.isCurrentlyChatting(with: fromUserId)
         case .groupChat(let groupId, _):
             isCurrentlyChattingWithUser = coreChatData.isCurrentlyChatting(in: groupId)
         }
