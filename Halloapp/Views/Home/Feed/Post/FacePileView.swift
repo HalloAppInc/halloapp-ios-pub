@@ -152,7 +152,7 @@ class ReactionPileView: UIControl {
     }
 
     func configure(with post: FeedPostDisplayable) {
-        let reactionsToShow = post.postReactions.suffix(numberOfReactions)
+        let reactionsToShow = Array(post.postReactions.suffix(numberOfReactions))
 
         for (i, reactionView) in reactionViews.enumerated() {
             if i < reactionsToShow.count {
