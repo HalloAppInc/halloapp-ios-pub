@@ -386,7 +386,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
                 // TODO: Use compound predicate instead of concatenating query strings
                 request.predicate = NSPredicate(format: base + " && message.timestamp < %@", toGroupId, CommonMediaType.image.rawValue, CommonMediaType.video.rawValue, timestamp as NSDate)
             } else {
-                request.predicate = NSPredicate(format: base, toGroupId)
+                request.predicate = NSPredicate(format: base, toGroupId, CommonMediaType.image.rawValue, CommonMediaType.video.rawValue)
             }
 
             request.sortDescriptors = [
