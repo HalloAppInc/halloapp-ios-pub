@@ -436,6 +436,10 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             fabActionType = nil
         }
 
+        if let fabActionType = fabActionType {
+            AppContext.shared.observeAndSave(event: .fabAction(type: fabActionType))
+        }
+
         if source == .voiceNote && MainAppContext.shared.callManager.isAnyCallActive {
             // When we have an active call ongoing: we should not record audio.
             // We should present an alert saying that this action is not allowed.

@@ -118,7 +118,9 @@ class ComposerDestinationRowView: UICollectionView {
 
         destinationDataSource.apply(makeSnapshot(groups: groups, contacts: contacts), animatingDifferences: false)
 
-        if let indexPath = destinationDataSource.indexPath(for: destination) {
+        if case .feed = destination {
+            // no selection
+        } else if let indexPath = destinationDataSource.indexPath(for: destination) {
             selectItem(at: indexPath, animated: false, scrollPosition: .top)
         } else {
             selectItem(at: IndexPath(row: 0, section: 0), animated: false, scrollPosition: .top)

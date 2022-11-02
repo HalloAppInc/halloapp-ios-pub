@@ -841,8 +841,10 @@ class ComposerViewController: UIViewController {
         var destinations: [ShareDestination]
         if isCompactShareFlow {
             destinations = destinationsView.destinations
+        } else if case .feed = config.destination {
+            destinations  = []
         } else {
-            destinations  = [config.destination]
+            destinations = [config.destination]
         }
 
         let mentionText = MentionText(expandedText: input.text, mentionRanges: input.mentions).trimmed()
