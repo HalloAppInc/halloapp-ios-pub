@@ -59,6 +59,12 @@ final class NotificationRequest {
                     DDLogInfo("NotificationRequest/createAndShow/commentData - skip due to userPreferences")
                     return
                 }
+            case .groupChatMessage:
+                guard let clientChatContainer = metadata.protoContainer?.chatContainer else {
+                    DDLogError("NotificationRequest/createAndShow/clientChatContainer is empty")
+                    break
+                }
+                notificationContent.populateChatBody(from: clientChatContainer.chatContent, using: metadata, contactStore: MainAppContext.shared.contactStore)
             default:
                 break
             }

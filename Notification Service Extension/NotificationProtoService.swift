@@ -960,7 +960,7 @@ final class NotificationProtoService: ProtoServiceCore {
             } else {
                 DDLogError("NotificationExtension/decryptAndProcessGroupChat/could not report result, messageId: \(messageId)")
             }
-            self.processGroupChat(chatContent: content, chatType: serverGroupChatStanza.chatType, groupDecryptionFailure: groupDecryptionFailure, metadata: metadata)
+            self.processGroupChat(chatContent: content, chatContext: context, chatType: serverGroupChatStanza.chatType, groupDecryptionFailure: groupDecryptionFailure, metadata: metadata)
         }
     }
 
@@ -993,7 +993,7 @@ final class NotificationProtoService: ProtoServiceCore {
     }
 
     // Process Group Chats - ack/rerequest/download media if necessary.
-    private func processGroupChat(chatContent: ChatContent?, chatType: Server_GroupChatStanza.ChatType, groupDecryptionFailure: GroupDecryptionFailure?, metadata: NotificationMetadata) {
+    private func processGroupChat(chatContent: ChatContent?, chatContext: ChatContext?, chatType: Server_GroupChatStanza.ChatType, groupDecryptionFailure: GroupDecryptionFailure?, metadata: NotificationMetadata) {
         let messageId = metadata.messageId
         guard let groupID = metadata.groupId else {
             return
@@ -1021,13 +1021,21 @@ final class NotificationProtoService: ProtoServiceCore {
 
         // If we failed to get decrypted chat content successfully - then just return!
         guard let chatContent = chatContent else {
-            DDLogError("NotificationExtension/decryptGroupChat/failed to get chat content, messageId: \(messageId)")
+            DDLogError("NotificationExtension/processGroupChat/failed to get chat content, messageId: \(messageId)")
             return
         }
 
         mainDataStore.performSeriallyOnBackgroundContext { context in
             switch chatContent {
             case .reaction(_):
+                guard let chatContext = chatContext,
+                      let chatReplyMessageID = chatContext.chatReplyMessageID,
+                      !chatReplyMessageID.isEmpty,
+                      let parentChatMessage = self.coreChatData.chatMessage(with: chatReplyMessageID, in: context),
+                      parentChatMessage.fromUserID == AppContext.shared.userData.userId else {
+                    DDLogInfo("NotificationExtension/processGroupChat/ignore notifications for reactionId: \(messageId)")
+                    return
+                }
                 let notificationContent = self.extractAndHoldNotificationContent(for: metadata, using: chatContent)
                 self.presentNotification(for: metadata.identifier, with: notificationContent)
                 return
