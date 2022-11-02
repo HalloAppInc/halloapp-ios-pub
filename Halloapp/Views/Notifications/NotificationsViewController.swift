@@ -57,6 +57,17 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
                                                         cacheName: nil)
     }()
 
+    private let feedGroupsFetchedResultsController: NSFetchedResultsController<Group> = {
+        let fetchRequest = Group.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "typeValue == %d", GroupType.groupFeed.rawValue)
+        fetchRequest.sortDescriptors = []
+        fetchRequest.propertiesToFetch = [ "id"]
+        return NSFetchedResultsController(fetchRequest: fetchRequest,
+                                          managedObjectContext: MainAppContext.shared.mainDataStore.viewContext,
+                                          sectionNameKeyPath: nil,
+                                          cacheName: nil)
+    }()
+
     private lazy var groupEventFetchedResultsController: NSFetchedResultsController<GroupEvent> = {
         let userID = MainAppContext.shared.userData.userId
         let fetchRequest = GroupEvent.fetchRequest()
@@ -129,8 +140,12 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         feedActivityFetchedResultsController.delegate = self
         try? feedActivityFetchedResultsController.performFetch()
 
+        feedGroupsFetchedResultsController.delegate = self
+        try? feedGroupsFetchedResultsController.performFetch()
+
         groupEventFetchedResultsController.delegate = self
         try? groupEventFetchedResultsController.performFetch()
+        
 
         updateUI()
 
@@ -205,8 +220,15 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
             items += activityCenterItems(for: feedActivities)
         }
 
-        if let groupEvents = groupEventFetchedResultsController.fetchedObjects {
-            items += groupEvents.compactMap { ActivityCenterItem(content: .groupEvent($0)) }
+        if let groups = feedGroupsFetchedResultsController.fetchedObjects, let groupEvents = groupEventFetchedResultsController.fetchedObjects {
+            // only inlcude group feed events
+            let groupIds = Set(groups.compactMap{$0.id})
+            items += groupEvents.compactMap {
+                if groupIds.contains($0.groupID) {
+                    return ActivityCenterItem(content: .groupEvent($0))
+                }
+                return nil
+            }
         }
 
         // Sort the notifications from newest to oldest before returning them
