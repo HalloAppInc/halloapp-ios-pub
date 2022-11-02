@@ -803,6 +803,8 @@ final class WebClientManager {
     }
 
     func groupDisplayInfo(for group: Group) -> Web_GroupDisplayInfo {
+        let currentUserID = AppContext.shared.userData.userId
+
         var info = Web_GroupDisplayInfo()
         info.id = group.id
         info.name = group.name
@@ -811,6 +813,15 @@ final class WebClientManager {
         }
         if let description = group.desc {
             info.description_p = description
+        }
+        let member = group.members?.first { $0.userID == currentUserID }
+        switch member?.type {
+        case .member:
+            info.membershipStatus = .member
+        case .admin:
+            info.membershipStatus = .admin
+        case .none:
+            info.membershipStatus = .notMember
         }
         var background = Clients_Background()
         background.theme = group.background
