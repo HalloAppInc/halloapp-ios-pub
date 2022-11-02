@@ -76,6 +76,8 @@ final class WebClientConnectionViewController: UIViewController {
             return "Disconnected"
         case .registering(let key):
             return "Connecting [\(key.base64PrefixForLogs())]"
+        case .awaitingHandshake:
+            return "Waiting for Connection [\(manager.webStaticKey?.base64PrefixForLogs() ?? "nil")]"
         case .handshaking:
             return "Handshaking [\(manager.webStaticKey?.base64PrefixForLogs() ?? "nil")]"
         case .connected:
@@ -88,7 +90,7 @@ final class WebClientConnectionViewController: UIViewController {
             return nil
         }
         switch manager.state.value {
-        case .connected, .handshaking:
+        case .connected, .handshaking, .awaitingHandshake:
             return "Disconnect"
         case .disconnected:
             return "Connect"
@@ -111,7 +113,7 @@ final class WebClientConnectionViewController: UIViewController {
         switch manager.state.value {
         case .disconnected:
             presentQRCodeScanner()
-        case .connected, .handshaking:
+        case .connected, .handshaking, .awaitingHandshake:
             manager.disconnect()
         case .registering:
             DDLogError("WebClientConnection/action-button/error [should-be-disabled]")

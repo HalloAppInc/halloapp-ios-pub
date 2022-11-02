@@ -39,6 +39,7 @@ final class WebClientManager {
         case disconnected
         case registering(Data)
         case handshaking(HandshakeState)
+        case awaitingHandshake
         case connected(CipherState, CipherState)
     }
 
@@ -49,6 +50,8 @@ final class WebClientManager {
     private let dataStore: MainDataStore
     private let noiseKeys: NoiseKeys
     private let webQueue = DispatchQueue(label: "hallo.web", qos: .userInitiated)
+
+    private var handshakeTimeoutTask: DispatchWorkItem?
 
     private var updatedManagedObjectIDs = Set<NSManagedObjectID>()
     /// Countdown to send next update batch
@@ -63,7 +66,7 @@ final class WebClientManager {
     func connect(staticKey: Data) {
         webQueue.async {
             switch self.state.value {
-            case .disconnected, .connected:
+            case .disconnected, .connected, .awaitingHandshake:
                 // OK to start new connection
                 break
             case .registering, .handshaking:
@@ -73,7 +76,7 @@ final class WebClientManager {
             if let oldKey = self.webStaticKey {
                 if oldKey == staticKey {
                     DDLogInfo("WebClientManager/connect/skipping-to-handshake [key-already-registered]")
-                    self.initiateHandshake(useKK: true)
+                    self.initiateHandshake(isReconnecting: true)
                     return
                 } else {
                     DDLogInfo("WebClientManager/connect/will-remove-old-key [\(oldKey.base64PrefixForLogs())]")
@@ -139,11 +142,22 @@ final class WebClientManager {
             DDLogError("WebClientManager/handleIncomingNoiseMessage/error [unrecognized-static-key: \(staticKey.base64EncodedString())] [expected: \(self.webStaticKey?.base64EncodedString() ?? "nil")]")
             return
         }
-        switch state.value {
-        case .handshaking(let handshake):
-            continueHandshake(handshake, with: noiseMessage)
-        case .connected, .disconnected, .registering:
+
+        handshakeTimeoutTask?.cancel()
+
+        switch noiseMessage.messageType {
+        case .kkA:
             receiveHandshake(with: noiseMessage)
+        case .ikB, .kkB:
+            guard case .handshaking(let handshake) = state.value else {
+                DDLogError("WebClientManager/handleIncomingNoiseMessage/error [unexpected-handshake-response: \(noiseMessage.messageType)] [state: \(state.value)]")
+                disconnect()
+                return
+            }
+            continueHandshake(handshake, with: noiseMessage)
+        case .ikA, .xxA, .xxB, .xxC, .xxFallbackA, .xxFallbackB, .UNRECOGNIZED:
+            DDLogError("WebClientManager/handleIncomingNoiseMessage/error [unexpected-handshake-type: \(noiseMessage.messageType)] [state: \(state.value)]")
+            disconnect()
         }
     }
 
@@ -372,7 +386,7 @@ final class WebClientManager {
     }
 
     // Web expects us to use KK pattern when reconnecting
-    private func initiateHandshake(useKK: Bool = false) {
+    private func initiateHandshake(isReconnecting: Bool = false) {
         guard let ephemeralKeys = NoiseKeys() else {
             DDLogError("WebClientManager/initiateHandshake/error [keygen-failure]")
             disconnect()
@@ -381,7 +395,7 @@ final class WebClientManager {
         let handshake: HandshakeState
         do {
             handshake = try HandshakeState(
-                pattern: useKK ? .KK : .IK,
+                pattern: isReconnecting ? .KK : .IK,
                 initiator: true,
                 prologue: Data(),
                 s: noiseKeys.makeX25519KeyPair(),
@@ -395,11 +409,29 @@ final class WebClientManager {
         self.state.value = .handshaking(handshake)
         do {
             let msgA = try handshake.writeMessage(payload: makeConnectionPayload())
-            self.sendNoiseMessage(msgA, type: useKK ? .kkA : .ikA)
-            // TODO: Set timeout
+            self.sendNoiseMessage(msgA, type: isReconnecting ? .kkA : .ikA)
+
+            // Disconnect on initial connection failure (i.e. no response after QR scan)
+            // but not on reconnect failure (in case web client is temporarily offline)
+            scheduleHandshakeTimeout(15, shouldDisconnect: !isReconnecting)
         } catch {
             DDLogError("WebClientManager/initiateHandshake/error [\(error)]")
         }
+    }
+
+    private func scheduleHandshakeTimeout(_ timeout: TimeInterval, shouldDisconnect: Bool) {
+        // Schedule a timeout. Must be canceled when response is received.
+        handshakeTimeoutTask?.cancel()
+        let handshakeTimeout = DispatchWorkItem { [weak self] in
+            DDLogInfo("WebClientManager/handshake/timeout")
+            if shouldDisconnect {
+                self?.disconnect()
+            } else {
+                self?.state.value = .awaitingHandshake
+            }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + timeout, execute: handshakeTimeout)
+        handshakeTimeoutTask = handshakeTimeout
     }
 
     private func continueHandshake(_ handshake: HandshakeState, with noiseMessage: Server_NoiseMessage) {
@@ -410,16 +442,11 @@ final class WebClientManager {
             DDLogError("WebClientManager/handshake/error [\(error)]")
             return
         }
-        switch noiseMessage.messageType {
-        case .ikA, .xxA, .xxB, .xxC, .kkA, .xxFallbackA, .xxFallbackB, .UNRECOGNIZED:
-            DDLogError("WebClientManager/handshake/error [message-type: \(noiseMessage.messageType)]")
-        case .kkB, .ikB:
-            do {
-                let (send, receive) = try handshake.split()
-                self.state.value = .connected(send, receive)
-            } catch {
-                DDLogError("WebClientManager/handshake/error [message-type: \(noiseMessage.messageType)] [\(error)]")
-            }
+        do {
+            let (send, receive) = try handshake.split()
+            self.state.value = .connected(send, receive)
+        } catch {
+            DDLogError("WebClientManager/handshake/error [message-type: \(noiseMessage.messageType)] [\(error)]")
         }
     }
 

@@ -336,7 +336,7 @@ final class ProtoService: ProtoServiceCore {
             case .connected, .handshaking, .registering:
                 DDLogError("ProtoService/reconnectWebClient/skipping [\(manager.state.value)]")
                 return
-            case .disconnected:
+            case .disconnected, .awaitingHandshake:
                 DDLogError("ProtoService/reconnectWebClient/connecting [\(manager.state.value)]")
                 manager.connect(staticKey: staticKey)
             }
