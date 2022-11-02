@@ -298,7 +298,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>%d file</string>
+			<string>%d fail</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>

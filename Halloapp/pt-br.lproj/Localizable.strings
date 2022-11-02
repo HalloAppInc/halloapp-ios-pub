@@ -334,6 +334,12 @@
 /* Message text shown when you join a group via invite link */
 "chat.group.event.join.you" = "Você entrou no grupo por meio do link de convite de grupo";
 
+/* Message text shown when a group member is auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
+"chat.group.event.member.autopromoted" = "%@ foi promovido automaticamente a administrador";
+
+/* Message text shown when you are auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
+"chat.group.event.member.autopromoted.you" = "Você foi promovido automaticamente a administrador";
+
 /* Message text shown with the user who left the group */
 "chat.group.event.member.left" = "%@ saiu";
 
@@ -692,7 +698,7 @@
 "Delete" = "Excluir";
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
-"describing.moments" = "Desbloqueie os momentos de seus amigos compartilhando os seus. Os momentos são casuais, eles desaparecem depois que você os vê uma vez.";
+"describing.moments" = "Veja os momentos de seus amigos compartilhando os seus. Os momentos são casuais, desaparecem após 24 horas.";
 
 /* Send to button and screen title */
 "destination.send.to" = "Enviar para";
@@ -740,7 +746,7 @@
 "fab.accessibility.voice" = "Audio";
 
 /* Label for floating moment button on home feed. */
-"fab.moment.button" = "Momento";
+"fab.moment.button" = "Novo Momento";
 
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Publicar";
@@ -939,6 +945,9 @@
 
 /* Title of group background screen */
 "group.bg.title" = "Plano de fundo";
+
+/* When a user is no longer a member of a chat group, this message is displyed at the bottom of the chat, preventing them from sending messages. */
+"group.chat.contact.is.not.member" = "Você não pode enviar mensagens para este grupo porque não é mais um membro deste grupo.";
 
 /* Label shown above group description input box */
 "group.description.label" = "Descrição do grupo";
@@ -1447,7 +1456,7 @@
 "moment.replacement.title" = "Atenção";
 
 /* Text on a locked moment that explains the need to post your own in order to view it. */
-"moment.unlock.disclaimer" = "Para ver o momento deles, compartilhe o seu";
+"moment.unlock.disclaimer" = "Para ver o Momento deles, compartilhe o seu";
 
 /* For indicating that there was an error while uploading the post. */
 "moment.uploading.failure" = "Erro";
@@ -2152,10 +2161,10 @@
 "share.destination.more" = "Mostrar mais...";
 
 /* Prompt for the user to share a moment. */
-"share.moment.prompt" = "Compartilhe um momento";
+"share.moment.prompt" = "Compartilhar um momento";
 
 /* Text placed on the blurred overlay of someone else's moment. */
-"shared.moment" = "momento de %@";
+"shared.moment" = "Momento de %@";
 
 /* Title for sharing to instagram stories */
 "shareprovider.instagramstories.title" = "Stories do Instagram";

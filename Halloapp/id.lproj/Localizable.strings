@@ -334,6 +334,12 @@
 /* Message text shown when you join a group via invite link */
 "chat.group.event.join.you" = "Anda telah bergabung dengan grup melalui Tautan Undangan Grup";
 
+/* Message text shown when a group member is auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
+"chat.group.event.member.autopromoted" = "%@ secara otomatis dijadikan sebagai admin";
+
+/* Message text shown when you are auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
+"chat.group.event.member.autopromoted.you" = "Anda secara otomatis dijadikan sebagai admin";
+
 /* Message text shown with the user who left the group */
 "chat.group.event.member.left" = "%@ keluar";
 
@@ -476,7 +482,7 @@
 "chat.message.deleted" = "Pesan ini dihapus.";
 
 /* Message text shown in a message that has document but no text */
-"chat.message.document" = "File";
+"chat.message.document" = "Fail";
 
 /* Message text shown in a message that have photo media but no text */
 "chat.message.photo" = "Foto";
@@ -516,6 +522,15 @@
 
 /* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has expired. */
 "chat.quoted.post.expired.label" = "Postingan kedaluwarsa";
+
+/* Section title showing all the users to whom a particular message has been delivered to in a group chat */
+"chat.status.delivered.to" = "Terkirim Ke";
+
+/* Section title showing all the users who have played a particular audio message in group chat */
+"chat.status.played.by" = "Diputar Oleh";
+
+/* Section title showing all the users who have read a particular message in group chat */
+"chat.status.read.by" = "Dibaca Oleh";
 
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "sedang mengetik...";
@@ -910,6 +925,9 @@
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Komentar";
 
+/* Button under someone's post. Noun. */
+"feedpost.button.comments" = "Komentar";
+
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "Balas secara Pribadi";
 
@@ -927,6 +945,9 @@
 
 /* Title of group background screen */
 "group.bg.title" = "Latar Belakang";
+
+/* When a user is no longer a member of a chat group, this message is displyed at the bottom of the chat, preventing them from sending messages. */
+"group.chat.contact.is.not.member" = "Anda tidak bisa mengirimkan pesan ke grup ini karena tidak lagi menjadi anggota grup.";
 
 /* Label shown above group description input box */
 "group.description.label" = "Deskripsi Grup";
@@ -1412,6 +1433,10 @@
 /* label on a chat message to indicate the chat message has been forwarded */
 "message.forwarded" = "Diteruskan";
 
+/* Message action which shows receipt info when tapped. Verb.
+   Title of the view that displays receipt info for a message. */
+"message.info" = "Info";
+
 /* Message action. Verb. */
 "message.reply" = "Balas";
 
@@ -1578,7 +1603,7 @@
 "notification.new.post" = "Postingan Baru";
 
 /* New post notification text when post is one document without caption. */
-"notification.one.document" = "file";
+"notification.one.document" = "fail";
 
 /* New post notification text when post is one photo without caption. */
 "notification.one.photo" = "📷 foto";
@@ -1648,6 +1673,9 @@
 
 /* Menu option to open a location in (Apple) Maps. */
 "openInMapsApp.maps" = "Buka di Peta";
+
+/* Title that suggests something is optional. */
+"optional.title" = "Opsional";
 
 /* button to launch photo and video library */
 "photo.and.video.library" = "Perpustakaan Foto & Video";

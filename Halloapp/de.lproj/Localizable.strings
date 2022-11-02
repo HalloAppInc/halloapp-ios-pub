@@ -334,6 +334,12 @@
 /* Message text shown when you join a group via invite link */
 "chat.group.event.join.you" = "Du bist der Gruppe über einen Einladungslink beigetreten";
 
+/* Message text shown when a group member is auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
+"chat.group.event.member.autopromoted" = "%@ wurde automatisch Admin";
+
+/* Message text shown when you are auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
+"chat.group.event.member.autopromoted.you" = "Du wurdest automatisch Admin";
+
 /* Message text shown with the user who left the group */
 "chat.group.event.member.left" = "%@ hat die Gruppe verlassen";
 
@@ -517,6 +523,15 @@
 /* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has expired. */
 "chat.quoted.post.expired.label" = "Beitrag ist abgelaufen";
 
+/* Section title showing all the users to whom a particular message has been delivered to in a group chat */
+"chat.status.delivered.to" = "Gesendet an";
+
+/* Section title showing all the users who have played a particular audio message in group chat */
+"chat.status.played.by" = "Abgespielt von";
+
+/* Section title showing all the users who have read a particular message in group chat */
+"chat.status.read.by" = "Gelesen von";
+
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "schreibt...";
 
@@ -683,7 +698,7 @@
 "Delete" = "Löschen";
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
-"describing.moments" = "Schalte die Momente deiner Freunde frei, indem du deine eigenen teilst. Momente sind temporär und sie verschwinden, nachdem du sie einmal angesehen hast.";
+"describing.moments" = "Um die Momente deiner Freunde zu sehen, teile deinen eigenen.  Momente sind temporär und verschwinden nach 24 Stunden.";
 
 /* Send to button and screen title */
 "destination.send.to" = "Senden an";
@@ -896,10 +911,10 @@
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
 /* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.body" = "Verwende deine Handynummer, um dich mit deinen Freunden und deiner Familie in einem digitalen Raum ohne Werbung, Marken, Likes und Influencer zu vernetzen.\n\nHalloApp ist für dich und die Menschen, die dir nahestehen - ganz privat. Lade deine echten Freunde ein, um loszulegen!";
+"feed.welcome.post.body" = "Verwende deine Handynummer, um dich mit deinen Freunden und deiner Familie ohne Werbung, Marken, Likes und Influencer zu vernetzen.\n\nHalloApp ist für dich und die Menschen, die dir nahestehen - ganz privat. Lade deine echten Freunde ein, um loszulegen!";
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.title" = "Willkommen bei HalloApp, ein digitaler Raum für echte Beziehungen ✨";
+"feed.welcome.post.title" = "Willkommen bei HalloApp, eine Plattform für echte Beziehungen ✨";
 
 /* Text for 'more' cell prompting users to open the invite screen */
 "feedInviteCarousel.searchPrompt" = "Suche nach mehr Freunden und Familie";
@@ -909,6 +924,9 @@
 
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Kommentieren";
+
+/* Button under someone's post. Noun. */
+"feedpost.button.comments" = "Kommentare";
 
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "Privat antworten";
@@ -927,6 +945,9 @@
 
 /* Title of group background screen */
 "group.bg.title" = "Hintergrund";
+
+/* When a user is no longer a member of a chat group, this message is displyed at the bottom of the chat, preventing them from sending messages. */
+"group.chat.contact.is.not.member" = "Da du nicht länger Mitglied bist, kannst du keine Nachrichten mehr an diese Gruppe senden.";
 
 /* Label shown above group description input box */
 "group.description.label" = "GRUPPENBESCHREIBUNG";
@@ -1411,6 +1432,10 @@
 
 /* label on a chat message to indicate the chat message has been forwarded */
 "message.forwarded" = "Weitergeleitet";
+
+/* Message action which shows receipt info when tapped. Verb.
+   Title of the view that displays receipt info for a message. */
+"message.info" = "Info";
 
 /* Message action. Verb. */
 "message.reply" = "Antworten";

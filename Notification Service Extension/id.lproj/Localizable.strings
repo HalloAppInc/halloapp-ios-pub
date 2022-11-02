@@ -203,7 +203,7 @@
 "notification.new.post" = "Postingan Baru";
 
 /* New post notification text when post is one document without caption. */
-"notification.one.document" = "file";
+"notification.one.document" = "fail";
 
 /* New post notification text when post is one photo without caption. */
 "notification.one.photo" = "📷 foto";
