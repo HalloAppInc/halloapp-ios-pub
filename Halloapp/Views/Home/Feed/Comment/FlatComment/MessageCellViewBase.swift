@@ -658,7 +658,7 @@ extension MessageCellViewBase: UIGestureRecognizerDelegate {
     }
     
     @objc public func showCommentOptions(_ recognizer: UILongPressGestureRecognizer) {
-        guard let feedPostComment = feedPostComment else { return }
+        guard let feedPostComment = feedPostComment, !feedPostComment.isRetracted else { return }
         if(recognizer.state == .began) {
             UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
             commentDelegate?.messageView(self, didLongPressOn: feedPostComment)

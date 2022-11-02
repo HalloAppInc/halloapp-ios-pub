@@ -183,6 +183,10 @@ public extension ChatMessage {
             }
         }
     }
+
+    var isRetracted: Bool {
+        return outgoingStatus == .retracted || outgoingStatus == .retracting || incomingStatus == .retracted
+    }
 }
 
 public extension ChatMessage {

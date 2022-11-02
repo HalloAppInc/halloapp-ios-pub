@@ -101,7 +101,9 @@ public class ReactionViewController: UIViewController {
         self.currentReaction = chatMessage.sortedReactionsList.filter { $0.fromUserID == MainAppContext.shared.userData.userId }.last
         
         super.init(nibName: nil, bundle: nil)
-        
+        if chatMessage.isRetracted {
+            emojiStack.isHidden = true
+        }
         configureMessageToolbar(chatMessage: chatMessage)
     }
     
@@ -190,7 +192,7 @@ public class ReactionViewController: UIViewController {
     private func configureMessageToolbar(chatMessage: ChatMessage) {
         var items = [UIBarButtonItem]()
         let space = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        if chatMessage.incomingStatus != .retracted {
+        if (!isOwnMessage && chatMessage.incomingStatus != .retracted) || (isOwnMessage && chatMessage.outgoingStatus != .retracted && chatMessage.outgoingStatus != .retracting) {
             items.append(space)
             if let media = chatMessage.media, !media.isEmpty {
                 let saveAllButton = createMenuButton(imageName: "square.and.arrow.down", labelName: Localizations.buttonSave)
@@ -230,6 +232,12 @@ public class ReactionViewController: UIViewController {
                 items.append(space)
             }
 
+            let deleteButton = createMenuButton(imageName: "trash", labelName: Localizations.messageDelete)
+            deleteButton.addTarget(self, action: #selector(handleDelete), for: .touchUpInside)
+            items.append(UIBarButtonItem(customView: deleteButton))
+            items.append(space)
+        } else if isOwnMessage && (chatMessage.outgoingStatus == .retracted || chatMessage.outgoingStatus == .retracting) {
+            items.append(space)
             let deleteButton = createMenuButton(imageName: "trash", labelName: Localizations.messageDelete)
             deleteButton.addTarget(self, action: #selector(handleDelete), for: .touchUpInside)
             items.append(UIBarButtonItem(customView: deleteButton))
