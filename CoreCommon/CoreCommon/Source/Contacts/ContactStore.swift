@@ -115,20 +115,28 @@ open class ContactStore {
     }
 
     public func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
+        let enqueuedTime = Date()
         backgroundProcessingQueue.async { [weak self] in
             guard let self = self else { return }
 
             let context = self.newBackgroundContext()
             context.performAndWait {
+                if -enqueuedTime.timeIntervalSinceNow > AppContextCommon.queueStallTimeout {
+                    AppContextCommon.shared.errorLogger?.logError(NSError(domain: "stalledContactStoreQueue", code: 1408))
+                }
                 block(context)
             }
         }
     }
 
     public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
+        let enqueuedTime = Date()
         backgroundProcessingQueue.sync {
             let context = self.newBackgroundContext()
             context.performAndWait {
+                if -enqueuedTime.timeIntervalSinceNow > AppContextCommon.queueStallTimeout {
+                    AppContextCommon.shared.errorLogger?.logError(NSError(domain: "stalledContactStoreQueue", code: 1408))
+                }
                 block(context)
             }
         }

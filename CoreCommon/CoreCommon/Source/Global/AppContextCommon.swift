@@ -39,6 +39,8 @@ open class AppContextCommon {
 
     public static let userAgent: String = { UserAgent(platform: .ios, version: appVersionForService).description }()
 
+    public static let queueStallTimeout: TimeInterval = 8
+
     public let didGetGroupInviteToken = PassthroughSubject<Void, Never>()
 
     open var isAppExtension: Bool {

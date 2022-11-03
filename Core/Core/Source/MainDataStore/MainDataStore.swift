@@ -127,11 +127,15 @@ open class MainDataStore {
     }
 
     public func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
+        let enqueuedTime = Date()
         backgroundProcessingQueue.async { [weak self] in
             guard let self = self else { return }
 
             let context = self.newBackgroundContext()
             context.performAndWait {
+                if -enqueuedTime.timeIntervalSinceNow > AppContext.queueStallTimeout {
+                    AppContext.shared.errorLogger?.logError(NSError(domain: "stalledMainDataStoreQueue", code: 1408))
+                }
                 block(context)
             }
         }
@@ -142,10 +146,16 @@ open class MainDataStore {
             let context = self.newBackgroundContext()
             context.performAndWait { block(context) }
         } else {
+            let enqueuedTime = Date()
             backgroundProcessingQueue.sync { [weak self] in
                 guard let self = self else { return }
                 let context = self.newBackgroundContext()
-                context.performAndWait { block(context) }
+                context.performAndWait {
+                    if -enqueuedTime.timeIntervalSinceNow > AppContext.queueStallTimeout {
+                        AppContext.shared.errorLogger?.logError(NSError(domain: "stalledMainDataStoreQueue", code: 1408))
+                    }
+                    block(context)
+                }
             }
         }
     }
@@ -163,11 +173,15 @@ open class MainDataStore {
 
     public final func saveSeriallyOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) throws {
         var errorOnSave: Error?
-
+        let enqueuedTime = Date()
         backgroundProcessingQueue.sync {
             let context = self.newBackgroundContext()
 
             context.performAndWait {
+                if -enqueuedTime.timeIntervalSinceNow > AppContext.queueStallTimeout {
+                    AppContext.shared.errorLogger?.logError(NSError(domain: "stalledMainDataStoreQueue", code: 1408))
+                }
+
                 block(context)
 
                 do {
@@ -186,11 +200,16 @@ open class MainDataStore {
     }
 
     public final func saveSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void, completion: ((Result<Void, Error>) -> Void)? = nil) {
+        let enqueuedTime = Date()
         backgroundProcessingQueue.async { [weak self] in
             guard let self = self else { return }
 
             let context = self.newBackgroundContext()
             context.performAndWait {
+                if -enqueuedTime.timeIntervalSinceNow > AppContext.queueStallTimeout {
+                    AppContext.shared.errorLogger?.logError(NSError(domain: "stalledMainDataStoreQueue", code: 1408))
+                }
+
                 block(context)
 
                 do {
