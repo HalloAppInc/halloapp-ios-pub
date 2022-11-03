@@ -1149,9 +1149,8 @@ final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
     class CommentButton: UIButton {
 
         enum CommentState {
-            case noComment
-            case unread
-            case allRead
+            case noComments
+            case comments(unreadCount: Int)
         }
 
         override init(frame: CGRect) {
@@ -1163,61 +1162,23 @@ final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
             super.init(coder: coder)
             self.setupView()
         }
-        
-        var unreadNumber: Int32 = 0 {
-            didSet {
-                guard unreadNumber != 0 else {
-                    numberView.isHidden = true
-                    return
-                }
-                let style = NSMutableParagraphStyle()
-                style.alignment = NSTextAlignment.center
-                let numberAttribute: [NSAttributedString.Key: Any] = [.font: UIFont.boldSystemFont(ofSize: 15), .foregroundColor: UIColor.white, .paragraphStyle: style]
-                
-                if unreadNumber < 100 {
-                    let number = NSMutableAttributedString(string: String(unreadNumber))
-                    number.setAttributes(numberAttribute, range: number.utf16Extent)
-                    numberView.attributedText = number
-                } else {
-                    let number = NSMutableAttributedString(string: "!!!")
-                    number.setAttributes(numberAttribute, range: number.utf16Extent)
-                    numberView.attributedText = number
-                }
-                numberView.isHidden = false
-            }
-        }
 
-        var comment: CommentState = .noComment {
-            didSet {
-                let isBadgeHidden: Bool
-                let image: UIImage?
-
-                switch self.comment {
-                case .noComment:
-                    isBadgeHidden = true
-                    image = UIImage(named: "FeedPostComment.empty")?
-                        .withTintColor(.label.withAlphaComponent(0.7), renderingMode: .alwaysOriginal)
-
-                case .unread:
-                    isBadgeHidden = true
-                    image = UIImage(named: "FeedPostComment.fill")?
-                        .withTintColor(.systemBlue, renderingMode: .alwaysOriginal)
-
-                case .allRead:
-                    isBadgeHidden = false
-                    image = UIImage(named: "FeedPostComment.empty")?
-                        .withTintColor(.label.withAlphaComponent(0.7), renderingMode: .alwaysOriginal)
-                }
-                badgeView.isHidden = isBadgeHidden
-                badgeOutlineView.isHidden = isBadgeHidden
-                setImage(image, for: .normal)
-            }
-        }
+        private static var commentBubbleEmpty: UIImage? = UIImage(named: "FeedPostComment.empty")?
+            .withTintColor(.label.withAlphaComponent(0.7), renderingMode: .alwaysOriginal)
+        private static var commentBubbleFull: UIImage? = UIImage(named: "FeedPostComment.fill")?
+            .withTintColor(.systemBlue, renderingMode: .alwaysOriginal)
 
         private let badgeView = CircleView(frame: CGRect(origin: .zero, size: CGSize(width: 7, height: 7)))
         private let badgeOutlineView = CircleView(frame: CGRect(origin: .zero, size: CGSize(width: 12, height: 12)))
-        private let numberView = UILabel(frame: CGRect(origin: .zero, size: CGSize(width: 18, height: 14)))
-        
+        private let numberView: UILabel = {
+            let label = UILabel()
+            label.translatesAutoresizingMaskIntoConstraints = false
+            label.textColor = .white
+            label.textAlignment = .center
+            label.font = .boldSystemFont(ofSize: 13)
+            return label
+        }()
+
         private func setupView() {
             badgeOutlineView.fillColor = UIColor.messageFooterBackground
             self.addSubview(badgeOutlineView)
@@ -1226,6 +1187,39 @@ final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
             self.addSubview(badgeView)
 
             self.addSubview(numberView)
+
+            if let imageView = imageView {
+                numberView.constrain(to: imageView)
+            }
+            configure(state: .noComments)
+        }
+
+        func configure(state: CommentState) {
+            let isBadgeHidden: Bool
+            let image: UIImage?
+            let numberString: String?
+
+            switch state {
+            case .noComments:
+                isBadgeHidden = true
+                image = Self.commentBubbleEmpty
+                numberString = nil
+
+            case .comments(let unreadCount):
+                if unreadCount > 0 {
+                    isBadgeHidden = true
+                    image = Self.commentBubbleFull
+                    numberString = unreadCount >= 100 ? "!!!" : String(unreadCount)
+                } else {
+                    isBadgeHidden = false
+                    image = Self.commentBubbleEmpty
+                    numberString = nil
+                }
+            }
+            badgeView.isHidden = isBadgeHidden
+            badgeOutlineView.isHidden = isBadgeHidden
+            setImage(image, for: .normal)
+            numberView.text = numberString
         }
 
         override func layoutSubviews() {
@@ -1432,8 +1426,7 @@ final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
             hideProgressView()
             hideErrorView()
 
-            commentButton.comment = post.hasComments ? (post.unreadCount > 0 ? .unread : .allRead) : .noComment
-            commentButton.unreadNumber = post.unreadCount
+            commentButton.configure(state: post.hasComments ? .comments(unreadCount: Int(post.unreadCount)) : .noComments)
             messageButton.isHidden = !post.canReplyPrivately
             messageButton.isEnabled = post.canReplyPrivately
             if sender == .ownPost {
