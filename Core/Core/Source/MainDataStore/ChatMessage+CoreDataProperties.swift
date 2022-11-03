@@ -48,6 +48,7 @@ public extension ChatMessage {
     @NSManaged var toUserID: String?
     @NSManaged var toGroupID: String?
     @NSManaged var rawText: String?
+    @NSManaged var mentionsValue: Any?
     @NSManaged var media: Set<CommonMedia>?
     @NSManaged var receiptInfo: Set<ChatReceiptInfo>?
 

@@ -256,7 +256,7 @@ class ExistingNetworkViewController: UIViewController, UserActionHandler {
 
         let recipient: ChatMessageRecipient = .oneToOneChat(toUserId: userID, fromUserId: AppContext.shared.userData.userId)
         MainAppContext.shared.chatData.sendMessage(chatMessageRecipient: recipient,
-                                                                   text: text.trimmed().collapsedText,
+                                                   mentionText: text,
                                                                   media: result.media,
                                                                   files: [],
                                                         linkPreviewData: result.linkPreviewData,

@@ -274,7 +274,7 @@ final class NewPostViewController: UINavigationController {
             case .contact(let userId, _, _):
                 sendChatMessage(
                     chatMessageRecipient: .oneToOneChat(toUserId: userId, fromUserId: AppContext.shared.userData.userId),
-                    text: text.trimmed().collapsedText,
+                    text: text,
                     media: result.media,
                     files: [],
                     linkPreviewData: result.linkPreviewData,
@@ -298,7 +298,7 @@ final class NewPostViewController: UINavigationController {
                     case .groupChat:
                         sendChatMessage(
                             chatMessageRecipient: .groupChat(toGroupId: groupId, fromUserId: AppContext.shared.userData.userId),
-                            text: text.trimmed().collapsedText,
+                            text: text,
                             media: result.media,
                             files: [],
                             linkPreviewData: result.linkPreviewData,
@@ -327,7 +327,7 @@ final class NewPostViewController: UINavigationController {
     }
 
     private func sendChatMessage(chatMessageRecipient: ChatMessageRecipient,
-                                 text: String,
+                                 text: MentionText,
                                  media: [PendingMedia],
                                  files: [FileSharingData],
                                  linkPreviewData: LinkPreviewData? = nil,
@@ -341,7 +341,7 @@ final class NewPostViewController: UINavigationController {
                                  result: ComposerResult) {
         MainAppContext.shared.chatData.sendMessage(
             chatMessageRecipient: chatMessageRecipient,
-            text: text,
+            mentionText: text,
             media: result.media,
             files: [],
             linkPreviewData: result.linkPreviewData,

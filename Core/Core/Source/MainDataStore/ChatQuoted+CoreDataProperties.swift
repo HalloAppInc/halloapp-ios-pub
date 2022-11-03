@@ -107,7 +107,8 @@ extension ChatMessage: ChatQuotedProtocol {
     }
 
     public var mentions: [MentionData] {
-        return []
+        get { return mentionsValue as? [MentionData] ?? [] }
+        set { mentionsValue = newValue }
     }
 
     public var mediaList: [QuotedMedia] {

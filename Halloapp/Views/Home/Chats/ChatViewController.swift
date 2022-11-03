@@ -1264,7 +1264,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         guard let sendToUserId = self.fromUserId else { return }
 
         MainAppContext.shared.chatData.sendMessage(chatMessageRecipient: .oneToOneChat(toUserId: sendToUserId, fromUserId: MainAppContext.shared.userData.userId),
-                                                       text: text,
+                                                   mentionText: MentionText(collapsedText: text, mentionArray: []),
                                                       media: media,
                                                       files: files,
                                             linkPreviewData: linkPreviewData,

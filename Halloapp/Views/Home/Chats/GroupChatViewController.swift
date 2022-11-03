@@ -367,6 +367,14 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
         return layout
     }
 
+    private lazy var mentionableUsers: [MentionableUser] = {
+        computeMentionableUsers()
+    }()
+
+    func computeMentionableUsers() -> [MentionableUser] {
+        return Mentions.mentionableUsers(forGroupID: groupId, in: MainAppContext.shared.feedData.viewContext)
+    }
+
     init(for group: Group) {
         self.groupId = group.id
         self.group = group
@@ -729,10 +737,11 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
         }
     }
 
-    func sendMessage(text: String, media: [PendingMedia], files: [FileSharingData], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, location: ChatLocationProtocol? = nil) {
+
+    func sendMessage(text: MentionText, media: [PendingMedia], files: [FileSharingData], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, location: ChatLocationProtocol? = nil) {
         var chatProperties = Analytics.EventProperties()
         chatProperties[.chatType] = "group"
-        if !text.isEmpty {
+        if !text.collapsedText.isEmpty {
             chatProperties[.hasText] = true
         }
         media.forEach { media in
@@ -757,7 +766,7 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
         Analytics.log(event: .sendChatMessage, properties: chatProperties)
 
         MainAppContext.shared.chatData.sendMessage(chatMessageRecipient: .groupChat(toGroupId: groupId, fromUserId: MainAppContext.shared.userData.userId),
-                                                       text: text,
+                                                   mentionText: text,
                                                       media: media,
                                                       files: files,
                                             linkPreviewData: linkPreviewData,
@@ -992,7 +1001,7 @@ extension GroupChatViewController: TextLabelDelegate {
 // MARK: - content input view delegate methods
 extension GroupChatViewController: ContentInputDelegate {
     func inputView(_ inputView: ContentInputView, possibleMentionsFor input: String) -> [MentionableUser] {
-        return []
+        return mentionableUsers.filter { Mentions.isPotentialMatch(fullName: $0.fullName, input: input) }
     }
 
     func inputView(_ inputView: ContentInputView, isTyping: Bool) {
@@ -1004,7 +1013,7 @@ extension GroupChatViewController: ContentInputDelegate {
     }
 
     func inputView(_ inputView: ContentInputView, didPost content: ContentInputView.InputContent) {
-        sendMessage(text: content.mentionText.trimmed().collapsedText,
+        sendMessage(text: content.mentionText,
                     media: content.media,
                     files: content.files,
                     linkPreviewData: content.linkPreview?.data,
@@ -1076,7 +1085,7 @@ extension GroupChatViewController: ContentInputDelegate {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] placemark in
                 self?.dismiss(animated: true)
-                self?.sendMessage(text: "", media: [], files: [], linkPreviewData: nil, linkPreviewMedia: nil, location: ChatLocation(placemark: placemark))
+                self?.sendMessage(text: MentionText(collapsedText: "", mentionArray: []), media: [], files: [], linkPreviewData: nil, linkPreviewMedia: nil, location: ChatLocation(placemark: placemark))
             }
             .store(in: &cancellableSet)
 
@@ -1119,7 +1128,7 @@ extension GroupChatViewController: ContentInputDelegate {
         let composerController = ComposerViewController(config: .config(with: groupDestination), type: .library, showDestinationPicker: false, input: input, media: media, voiceNote: nil) { [weak self] controller, result, success in
             guard let self = self else { return }
 
-            let text = result.text?.trimmed().collapsedText ?? ""
+            let text = result.text ?? MentionText(collapsedText: "", mentionArray: [])
 
             if success {
                 self.sendMessage(text: text,
@@ -1422,8 +1431,8 @@ extension GroupChatViewController: UIDocumentPickerDelegate {
             name: filename,
             size: (try? localURL.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0,
             localURL: localURL)
-
-        sendMessage(text: "", media: [], files: [fileData], linkPreviewData: nil, linkPreviewMedia: nil)
+ 
+        sendMessage(text: MentionText(collapsedText: "", mentionArray: []), media: [], files: [fileData], linkPreviewData: nil, linkPreviewMedia: nil)
     }
 }
 

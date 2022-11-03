@@ -99,7 +99,7 @@ public class CoreChatData {
     // MARK: Chat messgage upload and posting
 
     public func sendMessage(chatMessageRecipient: ChatMessageRecipient,
-                            text: String,
+                            mentionText: MentionText,
                             media: [PendingMedia],
                             files: [FileSharingData],
                             linkPreviewData: LinkPreviewData? = nil,
@@ -124,7 +124,7 @@ public class CoreChatData {
             }
 
             self.createChatMsg(chatMessageRecipient: chatMessageRecipient,
-                               text: text,
+                               mentionText: mentionText,
                                media: media,
                                files: files,
                                linkPreviewData: linkPreviewData,
@@ -144,7 +144,7 @@ public class CoreChatData {
 
     @discardableResult
     public func createChatMsg(chatMessageRecipient: ChatMessageRecipient,
-                              text: String,
+                              mentionText: MentionText,
                               media: [PendingMedia],
                               files: [FileSharingData],
                               linkPreviewData: LinkPreviewData?,
@@ -171,7 +171,10 @@ public class CoreChatData {
         chatMessage.id = messageId
         chatMessage.chatMessageRecipient = chatMessageRecipient
         chatMessage.fromUserId = userData.userId
-        chatMessage.rawText = text
+        chatMessage.rawText = mentionText.collapsedText
+        chatMessage.mentions = mentionText.mentions.map { (index, user) in
+            return MentionData(index: index, userID: user.userID, name: contactStore.pushNames[user.userID] ?? user.pushName ?? "")
+        }
         chatMessage.feedPostId = feedPostId
         chatMessage.feedPostMediaIndex = feedPostMediaIndex
         chatMessage.chatReplyMessageID = chatReplyMessageID

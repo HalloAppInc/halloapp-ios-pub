@@ -840,7 +840,7 @@ class ShareComposerViewController: UIViewController {
                                                         didBeginUpload: checkCompletionCountAndCompleteIfNeeded)
                 case .groupChat:
                     AppContext.shared.coreChatData.sendMessage(chatMessageRecipient: .groupChat(toGroupId: groupListSyncItem.id, fromUserId: AppContext.shared.userData.userId),
-                                                               text: text,
+                                                               mentionText: mentionText,
                                                                media: media,
                                                                files: [],
                                                                linkPreviewData: linkPreviewData,
@@ -855,7 +855,7 @@ class ShareComposerViewController: UIViewController {
                 
             case .chat(let chatListSyncItem):
                 AppContext.shared.coreChatData.sendMessage(chatMessageRecipient: .oneToOneChat(toUserId: chatListSyncItem.userId, fromUserId: AppContext.shared.userData.userId),
-                                                           text: text,
+                                                           mentionText: mentionText,
                                                            media: media,
                                                            files: [],
                                                            linkPreviewData: linkPreviewData,

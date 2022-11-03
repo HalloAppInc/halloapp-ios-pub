@@ -61,7 +61,7 @@ extension ContentInputView {
         fileprivate static let mentions = Options(rawValue: 1 << 0)
         fileprivate static let typingIndication = Options(rawValue: 1 << 1)
         
-        static let chat: Options = [typingIndication]
+        static let chat: Options = [mentions, typingIndication]
         static let comments: Options = [mentions]
     }
 

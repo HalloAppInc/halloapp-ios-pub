@@ -1044,7 +1044,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         Analytics.log(event: .sendChatMessage, properties: chatProperties)
 
         MainAppContext.shared.chatData.sendMessage(chatMessageRecipient: .oneToOneChat(toUserId: sendToUserId, fromUserId: MainAppContext.shared.userData.userId),
-                                                       text: text,
+                                                   mentionText: MentionText(collapsedText: text, mentionArray: []),
                                                       media: media,
                                                       files: files,
                                             linkPreviewData: linkPreviewData,

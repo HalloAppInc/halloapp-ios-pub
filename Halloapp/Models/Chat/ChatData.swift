@@ -2152,7 +2152,7 @@ extension ChatData {
     // MARK: 1-1 Sending Messages
     
     func sendMessage(chatMessageRecipient: ChatMessageRecipient,
-                     text: String,
+                     mentionText: MentionText,
                      media: [PendingMedia],
                      files: [FileSharingData],
                      linkPreviewData: LinkPreviewData? = nil,
@@ -2174,7 +2174,7 @@ extension ChatData {
             }
 
             self.createChatMsg(chatMessageRecipient: chatMessageRecipient,
-                                text: text,
+                                mentionText: mentionText,
                                 media: media,
                                 files: files,
                                 linkPreviewData: linkPreviewData,
@@ -2247,11 +2247,10 @@ extension ChatData {
         let forwardCount = (chatMessage.fromUserID == userData.userId) ? chatMessage.forwardCount : chatMessage.forwardCount + 1
         for toUserId in toUserIds {
             DDLogInfo("ChatData/forwardChatMessages/createChatMsg/chatMessageId: \(chatMessage.id) toUserId: \(toUserId)")
-            let text = chatMessage.rawText
             performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                 guard let self = self else { return }
                 self.createChatMsg( chatMessageRecipient: ChatMessageRecipient.oneToOneChat(toUserId: toUserId, fromUserId: self.userData.userId),
-                                    text: text ?? "",
+                                    mentionText: MentionText(collapsedText: chatMessage.rawText ?? "", mentionArray: chatMessage.mentions),
                                     media: media,
                                     files: files,
                                     linkPreviewData: linkPreviewData,
@@ -2275,7 +2274,7 @@ extension ChatData {
             performSeriallyOnBackgroundContext { context in
                 DDLogInfo("ChatData/sendMomentReply/createChatMsg/toUserId: \(String(describing: chatMessageRecipient.toUserId))")
                 let id = self.createChatMsg(chatMessageRecipient: chatMessageRecipient,
-                                text: text,
+                               mentionText: MentionText(collapsedText: text, mentionArray: []),
                                media: media,
                                files: files,
                      linkPreviewData: nil,
@@ -2297,7 +2296,7 @@ extension ChatData {
 
     @discardableResult
     func createChatMsg(chatMessageRecipient: ChatMessageRecipient,
-                        text: String,
+                       mentionText: MentionText,
                         media: [PendingMedia],
                         files: [FileSharingData],
                         linkPreviewData: LinkPreviewData?,
@@ -2313,7 +2312,7 @@ extension ChatData {
                         using context: NSManagedObjectContext) -> ChatMessageID {
         if ServerProperties.enableNewMediaUploader {
             return coreChatData.createChatMsg(chatMessageRecipient: chatMessageRecipient,
-                                              text: text,
+                                              mentionText: mentionText,
                                               media: media,
                                               files: files,
                                               linkPreviewData: linkPreviewData,
@@ -2338,7 +2337,10 @@ extension ChatData {
         chatMessage.id = messageId
         chatMessage.fromUserId = userData.userId
         chatMessage.chatMessageRecipient = chatMessageRecipient
-        chatMessage.rawText = text
+        chatMessage.rawText = mentionText.collapsedText
+        chatMessage.mentions = mentionText.mentions.map { (index, user) in
+            return MentionData(index: index, userID: user.userID, name: contactStore.pushNames[user.userID] ?? user.pushName ?? "")
+        }
         chatMessage.feedPostId = feedPostId
         chatMessage.feedPostMediaIndex = feedPostMediaIndex
         chatMessage.chatReplyMessageID = chatReplyMessageID
