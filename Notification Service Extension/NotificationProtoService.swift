@@ -832,8 +832,8 @@ final class NotificationProtoService: ProtoServiceCore {
                 if let groupId = metadata.groupId,
                    let decryptionFailure = groupDecryptionFailure,
                    let rerequestContentType = item.contentType {
-                    // Dont to fallback to plainTextContent.
-                    let fallback = false
+                    // Use serverProp value to decide whether to fallback to plainTextContent.
+                    let fallback = ServerProperties.useClearTextGroupFeedContent
                     self.rerequestGroupFeedItemIfNecessary(id: contentID, groupID: groupId, contentType: rerequestContentType, failure: decryptionFailure) { result in
                         switch result {
                         case .success: break

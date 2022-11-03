@@ -398,7 +398,8 @@ final class ProtoService: ProtoServiceCore {
     }
 
     // TODO: murali@: it is a bit confusing to pass status for all feed items here - should improve this.
-    private func payloadContents(for items: [Server_GroupFeedItem], status: FeedItemStatus, fallback: Bool = false) -> [FeedContent] {
+    private func payloadContents(for items: [Server_GroupFeedItem], status: FeedItemStatus,
+                                 fallback: Bool = ServerProperties.useClearTextGroupFeedContent) -> [FeedContent] {
 
         // NB: This function should not assume group fields are populated! [gid, name, avatarID]
         // They aren't included on each child when server sends a `Server_GroupFeedItems` stanza.
@@ -407,6 +408,8 @@ final class ProtoService: ProtoServiceCore {
         var elements = [FeedElement]()
 
         // This function is used for groupFeedItems from server and for fallback to unencrypted payload.
+        // So, use serverProp value to decide whether to fallback to plainTextContent when status is .rerequesting
+        let fallback: Bool = status == .rerequesting ? fallback : true
         for item in items {
             let isShared: Bool = item.isResentHistory ? true : item.action == .share
             switch item.item {

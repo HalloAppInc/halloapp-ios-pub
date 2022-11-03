@@ -476,8 +476,9 @@ extension ProtoServiceCore: CoreService {
 
         switch feed {
         case .group(let groupID):
-            // Clear unencrypted group payload.
-            serverPost.payload = Data()
+            if !ServerProperties.sendClearTextGroupFeedContent {
+                serverPost.payload = Data()
+            }
             makeGroupEncryptedPayload(payloadData: payloadData, groupID: groupID, oneOfItem: .post(serverPost), expiryTimestamp: post.expiration.flatMap { Int64($0.timeIntervalSince1970) } ?? -1) { result in
                 switch result {
                 case .failure(let failure):
@@ -508,8 +509,9 @@ extension ProtoServiceCore: CoreService {
             return
         }
         let payloadData = serverComment.payload
-        // Clear unencrypted group payload.
-        serverComment.payload = Data()
+        if !ServerProperties.sendClearTextGroupFeedContent {
+            serverComment.payload = Data()
+        }
         if let groupID = groupID {
             makeGroupEncryptedPayload(payloadData: payloadData, groupID: groupID, oneOfItem: .comment(serverComment)) { result in
                 switch result {
@@ -1008,8 +1010,9 @@ extension ProtoServiceCore: CoreService {
 
         switch feed {
         case .group(let groupID):
-            // Clear unencrypted group payload.
-            serverPost.payload = Data()
+            if !ServerProperties.sendClearTextGroupFeedContent {
+                serverPost.payload = Data()
+            }
             var item = Server_GroupFeedItem()
             item.action = .publish
             item.gid = groupID
@@ -1063,8 +1066,9 @@ extension ProtoServiceCore: CoreService {
             return
         }
         let payloadData = serverComment.payload
-        // Clear unencrypted group payload.
-        serverComment.payload = Data()
+        if !ServerProperties.sendClearTextGroupFeedContent {
+            serverComment.payload = Data()
+        }
         // Add media counters.
         serverComment.mediaCounters = comment.serverMediaCounters
 
@@ -2446,8 +2450,9 @@ extension ProtoServiceCore: CoreService {
                 DDLogInfo("ProtoServiceCore/makeGroupChatStanza/\(toGroupId)/encryption/success")
                 var groupChatStanza = Server_GroupChatStanza()
                 groupChatStanza.gid = toGroupId
-                // Clear unencrypted group payload.
-                groupChatStanza.payload = Data()
+                if !ServerProperties.sendClearTextGroupFeedContent {
+                    groupChatStanza.payload = Data()
+                }
                 groupChatStanza.audienceHash = groupEncryptedData.audienceHash
                 groupChatStanza.senderStateBundles = groupEncryptedData.senderStateBundles
                 groupChatStanza.senderClientVersion = AppContext.userAgent
