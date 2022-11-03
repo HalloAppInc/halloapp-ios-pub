@@ -1965,6 +1965,10 @@ public struct Server_InviteRequestResult {
 
   public var invitedPhone: String = String()
 
+  public var langID: String = String()
+
+  public var inviteStringID: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum TypeEnum: SwiftProtobuf.Enum {
@@ -3905,6 +3909,8 @@ extension Server_InviteRequestResult: SwiftProtobuf.Message, SwiftProtobuf._Mess
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "type"),
     2: .standard(proto: "invited_phone"),
+    3: .standard(proto: "lang_id"),
+    4: .standard(proto: "invite_string_id"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -3915,6 +3921,8 @@ extension Server_InviteRequestResult: SwiftProtobuf.Message, SwiftProtobuf._Mess
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularEnumField(value: &self.type) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.invitedPhone) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.langID) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.inviteStringID) }()
       default: break
       }
     }
@@ -3927,12 +3935,20 @@ extension Server_InviteRequestResult: SwiftProtobuf.Message, SwiftProtobuf._Mess
     if !self.invitedPhone.isEmpty {
       try visitor.visitSingularStringField(value: self.invitedPhone, fieldNumber: 2)
     }
+    if !self.langID.isEmpty {
+      try visitor.visitSingularStringField(value: self.langID, fieldNumber: 3)
+    }
+    if !self.inviteStringID.isEmpty {
+      try visitor.visitSingularStringField(value: self.inviteStringID, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Server_InviteRequestResult, rhs: Server_InviteRequestResult) -> Bool {
     if lhs.type != rhs.type {return false}
     if lhs.invitedPhone != rhs.invitedPhone {return false}
+    if lhs.langID != rhs.langID {return false}
+    if lhs.inviteStringID != rhs.inviteStringID {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
