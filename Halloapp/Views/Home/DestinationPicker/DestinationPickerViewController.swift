@@ -43,7 +43,16 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
 
     private let config: DestinationPickerConfig
 
-    private lazy var frequentlyContactedDataSource = FrequentlyContactedDataSource()
+    private lazy var frequentlyContactedDataSource = {
+        let supportedEntityTypes: FrequentlyContactedDataSource.EntityType
+        switch self.config {
+        case .composer:
+            supportedEntityTypes = .all
+        case .forwarding:
+            supportedEntityTypes = [.user, .chatGroup]
+        }
+        return FrequentlyContactedDataSource(supportedEntityTypes: supportedEntityTypes)
+    }()
 
     private lazy var recentFetchedResultsController: NSFetchedResultsController<ChatThread> = {
         let request = ChatThread.fetchRequest()
@@ -416,7 +425,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
                             if let contact = MainAppContext.shared.contactStore.contact(withUserId: contactID, in: MainAppContext.shared.contactStore.viewContext) {
                                 return DestinationPickerDestination(section: .frequentlyContacted, shareDestination: .contact(id: contactID, name: contact.fullName, phone: contact.phoneNumber))
                             }
-                        case .group(groupID: let groupID):
+                        case .chatGroup(groupID: let groupID), .feedGroup(groupID: let groupID):
                             if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext) {
                                 return DestinationPickerDestination(section: .frequentlyContacted, shareDestination: .group(id: groupID, name: group.name))
                             }

@@ -13,12 +13,29 @@ import CoreData
 
 public class FrequentlyContactedDataSource: NSObject {
 
+    public struct EntityType: OptionSet {
+        public let rawValue: Int
+
+        public static let user = EntityType(rawValue: 1 << 0)
+        public static let feedGroup = EntityType(rawValue: 1 << 1)
+        public static let chatGroup = EntityType(rawValue: 1 << 2)
+
+        public static let all: EntityType = [.user, .feedGroup, .chatGroup]
+
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+    }
+
     public enum FrequentlyContactedEntity {
         case user(userID: UserID)
-        case group(groupID: GroupID)
+        case feedGroup(groupID: GroupID)
+        case chatGroup(groupID: GroupID)
     }
 
     public let subject = CurrentValueSubject<[FrequentlyContactedEntity], Never>([])
+
+    public let supportedEntityTypes: EntityType
 
     // 7 days ago
     private let cutoffDate = Date(timeIntervalSinceNow: -7 * 24 * 60 * 60) as NSDate
@@ -29,6 +46,7 @@ public class FrequentlyContactedDataSource: NSObject {
             NSPredicate(format: "userID == %@", AppContext.shared.userData.userId),
             NSPredicate(format: "timestamp >= %@", cutoffDate),
             NSPredicate(format: "fromExternalShare == NO"),
+            NSPredicate(format: "groupID != nil"),
         ])
         fetchRequest.sortDescriptors = [
             NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false),
@@ -81,13 +99,20 @@ public class FrequentlyContactedDataSource: NSObject {
         fetchRequest.sortDescriptors = [
             NSSortDescriptor(keyPath: \CommonReaction.timestamp, ascending: false),
         ]
+        fetchRequest.relationshipKeyPathsForPrefetching = [
+            "comment",
+            "message",
+            "post",
+        ]
         return NSFetchedResultsController(fetchRequest: fetchRequest,
                                           managedObjectContext: AppContext.shared.mainDataStore.viewContext,
                                           sectionNameKeyPath: nil,
                                           cacheName: nil)
     }()
 
-    override public init() {
+    public init(supportedEntityTypes: EntityType = .all) {
+        self.supportedEntityTypes = supportedEntityTypes
+
         super.init()
 
         postsFetchedResultsController.delegate = self
@@ -109,41 +134,82 @@ public class FrequentlyContactedDataSource: NSObject {
     }
 
     private func updateData() {
-        var userIDCounts: [UserID: Int] = [:]
-        var groupIDCounts: [GroupID: Int] = [:]
+        let currentUserID = AppContext.shared.userData.userId
+
+        var userIDCounts = [UserID: Int]()
+        var chatGroupIDCounts = [GroupID: Int]()
+        var feedGroupIDCounts = [GroupID: Int]()
 
         postsFetchedResultsController.fetchedObjects?.forEach { post in
             if let groupID = post.groupID {
-                groupIDCounts[groupID, default: 0] += 1
+                feedGroupIDCounts[groupID, default: 0] += 1
             }
         }
 
         commentsFetchedResultsController.fetchedObjects?.forEach { comment in
             if let groupID = comment.post.groupID {
-                groupIDCounts[groupID, default: 0] += 1
-            } else {
+                feedGroupIDCounts[groupID, default: 0] += 1
+            }
+            if comment.post.userID != currentUserID {
                 userIDCounts[comment.post.userID, default: 0] += 1
             }
         }
 
         chatMessagesFetchedResultsController.fetchedObjects?.forEach { chatMessage in
-            if let toUserId = chatMessage.toUserId {
-                userIDCounts[toUserId, default: 0] += 1
+            switch chatMessage.chatMessageRecipient {
+            case .oneToOneChat(toUserId: let toUserID, _):
+                userIDCounts[toUserID, default: 0] += 1
+            case .groupChat(toGroupId: let toGroupID, let fromUserID):
+                chatGroupIDCounts[toGroupID, default: 0] += 1
+                if currentUserID != fromUserID {
+                    userIDCounts[fromUserID, default: 0] += 1
+                }
             }
         }
 
         reactionsFetchedResultsController.fetchedObjects?.forEach { reaction in
-            if let toUserId = reaction.toUserID {
-                userIDCounts[toUserId, default: 0] += 1
+            if let comment = reaction.comment {
+                guard comment.userID != currentUserID else {
+                    return
+                }
+                userIDCounts[comment.userID, default: 0] += 1
+            } else if let chatMessage = reaction.message {
+                switch chatMessage.chatMessageRecipient {
+                case .oneToOneChat(toUserId: let toUserID, let fromUserID):
+                    userIDCounts[currentUserID == toUserID ? fromUserID : toUserID, default: 0] += 1
+                case .groupChat(toGroupId: let toGroupID, fromUserId: let fromUserID):
+                    chatGroupIDCounts[toGroupID, default: 0] += 1
+                    if currentUserID != fromUserID {
+                        userIDCounts[fromUserID, default: 0] += 1
+                    }
+                }
+            } else if let post = reaction.post {
+                if let groupID = post.groupID {
+                    feedGroupIDCounts[groupID, default: 0] += 1
+                }
+                if post.userID != currentUserID {
+                    userIDCounts[post.userID, default: 0] += 1
+                }
             }
         }
 
         let contactedUsers = userIDCounts.map { (entity: FrequentlyContactedEntity.user(userID: $0), count: $1) }
-        let contactedGroups = groupIDCounts.map { (entity: FrequentlyContactedEntity.group(groupID: $0), count: $1) }
+        let contactedChatGroups = chatGroupIDCounts.map { (entity: FrequentlyContactedEntity.chatGroup(groupID: $0), count: $1) }
+        let contactedFeedGroups = feedGroupIDCounts.map { (entity: FrequentlyContactedEntity.feedGroup(groupID: $0), count: $1) }
 
-        let sortedEntities = (contactedUsers + contactedGroups)
+        let sortedEntities = (contactedUsers + contactedChatGroups + contactedFeedGroups)
             .sorted { $0.count > $1.count }
             .map { $0.entity }
+            .filter {
+                switch $0 {
+                case .user:
+                    return supportedEntityTypes.contains(.user)
+                case .chatGroup:
+                    return supportedEntityTypes.contains(.chatGroup)
+                case .feedGroup:
+                    return supportedEntityTypes.contains(.feedGroup)
+                }
+            }
         subject.send(sortedEntities)
     }
 }
