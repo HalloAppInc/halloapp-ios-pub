@@ -28,11 +28,6 @@ extension ShareMenuPresenter {
             }))
             FeedPostMenuViewController.Section {
                 FeedPostMenuViewController.Item(style: .standard,
-                                                icon: UIImage(systemName: "square.and.arrow.up"),
-                                                title: Localizations.buttonShare) { [weak self] _ in
-                    self?.share(postID: postID, with: SystemShareProvider.self)
-                }
-                FeedPostMenuViewController.Item(style: .standard,
                                                 icon: UIImage(named: "ExternalShareLink"),
                                                 title: Localizations.copyLink) { [weak self] _ in
                     self?.generateExternalShareLink(postID: postID, success: { url, toast in
