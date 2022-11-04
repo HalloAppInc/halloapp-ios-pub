@@ -1000,6 +1000,8 @@ public struct Server_PublicFeedResponse {
 
   public var reason: Server_PublicFeedResponse.Reason = .unknownReason
 
+  public var cursor: String = String()
+
   public var publicFeedContentType: Server_PublicFeedContentType = .moments
 
   public var items: [Server_FeedItem] = []
@@ -9372,8 +9374,9 @@ extension Server_PublicFeedResponse: SwiftProtobuf.Message, SwiftProtobuf._Messa
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "result"),
     2: .same(proto: "reason"),
-    3: .standard(proto: "public_feed_content_type"),
-    4: .same(proto: "items"),
+    3: .same(proto: "cursor"),
+    4: .standard(proto: "public_feed_content_type"),
+    5: .same(proto: "items"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -9384,8 +9387,9 @@ extension Server_PublicFeedResponse: SwiftProtobuf.Message, SwiftProtobuf._Messa
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularEnumField(value: &self.result) }()
       case 2: try { try decoder.decodeSingularEnumField(value: &self.reason) }()
-      case 3: try { try decoder.decodeSingularEnumField(value: &self.publicFeedContentType) }()
-      case 4: try { try decoder.decodeRepeatedMessageField(value: &self.items) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.cursor) }()
+      case 4: try { try decoder.decodeSingularEnumField(value: &self.publicFeedContentType) }()
+      case 5: try { try decoder.decodeRepeatedMessageField(value: &self.items) }()
       default: break
       }
     }
@@ -9398,11 +9402,14 @@ extension Server_PublicFeedResponse: SwiftProtobuf.Message, SwiftProtobuf._Messa
     if self.reason != .unknownReason {
       try visitor.visitSingularEnumField(value: self.reason, fieldNumber: 2)
     }
+    if !self.cursor.isEmpty {
+      try visitor.visitSingularStringField(value: self.cursor, fieldNumber: 3)
+    }
     if self.publicFeedContentType != .moments {
-      try visitor.visitSingularEnumField(value: self.publicFeedContentType, fieldNumber: 3)
+      try visitor.visitSingularEnumField(value: self.publicFeedContentType, fieldNumber: 4)
     }
     if !self.items.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.items, fieldNumber: 4)
+      try visitor.visitRepeatedMessageField(value: self.items, fieldNumber: 5)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -9410,6 +9417,7 @@ extension Server_PublicFeedResponse: SwiftProtobuf.Message, SwiftProtobuf._Messa
   public static func ==(lhs: Server_PublicFeedResponse, rhs: Server_PublicFeedResponse) -> Bool {
     if lhs.result != rhs.result {return false}
     if lhs.reason != rhs.reason {return false}
+    if lhs.cursor != rhs.cursor {return false}
     if lhs.publicFeedContentType != rhs.publicFeedContentType {return false}
     if lhs.items != rhs.items {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
