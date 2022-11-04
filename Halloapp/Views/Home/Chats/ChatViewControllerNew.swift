@@ -1814,15 +1814,18 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
             guard destinations.count > 0 else { return }
             // TODO: forward msg to feed, groups or other contacts
             var toUserIds: [String] = []
+            var toChatGroupIDs: [String] = []
             for selectedDestination in destinations {
                 switch selectedDestination {
                 case .contact(id: let id, name: _, phone: _):
                     toUserIds.append(id)
+                case .group(id: let id, _):
+                    toChatGroupIDs.append(id)
                 default:
                     break
                 }
             }
-            MainAppContext.shared.chatData.forwardChatMessages(toUserIds: toUserIds, chatMessage: chatMessage)
+            MainAppContext.shared.chatData.forwardChatMessages(toUserIds: toUserIds, toChatGroupIDs: toChatGroupIDs, chatMessage: chatMessage)
             if toUserIds.count == 1, let toUserId = toUserIds.first {
                 let chatVC = ChatViewControllerNew(for: toUserId)
                 self.navigationController?.pushViewController(chatVC, animated: true)

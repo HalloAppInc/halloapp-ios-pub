@@ -2189,7 +2189,7 @@ extension ChatData {
         }
     }
 
-    func forwardChatMessages(toUserIds: [String], chatMessage: ChatMessage) {
+    func forwardChatMessages(toUserIds: [String], toChatGroupIDs: [GroupID], chatMessage: ChatMessage) {
         // Prepare chat message
         var media: [PendingMedia] = []
         var files: [FileSharingData] = []
@@ -2242,8 +2242,9 @@ extension ChatData {
         if let location = chatMessage.location {
             chatLocation = ChatLocation(latitude: location.latitude, longitude: location.longitude, name: location.name ?? "", formattedAddressLines: [location.addressString ?? ""])
         }
-        let rawText = chatMessage.rawText
-        let mentions = chatMessage.mentions
+
+        let mentionText = MentionText(collapsedText: chatMessage.rawText ?? "", mentionArray: chatMessage.mentions)
+
         // Create chat message
         // Increment forward count if current user is not the author of the message.
         let forwardCount = (chatMessage.fromUserID == userData.userId) ? chatMessage.forwardCount : chatMessage.forwardCount + 1
@@ -2252,7 +2253,7 @@ extension ChatData {
             performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                 guard let self = self else { return }
                 self.createChatMsg( chatMessageRecipient: ChatMessageRecipient.oneToOneChat(toUserId: toUserId, fromUserId: self.userData.userId),
-                                    mentionText: MentionText(collapsedText: rawText ?? "", mentionArray: mentions),
+                                    mentionText: mentionText,
                                     media: media,
                                     files: files,
                                     linkPreviewData: linkPreviewData,
@@ -2265,6 +2266,32 @@ extension ChatData {
                                     chatReplyMessageMediaIndex: 0,
                                     forwardCount: forwardCount,
                                     using: managedObjectContext)
+            }
+        }
+        for groupID in toChatGroupIDs {
+            DDLogInfo("ChatData/forwardChatMessages/createChatMsg/chatMessageId: \(chatMessage.id) toGroupID: \(groupID)")
+            performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
+                guard let self = self else {
+                    return
+                }
+                guard self.chatGroup(groupId: groupID, in: managedObjectContext)?.type == .groupChat else {
+                    DDLogError("ChatData/forwardChatMessages/createChatMsg/invalid chat group id: \(groupID)")
+                    return
+                }
+                self.createChatMsg(chatMessageRecipient: .groupChat(toGroupId: groupID, fromUserId: self.userData.userId),
+                                   mentionText: mentionText,
+                                   media: media,
+                                   files: files,
+                                   linkPreviewData: linkPreviewData,
+                                   linkPreviewMedia: linkPreviewMedia,
+                                   location: chatLocation,
+                                   feedPostId: nil,
+                                   feedPostMediaIndex: 0,
+                                   chatReplyMessageID: nil,
+                                   chatReplyMessageSenderID: nil,
+                                   chatReplyMessageMediaIndex: 0,
+                                   forwardCount: forwardCount,
+                                   using: managedObjectContext)
             }
         }
     }

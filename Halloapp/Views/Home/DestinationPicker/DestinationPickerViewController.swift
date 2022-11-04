@@ -62,7 +62,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         ]
 
         if config == .forwarding {
-            request.predicate = NSPredicate(format: "userID != nil")
+            request.predicate = NSPredicate(format: "typeValue in %@", [ThreadType.oneToOne.rawValue, ThreadType.groupChat.rawValue])
         }
         
         let fetchedResultsController = NSFetchedResultsController<ChatThread>(fetchRequest: request,
