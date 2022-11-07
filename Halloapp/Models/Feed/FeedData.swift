@@ -5011,6 +5011,19 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             thumbnailMedia.append(linkPreviewMedia)
         }
 
+        if post.isMoment,
+           media.count == 2,
+           media.allSatisfy({ $0.type == .image }),
+           let backImageURL = media[0].fileURL,
+           let frontImageURL = media[1].fileURL,
+           let backImage = UIImage(contentsOfFile: backImageURL.path),
+           let frontImage = UIImage(contentsOfFile: frontImageURL.path) {
+            let isSelfieLeading = post.isMomentSelfieLeading
+            if let combinedImage = UIImage.combine(leading: isSelfieLeading ? frontImage : backImage, trailing: isSelfieLeading ? backImage : frontImage) {
+                return combinedImage
+            }
+        }
+
         // Display a thumb from the first image or video, if available
         if let thumbnailMedia = thumbnailMedia.first(where: { $0.fileURL != nil }), let fileURL = thumbnailMedia.fileURL {
             switch thumbnailMedia.type {

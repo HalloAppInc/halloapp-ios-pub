@@ -65,13 +65,11 @@ extension ShareMenuPresenter {
             InstagramStoriesShareProvider.share(stickerImage:  ExternalSharePreviewImageGenerator.image(for: feedPost),
                                                 backgroundImage: ExternalSharePreviewImageGenerator.backgroundImage(),
                                                 completion: completion)
-        } else if shareProvider == MessagesShareProvider.self || shareProvider == TwitterShareProvider.self || shareProvider == WhatsAppShareProvider.self {
-            shareProvider.share(text: nil, image: ExternalSharePreviewImageGenerator.image(for: feedPost), completion: completion)
         } else {
             generateExternalShareLink(postID: postID) { url, toast in
                 toast.hide()
                 shareProvider.share(text: Localizations.externalShareText(url: url),
-                                    image: ExternalSharePreviewImageGenerator.image(for: feedPost),
+                                    image: nil,
                                     completion: completion)
             }
         }
