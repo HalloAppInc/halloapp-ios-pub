@@ -1027,7 +1027,7 @@ extension FeedCollectionViewController {
     @HAMenuContentBuilder
     private func moreMenu(for feedPost: FeedPost) -> HAMenu.Content {
         HAMenu {
-            if feedPost.isMoment, feedPost.userID == MainAppContext.shared.userData.userId {
+            if ServerProperties.enableMomentExternalShare, feedPost.isMoment, feedPost.userID == MainAppContext.shared.userData.userId {
                 HAMenuButton(title: Localizations.buttonShare, image: UIImage(systemName: "square.and.arrow.up")) { [weak self] in
                     self?.presentShareMenu(for: feedPost)
                 }

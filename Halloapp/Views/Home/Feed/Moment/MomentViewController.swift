@@ -451,7 +451,7 @@ class MomentViewController: UIViewController, UIViewControllerMediaSaving, Share
     @HAMenuContentBuilder
     private func configureMoreMenu() -> HAMenu.Content {
         HAMenu {
-            if post.userID == MainAppContext.shared.userData.userId {
+            if ServerProperties.enableMomentExternalShare, post.userID == MainAppContext.shared.userData.userId {
                 HAMenuButton(title: Localizations.buttonShare, image: UIImage(systemName: "square.and.arrow.up")) { [weak self] in
                     guard let self = self else {
                         return

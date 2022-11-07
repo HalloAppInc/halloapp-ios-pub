@@ -51,6 +51,7 @@ public struct ServerProperties {
         case enableChatLocationSharing = "location_sharing"
         case closeFriendRecommendations = "close_friends_recos"
         case enableGroupChat = "group_chat"
+        case enableMomentExternalShare = "moment_external_share"
     }
 
     private struct UserDefaultsKey {
@@ -100,6 +101,7 @@ public struct ServerProperties {
         static let enableChatLocationSharing = false
         static let closeFriendRecommendations = false
         static let enableGroupChat = false
+        static let enableMomentExternalShare = false
     }
 
     // MARK: Storage
@@ -318,6 +320,8 @@ public struct ServerProperties {
                 value = sendClearTextGroupFeedContent
             case .useClearTextGroupFeedContent:
                 value = useClearTextGroupFeedContent
+            case .enableMomentExternalShare:
+                value = enableMomentExternalShare
             }
             partialResult[key.rawValue] = value
         }
@@ -483,5 +487,9 @@ public struct ServerProperties {
 
     public static var enableGroupChat: Bool {
         ServerProperties.bool(forKey: .enableGroupChat) ?? Defaults.enableGroupChat
+    }
+
+    public static var enableMomentExternalShare: Bool {
+        ServerProperties.bool(forKey: .enableMomentExternalShare) ?? Defaults.enableMomentExternalShare
     }
 }
