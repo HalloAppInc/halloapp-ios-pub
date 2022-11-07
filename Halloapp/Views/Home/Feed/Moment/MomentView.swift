@@ -418,6 +418,8 @@ class MomentView: UIView {
 
         avatarView.configure(with: post.userID, using: MainAppContext.shared.avatarStore)
         smallAvatarView.configure(with: post.userID, using: MainAppContext.shared.avatarStore)
+
+        facePileView.prepareForReuse()
         facePileView.configure(with: post)
 
         setupMedia()
