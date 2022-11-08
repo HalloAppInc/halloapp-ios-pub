@@ -281,12 +281,11 @@ public class CoreChatData {
             lastMsgMediaType = .location
         }
 
-        if isMomentReply, let _ = feedPostId {
-            // quoted moment; feed post has already been deleted at this point
-            let quoted = ChatQuoted(context: context)
-            quoted.type = .moment
-            quoted.userID = toUserId
-            quoted.message = chatMessage
+        if isMomentReply, let feedPostId = feedPostId, let feedPost = AppContext.shared.coreFeedData.feedPost(with: feedPostId, in: context) {
+            Self.copyQuotedMoment(to: chatMessage,
+                                from: feedPost,
+                       selfieLeading: feedPost.isMomentSelfieLeading,
+                               using: context)
         } else if let feedPostId = feedPostId, let feedPost = AppContext.shared.coreFeedData.feedPost(with: feedPostId, in: context) {
             // Create and save Quoted FeedPost
             let quoted = ChatQuoted(context: context)
@@ -491,7 +490,7 @@ public class CoreChatData {
     }
 
     public func beginMediaUploadAndSend(chatMessage: ChatMessage, didBeginUpload: ((Result<ChatMessageID, Error>) -> Void)? = nil) {
-        let mediaToUpload = chatMessage.allAssociatedMedia.filter { [.none, .readyToUpload, .processedForUpload, .uploading, .uploadError].contains($0.status) }
+        let mediaToUpload = chatMessage.allUploadableMedia.filter { [.none, .readyToUpload, .processedForUpload, .uploading, .uploadError].contains($0.status) }
         if mediaToUpload.isEmpty {
             send(message: chatMessage, completion: didBeginUpload)
         } else {
@@ -543,7 +542,7 @@ public class CoreChatData {
                 return
             }
 
-            let media = chatMessage.allAssociatedMedia
+            let media = chatMessage.allUploadableMedia
 
             let uploadedMedia = media.filter { $0.status == .uploaded }
             let failedMedia = media.filter { $0.status == .uploadError }

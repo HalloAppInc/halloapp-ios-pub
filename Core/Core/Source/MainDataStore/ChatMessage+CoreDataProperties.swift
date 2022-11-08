@@ -156,15 +156,11 @@ public extension ChatMessage {
         }
     }
 
-    var allAssociatedMedia: [CommonMedia] {
+    var allUploadableMedia: [CommonMedia] {
         var allMedia: [CommonMedia] = []
 
         if let media = media {
             allMedia += media.sorted { $0.order < $1.order }
-        }
-
-        if let quotedMedia = quoted?.media {
-            allMedia += quotedMedia.sorted { $0.order < $1.order }
         }
 
         linkPreviews?.forEach { linkPreview in

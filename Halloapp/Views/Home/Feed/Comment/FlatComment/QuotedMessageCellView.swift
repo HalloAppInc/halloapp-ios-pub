@@ -252,8 +252,16 @@ class QuotedMessageCellView: UIView {
         }
     }
 
+    private func isMomentExpired(feedPostId: FeedPostID?) -> Bool {
+        guard let feedPostID = feedPostId, let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostID, in: MainAppContext.shared.feedData.viewContext) else { return true }
+        let momentExpiryTimeInterval: TimeInterval = 60 * 60 * 24
+        return Date().timeIntervalSince(feedPost.timestamp) > momentExpiryTimeInterval
+    }
+
     private func configureQuotedMoment(quoted: ChatQuoted) {
-        if quoted.userID == MainAppContext.shared.userData.userId {
+        let isOwnMoment = quoted.userID == MainAppContext.shared.userData.userId
+        let isMomentExpired = isMomentExpired(feedPostId: quoted.message?.feedPostID)
+        if isOwnMoment || !isMomentExpired {
             guard let media = quoted.media?.first else {
                 return
             }
