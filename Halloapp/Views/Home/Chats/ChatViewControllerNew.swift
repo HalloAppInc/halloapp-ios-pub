@@ -322,7 +322,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
     fileprivate var documentInteractionController: UIDocumentInteractionController?
 
-    private lazy var dataSource: ChatDataSource = {
+    private lazy var dataSource: ChatDataSource? = {
         let dataSource = ChatDataSource(
             collectionView: collectionView,
             cellProvider: { [weak self] (collectionView, indexPath, messageRow) -> UICollectionViewCell? in
@@ -377,7 +377,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                     }
                     return cell
                 }
-                return UICollectionViewCell()
+                return nil
             })
         dataSource.supplementaryViewProvider = { [weak self] ( view, kind, index) in
             if kind == MessageChatHeaderView.elementKind {
@@ -417,14 +417,14 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                 if !shouldUpdateAudioCell(chatMessage: chatMessage) {
                     return
                 }
-                var snapshot = dataSource.snapshot()
+                guard var snapshot = dataSource?.snapshot() else { return }
                 for item in snapshot.itemIdentifiers {
                     switch item {
                     case .chatMessage(let data):
                         if data.id == chatMessage.id {
                             snapshot.reloadItems([item])
                             let isScrolledTobottom = isScrolledTobottom()
-                            self.dataSource.apply(snapshot, animatingDifferences: false)
+                            self.dataSource?.apply(snapshot, animatingDifferences: false)
                             if isScrolledTobottom {
                                 scrollToLastMessage(animated: false)
                             }
@@ -535,7 +535,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             }
         }
         // Apply the new snapshot
-        dataSource.apply(snapshot, animatingDifferences: false) { [weak self] in
+        dataSource?.apply(snapshot, animatingDifferences: false) { [weak self] in
             guard let self = self else { return }
             self.updateScrollingWhenDataChanges()
         }
@@ -1763,7 +1763,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
     }
 
     private func playVoiceNote(after chatMessage: ChatMessage) {
-        guard var nextIndexPath = dataSource.indexPath(for: MessageRow.chatMessage(ChatMessageData(id: chatMessage.id, fromUserId: chatMessage.fromUserId, timestamp: chatMessage.timestamp))) else { return }
+        guard var nextIndexPath = dataSource?.indexPath(for: MessageRow.chatMessage(ChatMessageData(id: chatMessage.id, fromUserId: chatMessage.fromUserId, timestamp: chatMessage.timestamp))) else { return }
         nextIndexPath.row += 1
 
         DispatchQueue.main.asyncAfter(deadline: .now() + waitForCellDelay) {
@@ -1931,7 +1931,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
         guard let chatMessage = chatMessageFetchedResultsController?.fetchedObjects?.first(where: { $0.id == id }) else {
             return nil
         }
-        return dataSource.indexPath(for: MessageRow.chatMessage(ChatMessageData(id: chatMessage.id, fromUserId: chatMessage.fromUserId, timestamp: chatMessage.timestamp)))
+        return dataSource?.indexPath(for: MessageRow.chatMessage(ChatMessageData(id: chatMessage.id, fromUserId: chatMessage.fromUserId, timestamp: chatMessage.timestamp)))
     }
 
     private func updateScrollingWhenDataChanges() {
@@ -1992,7 +1992,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
 
     private func scrollToUnreadBannerCell() {
         DDLogDebug("ChatViewControllerNew/scrollToUnreadBannerCell")
-        guard let indexPath = dataSource.indexPath(for: MessageRow.unreadCountHeader(Int32(unreadCount))) else { return }
+        guard let indexPath = dataSource?.indexPath(for: MessageRow.unreadCountHeader(Int32(unreadCount))) else { return }
         scrollToItemAtIndexPath(indexPath: indexPath, animated: false)
         updateJumpButtonText()
     }
