@@ -299,7 +299,7 @@
 "chat.blocked.contact.label" = "Je hebt dit contact geblokkeerd";
 
 /* Title of the bottom sheet shown in the chat screen of a contact that is blocked. The bottom sheet contains an unblock button. */
-"chat.contact.is.blocked.title.label" = "Contact is geblokkeerd, je ontvangt geen berichten totdat je ze deblokkeert.";
+"chat.contact.is.blocked.title.label" = "Contact is geblokkeerd, je ontvangt geen berichten totdat je dit contact deblokkeert.";
 
 /* Label for creating a new group */
 "chat.create.new.group" = "Nieuwe Groep Aanmaken";

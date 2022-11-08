@@ -334,6 +334,12 @@
 /* Message text shown when you join a group via invite link */
 "chat.group.event.join.you" = "أنت انضممت إلى المجموعة من خلال رابط الدعوة";
 
+/* Message text shown when a group member is auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
+"chat.group.event.member.autopromoted" = "تم تلقائيًا تعيين %@ مشرفًا";
+
+/* Message text shown when you are auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
+"chat.group.event.member.autopromoted.you" = "تم تلقائيًا تعيينك مشرفًا";
+
 /* Message text shown with the user who left the group */
 "chat.group.event.member.left" = "%@ غادر";
 
@@ -517,6 +523,15 @@
 /* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has expired. */
 "chat.quoted.post.expired.label" = "انتهت صلاحية المنشور";
 
+/* Section title showing all the users to whom a particular message has been delivered to in a group chat */
+"chat.status.delivered.to" = "استلمها";
+
+/* Section title showing all the users who have played a particular audio message in group chat */
+"chat.status.played.by" = "استمع إليها";
+
+/* Section title showing all the users who have read a particular message in group chat */
+"chat.status.read.by" = "قرأها";
+
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "جارٍ الكتابة...";
 
@@ -683,7 +698,7 @@
 "Delete" = "حذف";
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
-"describing.moments" = "يمكنك إظهار لحظات أصدقائك بمشاركة اللحظة الخاصة بك. تتميز اللحظات بأنها مؤقتة، وتختفي بعد عرضها مرة واحدة.";
+"describing.moments" = "يمكنك إظهار لحظات أصدقائك بمشاركة اللحظة الخاصة بك. تتميز اللحظات بأنها مؤقتة، وتظهر لمدة 24 ساعة.";
 
 /* Send to button and screen title */
 "destination.send.to" = "إرسال إلى";
@@ -731,7 +746,7 @@
 "fab.accessibility.voice" = "رسالة صوتية";
 
 /* Label for floating moment button on home feed. */
-"fab.moment.button" = "اللحظة";
+"fab.moment.button" = "لحظة جديدة";
 
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "منشور";
@@ -910,6 +925,9 @@
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "تعليق";
 
+/* Button under someone's post. Noun. */
+"feedpost.button.comments" = "التعليقات";
+
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "الرد بشكل خاص";
 
@@ -927,6 +945,9 @@
 
 /* Title of group background screen */
 "group.bg.title" = "الخلفية";
+
+/* When a user is no longer a member of a chat group, this message is displyed at the bottom of the chat, preventing them from sending messages. */
+"group.chat.contact.is.not.member" = "لا يمكنك إرسال رسائل إلى هذه المجموعة لأنك لم تعُد عضوًا فيها.";
 
 /* Label shown above group description input box */
 "group.description.label" = "وصف المجموعة";
@@ -1412,6 +1433,10 @@
 /* label on a chat message to indicate the chat message has been forwarded */
 "message.forwarded" = "تمت إعادة توجيهها";
 
+/* Message action which shows receipt info when tapped. Verb.
+   Title of the view that displays receipt info for a message. */
+"message.info" = "معلومات";
+
 /* Message action. Verb. */
 "message.reply" = "ردّ";
 
@@ -1648,6 +1673,9 @@
 
 /* Menu option to open a location in (Apple) Maps. */
 "openInMapsApp.maps" = "فتح في الخرائط";
+
+/* Title that suggests something is optional. */
+"optional.title" = "اختياري";
 
 /* button to launch photo and video library */
 "photo.and.video.library" = "مكتبة الصور والفيديو";

@@ -284,7 +284,7 @@
 "camera.init.error.title" = "Initialisierungsfehler";
 
 /* Text shown on the camera screen when composing a new moment. */
-"camera.moment.subtitle" = "Momente sind für 24 Stunden sichtbar";
+"camera.moment.subtitle" = "Momente werden für 24 Stunden angezeigt";
 
 /* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
 "camera.moment.unlock.subtitle" = "Um %@'s Moment zu sehen, teile deinen eigenen";
@@ -698,7 +698,7 @@
 "Delete" = "Löschen";
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
-"describing.moments" = "Um die Momente deiner Freunde zu sehen, teile deinen eigenen.  Momente sind temporär und verschwinden nach 24 Stunden.";
+"describing.moments" = "Um die Momente deiner Freunde zu sehen, teile deinen eigenen.  Momente sind temporär und werden für 24 Stunden angezeigt.";
 
 /* Send to button and screen title */
 "destination.send.to" = "Senden an";
@@ -1471,7 +1471,7 @@
 "moments.swipe.for.more" = "für weitere wischen";
 
 /* Message displayed to say when moments will disappear. */
-"mymoment.disappear.time.label" = "Dein Moment wurde mit deinen Kontakten geteilt. Momente sind für 24 Stunden sichtbar.";
+"mymoment.disappear.time.label" = "Dein Moment wurde mit deinen Kontakten geteilt. Momente werden für 24 Stunden angezeigt.";
 
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Nachricht senden";
@@ -1480,13 +1480,13 @@
 "mypost.action.view.profile" = "Profil ansehen";
 
 /* Message displayed to say when posts will disappear for posts shared with contacts. */
-"mypost.contacts.disappear.time.label" = "Dein Beitrag ist 30 Tage sichtbar. Deine Kontakte, die HalloApp beitreten, können deine nicht abgelaufenen Beiträge sehen.";
+"mypost.contacts.disappear.time.label" = "Dein Beitrag wird für 30 Tage angezeigt. Deine Kontakte, die HalloApp neu beitreten, können deine nicht abgelaufenen Beiträge sehen.";
 
 /* Generic message displayed to say when posts will disappear. */
-"mypost.disappear.time.label" = "Dein Beitrag ist 30 Tage sichtbar.";
+"mypost.disappear.time.label" = "Dein Beitrag wird für 30 Tage angezeigt.";
 
 /* Message displayed to say when posts will disappear for posts shared with favorites. */
-"mypost.favorites.disappear.time.label" = "Dein Beitrag wurde mit deinen Favoriten geteilt und ist für 30 Tage sichtbar.";
+"mypost.favorites.disappear.time.label" = "Dein Beitrag wurde mit deinen Favoriten geteilt und wird für 30 Tage angezeigt.";
 
 /* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
 "mypost.hide.posts.confirmation" = "Bist du dir sicher, dass du alle deine zukünftigen Beiträge vor %@ verbergen möchtest? Du kannst dies später jederzeit ändern.";

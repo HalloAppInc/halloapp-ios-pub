@@ -334,6 +334,12 @@
 /* Message text shown when you join a group via invite link */
 "chat.group.event.join.you" = "Ты присоединился(-ась) к группе по ссылке группового приглашения";
 
+/* Message text shown when a group member is auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
+"chat.group.event.member.autopromoted" = "%@ были автоматически повышен до администратора";
+
+/* Message text shown when you are auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
+"chat.group.event.member.autopromoted.you" = "Вы были автоматически повышены до администратора";
+
 /* Message text shown with the user who left the group */
 "chat.group.event.member.left" = "%@ покинул группу";
 
