@@ -87,8 +87,9 @@ class MessageCellViewDocument: MessageCellViewBase {
         if AppContext.shared.userDefaults.bool(forKey: "enableChatForwarding") {
             forwardButton.isHidden = false
         }
-
-        MainAppContext.shared.chatData.downloadMedia(in: message)
+        DispatchQueue.main.async { [weak self] in
+            MainAppContext.shared.chatData.downloadMedia(in: message)
+        }
 
         documentURL = message.media?.first?.mediaURL
         if let documentURL = documentURL {
