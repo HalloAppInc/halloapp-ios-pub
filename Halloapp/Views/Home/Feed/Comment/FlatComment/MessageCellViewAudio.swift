@@ -76,6 +76,7 @@ class MessageCellViewAudio: MessageCellViewBase {
         backgroundColor = UIColor.feedBackground
         contentView.preservesSuperviewLayoutMargins = false
         nameContentTimeRow.addArrangedSubview(nameRow)
+        nameContentTimeRow.addArrangedSubview(forwardCountLabel)
         nameContentTimeRow.addArrangedSubview(audioRow)
         nameContentTimeRow.addArrangedSubview(audioTimeRow)
         nameContentTimeRow.setCustomSpacing(0, after: audioRow)

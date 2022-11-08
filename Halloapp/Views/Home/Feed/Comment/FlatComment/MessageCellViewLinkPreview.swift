@@ -34,6 +34,7 @@ class MessageCellViewLinkPreview: MessageCellViewBase {
         backgroundColor = UIColor.feedBackground
         contentView.preservesSuperviewLayoutMargins = false
         nameContentTimeRow.addArrangedSubview(nameRow)
+        nameContentTimeRow.addArrangedSubview(forwardCountLabel)
         nameContentTimeRow.addArrangedSubview(linkPreviewView)
         nameContentTimeRow.addArrangedSubview(textRow)
         nameContentTimeRow.addArrangedSubview(timeRow)

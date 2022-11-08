@@ -34,7 +34,7 @@ class MessageCellViewBase: UICollectionViewCell {
     // MARK: Name Row
 
     public lazy var nameRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ nameLabel, forwardCountLabel ])
+        let view = UIStackView(arrangedSubviews: [ nameLabel ])
         view.axis = .vertical
         view.spacing = 0
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -385,6 +385,7 @@ class MessageCellViewBase: UICollectionViewCell {
             reactionCancellable?.cancel()
             reactionCancellable = nil
         }
+        forwardCountLabel.isHidden = true
     }
 
     func configureWith(comment: FeedPostComment, userColorAssignment: UIColor, parentUserColorAssignment: UIColor, isPreviousMessageFromSameSender: Bool) {
@@ -422,7 +423,7 @@ class MessageCellViewBase: UICollectionViewCell {
         contentView.addGestureRecognizer(longPressGesture)
         let listReactions = UITapGestureRecognizer(target: self, action: #selector(showReactionList(_:)))
         reactionBubble.addGestureRecognizer(listReactions)
-        if message.forwardCount > 0, !isOwnMessage {
+        if message.forwardCount > 0 {
             forwardCountLabel.isHidden = false
         } else {
             forwardCountLabel.isHidden = true

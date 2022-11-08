@@ -32,6 +32,7 @@ class MessageCellViewMedia: MessageCellViewBase {
         backgroundColor = UIColor.feedBackground
         contentView.preservesSuperviewLayoutMargins = false
         nameContentTimeRow.addArrangedSubview(nameRow)
+        nameContentTimeRow.addArrangedSubview(forwardCountLabel)
         nameContentTimeRow.addArrangedSubview(mediaView)
         nameContentTimeRow.addArrangedSubview(textRow)
         nameContentTimeRow.addArrangedSubview(timeRow)

@@ -61,6 +61,7 @@ final class MessageCellViewLocation: MessageCellViewBase {
         backgroundColor = UIColor.feedBackground
         contentView.preservesSuperviewLayoutMargins = false
         nameContentTimeRow.addArrangedSubview(nameRow)
+        nameContentTimeRow.addArrangedSubview(forwardCountLabel)
         nameContentTimeRow.addArrangedSubview(snapshotButton)
         nameContentTimeRow.addArrangedSubview(textRow)
         nameContentTimeRow.addArrangedSubview(timeRow)

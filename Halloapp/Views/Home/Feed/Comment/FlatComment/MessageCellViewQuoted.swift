@@ -192,7 +192,7 @@ class MessageCellViewQuoted: MessageCellViewBase {
             setNameLabel(for: message.fromUserID)
             nameContentTimeRow.addArrangedSubview(nameRow)
         }
-
+        nameContentTimeRow.addArrangedSubview(forwardCountLabel)
         guard message.chatReplyMessageID != nil || message.feedPostId != nil else { return }
         configureText(chatMessage: message)
         // Configure parent chat view

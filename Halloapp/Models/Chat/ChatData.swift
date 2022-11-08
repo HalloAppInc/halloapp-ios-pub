@@ -2242,6 +2242,8 @@ extension ChatData {
         if let location = chatMessage.location {
             chatLocation = ChatLocation(latitude: location.latitude, longitude: location.longitude, name: location.name ?? "", formattedAddressLines: [location.addressString ?? ""])
         }
+        let rawText = chatMessage.rawText
+        let mentions = chatMessage.mentions
         // Create chat message
         // Increment forward count if current user is not the author of the message.
         let forwardCount = (chatMessage.fromUserID == userData.userId) ? chatMessage.forwardCount : chatMessage.forwardCount + 1
@@ -2250,7 +2252,7 @@ extension ChatData {
             performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                 guard let self = self else { return }
                 self.createChatMsg( chatMessageRecipient: ChatMessageRecipient.oneToOneChat(toUserId: toUserId, fromUserId: self.userData.userId),
-                                    mentionText: MentionText(collapsedText: chatMessage.rawText ?? "", mentionArray: chatMessage.mentions),
+                                    mentionText: MentionText(collapsedText: rawText ?? "", mentionArray: mentions),
                                     media: media,
                                     files: files,
                                     linkPreviewData: linkPreviewData,
