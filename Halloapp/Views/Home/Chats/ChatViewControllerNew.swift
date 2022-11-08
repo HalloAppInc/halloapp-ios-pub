@@ -440,7 +440,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     }
 
     private func isScrolledTobottom() -> Bool {
-        return collectionView.contentOffset.y == (collectionView.contentSize.height - (collectionView.bounds.height - collectionView.adjustedContentInset.bottom))
+        return abs(collectionView.contentOffset.y - (collectionView.contentSize.height - (collectionView.bounds.height - collectionView.adjustedContentInset.bottom))) < 1.ulp
     }
 
     func updateCollectionViewData() {
@@ -896,10 +896,10 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     }
 
     private func createLayout() -> UICollectionViewCompositionalLayout {
-        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(300))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
 
-        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(300))
         let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
 
         let section = NSCollectionLayoutSection(group: group)
