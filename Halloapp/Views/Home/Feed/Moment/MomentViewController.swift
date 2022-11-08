@@ -86,6 +86,38 @@ class MomentViewController: UIViewController, UIViewControllerMediaSaving, Share
         return view
     }()
 
+    private lazy var shareCarousel: UIView = {
+        let shareCarousel = ShareCarousel()
+        shareCarousel.share = { [weak self] shareProvider in
+            guard let self = self else {
+                return
+            }
+            self.share(postID: self.post.id, with: shareProvider)
+        }
+        shareCarousel.translatesAutoresizingMaskIntoConstraints = false
+
+        class AccessoryBackgroundView: UIView {
+
+            override var intrinsicContentSize: CGSize {
+                return .zero
+            }
+        }
+
+        let backgroundView = AccessoryBackgroundView()
+        backgroundView.addSubview(shareCarousel)
+        backgroundView.autoresizingMask = .flexibleHeight
+        backgroundView.overrideUserInterfaceStyle = .dark
+
+        NSLayoutConstraint.activate([
+            shareCarousel.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor),
+            shareCarousel.topAnchor.constraint(equalTo: backgroundView.topAnchor),
+            shareCarousel.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor),
+            shareCarousel.bottomAnchor.constraint(equalTo: backgroundView.safeAreaLayoutGuide.bottomAnchor),
+        ])
+
+        return backgroundView
+    }()
+
     private var cancellables: Set<AnyCancellable> = []
     /// For observing `post`'s media.
     private var mediaAvailableCancellable: AnyCancellable?
@@ -147,9 +179,14 @@ class MomentViewController: UIViewController, UIViewControllerMediaSaving, Share
     /// `true` if the user is in the process of transitioning from one moment to the next, interactively or not.
     @Published private var isAnimatingToNextMoment = false
 
-    private var showAccessoryView = false
+    private var activeInputAccessoryView: UIView?
+
     override var inputAccessoryView: UIView? {
-        showAccessoryView ? contentInputView : nil
+        if let presentedViewController = presentedViewController, !presentedViewController.isBeingDismissed {
+            return nil
+        } else {
+            return activeInputAccessoryView
+        }
     }
 
     private var toast: Toast?
@@ -189,7 +226,10 @@ class MomentViewController: UIViewController, UIViewControllerMediaSaving, Share
         let spacing: CGFloat = 10
         let centerYConstraint = momentView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         // post will be off-center if there's an uploading post in the top corner
-        centerYConstraint.priority = .defaultLow
+        centerYConstraint.priority = UILayoutPriority(251)
+
+        let bottomConstraint = facePileView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -80)
+        bottomConstraint.priority = UILayoutPriority(252)
 
         NSLayoutConstraint.activate([
             centerYConstraint,
@@ -199,10 +239,12 @@ class MomentViewController: UIViewController, UIViewControllerMediaSaving, Share
             headerView.leadingAnchor.constraint(equalTo: momentView.leadingAnchor, constant: 10),
             headerView.trailingAnchor.constraint(equalTo: momentView.trailingAnchor, constant: -10),
             headerView.bottomAnchor.constraint(equalTo: momentView.topAnchor, constant: -spacing),
+            headerView.topAnchor.constraint(greaterThanOrEqualTo: backButton.bottomAnchor, constant: 4),
 
             facePileView.topAnchor.constraint(equalTo: momentView.bottomAnchor, constant: 15),
             facePileView.trailingAnchor.constraint(equalTo: momentView.trailingAnchor, constant: -15),
             facePileView.leadingAnchor.constraint(greaterThanOrEqualTo: momentView.leadingAnchor),
+            bottomConstraint,
 
             backButton.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
             backButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 5),
@@ -354,14 +396,30 @@ class MomentViewController: UIViewController, UIViewControllerMediaSaving, Share
     }
 
     private func refreshAccessoryView(show: Bool = true) {
-        let show = post.userID == MainAppContext.shared.userData.userId ? false : show
-        let enable = isReadyForSensitiveOperations
+        let originalInputAccessoryView = activeInputAccessoryView
 
-        contentInputView.isEnabled = enable
+        defer {
+            if originalInputAccessoryView !== activeInputAccessoryView {
+                if let transitionView = originalInputAccessoryView?.superview, originalInputAccessoryView != nil, activeInputAccessoryView != nil {
+                    UIView.transition(with: transitionView, duration: 0.15, options: [.transitionCrossDissolve, .curveEaseOut]) { [weak self] in
+                        self?.reloadInputViews()
+                    }
+                } else {
+                    reloadInputViews()
+                }
+            }
+        }
 
-        if show != showAccessoryView {
-            showAccessoryView = show
-            reloadInputViews()
+        guard show else {
+            activeInputAccessoryView = nil
+            return
+        }
+
+        if post.userID == MainAppContext.shared.userData.userId {
+            activeInputAccessoryView = ServerProperties.enableMomentExternalShare && unlockingPost == nil ? shareCarousel : nil
+        } else {
+            activeInputAccessoryView = contentInputView
+            contentInputView.isEnabled = isReadyForSensitiveOperations
         }
     }
     
