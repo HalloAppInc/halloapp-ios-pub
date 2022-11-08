@@ -110,6 +110,8 @@ public class Analytics {
             Amplitude.instance().trackingSessionEvents = false
         }
 
+        Amplitude.instance().setServerUrl("https://amplitude.halloapp.net")
+
         let apiKey: String
         #if DEBUG
         apiKey = "60bca64d4d07b8a1e6f829772b2e2177" // Test Env
