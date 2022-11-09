@@ -265,10 +265,10 @@ open class AppContext: AppContextCommon {
         DDLog.add(sentryLogger)
         #endif
 
-        Analytics.setup()
-        Analytics.setUserProperties([.clientVersion: Self.appVersionForDisplay])
-
         super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
+
+        Analytics.setup(userData: userData)
+        Analytics.setUserProperties([.clientVersion: Self.appVersionForDisplay])
 
         #if !DEBUG
         errorLogger = sentryLogger

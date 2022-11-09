@@ -7,6 +7,9 @@
 //
 
 import Amplitude
+import Combine
+import CoreCommon
+import CryptoKit
 import UIKit
 
 public class Analytics {
@@ -103,7 +106,9 @@ public class Analytics {
         case clientVersion
     }
 
-    static func setup() {
+    private static var userIDUpdateCancellable: AnyCancellable?
+
+    static func setup(userData: UserData) {
         let isAppExtension = Bundle.main.bundlePath.hasSuffix("appex")
         if isAppExtension {
             Amplitude.instance().eventUploadPeriodSeconds = 3
@@ -111,6 +116,10 @@ public class Analytics {
         }
 
         Amplitude.instance().setServerUrl("https://amplitude.halloapp.net")
+
+        userIDUpdateCancellable = userData.userIDPublisher
+            .filter { !$0.isEmpty }
+            .sink { Amplitude.instance().setUserId($0.analyticsHashedString) }
 
         let apiKey: String
         #if DEBUG
@@ -149,6 +158,13 @@ public class Analytics {
 }
 
 // MARK: - Utils
+
+private extension String {
+
+    var analyticsHashedString: String? {
+        return data(using: .utf8).flatMap { Data(SHA256.hash(data: $0).prefix(16)).toHexString() }
+    }
+}
 
 private extension Dictionary where Key == Analytics.UserProperty {
 

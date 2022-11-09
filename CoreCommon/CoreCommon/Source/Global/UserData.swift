@@ -39,6 +39,7 @@ public final class UserData: ObservableObject {
     public let didLogOff = PassthroughSubject<Void, Never>()
 
     public private(set) var userNamePublisher: CurrentValueSubject<String, Never>!
+    public private(set) var userIDPublisher: CurrentValueSubject<String, Never>!
 
     /**
      Value is derived from presence of saved credentials.
@@ -146,6 +147,7 @@ public final class UserData: ObservableObject {
         }
 
         userNamePublisher = CurrentValueSubject(name)
+        userIDPublisher = CurrentValueSubject(userId)
         if credentials != nil {
             self.isLoggedIn = true
         }
