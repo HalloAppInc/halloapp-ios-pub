@@ -191,6 +191,12 @@ extension UNUserNotificationCenter {
         }
     }
 
+    func removeDeliveredGroupChatNotifications(groupId: GroupID) {
+        removeDeliveredNotifications { (notificationMetadata) -> (Bool) in
+            return notificationMetadata.groupId == groupId && notificationMetadata.isChatNotification
+        }
+    }
+
     func removeDeliveredGroupPostNotifications(groupId: GroupID) {
         removeDeliveredNotifications { (notificationMetadata) -> (Bool) in
             return notificationMetadata.groupId == groupId && notificationMetadata.isPostNotification

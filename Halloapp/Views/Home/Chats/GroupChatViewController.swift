@@ -479,6 +479,7 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
 
         MainAppContext.shared.chatData.markSeenMessages(type: .groupChat, for: groupId)
         MainAppContext.shared.chatData.setCurrentlyChattingInGroup(in: groupId)
+        UNUserNotificationCenter.current().removeDeliveredGroupChatNotifications(groupId: groupId)
         // Add jump to last message button
         view.addSubview(jumpButton)
         jumpButton.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true

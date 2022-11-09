@@ -666,7 +666,7 @@ final class NotificationProtoService: ProtoServiceCore {
             case .success:
                 DDLogInfo("NotificationExtension/processCommentData/success saving comment [\(commentData.id)]")
                 ack()
-                self.presentCommentNotification(for: metadata, using: commentData)
+                self.checkAndPresentCommentNotification(for: metadata, using: commentData)
             case .failure(let error):
                 DDLogError("NotificationExtension/processCommentData/error saving comment [\(commentData.id)]/error: \(error)")
             }
@@ -683,7 +683,7 @@ final class NotificationProtoService: ProtoServiceCore {
             case .success:
                 DDLogInfo("NotificationExtension/processReaction/success saving reaction [\(reaction.id)] for comment: \(reaction.parentId ?? "") for post: \(reaction.feedPostId)")
                 ack()
-                self.presentCommentNotification(for: metadata, using: reaction)
+                self.checkAndPresentCommentNotification(for: metadata, using: reaction)
             case .failure(let error):
                 DDLogError("NotificationExtension/processReaction/error saving reaction [\(reaction.id)] for comment: \(reaction.parentId ?? "") for post: \(reaction.feedPostId) /error: \(error)")
             }
@@ -1303,10 +1303,28 @@ final class NotificationProtoService: ProtoServiceCore {
         }
     }
 
+    private func checkAndPresentCommentNotification(for metadata: NotificationMetadata, using commentData: CommentData) {
+        mainDataStore.performSeriallyOnBackgroundContext { context in
+            let parentPost = self.coreFeedData.feedPost(with: commentData.feedPostId, in: context)
+            var parentComment: FeedPostComment?
+            if let parentId = commentData.parentId {
+                parentComment = self.coreFeedData.feedComment(with: parentId, in: context)
+            }
+
+            let isOwnPostRelated = parentPost?.userID == AppContext.shared.userData.userId
+            let isOwnCommentRelated = parentComment?.userId == AppContext.shared.userData.userId
+            let isPostReaction = metadata.isReaction && commentData.parentId == nil
+
+            self.presentCommentNotification(for: metadata, using: commentData,
+                                            isOwnPostRelated: isOwnPostRelated, isOwnCommentRelated: isOwnCommentRelated, isPostReaction: isPostReaction)
+        }
+    }
     // Used to present comment notifications.
-    private func presentCommentNotification(for metadata: NotificationMetadata, using commentData: CommentData) {
+    private func presentCommentNotification(for metadata: NotificationMetadata, using commentData: CommentData,
+                                            isOwnPostRelated: Bool, isOwnCommentRelated: Bool, isPostReaction: Bool) {
+
         // Notify important comments.
-        let isImportantComment = metadata.messageTypeRawValue == Server_Msg.TypeEnum.headline.rawValue
+        let isImportantComment = isOwnPostRelated || isOwnCommentRelated
 
         // Notify comments with mentions.
         let isUserMentioned = commentData.orderedMentions.contains(where: { mention in
@@ -1321,6 +1339,9 @@ final class NotificationProtoService: ProtoServiceCore {
         AppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
             isKnownPublisher = AppContext.shared.contactStore.isContactInAddressBook(userId: commentData.userId, in: managedObjectContext)
         }
+
+        let isReaction = metadata.isReaction
+        let isCommentReaction = isReaction && !isPostReaction
 
         let isGroupComment = metadata.groupId != nil
         let isGroupCommentFromContact = ServerProperties.isGroupCommentNotificationsEnabled  && isGroupComment && isKnownPublisher
@@ -1337,7 +1358,25 @@ final class NotificationProtoService: ProtoServiceCore {
             return
         }
 
-        if isImportantComment || isUserMentioned || isGroupCommentFromContact || isGroupCommentOnInterestedPost || isHomeFeedCommentFromContact {
+        // Present comment notifications
+        // Reactions - present notifications only for own posts or own comments
+        // Otherwise - present comments on own posts, replies to your comments and group post comments.
+        let presentNotification: Bool
+        if isReaction {
+            if isPostReaction && isOwnPostRelated {
+                presentNotification = true
+            } else if isCommentReaction && isOwnCommentRelated {
+                presentNotification = true
+            } else {
+                presentNotification = false
+            }
+        } else if isImportantComment || isUserMentioned || isGroupCommentFromContact || isGroupCommentOnInterestedPost || isHomeFeedCommentFromContact {
+            presentNotification = true
+        } else {
+            presentNotification = false
+        }
+
+        if presentNotification {
             runIfNotificationWasNotPresented(for: metadata.identifier) { [self] in
                 guard NotificationSettings.isCommentsEnabled else {
                     DDLogDebug("ProtoService/CommentNotification - skip due to userPreferences")

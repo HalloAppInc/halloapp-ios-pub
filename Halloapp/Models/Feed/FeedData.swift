@@ -1941,6 +1941,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 comments.forEach { comment in
                     reactionIds.append(contentsOf: comment.sortedReactionsList.compactMap { $0.id })
                 }
+
+                // Append post reactions
+                if let feedPost = self.feedPost(with: feedPostId, in: managedObjectContext) {
+                    reactionIds.append(contentsOf: feedPost.sortedReactionsList.compactMap { $0.id })
+                }
             } else {
                 notifications = self.coreFeedData.notifications(with: isNotReadPredicate, in: managedObjectContext)
             }
@@ -1952,7 +1957,19 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             self.save(managedObjectContext)
             // remove all notifications for comments.
             UNUserNotificationCenter.current().removeDeliveredCommentNotifications(commentIds: notifications.compactMap({ $0.commentID }))
-            // remove all notifications for comment reactions.
+            // remove all notifications for post and comment reactions.
+            UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: reactionIds)
+        }
+    }
+
+    func markPostReactionsAsRead(for postId: FeedPostID) {
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
+            // Append post reactions
+            var reactionIds: [CommonReactionID] = []
+            if let feedPost = self.feedPost(with: postId, in: managedObjectContext) {
+                reactionIds = feedPost.sortedReactionsList.compactMap { $0.id }
+            }
+            // remove all notifications for post reactions.
             UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: reactionIds)
         }
     }

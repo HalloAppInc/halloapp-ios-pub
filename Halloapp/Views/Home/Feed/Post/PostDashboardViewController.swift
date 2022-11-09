@@ -237,6 +237,11 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         }
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        // Clear reaction notifications if any on the notification center.
+        MainAppContext.shared.feedData.markPostReactionsAsRead(for: feedPost.id)
+    }
+
     @objc private func closeAction() {
         dismiss(animated: true)
     }
