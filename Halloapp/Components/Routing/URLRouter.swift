@@ -55,9 +55,19 @@ class URLRouter {
                                                   animated: true)
                 case .failure(let error):
                     DDLogError("URLRouter/Failed to decrypt external share post: \(error)")
-                    let alertController = UIAlertController(title: Localizations.failedToLoadExternalSharePostTitle,
-                                                            message: Localizations.failedToLoadExternalSharePostMessage,
-                                                            preferredStyle: .alert)
+
+                    let errorTitle: String
+                    let errorMessage: String
+                    switch error {
+                    case RequestError.notConnected:
+                        errorTitle = Localizations.alertNoInternetTitle
+                        errorMessage = Localizations.alertNoInternetTryAgain
+                    default:
+                        errorTitle = Localizations.failedToLoadExternalSharePostTitle
+                        errorMessage = Localizations.failedToLoadExternalSharePostMessage
+                    }
+
+                    let alertController = UIAlertController(title: errorTitle, message: errorMessage, preferredStyle: .alert)
                     alertController.addAction(.init(title: Localizations.buttonOK, style: .default, handler: nil))
                     currentViewController.present(alertController, animated: true)
                 }
