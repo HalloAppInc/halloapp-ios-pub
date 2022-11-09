@@ -20,6 +20,10 @@ class MomentLocationToggle: UIControl {
     private enum FetchState { case none, fetching, fetched(String), error }
     private var fetchState: FetchState = .none
 
+    private var currentLocation: CLLocation?
+    private var continuation: AsyncStream<CLLocation>.Continuation?
+    private var processTask: Task<Void, Never>?
+
     weak var delegate: MomentLocationToggleDelegate?
 
     private lazy var locationManager: CLLocationManager = {
@@ -50,6 +54,7 @@ class MomentLocationToggle: UIControl {
         stack.spacing = 7
         stack.alignment = .center
         stack.distribution = .equalCentering
+        stack.isUserInteractionEnabled = false
         return stack
     }()
 
@@ -84,7 +89,6 @@ class MomentLocationToggle: UIControl {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        stackView.isUserInteractionEnabled = false
         isEnabled = true
         isUserInteractionEnabled = true
         addTarget(self, action: #selector(didPush), for: .touchUpInside)
@@ -98,7 +102,9 @@ class MomentLocationToggle: UIControl {
         ])
 
         tintColor = .primaryBlue
+
         setState(.none)
+        startProcessingLocations()
     }
 
     required init?(coder: NSCoder) {
@@ -110,15 +116,19 @@ class MomentLocationToggle: UIControl {
         updateColors()
     }
 
+    deinit {
+        processTask?.cancel()
+    }
+
     @objc
     private func didPush(_ sender: UIControl) {
-        if locationString != nil {
-            return setState(.none)
+        guard locationString == nil else {
+            return removeLocation()
         }
 
         switch checkLocationAuthorization() {
         case .authorizedAlways, .authorizedWhenInUse:
-            locationManager.requestLocation()
+            locationManager.startUpdatingLocation()
             setState(.fetching)
 
         case .notDetermined:
@@ -131,6 +141,12 @@ class MomentLocationToggle: UIControl {
         @unknown default:
             DDLogError("MomentLocationToggle/locationButtonPushed/unknown authorization status")
         }
+    }
+
+    func removeLocation() {
+        locationManager.stopUpdatingLocation()
+        currentLocation = nil
+        setState(.none)
     }
 
     @MainActor
@@ -217,7 +233,7 @@ extension MomentLocationToggle: CLLocationManagerDelegate {
         if shouldLocateAfterPermissionsGranted, status == .authorizedWhenInUse || status == .authorizedAlways {
             shouldLocateAfterPermissionsGranted = false
 
-            locationManager.requestLocation()
+            locationManager.startUpdatingLocation()
             setState(.fetching)
         }
     }
@@ -227,12 +243,12 @@ extension MomentLocationToggle: CLLocationManagerDelegate {
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let location = locations.last else {
+        guard let latest = locations.last else {
             return
         }
 
         DDLogInfo("MomentLocationToggle/didUpdateLocations")
-        Task { await update(with: location) }
+        continuation?.yield(latest)
     }
 
     @discardableResult
@@ -251,36 +267,45 @@ extension MomentLocationToggle: CLLocationManagerDelegate {
     func requestLocation() {
         switch checkLocationAuthorization() {
         case .authorizedAlways, .authorizedWhenInUse:
-            locationManager.requestLocation()
+            locationManager.startUpdatingLocation()
             setState(.fetching)
         default:
             break
         }
     }
 
-    private func update(with location: CLLocation) async {
-        guard
-            let placemark = try? await CLGeocoder().reverseGeocodeLocation(location).first,
-            let result = parse(placemark)
-        else {
-            DDLogError("MomentLocationToggle/unable to parse location")
-            return setState(.error)
+    private func startProcessingLocations() {
+        // calls to `reverseGeocodeLocation()` are rate limited
+        // check that the two locations are different enough before parsing
+        func areDifferent(_ l1: CLLocation, _ l2: CLLocation?) -> Bool {
+            guard let l2 else { return true }
+            return l1.distance(from: l2) >= 100
         }
 
-        DDLogInfo("MomentLocationToggle/parsed [\(result)]")
-        setState(.fetched(result))
+        let locations = AsyncStream<CLLocation> { [weak self] in
+            self?.continuation = $0
+        }
+
+        processTask = Task { [weak self] in
+            for await location in locations {
+                guard let self, areDifferent(location, self.currentLocation) else {
+                    continue
+                }
+
+                self.currentLocation = location
+                if let parsed = await self.parse(location) {
+                    self.setState(.fetched(parsed))
+                } else {
+                    self.setState(.error)
+                }
+            }
+        }
     }
 
-    private func parse(_ placemark: CLPlacemark) -> String? {
-        if let aoi = placemark.areasOfInterest?.first {
-            // if there's an area of interest, combine with an area >= city
-            // e.g., "Brooklyn Bridge, New York"
-            switch placemark.locality ?? placemark.administrativeArea ?? placemark.country {
-            case .some(let second):
-                return String(format: Localizations.momentLocationFormat, aoi, second)
-            case .none:
-                return aoi
-            }
+    private func parse(_ location: CLLocation) async -> String? {
+        guard let placemark = try? await CLGeocoder().reverseGeocodeLocation(location).first else {
+            DDLogError("MomentLocationToggle/unable to parse location")
+            return nil
         }
 
         let areas = [
@@ -308,6 +333,7 @@ extension MomentLocationToggle: CLLocationManagerDelegate {
             result = nil
         }
 
+        DDLogInfo("MomentLocationToggle/parsed [\(String(describing: result))]")
         return result
     }
 }
