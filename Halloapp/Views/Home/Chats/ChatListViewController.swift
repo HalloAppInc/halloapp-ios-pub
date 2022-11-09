@@ -152,12 +152,13 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
                     let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.cellReuseIdentifier, for: indexPath) as! ThreadListCell
 
                     cell.configureAvatarSize(Constants.AvatarSize)
-                    if chatThread.userID != nil {
+                    switch chatThread.type {
+                    case .oneToOne:
                         cell.configureForChatsList(with: chatThread, squareSize: Constants.AvatarSize)
-                    } else if chatThread.groupId != nil {
+                    case .groupChat:
                         cell.configureForGroupsList(with: chatThread, squareSize: Constants.AvatarSize)
-                    } else {
-                        DDLogError("ChatListViewController/viewDidLoad/ recipient id not set.")
+                    case .groupFeed:
+                        DDLogError("ChatListViewController/viewDidLoad/ error type groupFeed")
                     }
                     self.updateCellWithChatState(cell: cell, chatThread: chatThread, chatStateInfo: nil)
 
