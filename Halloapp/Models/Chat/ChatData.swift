@@ -603,6 +603,7 @@ class ChatData: ObservableObject {
                 DDLogInfo("ChatData/migrateLegacyThread/oneToOne/existing/\(userID)")
                 thread = existingThread
             } else {
+                DDLogInfo("CoreChatData/saveChatMessage/ creating new thread type: \(legacy.type) userID: \(userID)")
                 thread = CommonThread(context: managedObjectContext)
                 thread.userID = userID
                 thread.lastText = legacy.lastMsgText
@@ -622,6 +623,7 @@ class ChatData: ObservableObject {
                 DDLogInfo("ChatData/migrateLegacyThread/group/existing/\(groupID)")
                 thread = existingThread
             } else {
+                DDLogInfo("CoreChatData/saveChatMessage/ creating new thread type: \(legacy.type) groupId: \(groupID)")
                 thread = CommonThread(context: managedObjectContext)
                 thread.groupID = groupID
                 thread.lastText = legacy.lastFeedText
@@ -3208,7 +3210,7 @@ extension ChatData {
 
     private func createNewChatThreadIfMissing(chatRetractInfo: ChatRetractInfo, status: ChatThread.LastMsgStatus) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            // TODO NOTE this was previouslt self.chatThreadStatus WHY?
+            // TODO NOTE this was previously self.chatThreadStatus WHY?
             guard let self = self, self.chatThread(type: chatRetractInfo.threadType, id: chatRetractInfo.threadID, in: managedObjectContext) == nil else {
                 return
             }
@@ -3256,16 +3258,23 @@ extension ChatData {
         } else {
             DDLogDebug("ChatData/updateChatThread/with-reaction/new-thread")
             let chatThread = ChatThread(context: context)
-            chatThread.userID = commonReaction.toUserID
-            chatThread.groupId = commonReaction.toGroupID
-            chatThread.type = chatType
+            switch chatType {
+            case .oneToOne:
+                chatThread.userID = commonReaction.chatMessageRecipient.recipientId
+                chatThread.groupId = nil
+                chatThread.type = chatType
+            case .groupChat, .groupFeed:
+                chatThread.userID = nil
+                chatThread.groupId = commonReaction.chatMessageRecipient.toGroupId
+                chatThread.type = chatType
+            }
+
             chatThread.lastMsgId = commonReaction.id
             chatThread.lastMsgUserId = commonReaction.fromUserID
             chatThread.lastMsgText = reactionText
             chatThread.lastMsgMediaType = .none
             chatThread.lastMsgStatus = lastMsgStatus
             chatThread.lastMsgTimestamp = commonReaction.timestamp
-            chatThread.type = chatType
             if updateUnreadCount {
                 chatThread.unreadCount = isCurrentlyChattingWithUser ? 0 : chatThread.unreadCount + 1
             }
@@ -5170,7 +5179,7 @@ extension ChatData {
     }
 
     private func processIncomingGroup(xmppGroup: XMPPGroup, using managedObjectContext: NSManagedObjectContext) {
-        DDLogInfo("ChatData/processIncomingGroup")
+        DDLogInfo("ChatData/processIncomingGroup groupId: \(xmppGroup.groupId) groupType: \(xmppGroup.groupType)")
 
         var contactNames = [UserID:String]()
         // Update push names for member userids on any events received.
@@ -5445,7 +5454,7 @@ extension ChatData {
     }
     
     private func addGroup(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) -> Group {
-        DDLogDebug("ChatData/group/addGroup/new [\(xmppGroup.groupId)]")
+        DDLogDebug("ChatData/group/addGroup/new [\(xmppGroup.groupId)] groupType: \(xmppGroup.groupType)")
 
         // Add Group to database
         let chatGroup = Group(context: managedObjectContext)
@@ -5549,6 +5558,8 @@ extension ChatData {
 
             // nb: unreadFeedCount is not incremented for group event messages
             // and NUX zero zone unread welcome post count is recorded in NUX userDefaults, not unreadFeedCount
+        } else {
+            DDLogError("ChatData/recordGroupMessageEvent/ missing chat thread for groupId: \(event.groupID) groupType: \(xmppGroup.groupType)")
         }
 
         if isSampleGroupCreationEvent {

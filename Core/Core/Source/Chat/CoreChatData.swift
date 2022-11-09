@@ -426,7 +426,7 @@ public class CoreChatData {
                 chatThread.unreadCount = 0
             }
         } else {
-            DDLogDebug("CoreChatData/updateChatThread/\(chatMessage.id)/new-thread")
+            DDLogDebug("CoreChatData/updateChatThread/\(chatMessage.id)/new-thread type \(chatMessageRecipient.chatType) recipientId: \(chatMessageRecipient.recipientId ?? "")")
             chatThread = CommonThread(context: context)
             switch chatMessageRecipient.chatType {
             case .oneToOne:
@@ -677,6 +677,7 @@ public class CoreChatData {
                 chatThread.unreadFeedCount = chatThread.unreadFeedCount + 1
             }
         } else {
+            DDLogInfo("CoreChatData/saveChatMessage/ creating new thread type: \(ChatType.groupFeed) groupId: \(groupID)")
             let chatThread = CommonThread(context: managedObjectContext)
             chatThread.type = ChatType.groupFeed
             chatThread.groupId = groupID
@@ -1366,15 +1367,25 @@ public class CoreChatData {
                     chatThread.unreadCount = chatThread.unreadCount + 1
                 } else {
                     let chatThread = CommonThread(context: context)
-                    chatThread.userID = chatMessage.fromUserId
-                    chatThread.groupId = chatMessage.chatMessageRecipient.toGroupId
+                    DDLogInfo("CoreChatData/saveChatMessage/ creating new thread type: \(chatMessage.chatMessageRecipient.chatType) recipient: \(chatMessage.chatMessageRecipient.recipientId ?? "")")
+                    switch chatMessage.chatMessageRecipient.chatType {
+                    case .oneToOne:
+                        chatThread.userID = chatMessage.chatMessageRecipient.recipientId
+                        chatThread.groupId = nil
+                        chatThread.type = chatMessage.chatMessageRecipient.chatType
+                    case .groupChat:
+                        chatThread.userID = nil
+                        chatThread.groupId = chatMessage.chatMessageRecipient.toGroupId
+                        chatThread.type = chatMessage.chatMessageRecipient.chatType
+                    default:
+                        break
+                    }
                     chatThread.lastMsgId = chatMessage.id
                     chatThread.lastMsgUserId = chatMessage.fromUserId
                     chatThread.lastMsgText = lastMsgText
                     chatThread.lastMsgMediaType = lastMsgMediaType
                     chatThread.lastMsgStatus = .none
                     chatThread.lastMsgTimestamp = chatMessage.timestamp
-                    chatThread.type = chatMessage.chatMessageRecipient.chatType
                     chatThread.unreadCount = 1
                 }
             }

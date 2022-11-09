@@ -456,12 +456,19 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         }
 
         var chatRows = [Row]()
-
         chatThreads.forEach { thread in
-            let recipientId = thread.userID != nil ? thread.userID : thread.groupID
+            var recipientId: String?
+            switch thread.type {
+            case .oneToOne:
+                recipientId = thread.userID
+            case .groupChat:
+                recipientId = thread.groupId
+            case .groupFeed:
+                break
+            }
             guard let recipientId = recipientId else {
                 // all chat threads should have a userID or groupID, logging to attempt to catch the time when it does not
-                DDLogDebug("ChatListView/reloadDataInMainQueue/empty recipientId: \(thread)")
+                DDLogDebug("ChatListView/reloadDataInMainQueue/empty recipientId: threadType: \(thread.type) userdId: \(String(describing: thread.userID)) groupId: \(String(describing: thread.groupId))")
                 return
             }
             var chatThreadData = ChatThreadData(recipientID: recipientId, lastMsgID: thread.lastMsgId ?? "", lastMsgMediaType: thread.lastMsgMediaType, lastMsgStatus: thread.lastMsgStatus, isNew: thread.isNew, unreadCount: thread.unreadCount)
@@ -630,22 +637,27 @@ extension ChatListViewController: UITableViewDelegate {
             tableView.deselectRow(at: indexPath, animated: true)
             return
         }
-
-        if let chatWithUserId = chatThread.userID {
-            if ServerProperties.newChatUI {
-                let vc = ChatViewControllerNew(for: chatWithUserId, with: nil, at: 0)
-                vc.chatViewControllerDelegate = self
-                self.navigationController?.pushViewController(vc, animated: true)
-            } else {
-                let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
-                vc.delegate = self
+        DDLogInfo("ChatListViewController/ didSelect chatThread type: \(chatThread.type) userID: \(chatThread.userID ?? "") groupId: \(String(describing: chatThread.groupId ?? ""))")
+        switch chatThread.type {
+        case .oneToOne:
+            if let chatWithUserId = chatThread.userID {
+                if ServerProperties.newChatUI {
+                    let vc = ChatViewControllerNew(for: chatWithUserId, with: nil, at: 0)
+                    vc.chatViewControllerDelegate = self
+                    self.navigationController?.pushViewController(vc, animated: true)
+                } else {
+                    let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
+                    vc.delegate = self
+                    self.navigationController?.pushViewController(vc, animated: true)
+                }
+            }
+        case .groupChat:
+            if let groupId = chatThread.groupId, let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
+                let vc = GroupChatViewController(for: group)
                 self.navigationController?.pushViewController(vc, animated: true)
             }
-        }
-        
-        if let groupId = chatThread.groupId, let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
-            let vc = GroupChatViewController(for: group)
-            self.navigationController?.pushViewController(vc, animated: true)
+        case .groupFeed:
+            DDLogError("ChatListViewController/chat thread type groupFeed")
         }
 
         tableView.deselectRow(at: indexPath, animated: true)

@@ -540,10 +540,10 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
         chatMessageFetchedResultsController = NSFetchedResultsController<ChatMessage>(fetchRequest: fetchChatMessageRequest, managedObjectContext: MainAppContext.shared.chatData.viewContext, sectionNameKeyPath: nil, cacheName: nil)
         chatMessageFetchedResultsController?.delegate = self
         do {
-            DDLogError("GroupChatViewController/initFetchedResultsController/fetching chat messages for user: \(currentUserID)")
+            DDLogError("GroupChatViewController/initFetchedResultsController/fetching chat messages for group: \(groupId)")
             try chatMessageFetchedResultsController?.performFetch()
         } catch {
-            DDLogError("GroupChatViewController/initFetchedResultsController/failed to fetch  chat messages for user:\(currentUserID)")
+            DDLogError("GroupChatViewController/initFetchedResultsController/failed to fetch  chat messages for user:\(currentUserID) group: \(groupId)")
         }
     }
 
