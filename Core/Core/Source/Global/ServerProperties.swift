@@ -431,18 +431,8 @@ public struct ServerProperties {
         ServerProperties.bool(forKey: .enableChatLocationSharing) ?? Defaults.enableChatLocationSharing
     }
     
-    public static var inviteString: String? {
-        guard
-            let allInviteStrings = json(forKey: .inviteStrings),
-            let locale = Locale.current.languageCode?.lowercased(),
-            let specificInviteString = allInviteStrings[locale] as? String
-        else {
-            return nil
-        }
-        
-        // lowercased locale because Apple has some capitalization in their language codes (e.g. pt-BR)
-        // while the server keys do not
-        return specificInviteString
+    public static func inviteString(langID: String) -> String? {
+        return json(forKey: .inviteStrings)?[langID] as? String
     }
 
     public static var maxPostMediaItems: Int {

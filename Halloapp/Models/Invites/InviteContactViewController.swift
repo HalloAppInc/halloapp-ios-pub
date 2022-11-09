@@ -9,6 +9,7 @@
 import CocoaLumberjackSwift
 import Core
 import CoreCommon
+import CryptoKit
 import MessageUI
 import UIKit
 
@@ -91,8 +92,32 @@ extension InviteContactViewController {
                 vc.addAction(.init(title: "OK", style: .default, handler: nil))
                 self.present(vc, animated: true, completion: nil)
                 #else
-                let vc = InviteContactMessageComposerViewController()
-                vc.body = Localizations.inviteText(name: contact.givenName ?? contact.fullName, number: contact.formattedPhoneNumber)
+                // lowercased locale because Apple has some capitalization in their language codes (e.g. pt-BR)
+                // while the server keys do not
+                let langID = Locale.current.languageCode?.lowercased() ?? ""
+                let inviteTemplate = Localizations.inviteTextTemplate(langID: langID)
+                let inviteString = String(format: inviteTemplate, contact.givenName ?? contact.fullName, contact.formattedPhoneNumber)
+                let inviteStringID = inviteTemplate.data(using: .utf8).flatMap { Data(SHA256.hash(data: $0).prefix(16)).base64EncodedString() } ?? ""
+
+                let vc = InviteContactMessageComposerViewController() { result in
+                    let type: Server_InviteRequestResult.TypeEnum
+                    switch result {
+                    case .sent:
+                        type = .sent
+                    case .cancelled:
+                        type = .cancelled
+                    case .failed:
+                        type = .failed
+                    @unknown default:
+                        type = .unknown
+                    }
+                    MainAppContext.shared.eventMonitor.observe(.inviteResult(phoneNumber: contact.formattedPhoneNumber, type: type, langID: langID, inviteStringID: inviteStringID))
+
+                    if result == .sent {
+                        Analytics.log(event: .sendInvite, properties: [.service: "sms"])
+                    }
+                }
+                vc.body = inviteString
                 vc.recipients = [contact.formattedPhoneNumber]
                 self.present(vc, animated: true, completion: nil)
                 #endif
@@ -109,11 +134,12 @@ extension InviteContactViewController {
             case .success, .failure(.existingUser):
                 var allowedCharacters = CharacterSet.urlHostAllowed
                 allowedCharacters.remove("+")
-                guard let urlEncodedInviteText = Localizations
-                        .inviteText(name: contact.givenName ?? contact.fullName, number: contact.formattedPhoneNumber)
-                        .addingPercentEncoding(withAllowedCharacters: allowedCharacters),
-                      let whatsAppURL = URL(string: "https://wa.me/\(contact.normalizedPhoneNumber)/?text=\(urlEncodedInviteText)") else
-                {
+
+                let inviteTemplate = Localizations.inviteTextTemplate(langID: Locale.current.languageCode?.lowercased() ?? "")
+                let inviteString = String(format: inviteTemplate, contact.givenName ?? contact.fullName, contact.formattedPhoneNumber)
+
+                guard let urlEncodedInviteText = inviteString.addingPercentEncoding(withAllowedCharacters: allowedCharacters),
+                      let whatsAppURL = URL(string: "https://wa.me/\(contact.normalizedPhoneNumber)/?text=\(urlEncodedInviteText)") else {
                     return
                 }
                 Analytics.log(event: .sendInvite, properties: [.service: "whatsapp"])
@@ -149,7 +175,12 @@ extension InviteContactViewController {
 
 private class InviteContactMessageComposerViewController: MFMessageComposeViewController, MFMessageComposeViewControllerDelegate {
 
-    init() {
+    typealias InviteContactMessageComposerCompletion = (MessageComposeResult) -> Void
+
+    private let completion: InviteContactMessageComposerCompletion?
+
+    init(completion: InviteContactMessageComposerCompletion? = nil) {
+        self.completion = completion
         super.init(nibName: nil, bundle: nil)
         messageComposeDelegate = self
     }
@@ -159,24 +190,7 @@ private class InviteContactMessageComposerViewController: MFMessageComposeViewCo
     }
 
     func messageComposeViewController(_ controller: MFMessageComposeViewController, didFinishWith result: MessageComposeResult) {
-        let type: Server_InviteRequestResult.TypeEnum
-        switch result {
-        case .sent:
-            type = .sent
-        case .cancelled:
-            type = .cancelled
-        case .failed:
-            type = .failed
-        @unknown default:
-            type = .unknown
-        }
-        controller.recipients?.forEach { recipient in
-            MainAppContext.shared.eventMonitor.observe(.inviteResult(phoneNumber: recipient, type: type))
-        }
-
-        if result == .sent {
-            controller.recipients?.forEach { _ in Analytics.log(event: .sendInvite, properties: [.service: "sms"]) }
-        }
+        completion?(result)
 
         guard result == .cancelled else { return }
         // NB: We should really be calling this on the presenting view controller (see: https://developer.apple.com/documentation/uikit/uiviewcontroller/1621505-dismiss)

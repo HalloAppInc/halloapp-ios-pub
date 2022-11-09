@@ -615,13 +615,9 @@ extension Localizations {
         return String(format: NSLocalizedString("invite.action.sheet.title", value: "Invite %@ via...", comment: "Title of action sheet that allows the user to choose between sms and whatsapp to invite contact"), username)
     }
 
-    static func inviteText(name: String?, number: String?) -> String {
-        guard let name = name, let number = number else {
-            return Localizations.genericInviteText
-        }
-
-        let inviteString = ServerProperties.inviteString ?? Localizations.specificInviteTextFallback
-        return String(format: inviteString, name, number)
+    // Format as `String(format: inviteTextTemplate, name, number)`
+    static func inviteTextTemplate(langID: String) -> String {
+        return ServerProperties.inviteString(langID: langID) ?? Localizations.specificInviteTextFallback
     }
 
     static func contactsOnHalloApp(_ count: Int) -> String {

@@ -57,7 +57,7 @@ public enum DiscreteEvent {
     case groupHistoryReport(gid: String, numExpected: Int32, numDecrypted: Int32, clientVersion: String, rerequestCount: Int32, timeTaken: TimeInterval)
     case callReport(id: String, peerUserID: UserID, type: String, direction: String, networkType: String, answered: Bool, connected: Bool, duration_ms: Int, endCallReason: String, localEndCall: Bool, iceTimeTakenMs: Int, webrtcStats: String)
     case fabAction(type: FabActionType)
-    case inviteResult(phoneNumber: ABContact.NormalizedPhoneNumber, type: Server_InviteRequestResult.TypeEnum)
+    case inviteResult(phoneNumber: ABContact.NormalizedPhoneNumber, type: Server_InviteRequestResult.TypeEnum, langID: String, inviteStringID: String)
 }
 
 extension DiscreteEvent: Codable {
@@ -153,7 +153,9 @@ extension DiscreteEvent: Codable {
         case .inviteResult:
             let phoneNumber = try container.decode(String.self, forKey: .phoneNumber)
             let type = try Server_InviteRequestResult.TypeEnum(rawValue: container.decode(Int.self, forKey: .inviteResultType)) ?? .unknown
-            self = .inviteResult(phoneNumber: phoneNumber, type: type)
+            let langID = try container.decode(String.self, forKey: .langID)
+            let inviteStringID = try container.decode(String.self, forKey: .inviteStringID)
+            self = .inviteResult(phoneNumber: phoneNumber, type: type, langID: langID, inviteStringID: inviteStringID)
         }
     }
 
@@ -235,10 +237,12 @@ extension DiscreteEvent: Codable {
         case .fabAction(let type):
             try container.encode(EventType.fabAction, forKey: .eventType)
             try container.encode(type.rawValue, forKey: .contentType)
-        case .inviteResult(phoneNumber: let phoneNumber, type: let type):
+        case .inviteResult(phoneNumber: let phoneNumber, type: let type, let langID, let inviteStringID):
             try container.encode(EventType.inviteResult, forKey: .eventType)
             try container.encode(phoneNumber, forKey: .phoneNumber)
             try container.encode(type.rawValue, forKey: .inviteResultType)
+            try container.encode(langID, forKey: .langID)
+            try container.encode(inviteStringID, forKey: .inviteStringID)
         }
     }
 
@@ -274,6 +278,8 @@ extension DiscreteEvent: Codable {
         case iceTimeTakenMs
         case phoneNumber
         case inviteResultType
+        case langID
+        case inviteStringID
     }
 
     private enum EventType: String, Codable {

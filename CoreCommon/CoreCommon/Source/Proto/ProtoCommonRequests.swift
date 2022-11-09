@@ -289,10 +289,12 @@ private extension DiscreteEvent {
                 fabAction.type = .camera
             }
             return .fabAction(fabAction)
-        case .inviteResult(phoneNumber: let phoneNumber, type: let type):
+        case .inviteResult(phoneNumber: let phoneNumber, type: let type, langID: let langID, inviteStringID: let inviteStringID):
             var inviteRequestResult = Server_InviteRequestResult()
             inviteRequestResult.invitedPhone = phoneNumber
             inviteRequestResult.type = type
+            inviteRequestResult.langID = langID
+            inviteRequestResult.inviteStringID = inviteStringID
             return .inviteRequestResult(inviteRequestResult)
         }
     }
