@@ -594,6 +594,7 @@ final class NotificationProtoService: ProtoServiceCore {
             }
 
         case .dailyMoment:
+            AppContext.shared.userDefaults.setValue(metadata.timestamp, forKey: CoreFeedData.dailyMomentNotificationKey)
             presentDailyMomentNotification(for: metadata)
         }
     }

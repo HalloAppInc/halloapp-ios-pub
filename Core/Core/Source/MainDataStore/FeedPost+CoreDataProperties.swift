@@ -67,6 +67,9 @@ public extension FeedPost {
     @NSManaged var unlockedMomentUserID: UserID?
     @NSManaged var isMomentSelfieLeading: Bool
     @NSManaged var locationString: String?
+    @NSManaged var momentNotificationTimestamp: Date?
+    @NSManaged var secondsTakenForMoment: Int
+    @NSManaged var numberOfTakesForMoment: Int
 
     var status: Status {
         get {
@@ -174,7 +177,10 @@ extension FeedPost {
                        selfieImage: selfie,
                      selfieLeading: isMomentSelfieLeading,
                     locationString: locationString,
-                      unlockUserID: unlockedMomentUserID)
+                      unlockUserID: unlockedMomentUserID,
+             notificationTimestamp: momentNotificationTimestamp,
+                      secondsTaken: secondsTakenForMoment,
+                     numberOfTakes: numberOfTakesForMoment)
     }
 
     public var feedItemStatus: FeedItemStatus {

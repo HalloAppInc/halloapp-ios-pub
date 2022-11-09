@@ -31,12 +31,28 @@ public struct MomentContent {
     public let locationString: String?
     public private(set) var unlockUserID: UserID?
 
-    init(image: FeedMediaData, selfieImage: FeedMediaData?, selfieLeading: Bool, locationString: String?, unlockUserID: UserID?) {
+    public private(set) var notificationTimestamp: Date?
+    public private(set) var secondsTaken: Int
+    public private(set) var numberOfTakes: Int
+
+    init(image: FeedMediaData,
+         selfieImage: FeedMediaData?,
+         selfieLeading: Bool,
+         locationString: String?,
+         unlockUserID: UserID?,
+         notificationTimestamp: Date?,
+         secondsTaken: Int,
+         numberOfTakes: Int) {
+
         self.image = image
         self.selfieImage = selfieImage
         self.selfieLeading = selfieLeading
         self.locationString = locationString
         self.unlockUserID = unlockUserID
+
+        self.notificationTimestamp = notificationTimestamp
+        self.secondsTaken = secondsTaken
+        self.numberOfTakes = numberOfTakes
     }
 
     init?(_ clientsMoment: Clients_Moment, postID: FeedPostID) {
@@ -49,10 +65,24 @@ public struct MomentContent {
         selfieLeading = clientsMoment.selfieLeading
         locationString = clientsMoment.location.isEmpty ? nil : clientsMoment.location
         unlockUserID = nil
+
+        notificationTimestamp = nil
+        secondsTaken = 0
+        numberOfTakes = 1
     }
 
-    mutating func update(unlockUserID: UserID?) {
-        self.unlockUserID = unlockUserID
+    mutating func update(with serverPost: Server_Post) {
+        let asString = UserID(serverPost.momentUnlockUid)
+        let momentInfo = serverPost.momentInfo
+        let timestamp = momentInfo.notificationTimestamp
+
+        if asString == AppContextCommon.shared.userData.userId {
+            unlockUserID = asString
+        }
+
+        notificationTimestamp = timestamp == .zero ? nil : Date(timeIntervalSince1970: TimeInterval(timestamp))
+        secondsTaken = Int(momentInfo.timeTaken)
+        numberOfTakes = Int(momentInfo.numTakes)
     }
 
     var proto: Clients_Moment {
@@ -82,6 +112,16 @@ public struct MomentContent {
         }
 
         return moment
+    }
+
+    var info: Server_MomentInfo {
+        var info = Server_MomentInfo()
+
+        info.notificationTimestamp = Int64(notificationTimestamp?.timeIntervalSince1970 ?? .zero)
+        info.timeTaken = Int64(secondsTaken)
+        info.numTakes = Int64(numberOfTakes)
+
+        return info
     }
 }
 
@@ -263,8 +303,8 @@ public struct PostData {
             self.init(id: postId, userId: userId, content: .waiting, timestamp: timestamp, expiration: expiration, status: status, isShared: isShared, audience: serverPost.audience, commentKey: nil)
         }
 
-        if case var .moment(momentContent) = content, serverPost.momentUnlockUid == Int64(AppContextCommon.shared.userData.userId) {
-            momentContent.update(unlockUserID: AppContextCommon.shared.userData.userId)
+        if case var .moment(momentContent) = content {
+            momentContent.update(with: serverPost)
             content = .moment(momentContent)
         }
     }
@@ -378,8 +418,8 @@ public struct PostData {
     }
 
     public mutating func update(with serverPost: Server_Post) {
-        if case var .moment(momentContent) = content, serverPost.momentUnlockUid == Int64(AppContextCommon.shared.userData.userId) {
-            momentContent.update(unlockUserID: AppContextCommon.shared.userData.userId)
+        if case var .moment(momentContent) = content {
+            momentContent.update(with: serverPost)
             content = .moment(momentContent)
         }
     }

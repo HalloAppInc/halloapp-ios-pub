@@ -1182,6 +1182,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 feedPost.unlockedMomentUserID = content.unlockUserID
                 feedPost.isMomentSelfieLeading = content.selfieLeading
                 feedPost.locationString = content.locationString
+                feedPost.momentNotificationTimestamp = content.notificationTimestamp
+                feedPost.secondsTakenForMoment = content.secondsTaken
+                feedPost.numberOfTakesForMoment = content.numberOfTakes
             }
 
             switch xmppPost.content {
@@ -3147,6 +3150,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.unlockedMomentUserID = momentInfo.unlockUserID
             feedPost.isMomentSelfieLeading = momentInfo.isSelfieLeading && media.count > 1
             feedPost.locationString = momentInfo.locationString
+
+            let notificationTimestamp = MainAppContext.shared.userDefaults.value(forKey: CoreFeedData.dailyMomentNotificationKey) as? Date
+            feedPost.momentNotificationTimestamp = notificationTimestamp
         }
 
         // Add mentions
@@ -5715,6 +5721,9 @@ extension FeedData: HalloFeedDelegate {
     }
 
     func halloService(_ halloService: HalloService, didReceiveDailyMomentNotification timestamp: Int64) {
+        let date = Date(timeIntervalSince1970: TimeInterval(timestamp))
+        MainAppContext.shared.userDefaults.setValue(date, forKey: CoreFeedData.dailyMomentNotificationKey)
+
         Task { await presentDailyMomentNotification(timestamp: timestamp) }
     }
 }

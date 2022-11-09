@@ -542,6 +542,8 @@ public extension PostData {
             if let unlockedUserID = momentContent.unlockUserID, let asInteger = Int64(unlockedUserID) {
                 serverPost.momentUnlockUid = asInteger
             }
+
+            serverPost.momentInfo = momentContent.info
         }
 
         // Add media counters.

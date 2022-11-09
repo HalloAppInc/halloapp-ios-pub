@@ -51,6 +51,8 @@ open class CoreFeedData: NSObject {
     private var cancellables: Set<AnyCancellable> = []
     private var contentInFlight: Set<String> = []
 
+    public static let dailyMomentNotificationKey = "daily.moment.notification"
+
     public init(service: CoreService,
                 mainDataStore: MainDataStore,
                 chatData: CoreChatData,
@@ -162,6 +164,9 @@ open class CoreFeedData: NSObject {
                 feedPost.unlockedMomentUserID = momentInfo.unlockUserID
                 feedPost.isMomentSelfieLeading = momentInfo.isSelfieLeading && media.count > 1
                 feedPost.locationString = momentInfo.locationString
+
+                let notificationTimestamp = AppContext.shared.userDefaults.value(forKey: CoreFeedData.dailyMomentNotificationKey) as? Date
+                feedPost.momentNotificationTimestamp = notificationTimestamp
             }
 
             // Add mentions
@@ -750,6 +755,9 @@ open class CoreFeedData: NSObject {
                 feedPost.unlockedMomentUserID = content.unlockUserID
                 feedPost.isMomentSelfieLeading = content.selfieLeading
                 feedPost.locationString = content.locationString
+                feedPost.momentNotificationTimestamp = content.notificationTimestamp
+                feedPost.secondsTakenForMoment = content.secondsTaken
+                feedPost.numberOfTakesForMoment = content.numberOfTakes
             }
 
             // Status
