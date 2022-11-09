@@ -14,7 +14,7 @@ import UIKit
 
 class PostViewController: UIViewController, ShareMenuPresenter, UIViewControllerMediaSaving {
 
-    private let post: FeedPostDisplayable
+    private let post: FeedPost
     private let showFooter: Bool
     private var currentMediaIndex = 0
 
@@ -72,14 +72,14 @@ class PostViewController: UIViewController, ShareMenuPresenter, UIViewController
         return scrollView
     }()
 
-    class func viewController(for post: FeedPostDisplayable, showFooter: Bool = false) -> UIViewController {
+    class func viewController(for post: FeedPost, showFooter: Bool = false) -> UIViewController {
         let navigationController = UINavigationController(rootViewController: PostViewController(post: post, showFooter: showFooter))
         navigationController.modalPresentationStyle = .overFullScreen
         navigationController.modalTransitionStyle = .crossDissolve
         return navigationController
     }
 
-    private init(post: FeedPostDisplayable, showFooter: Bool = false) {
+    private init(post: FeedPost, showFooter: Bool = false) {
         self.post = post
         self.showFooter = showFooter
         super.init(nibName: nil, bundle: nil)
@@ -101,22 +101,74 @@ class PostViewController: UIViewController, ShareMenuPresenter, UIViewController
         navigationItem.compactAppearance = .transparentAppearance
         navigationItem.scrollEdgeAppearance = .transparentAppearance
 
-        setupPostActions()
-
-        postView.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
-        scrollView.addSubview(postView)
-        postView.constrain(to: scrollView.contentLayoutGuide)
-        postView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor).isActive = true
-
         view.addSubview(scrollView)
         scrollView.constrain(to: view)
 
-        let contentWidth = view.frame.width - view.layoutMargins.left - view.layoutMargins.right
-        let gutterWidth = (1 - FeedPostCollectionViewCell.LayoutConstants.backgroundPanelHMarginRatio) * view.layoutMargins.left
-        postView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, showGroupName: true, showArchivedDate: true)
-        postView.isShowingFooter = showFooter
+        if post.isMoment {
+            let momentContainer = UIView()
+            momentContainer.translatesAutoresizingMaskIntoConstraints = false
 
-        postView.delegate = self
+            let momentHeader = FeedItemHeaderView()
+            momentHeader.configure(with: post, contentWidth: view.bounds.width, showGroupName: false)
+            momentHeader.translatesAutoresizingMaskIntoConstraints = false
+            let userID = post.userID
+            momentHeader.showUserAction = { [weak self] in
+                self?.navigationController?.pushViewController(UserFeedViewController(userId: userID), animated: true)
+            }
+            momentHeader.moreMenuContent = { [weak self] in
+                self?.momentMoreMenu() ?? []
+            }
+            momentContainer.addSubview(momentHeader)
+
+            let momentView = MomentView(configuration: .fullscreen)
+            momentView.configure(with: post)
+            momentView.translatesAutoresizingMaskIntoConstraints = false
+            momentContainer.addSubview(momentView)
+
+            let momentFacePile = FacePileView()
+            momentFacePile.translatesAutoresizingMaskIntoConstraints = false
+            momentFacePile.avatarViews.forEach { $0.borderColor = view.backgroundColor }
+            momentFacePile.addTarget(self, action: #selector(openPostDashboard), for: .touchUpInside)
+            momentContainer.addSubview(momentFacePile)
+
+            let hideUtilityViews = post.userID != MainAppContext.shared.userData.userId
+            momentFacePile.isHidden = hideUtilityViews
+            momentHeader.moreButton.isHidden = hideUtilityViews
+
+            scrollView.addSubview(momentContainer)
+            momentContainer.constrain(to: scrollView.contentLayoutGuide)
+
+            NSLayoutConstraint.activate([
+                momentHeader.topAnchor.constraint(equalTo: momentContainer.topAnchor, constant: 8),
+                momentHeader.leadingAnchor.constraint(equalTo: momentView.leadingAnchor, constant: 10),
+                momentHeader.trailingAnchor.constraint(equalTo: momentView.trailingAnchor, constant: -10),
+
+                momentView.leadingAnchor.constraint(equalTo: momentContainer.leadingAnchor),
+                momentView.trailingAnchor.constraint(equalTo: momentContainer.trailingAnchor),
+                momentView.topAnchor.constraint(equalTo: momentHeader.bottomAnchor, constant: 8),
+
+                momentFacePile.topAnchor.constraint(equalTo: momentView.bottomAnchor, constant: 15),
+                momentFacePile.trailingAnchor.constraint(equalTo: momentView.trailingAnchor, constant: -15),
+                momentFacePile.leadingAnchor.constraint(greaterThanOrEqualTo: momentView.leadingAnchor),
+                momentFacePile.bottomAnchor.constraint(equalTo: momentContainer.bottomAnchor),
+
+                momentContainer.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+            ])
+        } else {
+            setupPostActions()
+
+            postView.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+            scrollView.addSubview(postView)
+            postView.constrain(to: scrollView.contentLayoutGuide)
+            postView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor).isActive = true
+
+            let contentWidth = view.frame.width - view.layoutMargins.left - view.layoutMargins.right
+            let gutterWidth = (1 - FeedPostCollectionViewCell.LayoutConstants.backgroundPanelHMarginRatio) * view.layoutMargins.left
+            postView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, showGroupName: true, showArchivedDate: true)
+            postView.isShowingFooter = showFooter
+
+            postView.delegate = self
+        }
 
         view.addSubview(backBtn)
         NSLayoutConstraint.activate([
@@ -128,12 +180,10 @@ class PostViewController: UIViewController, ShareMenuPresenter, UIViewController
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
-        if let feedPost = post as? FeedPost {
-            // Load downloaded images into memory.
-            MainAppContext.shared.feedData.loadImages(postID: feedPost.id)
-            // Initiate download for images that were not yet downloaded.
-            MainAppContext.shared.feedData.downloadMedia(in: [feedPost])
-        }
+        // Load downloaded images into memory.
+        MainAppContext.shared.feedData.loadImages(postID: post.id)
+        // Initiate download for images that were not yet downloaded.
+        MainAppContext.shared.feedData.downloadMedia(in: [post])
 
         navigationController?.setNavigationBarHidden(true, animated: animated)
     }
@@ -151,8 +201,12 @@ class PostViewController: UIViewController, ShareMenuPresenter, UIViewController
         super.viewDidLayoutSubviews()
 
         // Vertically center post in scrollview
+        guard let contentView = scrollView.subviews.first else {
+            return
+        }
+
         let scrollViewHeight = scrollView.frame.height
-        let postHeight = postView.bounds.height
+        let postHeight = contentView.bounds.height
         let safeAreaInsets = view.safeAreaInsets
         scrollView.contentInset.top = max(backBtn.frame.maxY, (scrollViewHeight - postHeight) * 0.5) - safeAreaInsets.top
     }
@@ -177,21 +231,7 @@ extension PostViewController: UserActionHandler {
         if post.hasSaveablePostMedia && post.canSaveMedia {
             let saveMediaTitle = post.mediaCount > 1 ? Localizations.saveAllButton : Localizations.saveAllButtonSingular
             HAMenuButton(title: saveMediaTitle) { [weak self] in
-                guard let self = self else { return }
-                await self.saveMedia(source: .post(self.post.id)) {
-                    // Get media from cache if available
-                    let media = self.post.feedMedia
-
-                    guard !media.contains(where: { !$0.isMediaAvailable || $0.fileURL == nil }) else {
-                        DDLogError("PostViewController/saveMedia/error: Missing media")
-                        return []
-                    }
-                    
-                    return media.compactMap { (item: FeedMedia) -> (type: CommonMediaType, url: URL)? in
-                        guard let url = item.fileURL else { return nil }
-                        return (item.type, url)
-                    }
-                }
+                self?.savePostMedia()
             }
         }
 
@@ -216,40 +256,35 @@ extension PostViewController: UserActionHandler {
         }
 
         postView.shareAction = { [weak self] in
-            guard let self = self, let post = self.post as? FeedPost else {
+            guard let self = self else {
                 return
             }
-            self.presentShareMenu(for: post)
+            self.presentShareMenu(for: self.post)
         }
 
         postView.commentAction = { [weak self] in
-            guard let self = self, let post = self.post as? FeedPost else {
+            guard let self = self else {
                 return
             }
-            self.navigationController?.pushViewController(FlatCommentsViewController(feedPostId: post.id), animated: true)
+            self.navigationController?.pushViewController(FlatCommentsViewController(feedPostId: self.post.id), animated: true)
         }
 
         postView.showSeenByAction = { [weak self] in
-            guard let self = self, let post = self.post as? FeedPost else {
-                return
-            }
-            let viewController = PostDashboardViewController(feedPost: post)
-            viewController.delegate = self
-            self.present(UINavigationController(rootViewController: viewController), animated: true)
+            self?.openPostDashboard()
         }
 
         postView.messageAction = { [weak self] in
-            guard let self = self, let post = self.post as? FeedPost else {
+            guard let self = self else {
                 return
             }
             if ServerProperties.newChatUI {
-                let chatViewController = ChatViewControllerNew(for: post.userId,
-                                                            with: post.id,
-                                                            at: Int32(self.currentMediaIndex))
+                let chatViewController = ChatViewControllerNew(for: self.post.userId,
+                                                               with: self.post.id,
+                                                               at: Int32(self.currentMediaIndex))
                 self.navigationController?.pushViewController(chatViewController, animated: true)
             } else {
-                let chatViewController = ChatViewController(for: post.userId,
-                                                            with: post.id,
+                let chatViewController = ChatViewController(for: self.post.userId,
+                                                            with: self.post.id,
                                                             at: Int32(self.currentMediaIndex))
                 self.navigationController?.pushViewController(chatViewController, animated: true)
             }
@@ -278,11 +313,43 @@ extension PostViewController: UserActionHandler {
         }
     }
 
+    @HAMenuContentBuilder
+    private func momentMoreMenu() -> HAMenu.Content {
+        HAMenu {
+            if ServerProperties.enableMomentExternalShare, post.userID == MainAppContext.shared.userData.userId {
+                HAMenuButton(title: Localizations.buttonShare, image: UIImage(systemName: "square.and.arrow.up")) { [weak self] in
+                    guard let self = self else {
+                        return
+                    }
+                    self.presentShareMenu(for: self.post)
+                }
+            }
+            if post.hasSaveablePostMedia, post.canSaveMedia {
+                HAMenuButton(title: Localizations.buttonSave, image: UIImage(systemName: "photo.on.rectangle.angled")) { [weak self] in
+                    self?.savePostMedia()
+                }
+            }
+        }
+        .displayInline()
+
+        HAMenu {
+            if post.canDeletePost {
+                HAMenuButton(title: Localizations.deleteMomentButtonTitle, image: UIImage(systemName: "trash")) { [weak self] in
+                    self?.deletePost()
+                }
+                .destructive()
+            }
+        }
+        .displayInline()
+    }
+
     private func deletePost() {
-        let alert = UIAlertController(title: nil, message: Localizations.deletePostConfirmationPrompt, preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: Localizations.deletePostButtonTitle, style: .destructive) { [post] _ in
-            guard let post = post as? FeedPost else {
-                DDLogWarn("Attempting to delete an external share post")
+        let deleteButtonTitle =  post.isMoment ? Localizations.deleteMomentButtonTitle : Localizations.deletePostButtonTitle
+        let alertMessage = post.isMoment ? Localizations.deleteMomentConfirmationPrompt : Localizations.deletePostConfirmationPrompt
+
+        let alert = UIAlertController(title: nil, message: alertMessage,  preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: deleteButtonTitle, style: .destructive) { [weak self] _ in
+            guard let post = self?.post else {
                 return
             }
             // If the post is expired, delete it, otherwise, retract it
@@ -291,11 +358,38 @@ extension PostViewController: UserActionHandler {
             } else {
                 MainAppContext.shared.feedData.retract(post: post)
             }
-            self.dismiss(animated: true)
+            self?.dismiss(animated: true)
         })
         alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
 
         self.present(alert, animated: true)
+    }
+
+    private func savePostMedia() {
+        Task {
+            await saveMedia(source: .post(post.id)) { [weak self] in
+                // Get media from cache if available
+                guard let media = self?.post.feedMedia else {
+                    return []
+                }
+                
+                guard !media.contains(where: { !$0.isMediaAvailable || $0.fileURL == nil }) else {
+                    DDLogError("PostViewController/saveMedia/error: Missing media")
+                    return []
+                }
+                
+                return media.compactMap { (item: FeedMedia) -> (type: CommonMediaType, url: URL)? in
+                    guard let url = item.fileURL else { return nil }
+                    return (item.type, url)
+                }
+            }
+        }
+    }
+
+    @objc private func openPostDashboard() {
+        let viewController = PostDashboardViewController(feedPost: post)
+        viewController.delegate = self
+        present(UINavigationController(rootViewController: viewController), animated: true)
     }
 }
 
