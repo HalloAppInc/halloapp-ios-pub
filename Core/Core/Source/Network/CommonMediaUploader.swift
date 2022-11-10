@@ -289,10 +289,6 @@ public class CommonMediaUploader: NSObject {
                 throw MediaUploadError.missingFile
             }
 
-            if result.url != url {
-                result.clear()
-            }
-
             try await updateMedia(with: mediaID) { media in
                 media.status = .processedForUpload
                 media.size = result.size
@@ -305,6 +301,8 @@ public class CommonMediaUploader: NSObject {
                 // re-resolve encryptedFileURL
                 encryptedFileURL = media.encryptedFileURL
             }
+
+            ImageServer.shared.clearTask(for: mediaID, keepFiles: result.url == url)
         }
 
         guard let encryptedFileURL = encryptedFileURL else {
