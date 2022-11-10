@@ -283,7 +283,7 @@ public struct ServerProperties {
             case .isFileSharingEnabled:
                 value = isFileSharingEnabled
             case .inviteStrings:
-                value = inviteString ?? ""
+                value = inviteString(langID: Locale.current.languageCode?.lowercased() ?? "") ?? ""
             case .nseRuntimeSec:
                 value = nseRuntimeSec
             case .newChatUI:

@@ -76,7 +76,7 @@ class GroupFeedViewController: FeedCollectionViewController {
     init(group: Group, shouldShowInviteSheet: Bool = false) {
         self.groupId = group.id
         self.group = group
-        self.theme = group.background ?? 0
+        self.theme = group.background
         self.shouldShowInviteSheet = shouldShowInviteSheet
         shouldRestoreScrollPosition = Self.cachedScrollPositions[groupId] != nil
         super.init(title: nil, fetchRequest: FeedDataSource.groupFeedRequest(groupID: groupId))

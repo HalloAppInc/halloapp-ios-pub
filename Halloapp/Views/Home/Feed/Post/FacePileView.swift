@@ -58,7 +58,7 @@ class FacePileView: UIControl {
             avatarView.heightAnchor.constraint(equalToConstant: diameter).isActive = true
             avatarView.widthAnchor.constraint(equalTo: avatarView.heightAnchor).isActive = true
 
-            let offset = diameter / 2 * (M_SQRT2 - 1) / M_SQRT2
+            let offset = diameter / 2 * (2.squareRoot() - 1) / 2.squareRoot()
             reactionView.centerXAnchor.constraint(equalTo: avatarView.trailingAnchor, constant: -offset).isActive = true
             reactionView.centerYAnchor.constraint(equalTo: avatarView.bottomAnchor, constant: -offset).isActive = true
         }
