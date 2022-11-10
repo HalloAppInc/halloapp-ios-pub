@@ -45,7 +45,6 @@ open class CoreFeedData: NSObject {
     private let mainDataStore: MainDataStore
     private let chatData: CoreChatData
     private let contactStore: ContactStore
-    private let privacySettings: PrivacySettings
     public let commonMediaUploader: CommonMediaUploader
 
     private var cancellables: Set<AnyCancellable> = []
@@ -57,13 +56,11 @@ open class CoreFeedData: NSObject {
                 mainDataStore: MainDataStore,
                 chatData: CoreChatData,
                 contactStore: ContactStore,
-                privacySettings: PrivacySettings,
                 commonMediaUploader: CommonMediaUploader) {
         self.mainDataStore = mainDataStore
         self.service = service
         self.chatData = chatData
         self.contactStore = contactStore
-        self.privacySettings = privacySettings
         self.commonMediaUploader = commonMediaUploader
         super.init()
 
@@ -250,7 +247,7 @@ open class CoreFeedData: NSObject {
 
             switch destination {
             case .feed(let privacyListType):
-                guard let postAudience = try? self.privacySettings.feedAudience(for: privacyListType) else {
+                guard let postAudience = try? AppContext.shared.privacySettings.feedAudience(for: privacyListType) else {
                     let error = PostError.missingFeedAudience
                     didCreatePost?(.failure(error))
                     didBeginUpload?(.failure(error))

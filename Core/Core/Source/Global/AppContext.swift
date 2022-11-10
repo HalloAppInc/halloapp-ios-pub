@@ -310,7 +310,6 @@ open class AppContext: AppContextCommon {
                                         mainDataStore: mainDataStore,
                                         chatData: coreChatData,
                                         contactStore: contactStore,
-                                        privacySettings: privacySettingsImpl, // This is overriden in MainAppContext, so the getter is not yet available
                                         commonMediaUploader: mediaUploader)
 
         DispatchQueue.global(qos: .background).async {
