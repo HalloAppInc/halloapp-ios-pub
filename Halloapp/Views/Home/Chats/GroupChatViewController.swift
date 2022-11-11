@@ -1591,9 +1591,14 @@ extension GroupChatViewController: MessageViewChatDelegate, ReactionViewControll
                 }
             }
             MainAppContext.shared.chatData.forwardChatMessages(toUserIds: toUserIds, toChatGroupIDs: toChatGroupIDs, chatMessage: chatMessage)
-            if toUserIds.count == 1, let toUserId = toUserIds.first {
+            if toUserIds.count == 1, toChatGroupIDs.count == 0, let toUserId = toUserIds.first {
                 let chatVC = ChatViewControllerNew(for: toUserId)
                 self.navigationController?.pushViewController(chatVC, animated: true)
+            } else if toUserIds.count == 0, toChatGroupIDs.count == 1, let toChatGroupID = toChatGroupIDs.first {
+                if let group = MainAppContext.shared.chatData.chatGroup(groupId: toChatGroupID, in: MainAppContext.shared.chatData.viewContext) {
+                    let groupChatVC = GroupChatViewController(for: group)
+                    self.navigationController?.pushViewController(groupChatVC, animated: true)
+                }
             }
         }
         present(UINavigationController(rootViewController: vc), animated: true)

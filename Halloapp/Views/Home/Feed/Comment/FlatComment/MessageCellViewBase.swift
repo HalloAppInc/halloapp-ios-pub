@@ -63,7 +63,20 @@ class MessageCellViewBase: UICollectionViewCell {
 
         label.font = UIFont.preferredFont(forTextStyle: .footnote).withItalicsIfAvailable
         label.textColor = .lightGray
-        label.text = Localizations.messageForwarded
+        let result = NSMutableAttributedString(string: " ")
+        if let icon = UIImage(systemName: "arrowshape.turn.up.right.fill")?.withTintColor(.lightGray) {
+            let imageSize = icon.size
+            let font = UIFont.scaledSystemFont(ofSize: label.font.pointSize - 1)
+
+            let scale = font.capHeight / imageSize.height
+            let iconAttachment = NSTextAttachment(image: icon)
+            iconAttachment.bounds.size = CGSize(width: ceil(imageSize.width * scale), height: ceil(imageSize.height * scale))
+            result.append(NSAttributedString(attachment: iconAttachment))
+            result.append(NSAttributedString(string: " "))
+        }
+        result.append(NSAttributedString(string:Localizations.messageForwarded))
+
+        label.attributedText = result
         label.isUserInteractionEnabled = false
         label.isHidden = true
 
