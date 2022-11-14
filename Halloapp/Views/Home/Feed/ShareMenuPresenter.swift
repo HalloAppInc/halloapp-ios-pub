@@ -62,9 +62,11 @@ extension ShareMenuPresenter {
         Analytics.log(event: .externalShare, properties: [.shareDestination: shareProvider.analyticsShareDestination])
 
         if shareProvider == InstagramStoriesShareProvider.self {
-            InstagramStoriesShareProvider.share(stickerImage:  ExternalSharePreviewImageGenerator.image(for: feedPost),
+            InstagramStoriesShareProvider.share(stickerImage: ExternalSharePreviewImageGenerator.image(for: feedPost),
                                                 backgroundImage: ExternalSharePreviewImageGenerator.backgroundImage(),
                                                 completion: completion)
+        } else if shareProvider == SnapchatShareProvider.self {
+            SnapchatShareProvider.share(text: nil, image: ExternalSharePreviewImageGenerator.image(for: feedPost), completion: completion)
         } else {
             generateExternalShareLink(postID: postID) { url, toast in
                 toast.hide()

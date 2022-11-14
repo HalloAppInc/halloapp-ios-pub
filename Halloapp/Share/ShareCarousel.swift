@@ -41,6 +41,7 @@ class ShareCarousel: UIView {
             ShareDestination(icon: UIImage(named: "ShareAppIconMessages"), shareProvider: MessagesShareProvider.self),
             ShareDestination(icon: UIImage(named: "ShareAppIconTwitter"), shareProvider: TwitterShareProvider.self),
             ShareDestination(icon: UIImage(named: "ShareAppIconInstagram"), shareProvider: InstagramStoriesShareProvider.self),
+            ShareDestination(icon: UIImage(named: "ShareAppIconSnapchat"), shareProvider: SnapchatShareProvider.self),
         ].filter { $0.shareProvider.canShare }
     }()
 

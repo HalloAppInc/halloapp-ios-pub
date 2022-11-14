@@ -443,6 +443,7 @@
 		F408E27B281B0BDE00A49B29 /* MigrationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F408E27A281B0BDE00A49B29 /* MigrationViewController.swift */; };
 		F40F7C6B274C8159008144DE /* PostAudioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40F7C6A274C8158008144DE /* PostAudioView.swift */; };
 		F40F7C8727570707008144DE /* AudioPostComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40F7C8627570707008144DE /* AudioPostComposer.swift */; };
+		F4197B41291DD84C004811C7 /* SnapchatShareProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4197B40291DD84C004811C7 /* SnapchatShareProvider.swift */; };
 		F41F82972798D2AC0021BF40 /* GroupInviteSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41F82962798D2AC0021BF40 /* GroupInviteSheetViewController.swift */; };
 		F41FAA4227E52B7E00FC5090 /* BottomSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41FAA4127E52B7E00FC5090 /* BottomSheetViewController.swift */; };
 		F41FAA5227E54F2900FC5090 /* FeedPostMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41FAA5127E54F2800FC5090 /* FeedPostMenuViewController.swift */; };
@@ -467,6 +468,10 @@
 		F4867F3328ECA0B4006C22A8 /* ShareCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4867F3228ECA0B4006C22A8 /* ShareCarousel.swift */; };
 		F494BEE72745E7DB00982E49 /* ActionSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */; };
 		F499FB0D2877A914005D5ADD /* GroupGridProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F499FB0C2877A914005D5ADD /* GroupGridProgressView.swift */; };
+		F49B3C162922D7B60047F597 /* SCSDKCreativeKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F49B3C142922D7B50047F597 /* SCSDKCreativeKit.xcframework */; };
+		F49B3C172922D7B60047F597 /* SCSDKCreativeKit.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F49B3C142922D7B50047F597 /* SCSDKCreativeKit.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F49B3C182922D7B60047F597 /* SCSDKCoreKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F49B3C152922D7B60047F597 /* SCSDKCoreKit.xcframework */; };
+		F49B3C192922D7B60047F597 /* SCSDKCoreKit.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F49B3C152922D7B60047F597 /* SCSDKCoreKit.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F49C8E632835A52900E881E3 /* RoundedRectButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49C8E622835A52900E881E3 /* RoundedRectButton.swift */; };
 		F49D2E6427EE6A8900195566 /* URLRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49D2E6027EE6A5300195566 /* URLRouterTests.swift */; };
 		F49FF9F527F53C8B00EC86B2 /* FeedPostDisplayable.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49FF9F227F53C8A00EC86B2 /* FeedPostDisplayable.swift */; };
@@ -651,7 +656,9 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				F49B3C192922D7B60047F597 /* SCSDKCoreKit.xcframework in Embed Frameworks */,
 				F404FC3C2810B135008313FF /* CoreCommon.framework in Embed Frameworks */,
+				F49B3C172922D7B60047F597 /* SCSDKCreativeKit.xcframework in Embed Frameworks */,
 				F404FC3A2810B135008313FF /* Core.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
@@ -1249,6 +1256,7 @@
 		F408E27A281B0BDE00A49B29 /* MigrationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationViewController.swift; sourceTree = "<group>"; };
 		F40F7C6A274C8158008144DE /* PostAudioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostAudioView.swift; sourceTree = "<group>"; };
 		F40F7C8627570707008144DE /* AudioPostComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPostComposer.swift; sourceTree = "<group>"; };
+		F4197B40291DD84C004811C7 /* SnapchatShareProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SnapchatShareProvider.swift; sourceTree = "<group>"; };
 		F41F82962798D2AC0021BF40 /* GroupInviteSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInviteSheetViewController.swift; sourceTree = "<group>"; };
 		F41FAA4127E52B7E00FC5090 /* BottomSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomSheetViewController.swift; sourceTree = "<group>"; };
 		F41FAA5127E54F2800FC5090 /* FeedPostMenuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostMenuViewController.swift; sourceTree = "<group>"; };
@@ -1273,6 +1281,8 @@
 		F4867F3228ECA0B4006C22A8 /* ShareCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareCarousel.swift; sourceTree = "<group>"; };
 		F494BEE62745E7DB00982E49 /* ActionSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionSheetViewController.swift; sourceTree = "<group>"; };
 		F499FB0C2877A914005D5ADD /* GroupGridProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridProgressView.swift; sourceTree = "<group>"; };
+		F49B3C142922D7B50047F597 /* SCSDKCreativeKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SCSDKCreativeKit.xcframework; path = Frameworks/SCSDKCreativeKit.xcframework; sourceTree = "<group>"; };
+		F49B3C152922D7B60047F597 /* SCSDKCoreKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SCSDKCoreKit.xcframework; path = Frameworks/SCSDKCoreKit.xcframework; sourceTree = "<group>"; };
 		F49C8E622835A52900E881E3 /* RoundedRectButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedRectButton.swift; sourceTree = "<group>"; };
 		F49D2E6027EE6A5300195566 /* URLRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLRouterTests.swift; sourceTree = "<group>"; };
 		F49FF9F227F53C8A00EC86B2 /* FeedPostDisplayable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedPostDisplayable.swift; sourceTree = "<group>"; };
@@ -1386,6 +1396,8 @@
 				6A081C51273C154600E9E29A /* WebRTC in Frameworks */,
 				68929F9F2734AD3C00F79288 /* MarkdownKit in Frameworks */,
 				685B509B25E075FE00F782F9 /* Reachability in Frameworks */,
+				F49B3C182922D7B60047F597 /* SCSDKCoreKit.xcframework in Frameworks */,
+				F49B3C162922D7B60047F597 /* SCSDKCreativeKit.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1866,6 +1878,8 @@
 		8295BD88471C9D5DC2D30C41 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F49B3C152922D7B60047F597 /* SCSDKCoreKit.xcframework */,
+				F49B3C142922D7B50047F597 /* SCSDKCreativeKit.xcframework */,
 				F404FC372810B135008313FF /* Core.framework */,
 				F404FC382810B135008313FF /* CoreCommon.framework */,
 				E5230B1D267AABA60046A2EB /* Intents.framework */,
@@ -2511,6 +2525,7 @@
 				F43DF0EB28F0A94D008008B7 /* WhatsAppShareProvider.swift */,
 				F43DF0F728F60F4B008008B7 /* TwitterShareProvider.swift */,
 				F4867F3228ECA0B4006C22A8 /* ShareCarousel.swift */,
+				F4197B40291DD84C004811C7 /* SnapchatShareProvider.swift */,
 			);
 			path = Share;
 			sourceTree = "<group>";
@@ -3123,6 +3138,7 @@
 				3213A78E2909A72C00D0450A /* MessageReceiptInfoView.swift in Sources */,
 				F42F574827C86D7200988E9D /* FeedInviteCarouselCell.swift in Sources */,
 				F451ADA928CFBCE5003D1A76 /* UnifiedComposerView.swift in Sources */,
+				F4197B41291DD84C004811C7 /* SnapchatShareProvider.swift in Sources */,
 				F8E6054A2671F6A700DDEB2A /* MediaEdit.swift in Sources */,
 				76333085254A352100A1ED68 /* SettingsTableViewCell.swift in Sources */,
 				76C1F50B2537D6FD0060FBF5 /* AvatarViewButton.swift in Sources */,
@@ -4530,6 +4546,7 @@
 				MARKETING_VERSION = 1.26;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo;
 				PRODUCT_NAME = HalloApp;
+				STRIP_BITCODE_FROM_COPIED_FILES = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -5052,6 +5069,7 @@
 				MARKETING_VERSION = 1.26;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo;
 				PRODUCT_NAME = HalloApp;
+				STRIP_BITCODE_FROM_COPIED_FILES = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -5076,6 +5094,7 @@
 				MARKETING_VERSION = 1.26;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo;
 				PRODUCT_NAME = HalloApp;
+				STRIP_BITCODE_FROM_COPIED_FILES = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};

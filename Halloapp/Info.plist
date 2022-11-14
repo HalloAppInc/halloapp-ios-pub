@@ -37,6 +37,7 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
+		<string>snapchat</string>
 		<string>whatsapp</string>
 		<string>itms-apps</string>
 		<string>twitter</string>
@@ -122,5 +123,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>SCSDKClientId</key>
+	<string>b8853275-20f4-40ce-9e84-38ae302ebe30</string>
+	<key>SnapKitAutoInit</key>
+	<false/>
 </dict>
 </plist>
