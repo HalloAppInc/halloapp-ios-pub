@@ -186,6 +186,7 @@ public class CoreChatData {
         chatMessage.timestamp = timestamp
         // Track outgoing status of all the group members
         if let toGroupId = chatMessageRecipient.toGroupId, let chatGroup = self.chatGroup(groupId: toGroupId, in: context) {
+            chatMessage.outgoingStatus = .pending
             if let members = chatGroup.members {
                 for member in members {
                     guard member.userID != userData.userId else { continue }
