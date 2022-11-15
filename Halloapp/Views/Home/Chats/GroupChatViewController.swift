@@ -445,6 +445,10 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
                 }
             }
         )
+        if let inputAccessoryView = inputAccessoryView {
+            let height = inputAccessoryView.systemLayoutSizeFitting(CGSize(width: view.bounds.width, height: .greatestFiniteMagnitude)).height
+            collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: height, right: 0)
+        }
     }
 
     private func updateFooter() {
