@@ -41,7 +41,8 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     
     private var filteredChats: [ChatThread] = []
     private var searchController = UISearchController(searchResultsController: nil)
-    
+
+    private var groupIdToPresent: GroupID? = nil
     private var isSearchBarEmpty: Bool {
         return searchController.searchBar.text?.isEmpty ?? true
     }
@@ -202,6 +203,18 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
                 }
             }
         )
+
+        cancellableSet.insert(
+            MainAppContext.shared.chatData.didGetAGroupEvent.sink { [weak self] (groupId) in
+                guard let self = self else { return }
+                DispatchQueue.main.async {
+                    if self.groupIdToPresent == groupId {
+                        DDLogDebug("ChatListViewController/presentGroup \(groupId)")
+                        self.routeTo(groupId: groupId, animated: true)
+                        self.groupIdToPresent = nil
+                    }
+                }
+        })
 
         cancellableSet.insert(
             MainAppContext.shared.didTapIntent.sink(receiveValue: { [weak self] intent in
@@ -548,12 +561,19 @@ extension ChatListViewController: UIViewControllerHandleTapNotification {
         // If the user tapped on a notification, move to the chat view
         if metadata.isGroupNotification, let groupId = metadata.groupId {
             // route to group chat view
-            routeTo(groupId: groupId, animated: true)
+            if let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
+                routeTo(groupId: groupId, animated: true)
+            } else {
+                // for offline groupAdd notifications, the app needs some time to get and create the new group when the user
+                // taps on the notification so we just wait for the group event here.
+                DispatchQueue.main.async{
+                    self.groupIdToPresent = groupId
+                }
+            }
         } else if metadata.contentType == .chatMessage || metadata.isContactNotification {
             // route to oneToOne chat view
             routeTo(userID: metadata.fromId, animated: true)
         }
-
         metadata.removeFromUserDefaults()
     }
     
