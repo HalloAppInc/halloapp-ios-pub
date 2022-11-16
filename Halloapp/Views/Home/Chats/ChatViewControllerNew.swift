@@ -1697,7 +1697,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
         }
         let convertedFrame = view.convert(messageViewCell.messageRow.frame, from: messageViewCellSuperview)
         snapshotView.frame = convertedFrame
-        let reactionView = ReactionViewController(messageViewCell: snapshotView, chatMessage: chatMessage)
+        let reactionView = ReactionViewController(messageViewCell: snapshotView, chatMessage: chatMessage, userBelongsToGroup: false)
         reactionView.chatDelegate = self
         reactionView.modalPresentationStyle = .overFullScreen
         reactionView.modalTransitionStyle = .crossDissolve

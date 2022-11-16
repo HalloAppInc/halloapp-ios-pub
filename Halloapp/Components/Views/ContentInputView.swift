@@ -488,6 +488,29 @@ class ContentInputView: UIView {
             setNeedsLayout()
         }
     }
+
+    private(set) lazy var pastMemberVStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [summaryLabel])
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .vertical
+        stack.alignment = .fill
+        stack.spacing = 12
+        stack.isLayoutMarginsRelativeArrangement = true
+        stack.backgroundColor = .primaryBg
+        stack.layoutMargins = UIEdgeInsets(top: 20, left: 27, bottom: 0, right: 27)
+        stack.isHidden = true
+        return stack
+    }()
+
+    private lazy var summaryLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 0
+        label.font = .systemFont(ofSize: 15)
+        label.textAlignment = .center
+        label.text = Localizations.nonMemberLabel
+        
+        return label
+    }()
     
     private var typingDebounceTimer: Timer?
     private var typingThrottleTimer: Timer?
@@ -505,7 +528,10 @@ class ContentInputView: UIView {
 
         addSubview(vStack)
         vStack.constrain(to: self)
-        
+        if options.contains(.chat) {
+            addSubview(pastMemberVStack)
+            pastMemberVStack.constrain(to: self)
+        }
         subscribeToKeyboardNotifications()
         
         textView.linkPreviewMetadata.sink { [weak self] fetchState in

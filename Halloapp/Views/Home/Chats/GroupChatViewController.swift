@@ -131,10 +131,6 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
             in: MainAppContext.shared.chatData.viewContext) != nil
     }
 
-    private lazy var disableMessageSendSheet: DisableMessageSendSheetViewController = {
-        return DisableMessageSendSheetViewController()
-    }()
-
     private lazy var titleView: ChatTitleView = {
         let titleView = ChatTitleView()
         titleView.translatesAutoresizingMaskIntoConstraints = false
@@ -398,7 +394,8 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
         titleView.delegate = self
         loadChatDraft(id: groupId)
         scrollToLastMessage(animated: false)
-
+        
+        updateFooter()
         if let group = group {
             cancellableSet.insert(
                 group.publisher(for: \.name).sink {
@@ -453,10 +450,10 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
 
     private func updateFooter() {
         if !userBelongsToGroup {
-            present(disableMessageSendSheet, animated: true)
+            contentInputView.pastMemberVStack.isHidden = false
             return
         } else {
-            disableMessageSendSheet.dismiss(animated: false)
+            contentInputView.pastMemberVStack.isHidden = true
         }
     }
 
@@ -492,7 +489,6 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
         
         updateJumpButtonVisibility()
         isFirstLaunch = false
-        updateFooter()
     }
 
     override func viewDidLayoutSubviews() {
@@ -1477,7 +1473,7 @@ extension GroupChatViewController: MessageViewChatDelegate, ReactionViewControll
         }
         let convertedFrame = view.convert(messageViewCell.messageRow.frame, from: messageViewCellSuperview)
         snapshotView.frame = convertedFrame
-        let reactionView = ReactionViewController(messageViewCell: snapshotView, chatMessage: chatMessage)
+        let reactionView = ReactionViewController(messageViewCell: snapshotView, chatMessage: chatMessage, userBelongsToGroup: userBelongsToGroup)
         reactionView.chatDelegate = self
         reactionView.modalPresentationStyle = .overFullScreen
         reactionView.modalTransitionStyle = .crossDissolve
@@ -1617,7 +1613,7 @@ extension GroupChatViewController: MessageViewChatDelegate, ReactionViewControll
         let chatMessageId = chatMessage.id
         let alertController = UIAlertController(title: Localizations.chatDeleteTitle, message: nil, preferredStyle: .actionSheet)
 
-        if chatMessage.fromUserId == AppContext.shared.userData.userId, [.sentOut, .delivered, .seen, .played].contains(chatMessage.outgoingStatus) {
+        if chatMessage.fromUserId == AppContext.shared.userData.userId, [.sentOut, .delivered, .seen, .played].contains(chatMessage.outgoingStatus), userBelongsToGroup {
             alertController.addAction(UIAlertAction(title: Localizations.chatDeleteForEveryone, style: .destructive) { _ in
                 MainAppContext.shared.chatData.retractChatMessage(chatMessage: chatMessage, messageToRetractID: chatMessageId)
                 

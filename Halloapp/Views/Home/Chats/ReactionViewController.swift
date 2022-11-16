@@ -37,6 +37,7 @@ public class ReactionViewController: UIViewController {
     var messageViewCell: UIView
     var isOwnMessage: Bool
     var currentReaction: CommonReaction?
+    private var userBelongsToGroup: Bool = false
     
     weak var chatDelegate: ReactionViewControllerChatDelegate?
     weak var commentDelegate: ReactionViewControllerCommentDelegate?
@@ -94,14 +95,16 @@ public class ReactionViewController: UIViewController {
         return gradientLayer
     }()
     
-    init(messageViewCell: UIView, chatMessage: ChatMessage) {
+    init(messageViewCell: UIView, chatMessage: ChatMessage, userBelongsToGroup: Bool) {
         self.messageViewCell = messageViewCell
         self.chatMessage = chatMessage
+        self.userBelongsToGroup = userBelongsToGroup
         self.isOwnMessage = chatMessage.fromUserID == MainAppContext.shared.userData.userId
         self.currentReaction = chatMessage.sortedReactionsList.filter { $0.fromUserID == MainAppContext.shared.userData.userId }.last
         
         super.init(nibName: nil, bundle: nil)
-        if chatMessage.isRetracted {
+        
+        if chatMessage.isRetracted || !userBelongsToGroup {
             emojiStack.isHidden = true
         }
         configureMessageToolbar(chatMessage: chatMessage)
@@ -200,11 +203,13 @@ public class ReactionViewController: UIViewController {
                 items.append(UIBarButtonItem(customView: saveAllButton))
                 items.append(space)
             }
-            
-            let replyButton = createMenuButton(imageName: "arrowshape.turn.up.left", labelName: Localizations.messageReply)
-            replyButton.addTarget(self, action: #selector(handleReply), for: .touchUpInside)
-            items.append(UIBarButtonItem(customView: replyButton))
-            items.append(space)
+
+            if userBelongsToGroup {
+                let replyButton = createMenuButton(imageName: "arrowshape.turn.up.left", labelName: Localizations.messageReply)
+                replyButton.addTarget(self, action: #selector(handleReply), for: .touchUpInside)
+                items.append(UIBarButtonItem(customView: replyButton))
+                items.append(space)
+            }
 
             var forwardLabel = Localizations.messageForward
             if let media = chatMessage.media, media.count > 1 {
