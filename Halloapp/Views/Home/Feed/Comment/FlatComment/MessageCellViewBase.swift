@@ -650,6 +650,8 @@ extension MessageCellViewBase: UIGestureRecognizerDelegate {
     @objc public func showUserFeedForPostAuthor() {
         if let feedPostComment = feedPostComment {
             commentDelegate?.messageView(self, didTapUserId: feedPostComment.userId)
+        } else if let chatMessage = chatMessage {
+            chatDelegate?.messageView(self, didTapUserId: chatMessage.fromUserID)
         }
     }
 

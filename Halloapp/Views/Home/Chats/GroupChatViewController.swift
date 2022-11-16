@@ -974,6 +974,11 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
         }
         return colors[userColorIndex % colors.count]
     }
+
+    private func showUserFeed(for userID: UserID) {
+        let userViewController = UserFeedViewController(userId: userID)
+        self.navigationController?.pushViewController(userViewController, animated: true)
+    }
 }
 
 extension GroupChatViewController: TextLabelDelegate {
@@ -995,11 +1000,6 @@ extension GroupChatViewController: TextLabelDelegate {
     func textLabelDidRequestToExpand(_ label: TextLabel) {
         label.numberOfLines = 0
         collectionView.collectionViewLayout.invalidateLayout()
-    }
-
-    private func showUserFeed(for userID: UserID) {
-        let userViewController = UserFeedViewController(userId: userID)
-        self.navigationController?.pushViewController(userViewController, animated: true)
     }
 }
 
@@ -1444,7 +1444,7 @@ extension GroupChatViewController: UIDocumentPickerDelegate {
 extension GroupChatViewController: MessageViewChatDelegate, ReactionViewControllerChatDelegate, ReactionListViewControllerDelegate {
 
     func messageView(_ messageViewCell: MessageCellViewBase, didTapUserId userId: UserID) {
-        // TODO @Nandini implement this for group chat
+        showUserFeed(for: userId)
     }
 
     func messageView(_ messageViewCell: MessageCellViewBase, for chatMessageID: ChatMessageID, didTapMediaAtIndex index: Int) {

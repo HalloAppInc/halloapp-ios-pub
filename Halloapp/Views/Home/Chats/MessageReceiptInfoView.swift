@@ -184,6 +184,9 @@ class MessageReceiptInfoView: UIViewController, NSFetchedResultsControllerDelega
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
 
+        let swipe = UISwipeGestureRecognizer(target: self, action: #selector(swipeToDismiss))
+        swipe.direction = .right
+        view.addGestureRecognizer(swipe)
         try? receiptInfoFetchedResultsController.performFetch()
 
         updateData()
@@ -255,6 +258,12 @@ class MessageReceiptInfoView: UIViewController, NSFetchedResultsControllerDelega
             return Localizations.playedByHeader
         }
     }
+
+    @objc
+    private func swipeToDismiss(_ gesture: UISwipeGestureRecognizer) {
+        navigationController?.popViewController(animated: true)
+    }
+
 }
 
 extension MessageReceiptInfoView: UICollectionViewDelegate {
