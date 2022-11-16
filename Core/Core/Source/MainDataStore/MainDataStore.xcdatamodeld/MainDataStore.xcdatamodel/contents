@@ -200,7 +200,7 @@
         <attribute name="locationString" optional="YES" attributeType="String"/>
         <attribute name="mentionsValue" optional="YES" attributeType="Transformable" valueTransformerName="MentionValueTransformer"/>
         <attribute name="momentNotificationTimestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="numberOfTakesForMoment" attributeType="Integer 16" defaultValueString="1" usesScalarValueType="YES"/>
+        <attribute name="numberOfTakesForMoment" attributeType="Integer 64" defaultValueString="1" usesScalarValueType="YES"/>
         <attribute name="rawData" optional="YES" attributeType="Binary"/>
         <attribute name="rawText" optional="YES" attributeType="String"/>
         <attribute name="secondsTakenForMoment" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
