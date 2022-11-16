@@ -852,7 +852,7 @@ extension InboundMsgViewCell: AudioViewDelegate {
     func audioViewDidStartPlaying(_ view: AudioView) {
         guard let messageID = messageID else { return }
         voiceNoteView.state = .played
-        MainAppContext.shared.chatData.markPlayedMessage(for: messageID)
+        AppContext.shared.coreChatData.markPlayedMessage(for: messageID)
     }
 
     func audioViewDidEndPlaying(_ view: AudioView, completed: Bool) {

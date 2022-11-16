@@ -100,7 +100,7 @@ extension FeedPost: FeedPostDisplayable {
     }
 
     var seenReceipts: [FeedPostReceipt] {
-        return MainAppContext.shared.feedData.seenReceipts(for: self)
+        return AppContext.shared.coreFeedData.seenReceipts(for: self)
     }
 
     var postReactions: [(UserID, String)] {

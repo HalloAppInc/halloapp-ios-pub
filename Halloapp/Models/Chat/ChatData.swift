@@ -16,7 +16,7 @@ import Intents
 import IntentsUI
 import UIKit
 
-typealias ChatAck = (id: String, timestamp: Date?)
+typealias AckInfo = (id: String, timestamp: Date?)
 
 typealias ChatPresenceInfo = (userID: UserID, presence: PresenceType?, lastSeen: Date?)
 
@@ -129,10 +129,10 @@ class ChatData: ObservableObject {
         var shouldGetGroupsList = false
 
         cancellableSet.insert(
-            service.didGetChatAck.sink { [weak self] chatAck in
+            service.didGetAck.sink { [weak self] chatAck in
                 guard let self = self else { return }
-                DDLogInfo("ChatData/didGetChatAck \(chatAck.id)")
-                self.processInboundChatAck(chatAck)
+                DDLogInfo("ChatData/didGetAck \(chatAck.id)")
+                self.processPotentialChatAck(chatAck)
             }
         )
 
@@ -420,7 +420,7 @@ class ChatData: ObservableObject {
                 if let currentlyChattingWithUserId = coreChatData.getCurrentlyChattingWithUserId() {
                     self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                         guard let self = self else { return }
-                        self.markSeenMessages(type: .oneToOne, for: currentlyChattingWithUserId, in: managedObjectContext)
+                        self.coreChatData.markSeenMessages(type: .oneToOne, for: currentlyChattingWithUserId, in: managedObjectContext)
                         UNUserNotificationCenter.current().removeDeliveredChatNotifications(fromUserId: currentlyChattingWithUserId)
                     }
                 }
@@ -1200,14 +1200,13 @@ class ChatData: ObservableObject {
 
     // MARK: Process Inbound Acks
     
-    private func processInboundChatAck(_ chatAck: ChatAck) {
-        DDLogDebug("ChatData/processInboundChatAck/ [\(chatAck.id)]")
+    private func processPotentialChatAck(_ chatAck: AckInfo) {
         let messageID = chatAck.id
         
         // search for pending 1-1 message
         updateChatMessageByStatus(for: messageID, status: .pending) { [weak self] (chatMessage) in
             guard let self = self else { return }
-            DDLogDebug("ChatData/processInboundChatAck/updatePendingChatMessage/ [\(messageID)]")
+            DDLogDebug("ChatData/processPotentialChatAck/updatePendingChatMessage/ [\(messageID)]")
 
             chatMessage.outgoingStatus = .sentOut
             self.updateChatThreadStatus(chatMessageRecipient: chatMessage.chatMessageRecipient, messageId: chatMessage.id) { (chatThread) in
@@ -1226,7 +1225,7 @@ class ChatData: ObservableObject {
         // search for pending 1-1 reaction
         updateReactionByStatus(for: messageID, status: .pending) { [weak self] (reaction) in
             guard let self = self else { return }
-            DDLogDebug("ChatData/processInboundChatAck/updatePendingReaction/ [\(messageID)]")
+            DDLogDebug("ChatData/processPotentialChatAck/updatePendingReaction/ [\(messageID)]")
 
             reaction.outgoingStatus = .sentOut
 
@@ -1241,7 +1240,7 @@ class ChatData: ObservableObject {
 
         // search for retracting 1-1 message
         updateRetractingChatMessage(for: messageID) { (chatMessage) in
-            DDLogDebug("ChatData/processInboundChatAck/updateRetractingChatMessage/ [\(messageID)]")
+            DDLogDebug("ChatData/processPotentialChatAck/updateRetractingChatMessage/ [\(messageID)]")
             chatMessage.outgoingStatus = .retracted
             self.updateChatThreadStatus(chatMessageRecipient: chatMessage.chatMessageRecipient, messageId: chatMessage.id) { (chatThread) in
                 chatThread.lastMsgStatus = .retracted
@@ -1250,7 +1249,7 @@ class ChatData: ObservableObject {
         
         // search for retracting 1-1 reactions
         updateRetractingReaction(for: messageID) { (reaction) in
-            DDLogDebug("ChatData/processInboundChatAck/updateRetractingReaction/ [\(messageID)]")
+            DDLogDebug("ChatData/processPotentialChatAck/updateRetractingReaction/ [\(messageID)]")
             reaction.outgoingStatus = .retracted
         }
 
@@ -1313,26 +1312,6 @@ class ChatData: ObservableObject {
             return String(fullPath.suffix(from: range.upperBound))
         }
         return nil
-    }
-    
-    func sendSeenReceipt(for chatMessage: ChatMessage) {
-        DDLogInfo("ChatData/sendSeenReceipt \(chatMessage.id)")
-        service.sendReceipt(
-            itemID: chatMessage.id,
-            thread: .none,
-            type: .read,
-            fromUserID: userData.userId,
-            toUserID: chatMessage.fromUserId)
-    }
-
-    func sendPlayedReceipt(for chatMessage: ChatMessage) {
-        DDLogInfo("ChatData/sendPlayedReceipt \(chatMessage.id)")
-        service.sendReceipt(
-            itemID: chatMessage.id,
-            thread: .none,
-            type: .played,
-            fromUserID: userData.userId,
-            toUserID: chatMessage.fromUserId)
     }
 
     // MARK: Share Extension Merge Data
@@ -1808,58 +1787,6 @@ extension ChatData {
 
     // MARK: Thread
     
-    func markSeenMessages(type: ChatType, for id: String, in managedObjectContext: NSManagedObjectContext) {
-        var unseenChatMsgs: [ChatMessage] = []
-        switch type {
-        case .oneToOne:
-            unseenChatMsgs = unseenChatMessages(with: id, in: managedObjectContext)
-        case .groupChat:
-            unseenChatMsgs = unseenGroupChatMessages(in : id, in: managedObjectContext)
-        case .groupFeed:
-            return
-        }
-
-        unseenChatMsgs.forEach {
-            sendSeenReceipt(for: $0)
-            $0.incomingStatus = ChatMessage.IncomingStatus.haveSeen
-        }
-        if managedObjectContext.hasChanges {
-            save(managedObjectContext)
-        }
-    }
-
-    func markSeenMessage(for id: String) {
-        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            guard let self = self else { return }
-            guard let message = self.chatMessage(with: id, in: managedObjectContext) else { return }
-            guard message.fromUserID != self.userData.userId else { return }
-            guard ![.haveSeen, .sentSeenReceipt].contains(message.incomingStatus) else { return }
-
-            self.sendSeenReceipt(for: message)
-            message.incomingStatus = .haveSeen
-
-            if managedObjectContext.hasChanges {
-                self.save(managedObjectContext)
-            }
-        }
-    }
-
-    func markPlayedMessage(for id: String) {
-        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            guard let self = self else { return }
-            guard let message = self.chatMessage(with: id, in: managedObjectContext) else { return }
-            guard message.fromUserID != self.userData.userId else { return }
-            guard ![.played, .sentPlayedReceipt].contains(message.incomingStatus) else { return }
-
-            self.sendPlayedReceipt(for: message)
-            message.incomingStatus = .played
-
-            if managedObjectContext.hasChanges {
-                self.save(managedObjectContext)
-            }
-        }
-    }
-    
     func setThreadUnreadFeedCount(type: ChatType, for id: String, num: Int32) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
@@ -1887,7 +1814,7 @@ extension ChatData {
                 }
             }
             DDLogInfo("ChatData/markThreadAsRead/type: \(type)/id: \(id)/set unreadCount to zero")
-            self.markSeenMessages(type: type, for: id, in: managedObjectContext)
+            self.coreChatData.markSeenMessages(type: type, for: id, in: managedObjectContext)
             
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
@@ -1900,7 +1827,7 @@ extension ChatData {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
             DDLogInfo("ChatData/markSeenMessages/type: \(type)/id: \(id)/without setting unreadCount to zero")
-            self.markSeenMessages(type: type, for: id, in: managedObjectContext)
+            self.coreChatData.markSeenMessages(type: type, for: id, in: managedObjectContext)
         }
     }
 
@@ -3101,23 +3028,6 @@ extension ChatData {
     func chatLinkPreview(with id: String, in managedObjectContext: NSManagedObjectContext) -> CommonLinkPreview? {
         return self.linkPreviews(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
     }
-
-    // includes seen but not sent messages
-    func unseenChatMessages(with fromUserId: String, in managedObjectContext: NSManagedObjectContext) -> [ChatMessage] {
-        let sortDescriptors = [
-            NSSortDescriptor(keyPath: \ChatMessage.serialID, ascending: true),
-            NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
-        ]
-        return self.chatMessages(predicate: NSPredicate(format: "fromUserID = %@ && toUserID = %@ && (incomingStatusValue = %d OR incomingStatusValue = %d)", fromUserId, userData.userId, ChatMessage.IncomingStatus.none.rawValue, ChatMessage.IncomingStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
-    }
-
-    func unseenGroupChatMessages(in groupId: GroupID, in managedObjectContext: NSManagedObjectContext) -> [ChatMessage] {
-        let sortDescriptors = [
-            NSSortDescriptor(keyPath: \ChatMessage.serialID, ascending: true),
-            NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
-        ]
-        return self.chatMessages(predicate: NSPredicate(format: "toGroupID = %@ && (incomingStatusValue = %d OR incomingStatusValue = %d)", groupId, ChatMessage.IncomingStatus.none.rawValue, ChatMessage.IncomingStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
-    }
     
     func pendingOutgoingChatMessages(in managedObjectContext: NSManagedObjectContext) -> [ChatMessage] {
         let sortDescriptors = [
@@ -3916,7 +3826,7 @@ extension ChatData {
         }
         
         if isCurrentlyChattingWithUser && isAppActive && (chatMessage.incomingStatus != .unsupported) && (chatMessage.incomingStatus != .rerequesting) {
-            self.sendSeenReceipt(for: chatMessage)
+            self.coreChatData.sendReceipt(for: chatMessage, type: .read)
             self.updateChatMessage(with: chatMessage.id) { (chatMessage) in
                 chatMessage.incomingStatus = .haveSeen
             }
@@ -4418,7 +4328,7 @@ extension ChatData {
             
             pendingOutgoingSeenReceipts.forEach {
                 DDLogInfo("ChatData/processPendingSeenReceipts/seenReceipts \($0.id)")
-                self.sendSeenReceipt(for: $0)
+                self.coreChatData.sendReceipt(for: $0, type: .read)
             }
         }
     }
@@ -4431,7 +4341,7 @@ extension ChatData {
 
             pendingOutgoingPlayedReceipts.forEach {
                 DDLogInfo("ChatData/pendingOutgoingPlayedReceipts/seenReceipts \($0.id)")
-                self.sendPlayedReceipt(for: $0)
+                self.coreChatData.sendReceipt(for: $0, type: .played)
             }
         }
     }
@@ -5532,25 +5442,6 @@ extension ChatData: HalloChatDelegate {
     func halloService(_ halloService: HalloService, didRerequestReaction reactionID: String, from userID: UserID, ack: (() -> Void)?) {
         DDLogDebug("ChatData/didRerequestReaction [\(reactionID)]")
         coreChatData.handleReactionRerequest(for: reactionID, from: userID, ack: ack)
-    }
-
-    func halloService(_ halloService: HalloService, didSendMessageReceipt receipt: HalloReceipt) {
-        guard receipt.thread == .none else { return }
-
-        updateChatMessage(with: receipt.itemId) { (chatMessage) in
-            DDLogDebug("ChatData/oneToOne/didSendMessageReceipt [\(receipt.itemId)]")
-
-            switch receipt.type {
-            case .read:
-                guard chatMessage.incomingStatus == .haveSeen else { return }
-                chatMessage.incomingStatus = .sentSeenReceipt
-            case .played:
-                guard chatMessage.incomingStatus == .played else { return }
-                chatMessage.incomingStatus = .sentPlayedReceipt
-            case .delivery, .screenshot, .saved:
-                break
-            }
-        }
     }
 
     func halloService(_ halloService: HalloService, didReceiveGroupMessage group: HalloGroup) {

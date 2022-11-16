@@ -61,4 +61,7 @@ public protocol CoreService: CoreServiceCommon {
 
     // MARK: Event Logging
     func log(countableEvents: [CountableEvent], discreteEvents: [DiscreteEvent], completion: @escaping ServiceRequestCompletion<Void>)
+
+    // MARK: Receipts
+    func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>)
 }

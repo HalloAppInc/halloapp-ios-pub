@@ -81,6 +81,9 @@
 		68EAABEB27F7AAA900619B1A /* ChatEvent+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68EAABEA27F7AAA900619B1A /* ChatEvent+CoreDataProperties.swift */; };
 		68EAABED27F7BA9D00619B1A /* GroupEvent+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68EAABEC27F7BA9D00619B1A /* GroupEvent+CoreDataClass.swift */; };
 		68EAABEF27F7BAAB00619B1A /* GroupEvent+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68EAABEE27F7BAAB00619B1A /* GroupEvent+CoreDataProperties.swift */; };
+		68EF70BE2915A02400D50FF0 /* WebClientManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68EF70BD2915A02400D50FF0 /* WebClientManager.swift */; };
+		68EF70C02915A18B00D50FF0 /* PrivacyExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68EF70BF2915A18B00D50FF0 /* PrivacyExtensions.swift */; };
+		68EF70C22915A43B00D50FF0 /* FeedDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68EF70C12915A43B00D50FF0 /* FeedDataSource.swift */; };
 		6A087B952745722F00BC337B /* PushNotifications.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 6A087B932745722F00BC337B /* PushNotifications.xcdatamodeld */; };
 		6A1171B627A985A700579ADB /* GroupHistoryInfo+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1171B227A985A700579ADB /* GroupHistoryInfo+CoreDataClass.swift */; };
 		6A1171B727A985A700579ADB /* GroupHistoryInfo+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1171B327A985A700579ADB /* GroupHistoryInfo+CoreDataProperties.swift */; };
@@ -237,6 +240,9 @@
 		68EAABEA27F7AAA900619B1A /* ChatEvent+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatEvent+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		68EAABEC27F7BA9D00619B1A /* GroupEvent+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupEvent+CoreDataClass.swift"; sourceTree = "<group>"; };
 		68EAABEE27F7BAAB00619B1A /* GroupEvent+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupEvent+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		68EF70BD2915A02400D50FF0 /* WebClientManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebClientManager.swift; sourceTree = "<group>"; };
+		68EF70BF2915A18B00D50FF0 /* PrivacyExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyExtensions.swift; sourceTree = "<group>"; };
+		68EF70C12915A43B00D50FF0 /* FeedDataSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedDataSource.swift; sourceTree = "<group>"; };
 		68F9361B252E759200FA6E75 /* CommonEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonEvents.swift; sourceTree = "<group>"; };
 		6A05AC272759964900AD8853 /* SharedDataModel2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = SharedDataModel2.xcdatamodel; sourceTree = "<group>"; };
 		6A087B942745722F00BC337B /* PushNotifications.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = PushNotifications.xcdatamodel; sourceTree = "<group>"; };
@@ -432,6 +438,14 @@
 			path = Mentions;
 			sourceTree = "<group>";
 		};
+		68EF70BC2915A00300D50FF0 /* Web */ = {
+			isa = PBXGroup;
+			children = (
+				68EF70BD2915A02400D50FF0 /* WebClientManager.swift */,
+			);
+			path = Web;
+			sourceTree = "<group>";
+		};
 		68F935B9252BED9900FA6E75 /* Monitoring */ = {
 			isa = PBXGroup;
 			children = (
@@ -532,6 +546,7 @@
 			isa = PBXGroup;
 			children = (
 				7605EA1E24F475A800CAD9AB /* Privacy.swift */,
+				68EF70BF2915A18B00D50FF0 /* PrivacyExtensions.swift */,
 			);
 			path = Privacy;
 			sourceTree = "<group>";
@@ -599,6 +614,7 @@
 		768123CF2485DA8B008C5216 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				68EF70BC2915A00300D50FF0 /* Web */,
 				F4CF6FDE290B30B0009A45A0 /* Analytics */,
 				F47F764E28B58F8A00692F8E /* Contacts */,
 				32B01C092853B429001FB7D3 /* ProgressView */,
@@ -661,6 +677,7 @@
 		768124112486191A008C5216 /* Feed */ = {
 			isa = PBXGroup;
 			children = (
+				68EF70C12915A43B00D50FF0 /* FeedDataSource.swift */,
 				768124122486193E008C5216 /* Feed.swift */,
 				76C7429524A155E900C7D945 /* FeedDownloadManager.swift */,
 				68CC824026CDB21A00C6E87C /* GroupWhisperSession.swift */,
@@ -916,6 +933,7 @@
 				6AE2FEA326071AB300F7A5B7 /* SharedFeedPost+CoreDataClass.swift in Sources */,
 				6A16C6D3285F7E17005269C7 /* FeedPostCommentKey+CoreDataClass.swift in Sources */,
 				F44463242852BCCB0002570C /* KeyboardNotificationInfo.swift in Sources */,
+				68EF70C02915A18B00D50FF0 /* PrivacyExtensions.swift in Sources */,
 				F41FAA5027E530D400FC5090 /* ExternalShareInfo+CoreDataClass.swift in Sources */,
 				68EAABD527F6613B00619B1A /* ChatMessage+CoreDataProperties.swift in Sources */,
 				249028A924C5E01B0019C4D5 /* SharedData.xcdatamodeld in Sources */,
@@ -957,9 +975,11 @@
 				F47F765028B58FC800692F8E /* ContactStoreCore.swift in Sources */,
 				EEEBE34B2899C6D9005E918F /* CommonLocation+CoreDataProperties.swift in Sources */,
 				F4126F3728A4569E007814EF /* ImageServer.swift in Sources */,
+				68EF70BE2915A02400D50FF0 /* WebClientManager.swift in Sources */,
 				24AA69DA24DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift in Sources */,
 				6A1171BA27A9871D00579ADB /* ContentResendInfo+CoreDataClass.swift in Sources */,
 				68EAABD927F678F700619B1A /* ChatQuoted+CoreDataClass.swift in Sources */,
+				68EF70C22915A43B00D50FF0 /* FeedDataSource.swift in Sources */,
 				F4CF6FE0290B310D009A45A0 /* Analytics.swift in Sources */,
 				68B5851D26C1D8800055FB66 /* CryptoData.swift in Sources */,
 				6A958D81270764E6007C89C6 /* GroupSessionKeyBundle+CoreDataClass.swift in Sources */,

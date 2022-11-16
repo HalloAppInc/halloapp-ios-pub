@@ -9,6 +9,7 @@
 import CocoaLumberjackSwift
 import Combine
 import CoreCommon
+import Core
 import UIKit
 
 final class WebClientConnectionViewController: UIViewController {

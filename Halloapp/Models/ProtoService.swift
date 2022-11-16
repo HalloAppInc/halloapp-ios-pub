@@ -95,7 +95,7 @@ final class ProtoService: ProtoServiceCore {
     weak var callDelegate: HalloCallDelegate?
 
     let didGetNewChatMessage = PassthroughSubject<IncomingChatMessage, Never>()
-    let didGetChatAck = PassthroughSubject<ChatAck, Never>()
+    let didGetAck = PassthroughSubject<AckInfo, Never>()
     let didGetPresence = PassthroughSubject<ChatPresenceInfo, Never>()
     let didGetChatState = PassthroughSubject<ChatStateInfo, Never>()
     let didGetChatRetract = PassthroughSubject<ChatRetractInfo, Never>()
@@ -129,103 +129,8 @@ final class ProtoService: ProtoServiceCore {
 
     // MARK: Receipts
 
-    typealias ReceiptData = (receipt: HalloReceipt, userID: UserID)
-
-    /// Maps message ID of outgoing receipts to receipt data in case we need to resend. Should only be accessed on serviceQueue.
-    private var unackedReceipts: [ String : ReceiptData ] = [:]
-
     private func resendAllPendingReceipts() {
-        serviceQueue.async {
-            for (messageID, receiptData) in self.unackedReceipts {
-                self._sendReceipt(receiptData.receipt, to: receiptData.userID, messageID: messageID)
-            }
-        }
-    }
-
-    private func sendReceipt(_ receipt: HalloReceipt, to toUserID: UserID, messageID: String = PacketID.generate()) {
-        serviceQueue.async {
-            self._sendReceipt(receipt, to: toUserID, messageID: messageID)
-        }
-    }
-
-    /// Handles ack if it corresponds to an unacked receipt. Calls completion block on main thread.
-    private func handlePossibleReceiptAck(id: String, didFindReceipt: @escaping (Bool) -> Void) {
-        serviceQueue.async {
-            var wasReceiptFound = false
-            if let (receipt, _) = self.unackedReceipts[id] {
-                DDLogInfo("proto/ack/\(id)/receipt found [\(receipt.itemId)]")
-                wasReceiptFound = true
-                self.unackedReceipts[id] = nil
-                switch receipt.thread {
-                case .feed:
-                    self.feedDelegate?.halloService(self, didSendFeedReceipt: receipt)
-                case .none, .group:
-                    self.chatDelegate?.halloService(self, didSendMessageReceipt: receipt)
-                }
-            }
-            DispatchQueue.main.async {
-                didFindReceipt(wasReceiptFound)
-            }
-        }
-    }
-
-    /// Should only be called on serviceQueue.
-    private func _sendReceipt(_ receipt: HalloReceipt, to toUserID: UserID, messageID: String = PacketID.generate()) {
-        unackedReceipts[messageID] = (receipt, toUserID)
-
-        DDLogInfo("proto/_sendReceipt/\(receipt.itemId)/wait to execute when connected")
-        execute(whenConnectionStateIs: .connected, onQueue: .main) { [self] in
-            let threadID: String = {
-                switch receipt.thread {
-                case .group(let threadID): return threadID
-                case .feed: return "feed"
-                case .none: return ""
-                }
-            }()
-
-            let payloadContent: Server_Msg.OneOf_Payload = {
-                switch receipt.type {
-                case .delivery:
-                    var deliveryReceipt = Server_DeliveryReceipt()
-                    deliveryReceipt.id = receipt.itemId
-                    deliveryReceipt.threadID = threadID
-                    return .deliveryReceipt(deliveryReceipt)
-                case .read:
-                    var seenReceipt = Server_SeenReceipt()
-                    seenReceipt.id = receipt.itemId
-                    seenReceipt.threadID = threadID
-                    return .seenReceipt(seenReceipt)
-                case .played:
-                    var playedReceipt = Server_PlayedReceipt()
-                    playedReceipt.id = receipt.itemId
-                    playedReceipt.threadID = threadID
-                    return .playedReceipt(playedReceipt)
-                case .screenshot:
-                    var screenshotReceipt = Server_ScreenshotReceipt()
-                    screenshotReceipt.id = receipt.itemId
-                    screenshotReceipt.threadID = threadID
-                    return .screenshotReceipt(screenshotReceipt)
-                case .saved:
-                    var savedReceipt = Server_SavedReceipt()
-                    savedReceipt.id = receipt.itemId
-                    savedReceipt.threadID = threadID
-                    return .savedReceipt(savedReceipt)
-                }
-            }()
-
-            let packet = Server_Packet.msgPacket(
-                from: receipt.userId,
-                to: toUserID,
-                id: messageID,
-                payload: payloadContent)
-
-            if let data = try? packet.serializedData(), self.isConnected {
-                DDLogInfo("proto/_sendReceipt/\(receipt.itemId)/sending")
-                send(data)
-            } else {
-                DDLogInfo("proto/_sendReceipt/\(receipt.itemId)/skipping (disconnected)")
-            }
-        }
+        AppContext.shared.coreFeedData.resendPendingReadReceipts()
     }
 
     private func sendAck(messageID: String) {
@@ -545,15 +450,7 @@ final class ProtoService: ProtoServiceCore {
         switch packet.stanza {
         case .ack(let ack):
             let timestamp = Date(timeIntervalSince1970: TimeInterval(ack.timestamp))
-            handlePossibleReceiptAck(id: ack.id) { wasReceiptFound in
-                guard !wasReceiptFound else {
-                    // Ack has been handled, no need to proceed further
-                    return
-                }
-
-                // Not a receipt, must be a chat ack
-                self.didGetChatAck.send((id: ack.id, timestamp: timestamp))
-            }
+            self.didGetAck.send((id: ack.id, timestamp: timestamp))
         case .msg(let msg):
             // We now use contentId to eliminate push notifications: so here, we assume all content is worth notifying.
             // TODO: murali@: since this is always true, lets try and remove this argument.
@@ -1700,11 +1597,6 @@ extension ProtoService: HalloService {
         let hmacKey = Array(fullKey[48..<80])
 
         return (iv, aesKey, hmacKey)
-    }
-
-    func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID) {
-        let receipt = HalloReceipt(itemId: itemID, userId: fromUserID, type: type, timestamp: nil, thread: thread)
-        sendReceipt(receipt, to: toUserID)
     }
 
     func subscribeToPresenceIfPossible(to userID: UserID) -> Bool {

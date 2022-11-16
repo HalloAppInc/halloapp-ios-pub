@@ -10,20 +10,6 @@ import UIKit
 import Core
 import CoreCommon
 
-enum MomentStackItem: Equatable, Hashable {
-    case moment(FeedPost)
-    case prompt
-
-    var moment: FeedPost? {
-        switch self {
-        case .moment(let moment):
-            return moment
-        case .prompt:
-            return nil
-        }
-    }
-}
-
 class StackedMomentView: UIView {
 
     typealias Item = MomentStackItem

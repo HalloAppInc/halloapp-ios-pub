@@ -125,7 +125,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Sh
 
         // feed view needs to know when unread count changes when user is not on view
         cancellableSet.insert(
-            MainAppContext.shared.feedData.didGetUnreadFeedCount.sink { [weak self] (count) in
+            AppContext.shared.coreFeedData.didGetUnreadFeedCount.sink { [weak self] (count) in
                 guard let self = self else { return }
                 guard count == 0 else { return }
                 DispatchQueue.main.async {
@@ -732,7 +732,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Sh
         UNUserNotificationCenter.current().removeDeliveredPostNotifications(postId: feedPost.id)
         UNUserNotificationCenter.current().removeDeliveredGroupAddNotification(groupId: feedPost.groupID)
         if !feedPost.isMoment {
-            MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
+            AppContext.shared.coreFeedData.sendSeenReceiptIfNecessary(for: feedPost)
         }
     }
     
@@ -1444,5 +1444,25 @@ extension Localizations {
                                        value: "This post will expire on %1$@, while the group's content expiration is set to %2$@.",
                                        comment: "Body of alert indicating that a post's expiration does not match that set on a group")
         return String(format: format, postExpiryString, groupExpiryString)
+    }
+
+    static func deletedPostWithNumber(from number: Int) -> String {
+        let format = NSLocalizedString("n.posts.deleted", value: "%@ posts deleted", comment: "Displayed in place of deleted feed posts.")
+        return String(format: format, String(number))
+    }
+}
+
+extension FeedEvent {
+    var description: String? {
+        switch self {
+        case .groupEvent(let groupEvent):
+            return groupEvent.text
+        case .collapsedGroupEvents(let groupEvents):
+            return groupEvents.first.flatMap { GroupEvent.collapsedText(for: $0.action, memberAction: $0.memberAction, count: groupEvents.count) }
+        case .deletedPost(let feedPost):
+            return Localizations.deletedPost(from: feedPost.userID)
+        case .collapsedDeletedPosts(let feedPosts):
+            return Localizations.deletedPostWithNumber(from: feedPosts.count)
+        }
     }
 }

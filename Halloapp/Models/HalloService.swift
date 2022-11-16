@@ -39,12 +39,9 @@ protocol HalloService: CoreService {
     func revokeExternalShareLink(blobID: String, completion: @escaping ServiceRequestCompletion<Void>)
     func externalSharePost(blobID: String, completion: @escaping ServiceRequestCompletion<Server_ExternalSharePostContainer>)
 
-    // MARK: Receipts
-    func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID)
-
     // MARK: Chat
     var didGetNewChatMessage: PassthroughSubject<IncomingChatMessage, Never> { get }
-    var didGetChatAck: PassthroughSubject<ChatAck, Never> { get }
+    var didGetAck: PassthroughSubject<AckInfo, Never> { get }
     var didGetPresence: PassthroughSubject<ChatPresenceInfo, Never> { get }
     var didGetChatState: PassthroughSubject<ChatStateInfo, Never> { get }
     var didGetChatRetract: PassthroughSubject<ChatRetractInfo, Never> { get }
@@ -129,7 +126,6 @@ protocol HalloFeedDelegate: AnyObject {
     func halloService(_ halloService: HalloService, didRerequestHomeFeedItem contentID: String, contentType: HomeFeedRerequestContentType, from userID: UserID, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didRerequestGroupFeedHistory contentID: String, from userID: UserID, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didReceiveFeedReceipt receipt: HalloReceipt, ack: (() -> Void)?)
-    func halloService(_ halloService: HalloService, didSendFeedReceipt receipt: HalloReceipt)
     func halloService(_ halloService: HalloService, didReceiveDailyMomentNotification timestamp: Int64)
 }
 
@@ -137,7 +133,6 @@ protocol HalloChatDelegate: AnyObject {
     func halloService(_ halloService: HalloService, didRerequestMessage messageID: String, from userID: UserID, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didRerequestReaction reactionID: String, from userID: UserID, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didReceiveMessageReceipt receipt: HalloReceipt, ack: (() -> Void)?)
-    func halloService(_ halloService: HalloService, didSendMessageReceipt receipt: HalloReceipt)
     func halloService(_ halloService: HalloService, didReceiveGroupMessage group: HalloGroup)
     func halloService(_ halloService: HalloService, didRerequestGroupChatMessage contentID: String, contentType: GroupFeedRerequestContentType, groupID: GroupID, from userID: UserID, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didReceiveHistoryResendPayload historyPayload: Clients_GroupHistoryPayload?, withGroupMessage group: HalloGroup)

@@ -8,19 +8,18 @@
 
 import CocoaLumberjackSwift
 import Combine
-import Core
 import CoreCommon
 import Foundation
 import SwiftNoise
 import CoreData
 
-protocol WebClientManagerDelegate: AnyObject {
+public protocol WebClientManagerDelegate: AnyObject {
     func webClientManager(_ manager: WebClientManager, didUpdateWebStaticKey staticKey: Data?)
 }
 
-final class WebClientManager {
+public final class WebClientManager {
 
-    init(
+    public init(
         service: CoreServiceCommon,
         dataStore: MainDataStore,
         noiseKeys: NoiseKeys,
@@ -35,7 +34,7 @@ final class WebClientManager {
         }
     }
 
-    enum State {
+    public enum State {
         case disconnected
         case registering(Data)
         case handshaking(HandshakeState)
@@ -43,8 +42,8 @@ final class WebClientManager {
         case connected(CipherState, CipherState)
     }
 
-    weak var delegate: WebClientManagerDelegate?
-    var state = CurrentValueSubject<State, Never>(.disconnected)
+    public weak var delegate: WebClientManagerDelegate?
+    public var state = CurrentValueSubject<State, Never>(.disconnected)
 
     private let service: CoreServiceCommon
     private let dataStore: MainDataStore
@@ -59,11 +58,11 @@ final class WebClientManager {
     /// Timestamp marking the first update from current batch
     private var updateBatchStart: Date?
 
-    private(set) var webStaticKey: Data?
+    public private(set) var webStaticKey: Data?
     private var keysToRemove = Set<Data>()
     private var isRemovingKeys = false
 
-    func connect(staticKey: Data) {
+    public func connect(staticKey: Data) {
         webQueue.async {
             switch self.state.value {
             case .disconnected, .connected, .awaitingHandshake:
@@ -102,7 +101,7 @@ final class WebClientManager {
         }
     }
 
-    func disconnect(shouldRemoveOldKey: Bool = true) {
+    public func disconnect(shouldRemoveOldKey: Bool = true) {
         webQueue.async {
             if let webStaticKey = self.webStaticKey, shouldRemoveOldKey {
                 self.keysToRemove.insert(webStaticKey)
@@ -114,7 +113,7 @@ final class WebClientManager {
         }
     }
 
-    func handleIncomingData(_ data: Data, from staticKey: Data) {
+    public func handleIncomingData(_ data: Data, from staticKey: Data) {
         webQueue.async {
             guard staticKey == self.webStaticKey else {
                 DDLogError("WebClientManager/handleIncoming/error [unrecognized-static-key: \(staticKey.base64PrefixForLogs())] [expected: \(self.webStaticKey?.base64PrefixForLogs() ?? "nil")]")
@@ -137,7 +136,7 @@ final class WebClientManager {
         }
     }
 
-    func handleIncomingNoiseMessage(_ noiseMessage: Server_NoiseMessage, from staticKey: Data) {
+    public func handleIncomingNoiseMessage(_ noiseMessage: Server_NoiseMessage, from staticKey: Data) {
         guard staticKey == self.webStaticKey else {
             DDLogError("WebClientManager/handleIncomingNoiseMessage/error [unrecognized-static-key: \(staticKey.base64EncodedString())] [expected: \(self.webStaticKey?.base64EncodedString() ?? "nil")]")
             return
@@ -161,7 +160,7 @@ final class WebClientManager {
         }
     }
 
-    func send(_ data: Data) {
+    public func send(_ data: Data) {
         webQueue.async {
             guard case .connected(let send, _) = self.state.value else {
                 DDLogError("WebClientManager/send/error [not-connected]")
@@ -181,11 +180,11 @@ final class WebClientManager {
     }
 
     private func makeConnectionPayload() -> Data {
-        let userID = MainAppContext.shared.userData.userId
+        let userID = AppContext.shared.userData.userId
 
         var userInfo = Web_UserDisplayInfo()
-        userInfo.contactName = MainAppContext.shared.userData.name
-        if let avatarID = MainAppContext.shared.avatarStore.avatarID(forUserID: userID) {
+        userInfo.contactName = AppContext.shared.userData.name
+        if let avatarID = AppContext.shared.avatarStore.avatarID(forUserID: userID) {
             userInfo.avatarID = avatarID
         }
         if let uid = Int64(userID) {
@@ -193,7 +192,7 @@ final class WebClientManager {
         }
 
         var info = Web_ConnectionInfo()
-        info.version = MainAppContext.userAgent
+        info.version = AppContext.userAgent
         info.user = userInfo
 
         do {
@@ -209,12 +208,12 @@ final class WebClientManager {
             self,
             selector: #selector(handleManagedObjectNotification),
             name: Notification.Name.NSManagedObjectContextDidMergeChangesObjectIDs,
-            object: MainAppContext.shared.feedData.viewContext)
+            object: dataStore.viewContext)
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleManagedObjectNotification),
             name: Notification.Name.NSManagedObjectContextDidSaveObjectIDs,
-            object: MainAppContext.shared.feedData.viewContext)
+            object: dataStore.viewContext)
     }
 
     private func handleIncomingContainer(_ container: Web_WebContainer) {
@@ -504,26 +503,24 @@ final class WebClientManager {
     // MARK: Receipts
 
     private func handleReceiptUpdate(_ update: Web_ReceiptUpdate) {
-        guard let feedData = MainAppContext.shared.feedData else { return }
-        guard let chatData = MainAppContext.shared.chatData else { return }
-        if let post = feedData.feedPost(with: update.contentID, in: AppContext.shared.mainDataStore.viewContext) {
+        if let post = AppContext.shared.coreFeedData.feedPost(with: update.contentID, in: AppContext.shared.mainDataStore.viewContext) {
             switch update.receipt.status {
             case .delivered, .played, .UNRECOGNIZED:
                 DDLogError("WebClientManager/handleReceiptUpdate/post/error [invalid-status] [\(update.receipt.status)] [\(post.id)]")
             case .seen:
                 DDLogInfo("WebClientManager/handleReceiptUpdate/post/seen [\(post.id)]")
-                feedData.sendSeenReceiptIfNecessary(for: post)
+                AppContext.shared.coreFeedData.sendSeenReceiptIfNecessary(for: post)
             }
-        } else if let message = chatData.chatMessage(with: update.contentID, in: AppContext.shared.mainDataStore.viewContext) {
+        } else if let message = AppContext.shared.coreChatData.chatMessage(with: update.contentID, in: AppContext.shared.mainDataStore.viewContext) {
             switch update.receipt.status {
             case .delivered, .UNRECOGNIZED:
                 DDLogError("WebClientManager/handleReceiptUpdate/message/error [invalid-status] [\(update.receipt.status)] [\(message.id)]")
             case .seen:
                 DDLogInfo("WebClientManager/handleReceiptUpdate/message/seen [\(message.id)]")
-                chatData.markSeenMessage(for: message.id)
+                AppContext.shared.coreChatData.markSeenMessage(for: message.id)
             case .played:
                 DDLogInfo("WebClientManager/handleReceiptUpdate/message/played [\(message.id)]")
-                chatData.markPlayedMessage(for: message.id)
+                AppContext.shared.coreChatData.markPlayedMessage(for: message.id)
             }
         } else {
             DDLogError("WebClientManager/handleReceiptUpdate/error [content-not-found] [\(update.contentID)]")
@@ -533,7 +530,7 @@ final class WebClientManager {
     // MARK: Privacy Lists
 
     private func privacyListResponse(for request: Web_PrivacyListRequest) -> Web_PrivacyListResponse {
-        let privacy = MainAppContext.shared.privacySettings
+        let privacy = AppContext.shared.privacySettings
 
         var serverLists = Server_PrivacyLists()
         if let activeType = privacy.activeType,
@@ -573,13 +570,12 @@ final class WebClientManager {
     }()
 
     private func feedUpdate(for managedObjectIDs: Set<NSManagedObjectID>) -> Web_FeedUpdate? {
-        let currentUserID = MainAppContext.shared.userData.userId
+        let currentUserID = AppContext.shared.userData.userId
 
-        let context = MainAppContext.shared.feedData.viewContext
         var posts = [FeedPost]()
         var comments = [FeedPostComment]()
         for id in managedObjectIDs {
-            let obj = context.object(with: id)
+            let obj = dataStore.viewContext.object(with: id)
             if let comment = obj as? FeedPostComment {
                 comments.append(comment)
             } else if let post = obj as? FeedPost {
@@ -681,7 +677,7 @@ final class WebClientManager {
 
         let frc = NSFetchedResultsController<FeedPostComment>(
             fetchRequest: fetchRequest,
-            managedObjectContext: MainAppContext.shared.mainDataStore.viewContext,
+            managedObjectContext: AppContext.shared.mainDataStore.viewContext,
             sectionNameKeyPath: nil,
             cacheName: nil)
 
@@ -715,7 +711,7 @@ final class WebClientManager {
     }
 
     private func feedResponse(with posts: [FeedPost], type: Web_FeedType, nextCursor: String?) -> Web_FeedResponse {
-        let currentUserID = MainAppContext.shared.userData.userId
+        let currentUserID = AppContext.shared.userData.userId
 
         var response = Web_FeedResponse()
         response.type = type
@@ -786,7 +782,7 @@ final class WebClientManager {
         // Include info for all users who are mentioned in posts.
         usersToInclude.formUnion(posts.flatMap { $0.mentions }.map { $0.userID })
         // Include info for all users who have seen your posts.
-        usersToInclude.formUnion(posts.flatMap { $0.seenReceipts }.map { $0.userId })
+        usersToInclude.formUnion(posts.flatMap { AppContext.shared.coreFeedData.seenReceipts(for: $0) }.map { $0.userId })
         return usersToInclude
     }
 
@@ -802,8 +798,8 @@ final class WebClientManager {
     // MARK: DisplayInfo
 
     func userDisplayInfo(for userIDs: Set<UserID>) -> [Web_UserDisplayInfo] {
-        let contactNames = MainAppContext.shared.contactStore.fullNames(forUserIds: userIDs)
-        let avatarIDs = MainAppContext.shared.avatarStore.avatarIDs(forUserIDs: userIDs)
+        let contactNames = AppContext.shared.contactStore.fullNames(forUserIds: userIDs)
+        let avatarIDs = AppContext.shared.avatarStore.avatarIDs(forUserIDs: userIDs)
 
         return userIDs.compactMap {
             guard let userID = Int64($0) else { return nil }
@@ -866,7 +862,7 @@ final class WebClientManager {
     private static func postDisplayInfo(for post: FeedPost, currentUserID: UserID) -> Web_PostDisplayInfo {
         var info = Web_PostDisplayInfo()
         info.id = post.id
-        info.isUnsupported = post.isUnsupported
+        info.isUnsupported = post.status == .unsupported
         info.retractState = {
             switch post.status {
             case .retracting:
@@ -906,7 +902,7 @@ final class WebClientManager {
             }
         }()
         info.unreadComments = post.unreadCount
-        info.userReceipts = post.seenReceipts.compactMap {
+        info.userReceipts = AppContext.shared.coreFeedData.seenReceipts(for: post).compactMap {
             guard let userID = Int64($0.userId) else { return nil }
             var receipt = Web_ReceiptInfo()
             receipt.timestamp = Int64($0.timestamp.timeIntervalSince1970)
@@ -985,7 +981,7 @@ public enum WebClientQRCodeResult {
     case invalid
     case valid(Data)
 
-    static func from(qrCodeData: Data) -> WebClientQRCodeResult {
+    public static func from(qrCodeData: Data) -> WebClientQRCodeResult {
         // NB: Website QR code currently encoded as base 64 string
         let bytes: [UInt8] = Data(base64Encoded: qrCodeData)?.bytes ?? qrCodeData.bytes
         if let version = bytes.first, version != 1 {
@@ -998,7 +994,7 @@ public enum WebClientQRCodeResult {
     }
 }
 
-extension Data {
+public extension Data {
     func base64PrefixForLogs() -> String {
         return String(base64EncodedString().prefix(8))
     }

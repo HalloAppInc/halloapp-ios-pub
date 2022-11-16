@@ -528,7 +528,7 @@ class GroupFeedViewController: FeedCollectionViewController {
 
     private func markAllPostsAsViewed() {
         for feedPost in feedDataSource.posts {
-            MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
+            AppContext.shared.coreFeedData.sendSeenReceiptIfNecessary(for: feedPost)
             UNUserNotificationCenter.current().removeDeliveredPostNotifications(postId: feedPost.id)
             UNUserNotificationCenter.current().removeDeliveredGroupAddNotification(groupId: feedPost.groupID)
         }

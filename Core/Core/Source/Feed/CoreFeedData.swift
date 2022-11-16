@@ -44,7 +44,7 @@ open class CoreFeedData: NSObject {
     private let service: CoreService
     private let mainDataStore: MainDataStore
     private let chatData: CoreChatData
-    private let contactStore: ContactStore
+    private let contactStore: ContactStoreCore
     public let commonMediaUploader: CommonMediaUploader
 
     private var cancellables: Set<AnyCancellable> = []
@@ -55,7 +55,7 @@ open class CoreFeedData: NSObject {
     public init(service: CoreService,
                 mainDataStore: MainDataStore,
                 chatData: CoreChatData,
-                contactStore: ContactStore,
+                contactStore: ContactStoreCore,
                 commonMediaUploader: CommonMediaUploader) {
         self.mainDataStore = mainDataStore
         self.service = service
@@ -560,6 +560,12 @@ open class CoreFeedData: NSObject {
         }
     }
 
+    public static var momentCutoffDate: Date {
+        let days = 1
+        let momentExpiryTimeInterval = -TimeInterval(days * 24 * 60 * 60)
+        return Date(timeIntervalSinceNow: momentExpiryTimeInterval)
+    }
+
     // MARK: - FeedPost lookup and updates
 
     public func feedPosts(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext, archived: Bool = false) -> [FeedPost] {
@@ -610,6 +616,171 @@ open class CoreFeedData: NSObject {
                 self.mainDataStore.save(managedObjectContext)
             }
         }
+    }
+
+
+    // MARK: Unread count
+
+    public let didGetUnreadFeedCount = PassthroughSubject<Int, Never>()
+
+    public func checkForUnreadFeed() {
+        mainDataStore.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            let predicate = NSPredicate(format: "statusValue = %d", FeedPost.Status.incoming.rawValue)
+            let unreadFeedPosts = self.feedPosts(predicate: predicate, in: managedObjectContext)
+            self.didGetUnreadFeedCount.send(unreadFeedPosts.count)
+        }
+    }
+
+    // MARK: Read Receipts
+
+    public func resendPendingReadReceipts() {
+        mainDataStore.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            let feedPosts = self.feedPosts(predicate: NSPredicate(format: "statusValue == %d", FeedPost.Status.seenSending.rawValue), in: managedObjectContext)
+            guard !feedPosts.isEmpty else { return }
+            DDLogInfo("FeedData/seen-receipt/resend count=[\(feedPosts.count)]")
+            feedPosts.forEach { (feedPost) in
+                self.internalSendSeenReceipt(for: feedPost)
+            }
+
+            if managedObjectContext.hasChanges {
+                self.mainDataStore.save(managedObjectContext)
+            }
+        }
+    }
+
+    private func internalSendSeenReceipt(for feedPost: FeedPost) {
+        // Make sure the post is still in a valid state and wasn't retracted just now.
+        // We dont send seen receipts until decryption is successful?
+        // TODO: murali@: fix this up eventually and test properly!
+        guard feedPost.status == .incoming || feedPost.status == .seenSending || feedPost.status == .rerequesting else {
+            DDLogWarn("FeedData/seen-receipt/ignore Incorrect post status: \(feedPost.status)")
+            return
+        }
+        guard !feedPost.isWaiting else {
+            DDLogWarn("FeedData/seen-receipt/ignore post content is empty: \(feedPost.status)")
+            return
+        }
+        // Send seen receipts for now - but dont update status.
+        if !feedPost.isRerequested {
+            feedPost.status = .seenSending
+        }
+        let postID = feedPost.id
+        service.sendReceipt(itemID: postID, thread: .feed, type: .read, fromUserID: AppContext.shared.userData.userId, toUserID: feedPost.userId) { [weak self] result in
+            switch result {
+            case .failure(let error):
+                DDLogError("FeedData/seen-receipt/error [\(error)]")
+            case .success:
+                self?.handleSeenReceiptAck(for: postID)
+            }
+        }
+    }
+
+    private func handleSeenReceiptAck(for postID: FeedPostID) {
+        updateFeedPost(with: postID) { (feedPost) in
+            // Dont mark the status to be seen if the post is retracted, rerequested, or expired.
+            if !feedPost.isPostRetracted && !feedPost.isRerequested && !feedPost.isExpired {
+                feedPost.status = .seen
+            }
+        }
+    }
+
+    public func sendSeenReceiptIfNecessary(for feedPost: FeedPost) {
+        guard feedPost.status == .incoming || feedPost.status == .rerequesting else { return }
+        guard !feedPost.fromExternalShare else { return }
+
+        let postId = feedPost.id
+        let postStatus = feedPost.status
+        updateFeedPost(with: postId) { [weak self] (post) in
+            guard let self = self else { return }
+            // Check status again in case one of these blocks was already queued
+            guard post.status == .incoming || postStatus == .rerequesting else { return }
+            self.internalSendSeenReceipt(for: post)
+            self.checkForUnreadFeed()
+        }
+    }
+
+    public func sendScreenshotReceipt(for feedPost: FeedPost) {
+        guard feedPost.isMoment, feedPost.userId != AppContext.shared.userData.userId else {
+            DDLogError("FeedData/sendScreenshotReceipt/tried to send a screenshot receipt for a normal feed post")
+            return
+        }
+
+        DDLogInfo("FeedData/sendScreenshotReceipt postID: [\(feedPost.id)]")
+        service.sendReceipt(itemID: feedPost.id,
+                            thread: .feed,
+                              type: .screenshot,
+                        fromUserID: AppContext.shared.userData.userId,
+                          toUserID: feedPost.userId) { result in
+            DDLogInfo("FeedData/sendScreenshotReceipt/result [\(result)]")
+        }
+    }
+
+    public func sendSavedReceipt(for feedPost: FeedPost) {
+        guard feedPost.userId != AppContext.shared.userData.userId else {
+            return
+        }
+
+        DDLogInfo("FeedData/sendSavedReceipt postID: [\(feedPost.id)]")
+        service.sendReceipt(itemID: feedPost.id,
+                            thread: .feed,
+                              type: .saved,
+                        fromUserID: AppContext.shared.userData.userId,
+                          toUserID: feedPost.userId) { result in
+            DDLogInfo("FeedData/sendSavedReceipt/result [\(result)]")
+        }
+    }
+
+    public func seenReceipts(for feedPost: FeedPost) -> [FeedPostReceipt] {
+        guard let seenReceipts = feedPost.info?.receipts else {
+            return []
+        }
+
+        var receipts = [FeedPostReceipt]()
+
+        let fetchReceipts: (NSManagedObjectContext) -> Void = { managedObjectContext in
+            let contacts = self.contactStore.contacts(withUserIds: Array(seenReceipts.keys), in: managedObjectContext)
+            let contactsMap = contacts.reduce(into: [UserID: ABContact]()) { (map, contact) in
+                if let userID = contact.userId {
+                    map[userID] = contact
+                }
+            }
+            let reactions: [UserID: String] = Dictionary(
+                feedPost.reactions?.compactMap { ($0.fromUserID, $0.emoji) } ?? [],
+                uniquingKeysWith: { (s1, s2) in s1 })
+
+            for (userId, receipt) in seenReceipts {
+                guard let seenDate = receipt.seenDate else { continue }
+
+                var contactName: String?, phoneNumber: String?
+                if let contact = contactsMap[userId] {
+                    contactName = contact.fullName
+                    phoneNumber = contact.phoneNumber?.formattedPhoneNumber
+                }
+                if contactName == nil {
+                    contactName = self.contactStore.fullName(for: userId, in: managedObjectContext)
+                }
+
+                receipts.append(FeedPostReceipt(userId: userId,
+                                                  type: .seen,
+                                           contactName: contactName,
+                                           phoneNumber: phoneNumber,
+                                             timestamp: seenDate,
+                                        savedTimestamp: receipt.savedDate,
+                                   screenshotTimestamp: receipt.screenshotDate,
+                                              reaction: reactions[userId]))
+            }
+            receipts.sort(by: { $0.timestamp > $1.timestamp })
+        }
+
+        // Optimization: if we're on the main thread, attempt to use the view context. This prevents us from being blocked by lengthy contact sync operations.
+        if Thread.isMainThread {
+            fetchReceipts(contactStore.viewContext)
+        } else {
+            contactStore.performOnBackgroundContextAndWait(fetchReceipts)
+        }
+
+        return receipts
     }
 
     // MARK: - FeedPostComment Lookup and updates

@@ -620,3 +620,52 @@ public extension CommentData {
         return comment
     }
 }
+
+// MARK: Receipts
+
+public struct FeedPostReceipt {
+
+    public init(userId: UserID, type: FeedPostReceipt.ReceiptType, contactName: String? = nil, phoneNumber: String? = nil, timestamp: Date, savedTimestamp: Date? = nil, screenshotTimestamp: Date? = nil, reaction: String? = nil) {
+        self.userId = userId
+        self.type = type
+        self.contactName = contactName
+        self.phoneNumber = phoneNumber
+        self.timestamp = timestamp
+        self.savedTimestamp = savedTimestamp
+        self.screenshotTimestamp = screenshotTimestamp
+        self.reaction = reaction
+    }
+
+    public enum ReceiptType: Int {
+        case seen = 0
+        case sent = 1
+        case placeholder = 2
+    }
+
+    public let userId: UserID
+    public let type: ReceiptType
+    public let contactName: String?
+    public let phoneNumber: String?
+    public let timestamp: Date
+    public let savedTimestamp: Date?
+    /// - note: Moments only.
+    public let screenshotTimestamp: Date?
+    public let reaction: String?
+
+    public static var placeholder: FeedPostReceipt {
+        FeedPostReceipt(userId: "", type: .placeholder, contactName: nil, phoneNumber: nil, timestamp: Date(), savedTimestamp: nil, screenshotTimestamp: nil, reaction: nil)
+    }
+}
+
+extension FeedPostReceipt : Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(userId)
+        hasher.combine(type)
+    }
+}
+
+extension FeedPostReceipt : Equatable {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        return lhs.userId == rhs.userId && lhs.type == rhs.type
+    }
+}

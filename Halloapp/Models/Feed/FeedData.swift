@@ -80,7 +80,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     self.deleteNotifications(olderThan: Date(timeIntervalSinceNow: -FeedPost.defaultExpiration), in: managedObjectContext)
                 }
                 self.resendStuckItems()
-                self.resendPendingReadReceipts()
+                self.coreFeedData.resendPendingReadReceipts()
             })
 
         cancellableSet.insert(
@@ -1162,7 +1162,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             })
         }
 
-        checkForUnreadFeed()
+        coreFeedData.checkForUnreadFeed()
         return newPosts
     }
 
@@ -2076,7 +2076,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.didProcessGroupFeedPostRetract.send(feedPost.id)
             }
             
-            self.checkForUnreadFeed()
+            self.coreFeedData.checkForUnreadFeed()
             completion()
         }
     }
@@ -2295,145 +2295,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     reaction.outgoingStatus = .sentOut
                 }
             }
-        }
-    }
-
-    // MARK: Read Receipts
-
-    private func resendPendingReadReceipts() {
-        performSeriallyOnBackgroundContext { (managedObjectContext) in
-            let feedPosts = self.feedPosts(predicate: NSPredicate(format: "statusValue == %d", FeedPost.Status.seenSending.rawValue), in: managedObjectContext)
-            guard !feedPosts.isEmpty else { return }
-            DDLogInfo("FeedData/seen-receipt/resend count=[\(feedPosts.count)]")
-            feedPosts.forEach { (feedPost) in
-                self.internalSendSeenReceipt(for: feedPost)
-            }
-
-            self.save(managedObjectContext)
-        }
-    }
-
-    private func internalSendSeenReceipt(for feedPost: FeedPost) {
-        // Make sure the post is still in a valid state and wasn't retracted just now.
-        // We dont send seen receipts until decryption is successful?
-        // TODO: murali@: fix this up eventually and test properly!
-        guard feedPost.status == .incoming || feedPost.status == .seenSending || feedPost.status == .rerequesting else {
-            DDLogWarn("FeedData/seen-receipt/ignore Incorrect post status: \(feedPost.status)")
-            return
-        }
-        guard !feedPost.isWaiting else {
-            DDLogWarn("FeedData/seen-receipt/ignore post content is empty: \(feedPost.status)")
-            return
-        }
-        // Send seen receipts for now - but dont update status.
-        if !feedPost.isRerequested {
-            feedPost.status = .seenSending
-        }
-        service.sendReceipt(itemID: feedPost.id, thread: .feed, type: .read, fromUserID: userData.userId, toUserID: feedPost.userId)
-    }
-
-    func sendSeenReceiptIfNecessary(for feedPost: FeedPost) {
-        guard feedPost.status == .incoming || feedPost.status == .rerequesting else { return }
-        guard !feedPost.fromExternalShare else { return }
-
-        let postId = feedPost.id
-        let postStatus = feedPost.status
-        updateFeedPost(with: postId) { [weak self] (post) in
-            guard let self = self else { return }
-            // Check status again in case one of these blocks was already queued
-            guard post.status == .incoming || postStatus == .rerequesting else { return }
-            self.internalSendSeenReceipt(for: post)
-            self.checkForUnreadFeed()
-        }
-    }
-
-    func sendScreenshotReceipt(for feedPost: FeedPost) {
-        guard feedPost.isMoment, feedPost.userId != userData.userId else {
-            DDLogError("FeedData/sendScreenshotReceipt/tried to send a screenshot receipt for a normal feed post")
-            return
-        }
-
-        DDLogInfo("FeedData/sendScreenshotReceipt postID: [\(feedPost.id)]")
-        service.sendReceipt(itemID: feedPost.id,
-                            thread: .feed,
-                              type: .screenshot,
-                        fromUserID: userData.userId,
-                          toUserID: feedPost.userId)
-    }
-
-    func sendSavedReceipt(for feedPost: FeedPost) {
-        guard feedPost.userId != userData.userId else {
-            return
-        }
-
-        DDLogInfo("FeedData/sendSavedReceipt postID: [\(feedPost.id)]")
-        service.sendReceipt(itemID: feedPost.id,
-                            thread: .feed,
-                              type: .saved,
-                        fromUserID: userData.userId,
-                          toUserID: feedPost.userId)
-    }
-
-    func seenReceipts(for feedPost: FeedPost) -> [FeedPostReceipt] {
-        guard let seenReceipts = feedPost.info?.receipts else {
-            return []
-        }
-
-        var receipts = [FeedPostReceipt]()
-
-        let fetchReceipts: (NSManagedObjectContext) -> Void = { managedObjectContext in
-            let contacts = self.contactStore.contacts(withUserIds: Array(seenReceipts.keys), in: managedObjectContext)
-            let contactsMap = contacts.reduce(into: [UserID: ABContact]()) { (map, contact) in
-                if let userID = contact.userId {
-                    map[userID] = contact
-                }
-            }
-            let reactions: [UserID: String] = Dictionary(
-                feedPost.reactions?.compactMap { ($0.fromUserID, $0.emoji) } ?? [],
-                uniquingKeysWith: { (s1, s2) in s1 })
-
-            for (userId, receipt) in seenReceipts {
-                guard let seenDate = receipt.seenDate else { continue }
-
-                var contactName: String?, phoneNumber: String?
-                if let contact = contactsMap[userId] {
-                    contactName = contact.fullName
-                    phoneNumber = contact.phoneNumber?.formattedPhoneNumber
-                }
-                if contactName == nil {
-                    contactName = self.contactStore.fullName(for: userId, in: managedObjectContext)
-                }
-
-                receipts.append(FeedPostReceipt(userId: userId,
-                                                  type: .seen,
-                                           contactName: contactName!,
-                                           phoneNumber: phoneNumber,
-                                             timestamp: seenDate,
-                                        savedTimestamp: receipt.savedDate,
-                                   screenshotTimestamp: receipt.screenshotDate,
-                                              reaction: reactions[userId]))
-            }
-            receipts.sort(by: { $0.timestamp > $1.timestamp })
-        }
-
-        // Optimization: if we're on the main thread, attempt to use the view context. This prevents us from being blocked by lengthy contact sync operations.
-        if Thread.isMainThread {
-            fetchReceipts(contactStore.viewContext)
-        } else {
-            contactStore.performOnBackgroundContextAndWait(fetchReceipts)
-        }
-
-        return receipts
-    }
-
-    let didGetUnreadFeedCount = PassthroughSubject<Int, Never>()
-    
-    func checkForUnreadFeed() {
-        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            guard let self = self else { return }
-            let predicate = NSPredicate(format: "statusValue = %d", FeedPost.Status.incoming.rawValue)
-            let unreadFeedPosts = self.feedPosts(predicate: predicate, in: managedObjectContext)
-            self.didGetUnreadFeedCount.send(unreadFeedPosts.count)
         }
     }
     
@@ -4501,11 +4362,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogError("FeedData/notifications/delete-for-post/error  [\(error)]")
         }
     }
-    
-    static var momentCutoffDate: Date {
-        let momentExpiryTimeInterval = -Date.days(1)
-        return Date(timeIntervalSinceNow: momentExpiryTimeInterval)
-    }
 
     private func deleteExpiredPosts() {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
@@ -4537,7 +4393,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 return
             }
 
-            let cutoff = Self.momentCutoffDate
+            let cutoff = CoreFeedData.momentCutoffDate
             DDLogInfo("FeedData/delete-expired-moments  date=[\(cutoff)]")
 
             let request = FeedPost.fetchRequest()
@@ -4934,7 +4790,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     // MARK: - Moments
 
     func refreshValidMoment() {
-        if let validMoment = validMoment.value, validMoment.status != .retracted, !validMoment.isDeleted, validMoment.timestamp > Self.momentCutoffDate {
+        if let validMoment = validMoment.value, validMoment.status != .retracted, !validMoment.isDeleted, validMoment.timestamp > CoreFeedData.momentCutoffDate {
             DDLogInfo("FeedData/refreshValidMoment/existing moment still valid")
             return
         }
@@ -4954,7 +4810,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             NSPredicate(format: "userID == %@", userData.userId),
             NSPredicate(format: "isMoment == YES"),
             NSPredicate(format: "statusValue != %d", FeedPost.Status.retracted.rawValue),
-            NSPredicate(format: "timestamp > %@", Self.momentCutoffDate as NSDate),
+            NSPredicate(format: "timestamp > %@", CoreFeedData.momentCutoffDate as NSDate),
         ])
         
         request.fetchLimit = 1
@@ -4966,7 +4822,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return
         }
 
-        sendSeenReceiptIfNecessary(for: moment)
+        coreFeedData.sendSeenReceiptIfNecessary(for: moment)
     }
 
     /// - Returns: All of the valid, unexpired moments from other users (sorted).
@@ -4978,7 +4834,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             NSPredicate(format: "isMoment == YES"),
             NSPredicate(format: "statusValue != %d", FeedPost.Status.retracted.rawValue),
             NSPredicate(format: "statusValue != %d", FeedPost.Status.expired.rawValue),
-            NSPredicate(format: "timestamp > %@", Self.momentCutoffDate as NSDate),
+            NSPredicate(format: "timestamp > %@", CoreFeedData.momentCutoffDate as NSDate),
         ])
 
         request.sortDescriptors = [NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false)]
@@ -4992,7 +4848,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
             NSPredicate(format: "userID != %@", userData.userId),
             NSPredicate(format: "isMoment == YES"),
-            NSPredicate(format: "timestamp > %@", Self.momentCutoffDate as NSDate),
+            NSPredicate(format: "timestamp > %@", CoreFeedData.momentCutoffDate as NSDate),
 
             NSCompoundPredicate(orPredicateWithSubpredicates: [
                 NSPredicate(format: "statusValue == %d", FeedPost.Status.seenSending.rawValue),
@@ -5120,7 +4976,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     DDLogDebug("FeedData/mergeData/error: \(error)")
                 }
                 DDLogInfo("FeedData/mergeData - \(sharedDataStore.source)/done")
-                checkForUnreadFeed()
+                coreFeedData.checkForUnreadFeed()
                 completion()
             }
         }
@@ -5565,15 +5421,6 @@ extension FeedData: HalloFeedDelegate {
             }
 
             ack?()
-        }
-    }
-
-    func halloService(_ halloService: HalloService, didSendFeedReceipt receipt: HalloReceipt) {
-        updateFeedPost(with: receipt.itemId) { (feedPost) in
-            // Dont mark the status to be seen if the post is retracted, rerequested, or expired.
-            if !feedPost.isPostRetracted && !feedPost.isRerequested && !feedPost.isExpired {
-                feedPost.status = .seen
-            }
         }
     }
 

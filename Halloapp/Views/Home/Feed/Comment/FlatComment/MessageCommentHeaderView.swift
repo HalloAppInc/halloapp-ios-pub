@@ -269,7 +269,7 @@ extension MessageCommentHeaderView: PostAudioViewDelegate {
         guard isPlaying, let feedPost = feedPost else {
             return
         }
-        MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
+        AppContext.shared.coreFeedData.sendSeenReceiptIfNecessary(for: feedPost)
         postAudioView.isSeen = true
     }
 }

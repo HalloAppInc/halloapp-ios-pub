@@ -57,6 +57,23 @@ public class CoreChatData {
 
     // MARK: - Getters
 
+    // includes seen but not sent messages
+    func unseenChatMessages(with fromUserId: String, in managedObjectContext: NSManagedObjectContext) -> [ChatMessage] {
+        let sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatMessage.serialID, ascending: true),
+            NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
+        ]
+        return self.chatMessages(predicate: NSPredicate(format: "fromUserID = %@ && toUserID = %@ && (incomingStatusValue = %d OR incomingStatusValue = %d)", fromUserId, userData.userId, ChatMessage.IncomingStatus.none.rawValue, ChatMessage.IncomingStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+    }
+
+    func unseenGroupChatMessages(in groupId: GroupID, in managedObjectContext: NSManagedObjectContext) -> [ChatMessage] {
+        let sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatMessage.serialID, ascending: true),
+            NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
+        ]
+        return self.chatMessages(predicate: NSPredicate(format: "toGroupID = %@ && (incomingStatusValue = %d OR incomingStatusValue = %d)", groupId, ChatMessage.IncomingStatus.none.rawValue, ChatMessage.IncomingStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+    }
+
     private func chatGroups(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext) -> [Group] {
         let fetchRequest: NSFetchRequest<Group> = Group.fetchRequest()
         fetchRequest.predicate = predicate
@@ -621,7 +638,114 @@ public class CoreChatData {
         }
     }
 
-    // MARK: - Thread Updates
+    // MARK: - Receipts
+
+    public func markSeenMessages(type: ChatType, for id: String, in managedObjectContext: NSManagedObjectContext) {
+        var unseenChatMsgs: [ChatMessage] = []
+        switch type {
+        case .oneToOne:
+            unseenChatMsgs = unseenChatMessages(with: id, in: managedObjectContext)
+        case .groupChat:
+            unseenChatMsgs = unseenGroupChatMessages(in : id, in: managedObjectContext)
+        case .groupFeed:
+            return
+        }
+
+        unseenChatMsgs.forEach {
+            sendReceipt(for: $0, type: .read)
+            $0.incomingStatus = ChatMessage.IncomingStatus.haveSeen
+        }
+        if managedObjectContext.hasChanges {
+            try? managedObjectContext.save()
+        }
+    }
+
+    public func markSeenMessage(for id: String) {
+        mainDataStore.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            guard let message = self.chatMessage(with: id, in: managedObjectContext) else { return }
+            guard message.fromUserID != self.userData.userId else { return }
+            guard ![.haveSeen, .sentSeenReceipt].contains(message.incomingStatus) else { return }
+
+            self.sendReceipt(for: message, type: .read)
+            message.incomingStatus = .haveSeen
+
+            if managedObjectContext.hasChanges {
+                try? managedObjectContext.save()
+            }
+        }
+    }
+
+    public func markPlayedMessage(for id: String) {
+        mainDataStore.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            guard let message = self.chatMessage(with: id, in: managedObjectContext) else { return }
+            guard message.fromUserID != self.userData.userId else { return }
+            guard ![.played, .sentPlayedReceipt].contains(message.incomingStatus) else { return }
+
+            self.sendReceipt(for: message, type: .played)
+            message.incomingStatus = .played
+
+            if managedObjectContext.hasChanges {
+                try? managedObjectContext.save()
+            }
+        }
+    }
+
+    public func sendReceipt(for chatMessage: ChatMessage, type: HalloReceipt.`Type`) {
+        let messageID = chatMessage.id
+        DDLogInfo("ChatData/sendReceipt/\(type) \(messageID)")
+        service.sendReceipt(
+            itemID: messageID,
+            thread: .none,
+            type: type,
+            fromUserID: userData.userId,
+            toUserID: chatMessage.fromUserId) { [weak self] result in
+                switch result {
+                case .failure(let error):
+                    DDLogError("ChatData/sendReceipt/\(type)/error [\(error)]")
+                case .success:
+                    self?.handleReceiptAck(messageID: messageID, type: type)
+                }
+            }
+    }
+
+    private func handleReceiptAck(messageID: String, type: HalloReceipt.`Type`) {
+        switch type {
+        case .read:
+            updateChatMessage(with: messageID) { (chatMessage) in
+                chatMessage.incomingStatus = .sentSeenReceipt
+            }
+        case .played:
+            updateChatMessage(with: messageID) { (chatMessage) in
+                chatMessage.incomingStatus = .sentPlayedReceipt
+            }
+        case .delivery, .screenshot, .saved:
+            DDLogInfo("CoreChatData/handleReceiptAck/\(type) [\(messageID)]")
+        }
+    }
+
+    // MARK: - Updates
+
+    private func updateChatMessage(with chatMessageId: String, block: @escaping (ChatMessage) -> (), performAfterSave: (() -> ())? = nil) {
+        mainDataStore.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            defer {
+                if let performAfterSave = performAfterSave {
+                    performAfterSave()
+                }
+            }
+            guard let self = self else { return }
+            guard let chatMessage = self.chatMessage(with: chatMessageId, in: managedObjectContext) else {
+                DDLogError("CoreChatData/update-message/missing [\(chatMessageId)]")
+                return
+            }
+            DDLogVerbose("CoreChatData/update-existing-message [\(chatMessageId)]")
+            block(chatMessage)
+            if managedObjectContext.hasChanges {
+                try? managedObjectContext.save()
+            }
+        }
+    }
 
     open func updateThreadWithGroupFeed(_ id: FeedPostID, isInbound: Bool, using managedObjectContext: NSManagedObjectContext) {
         guard let groupFeedPost = AppContext.shared.coreFeedData.feedPost(with: id, in: managedObjectContext) else { return }

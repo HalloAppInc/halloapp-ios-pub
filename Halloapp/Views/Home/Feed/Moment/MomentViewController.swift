@@ -503,7 +503,7 @@ class MomentViewController: UIViewController, UIViewControllerMediaSaving, Share
         }
 
         DDLogInfo("MomentViewController/screenshotWasTaken")
-        MainAppContext.shared.feedData.sendScreenshotReceipt(for: post)
+        AppContext.shared.coreFeedData.sendScreenshotReceipt(for: post)
     }
 
     @HAMenuContentBuilder

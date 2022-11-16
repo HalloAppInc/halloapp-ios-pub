@@ -13,7 +13,9 @@ import Combine
 
 class ArchiveViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
     
-    private var feedDataSource = FeedDataSource(fetchRequest: FeedDataSource.archiveFeedRequest())
+    private var feedDataSource = FeedDataSource(
+        fetchRequest: FeedDataSource.archiveFeedRequest(
+            userID: MainAppContext.shared.userData.userId))
     private var feedItems: [FeedPost] = []
 
     private lazy var collectionView: UICollectionView = {

@@ -91,6 +91,79 @@ open class ProtoServiceCore: ProtoServiceCoreCommon {
         }
         AppContextCommon.shared.keyData.uploadMoreOneTimePreKeys()
     }
+
+    override open func didReceive(packet: Server_Packet) {
+        super.didReceive(packet: packet)
+
+        if case .ack(let ack) = packet.stanza {
+            if let completion = receiptCompletions[ack.id] {
+                completion(.success(()))
+                receiptCompletions[ack.id] = nil
+            }
+        }
+    }
+
+    // MARK: Receipts
+
+    private var receiptCompletions = [String: ServiceRequestCompletion<Void>]()
+
+    private func sendReceipt(_ receipt: HalloReceipt, to toUserID: UserID, messageID: String = PacketID.generate(), completion: @escaping ServiceRequestCompletion<Void>) {
+        DDLogInfo("proto/sendReceipt/\(receipt.itemId)/wait to execute when connected")
+        execute(whenConnectionStateIs: .connected, onQueue: .main) { [self] in
+            let threadID: String = {
+                switch receipt.thread {
+                case .group(let threadID): return threadID
+                case .feed: return "feed"
+                case .none: return ""
+                }
+            }()
+
+            let payloadContent: Server_Msg.OneOf_Payload = {
+                switch receipt.type {
+                case .delivery:
+                    var deliveryReceipt = Server_DeliveryReceipt()
+                    deliveryReceipt.id = receipt.itemId
+                    deliveryReceipt.threadID = threadID
+                    return .deliveryReceipt(deliveryReceipt)
+                case .read:
+                    var seenReceipt = Server_SeenReceipt()
+                    seenReceipt.id = receipt.itemId
+                    seenReceipt.threadID = threadID
+                    return .seenReceipt(seenReceipt)
+                case .played:
+                    var playedReceipt = Server_PlayedReceipt()
+                    playedReceipt.id = receipt.itemId
+                    playedReceipt.threadID = threadID
+                    return .playedReceipt(playedReceipt)
+                case .screenshot:
+                    var screenshotReceipt = Server_ScreenshotReceipt()
+                    screenshotReceipt.id = receipt.itemId
+                    screenshotReceipt.threadID = threadID
+                    return .screenshotReceipt(screenshotReceipt)
+                case .saved:
+                    var savedReceipt = Server_SavedReceipt()
+                    savedReceipt.id = receipt.itemId
+                    savedReceipt.threadID = threadID
+                    return .savedReceipt(savedReceipt)
+                }
+            }()
+
+            let packet = Server_Packet.msgPacket(
+                from: receipt.userId,
+                to: toUserID,
+                id: messageID,
+                payload: payloadContent)
+
+            if let data = try? packet.serializedData(), self.isConnected {
+                DDLogInfo("proto/sendReceipt/\(receipt.itemId)/sending")
+                self.receiptCompletions[messageID] = completion
+                self.send(data)
+            } else {
+                DDLogInfo("proto/sendReceipt/\(receipt.itemId)/skipping (disconnected)")
+                completion(.failure(.malformedRequest))
+            }
+        }
+    }
 }
 
 extension ProtoServiceCore: CoreService {
@@ -2781,5 +2854,12 @@ extension ProtoServiceCore: CoreService {
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
             self.enqueue(request: ProtoWhisperCollectionKeysRequest(members: members, completion: completion))
         }
+    }
+
+    // MARK: Receipts
+
+    public func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+        let receipt = HalloReceipt(itemId: itemID, userId: fromUserID, type: type, timestamp: nil, thread: thread)
+        sendReceipt(receipt, to: toUserID, completion: completion)
     }
 }

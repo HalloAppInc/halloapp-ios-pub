@@ -7,13 +7,11 @@
 //
 
 import CocoaLumberjackSwift
-import Core
+import Combine
 import CoreCommon
 import CoreData
-import UIKit
-import Combine
 
-protocol FeedDataSourceDelegate: AnyObject {
+public protocol FeedDataSourceDelegate: AnyObject {
     func itemsDidChange(_ items: [FeedDisplayItem])
     func itemDidChange(_ item: FeedDisplayItem, change type: FeedDataSource.FeedDataSourceChangeType)
     func modifyItems(_ items: [FeedDisplayItem]) -> [FeedDisplayItem]
@@ -21,7 +19,7 @@ protocol FeedDataSourceDelegate: AnyObject {
 
 // MARK: - default implementations
 
-extension FeedDataSourceDelegate {
+public extension FeedDataSourceDelegate {
     func itemDidChange(_ item: FeedDisplayItem, change type: FeedDataSource.FeedDataSourceChangeType) { }
 
     func modifyItems(_ items: [FeedDisplayItem]) -> [FeedDisplayItem] {
@@ -29,10 +27,10 @@ extension FeedDataSourceDelegate {
     }
 }
 
-final class FeedDataSource: NSObject {
-    typealias FeedDataSourceChangeType = NSFetchedResultsChangeType
+public final class FeedDataSource: NSObject {
+    public typealias FeedDataSourceChangeType = NSFetchedResultsChangeType
 
-    init(fetchRequest: NSFetchRequest<FeedPost>) {
+    public init(fetchRequest: NSFetchRequest<FeedPost>) {
         self.fetchRequest = fetchRequest
         super.init()
 
@@ -42,28 +40,18 @@ final class FeedDataSource: NSObject {
                 self?.verifyOldestUnexpiredMoment()
             }
             .store(in: &cancellables)
-
-        MainAppContext.shared.feedData.validMoment
-            .dropFirst() // no need to reload for initial values
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                // in this case we want to refresh since we want the prompt cell to be
-                // inserted again
-                self?.refresh()
-            }
-            .store(in: &cancellables)
     }
 
-    weak var delegate: FeedDataSourceDelegate?
+    public weak var delegate: FeedDataSourceDelegate?
     private var cancellables: Set<AnyCancellable> = []
     
-    private(set) var displayItems = [FeedDisplayItem]()
+    public private(set) var displayItems = [FeedDisplayItem]()
     var deletionLabelToExpand: FeedDisplayItem?
     private var oldestUnexpiredMoment: Date?
 
-    var events = [FeedEvent]()
+    public var events = [FeedEvent]()
 
-    func index(of feedPostID: FeedPostID) -> Int? {
+    public func index(of feedPostID: FeedPostID) -> Int? {
         return displayItems.firstIndex(where: {
             switch $0 {
             case .momentStack(let moments):
@@ -78,7 +66,7 @@ final class FeedDataSource: NSObject {
         })
     }
 
-    func index(of groupEvent: GroupEvent) -> Int? {
+    public func index(of groupEvent: GroupEvent) -> Int? {
         return displayItems.firstIndex {
             switch $0 {
             case .event(let feedEvent):
@@ -96,34 +84,34 @@ final class FeedDataSource: NSObject {
         }
     }
 
-    func item(at index: Int) -> FeedDisplayItem? {
+    public func item(at index: Int) -> FeedDisplayItem? {
         guard index < displayItems.count else { return nil }
         return displayItems[index]
     }
 
-    func removeItem(_ item: FeedDisplayItem) {
+    public func removeItem(_ item: FeedDisplayItem) {
         displayItems.removeAll { $0 == item }
         delegate?.itemsDidChange(displayItems)
     }
 
-    var hasUnreadPosts: Bool {
+    public var hasUnreadPosts: Bool {
         return posts.contains(where: { [.incoming].contains($0.status) })
     }
 
     /// All posts, including moments.
-    var posts: [FeedPost] {
+    public var posts: [FeedPost] {
         return fetchedResultsController?.fetchedObjects ?? []
     }
     /// Items that are in the moments stack.
-    private(set) var momentItems: [MomentStackItem] = []
+    public private(set) var momentItems: [MomentStackItem] = []
 
-    func clear() {
+    public func clear() {
         fetchedResultsController = nil
         events.removeAll()
         displayItems.removeAll()
     }
 
-    func setup() {
+    public func setup() {
         fetchedResultsController = newFetchedResultsController()
         do {
             try fetchedResultsController?.performFetch()
@@ -138,7 +126,7 @@ final class FeedDataSource: NSObject {
         }
     }
 
-    func refresh() {
+    public func refresh() {
         let posts = fetchedResultsController?.fetchedObjects ?? []
         displayItems = makeDisplayItems(orderedPosts: posts, orderedEvents: events)
         if let modifiedItems = delegate?.modifyItems(displayItems) {
@@ -147,7 +135,7 @@ final class FeedDataSource: NSObject {
         delegate?.itemsDidChange(displayItems)
     }
 
-    func toggleExpansion(feedEvent: FeedEvent) {
+    public func toggleExpansion(feedEvent: FeedEvent) {
         guard let index = displayItems.firstIndex(of: .event(feedEvent)) else {
             DDLogError("FeedDataSource/toggleExpansion/could not find feedEvent")
             return
@@ -227,7 +215,7 @@ final class FeedDataSource: NSObject {
     private func newFetchedResultsController() -> NSFetchedResultsController<FeedPost> {
         let fetchedResultsController = NSFetchedResultsController<FeedPost>(
             fetchRequest: fetchRequest,
-            managedObjectContext: MainAppContext.shared.feedData.viewContext,
+            managedObjectContext: AppContext.shared.mainDataStore.viewContext,
             sectionNameKeyPath: nil,
             cacheName: nil)
         fetchedResultsController.delegate = self
@@ -338,7 +326,7 @@ final class FeedDataSource: NSObject {
 
     /// Filters out expired moments and seperates valid moments from regular feed posts.
     private func filterOutMoments(_ orderedPosts: [FeedPost]) -> (posts: [FeedPost], moments: [MomentStackItem]) {
-        let momentCutoff = FeedData.momentCutoffDate
+        let momentCutoff = CoreFeedData.momentCutoffDate
         var stackedMoments = [MomentStackItem]()
         oldestUnexpiredMoment = nil
 
@@ -390,7 +378,7 @@ final class FeedDataSource: NSObject {
 }
 
 extension FeedDataSource: NSFetchedResultsControllerDelegate {
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+    public func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         let posts = (controller.fetchedObjects as? [FeedPost]) ?? []
         displayItems = makeDisplayItems(orderedPosts: posts, orderedEvents: events)
         if let modifiedItems = delegate?.modifyItems(displayItems) {
@@ -399,7 +387,7 @@ extension FeedDataSource: NSFetchedResultsControllerDelegate {
         delegate?.itemsDidChange(displayItems)
     }
     
-    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
+    public func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
               didChange anObject: Any,
                     at indexPath: IndexPath?,
                         for type: NSFetchedResultsChangeType,
@@ -412,7 +400,7 @@ extension FeedDataSource: NSFetchedResultsControllerDelegate {
     }
 }
 
-extension FeedDataSource {
+public extension FeedDataSource {
     static func groupFeedRequest(groupID: GroupID) -> NSFetchRequest<FeedPost> {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "groupID == %@ && (expiration >= now() || expiration == nil) && fromExternalShare == NO", groupID)
@@ -438,10 +426,10 @@ extension FeedDataSource {
         return fetchRequest
     }
     
-    static func archiveFeedRequest() -> NSFetchRequest<FeedPost> {
+    static func archiveFeedRequest(userID: UserID) -> NSFetchRequest<FeedPost> {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
         fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-            NSPredicate(format: "userID == %@", MainAppContext.shared.userData.userId),
+            NSPredicate(format: "userID == %@", userID),
             NSPredicate(format: "expiration < now()"),
             NSPredicate(format: "fromExternalShare == NO"),
         ])
@@ -450,11 +438,11 @@ extension FeedDataSource {
     }
 }
 
-enum FeedDisplaySection {
+public enum FeedDisplaySection {
     case posts
 }
 
-enum FeedDisplayItem: Hashable, Equatable {
+public enum FeedDisplayItem: Hashable, Equatable {
     case post(FeedPost)
     case moment(FeedPost)
     case momentStack([MomentStackItem])
@@ -464,7 +452,7 @@ enum FeedDisplayItem: Hashable, Equatable {
     case inviteCarousel
     case shareCarousel(FeedPostID)
 
-    var post: FeedPost? {
+    public var post: FeedPost? {
         switch self {
         case .post(let post): return post
         case .moment(let post): return post
@@ -477,7 +465,7 @@ enum FeedDisplayItem: Hashable, Equatable {
         }
     }
     
-    var event: FeedEvent? {
+    public var event: FeedEvent? {
         switch self {
         case .post: return nil
         case .moment: return nil
@@ -490,7 +478,7 @@ enum FeedDisplayItem: Hashable, Equatable {
         }
     }
     
-    var groupWelcome: GroupID? {
+    public var groupWelcome: GroupID? {
         switch self {
         case .post: return nil
         case .moment: return nil
@@ -504,12 +492,21 @@ enum FeedDisplayItem: Hashable, Equatable {
     }
 }
 
-struct FeedPostDisplayData: Equatable {
-    var currentMediaIndex: Int?
-    var textNumberOfLines: Int?
+public enum MomentStackItem: Equatable, Hashable {
+    case moment(FeedPost)
+    case prompt
+
+    public var moment: FeedPost? {
+        switch self {
+        case .moment(let moment):
+            return moment
+        case .prompt:
+            return nil
+        }
+    }
 }
 
-enum FeedEvent: Hashable, Equatable {
+public enum FeedEvent: Hashable, Equatable {
     case groupEvent(GroupEvent)
     case collapsedGroupEvents([GroupEvent])
     case deletedPost(FeedPost)
@@ -526,26 +523,5 @@ enum FeedEvent: Hashable, Equatable {
         case .collapsedDeletedPosts(let feedPosts):
             return feedPosts.first?.timestamp ?? Date()
         }
-    }
-
-    var description: String? {
-        switch self {
-        case .groupEvent(let groupEvent):
-            return groupEvent.text
-        case .collapsedGroupEvents(let groupEvents):
-            return groupEvents.first.flatMap { GroupEvent.collapsedText(for: $0.action, memberAction: $0.memberAction, count: groupEvents.count) }
-        case .deletedPost(let feedPost):
-            return Localizations.deletedPost(from: feedPost.userID)
-        case .collapsedDeletedPosts(let feedPosts):
-            return Localizations.deletedPostWithNumber(from: feedPosts.count)
-        }
-    }
-}
-
-private extension Localizations {
-
-    static func deletedPostWithNumber(from number: Int) -> String {
-        let format = NSLocalizedString("n.posts.deleted", value: "%@ posts deleted", comment: "Displayed in place of deleted feed posts.")
-        return String(format: format, String(number))
     }
 }

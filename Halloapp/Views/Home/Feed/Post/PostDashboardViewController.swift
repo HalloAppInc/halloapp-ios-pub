@@ -11,41 +11,6 @@ import CoreCommon
 import CoreData
 import UIKit
 
-struct FeedPostReceipt {
-    enum ReceiptType: Int {
-        case seen = 0
-        case sent = 1
-        case placeholder = 2
-    }
-
-    let userId: UserID
-    let type: ReceiptType
-    let contactName: String?
-    let phoneNumber: String?
-    let timestamp: Date
-    let savedTimestamp: Date?
-    /// - note: Moments only.
-    let screenshotTimestamp: Date?
-    let reaction: String?
-
-    static var placeholder: FeedPostReceipt {
-        FeedPostReceipt(userId: "", type: .placeholder, contactName: nil, phoneNumber: nil, timestamp: Date(), savedTimestamp: nil, screenshotTimestamp: nil, reaction: nil)
-    }
-}
-
-extension FeedPostReceipt : Hashable {
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(userId)
-        hasher.combine(type)
-    }
-}
-
-extension FeedPostReceipt : Equatable {
-    static func == (lhs: Self, rhs: Self) -> Bool {
-        return lhs.userId == rhs.userId && lhs.type == rhs.type
-    }
-}
-
 fileprivate extension ContactTableViewCell {
 
     func configureWithReceipt(_ receipt: FeedPostReceipt, using avatarStore: AvatarStore) {
@@ -262,7 +227,7 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
     }
 
     private func reloadData(from feedPost: FeedPost) {
-        var seenReceipts = MainAppContext.shared.feedData.seenReceipts(for: feedPost)
+        var seenReceipts = AppContext.shared.coreFeedData.seenReceipts(for: feedPost)
         if seenReceipts.isEmpty {
             seenReceipts.append(FeedPostReceipt.placeholder)
         }

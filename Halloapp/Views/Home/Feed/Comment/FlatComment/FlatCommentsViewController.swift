@@ -418,7 +418,7 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
         Analytics.openScreen(.comments)
 
         if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext) {
-            MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
+            AppContext.shared.coreFeedData.sendSeenReceiptIfNecessary(for: feedPost)
         }
 
         // TODO @dini check if post is available first

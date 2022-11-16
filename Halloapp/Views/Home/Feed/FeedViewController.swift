@@ -64,6 +64,16 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         // needed for presenting the FAB while the call bar is active
         navigationController?.definesPresentationContext = false
         tabBarController?.definesPresentationContext = true
+
+        MainAppContext.shared.feedData.validMoment
+            .dropFirst() // no need to reload for initial values
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                // in this case we want to refresh since we want the prompt cell to be
+                // inserted again
+                self?.feedDataSource.refresh()
+            }
+            .store(in: &cancellables)
     }
 
     override func viewDidAppear(_ animated: Bool) {

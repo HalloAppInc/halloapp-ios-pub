@@ -161,7 +161,7 @@ extension UIViewControllerMediaSaving {
             }
 
             if let feedPost {
-                MainAppContext.shared.feedData.sendSavedReceipt(for: feedPost)
+                AppContext.shared.coreFeedData.sendSavedReceipt(for: feedPost)
             }
 
             if let temporaryMomentURL {

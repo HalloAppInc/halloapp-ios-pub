@@ -378,7 +378,7 @@ extension FeedItemContentView: PostAudioViewDelegate {
         guard isPlaying, let postId = postId, let feedPost = MainAppContext.shared.feedData.feedPost(with: postId, in: viewContext) else {
             return
         }
-        MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
+        AppContext.shared.coreFeedData.sendSeenReceiptIfNecessary(for: feedPost)
         postAudioView.isSeen = true
     }
 }

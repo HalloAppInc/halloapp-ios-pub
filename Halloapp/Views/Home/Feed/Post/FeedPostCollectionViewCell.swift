@@ -12,6 +12,11 @@ import Core
 import CoreCommon
 import UIKit
 
+struct FeedPostDisplayData: Equatable {
+    var currentMediaIndex: Int?
+    var textNumberOfLines: Int?
+}
+
 protocol FeedPostCollectionViewCellDelegate: AnyObject {
     func feedPostCollectionViewCell(_ cell: FeedPostCollectionViewCell, didRequestOpen url: URL)
     func feedPostCollectionViewCell(_ cell: FeedPostCollectionViewCell, didChangeMediaIndex index: Int)

@@ -164,6 +164,19 @@ open class ContactStore {
 
     // MARK: Fetching contacts
 
+    public func contacts(withUserIds userIds: [UserID], in managedObjectContext: NSManagedObjectContext) -> [ABContact] {
+        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "userId in %@", userIds)
+        fetchRequest.returnsObjectsAsFaults = false
+        do {
+            let contacts = try managedObjectContext.fetch(fetchRequest)
+            return contacts
+        }
+        catch {
+            fatalError("Unable to fetch contacts: \(error)")
+        }
+    }
+
     public func allRegisteredContactIDs(in managedObjectContext: NSManagedObjectContext) -> [UserID] {
         let fetchRequest = NSFetchRequest<NSDictionary>(entityName: "ABContact")
         fetchRequest.predicate = NSPredicate(format: "userId != nil")

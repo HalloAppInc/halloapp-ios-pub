@@ -112,7 +112,7 @@ class HomeViewController: UITabBarController {
         cancellableSet.insert(MainAppContext.shared.feedData.didGetRemoveHomeTabIndicator.receive(on: DispatchQueue.main).sink { [weak self] in
             self?.removeHomeTabIndicator()
         })
-        cancellableSet.insert(MainAppContext.shared.feedData.didGetUnreadFeedCount.receive(on: DispatchQueue.main).sink { [weak self] (count) in
+        cancellableSet.insert(AppContext.shared.coreFeedData.didGetUnreadFeedCount.receive(on: DispatchQueue.main).sink { [weak self] (count) in
             guard count == 0 else { return }
             self?.removeHomeTabIndicator()
         })

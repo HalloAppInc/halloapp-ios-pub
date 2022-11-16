@@ -178,7 +178,7 @@ extension MessageCellViewAudio: AudioViewDelegate {
             MainAppContext.shared.feedData.markCommentAsPlayed(commentId: commentId)
         } else if let messageID = chatMessage?.id {
             audioView.state = .played
-            MainAppContext.shared.chatData.markPlayedMessage(for: messageID)
+            AppContext.shared.coreChatData.markPlayedMessage(for: messageID)
         }
     }
 
