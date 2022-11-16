@@ -2342,7 +2342,7 @@ extension ProtoServiceCore: CoreService {
     }
 
     public func resendGroupChatMessage(_ message: ChatMessageProtocol, groupId: GroupID, to toUserID: UserID, rerequestCount: Int32, completion: @escaping ServiceRequestCompletion<Void>) {
-        makeGroupChatStanza(message) { chat, error in
+        makeRerequestGroupChatStanza(message, for: toUserID, in: groupId) { chat, error in
             guard let chat = chat else {
                 completion(.failure(.aborted))
                 return
@@ -2475,6 +2475,52 @@ extension ProtoServiceCore: CoreService {
             case .failure(let error):
                 DDLogError("ProtoServiceCore/makeGroupChatStanza/\(toGroupId)/encryption/error [\(error)]")
                 completion(nil, error)
+            }
+        }
+    }
+
+    private func makeRerequestGroupChatStanza(_ message: ChatMessageProtocol, for toUserID: UserID, in groupID: GroupID, completion: @escaping (Server_GroupChatStanza?, EncryptionError?) -> Void) {
+        guard let messageData = try? message.protoContainer?.serializedData() else {
+            DDLogError("ProtoServiceCore/makeRerequestGroupChatStanza/\(message.id)/error could not serialize group chat message!")
+            completion(nil, nil)
+            return
+        }
+        guard let toGroupId = message.chatMessageRecipient.toGroupId else {
+            DDLogError("ProtoServiceCore/makeRerequestGroupChatStanza/\(message.id)/ error toGroupId not set for message: \(message.id)")
+            completion(nil, nil)
+            return
+        }
+        makeGroupRerequestEncryptedPayload(payloadData: messageData, groupID: groupID, for: toUserID) { result in
+            switch result {
+            case .failure(let failure):
+                DDLogError("ProtoServiceCore/makeRerequestGroupChatStanza/\(toGroupId)/encryption/failure: \(failure)")
+                completion(nil, failure)
+
+            case .success((let clientEncryptedPayload, let senderStateWithKeyInfo)):
+                DDLogInfo("ProtoServiceCore/makeRerequestGroupChatStanza/\(toGroupId)/encryption/success")
+                var groupChatStanza = Server_GroupChatStanza()
+                groupChatStanza.gid = toGroupId
+                if !ServerProperties.sendClearTextGroupFeedContent {
+                    groupChatStanza.payload = Data()
+                }
+                if let senderStateWithKeyInfo = senderStateWithKeyInfo {
+                    groupChatStanza.senderState = senderStateWithKeyInfo
+                }
+                groupChatStanza.senderClientVersion = AppContext.userAgent
+                do {
+                    groupChatStanza.encPayload = try clientEncryptedPayload.serializedData()
+                    switch message.content {
+                    case .reaction:
+                        groupChatStanza.chatType = .chatReaction
+                    case .text, .album, .files, .voiceNote, .location, .unsupported:
+                        groupChatStanza.chatType = .chat
+                    }
+                    groupChatStanza.mediaCounters = message.serverMediaCounters
+                    completion(groupChatStanza, nil)
+                } catch {
+                    DDLogError("proto/makeRerequestGroupChatStanza/\(toGroupId)/payload-serialization/error \(error)")
+                    completion(nil, .serialization)
+                }
             }
         }
     }

@@ -230,16 +230,30 @@ final class NotificationProtoService: ProtoServiceCore {
         case .groupFeedRerequest(let groupFeedRerequest):
             let contentID = groupFeedRerequest.id
             let fromUserID = UserID(msg.fromUid)
+            let groupID = groupFeedRerequest.gid
 
             switch groupFeedRerequest.rerequestType {
             case .payload:
-                hasAckBeenDelegated = true
-                AppContext.shared.coreFeedData.handleRerequest(for: contentID, contentType: groupFeedRerequest.contentType, from: fromUserID, ack: ack)
+                break
             case .senderState:
-                hasAckBeenDelegated = true
                 AppContext.shared.messageCrypter.resetWhisperSession(for: fromUserID)
-                AppContext.shared.coreFeedData.handleRerequest(for: contentID, contentType: groupFeedRerequest.contentType, from: fromUserID, ack: ack)
             case .UNRECOGNIZED(_):
+                break
+            }
+
+            // Handle rerequesting payload properly.
+            switch groupFeedRerequest.contentType {
+            case .message, .messageReaction:
+                hasAckBeenDelegated = true
+                AppContext.shared.coreChatData.handleRerequest(for: contentID, in: groupID, from: fromUserID, ack: ack)
+            case .messageReaction:
+                hasAckBeenDelegated = true
+                AppContext.shared.coreChatData.handleReactionRerequest(for: contentID, in: groupID, from: fromUserID, ack: ack)
+            case .post, .comment, .postReaction, .commentReaction, .historyResend:
+                hasAckBeenDelegated = true
+                // we are acking the message here - what if we fail to reset the session properly
+                AppContext.shared.coreFeedData.handleRerequest(for: contentID, contentType: groupFeedRerequest.contentType, from: fromUserID, ack: ack)
+            case .UNRECOGNIZED, .unknown:
                 return
             }
 
