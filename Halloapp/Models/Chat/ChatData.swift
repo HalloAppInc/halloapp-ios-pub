@@ -5545,17 +5545,24 @@ extension ChatData {
         }()
 
         if let chatThread = self.chatThread(type: xmppGroup.groupType, id: event.groupID, in: managedObjectContext) {
-
-            chatThread.lastFeedUserID = event.senderUserID
-            chatThread.lastFeedTimestamp = event.timestamp
-            chatThread.lastFeedText = event.text
-
-            if isSampleGroupCreationEvent {
-                chatThread.lastFeedText = Localizations.groupFeedWelcomePostTitle
-            } else {
+            switch xmppGroup.groupType {
+            case .groupFeed:
+                chatThread.lastFeedUserID = event.senderUserID
+                chatThread.lastFeedTimestamp = event.timestamp
                 chatThread.lastFeedText = event.text
-            }
 
+                if isSampleGroupCreationEvent {
+                    chatThread.lastFeedText = Localizations.groupFeedWelcomePostTitle
+                } else {
+                    chatThread.lastFeedText = event.text
+                }
+            case .groupChat:
+                chatThread.lastMsgUserId = event.senderUserID
+                chatThread.lastMsgTimestamp = event.timestamp
+                chatThread.lastMsgText = event.text
+            case .oneToOne:
+                break
+            }
             // nb: unreadFeedCount is not incremented for group event messages
             // and NUX zero zone unread welcome post count is recorded in NUX userDefaults, not unreadFeedCount
         } else {
