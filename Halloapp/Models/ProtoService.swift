@@ -1636,20 +1636,6 @@ extension ProtoService: HalloService {
         enqueue(request: ProtoSharePostsRequest(postIDs: postIds, userID: userId, completion: completion))
     }
 
-    func shareGroupHistory(items: Server_GroupFeedItems, with userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
-        let groupID = items.gid
-        do {
-            DDLogInfo("ProtoService/shareGroupHistory/\(groupID)/begin")
-            let payload = try items.serializedData()
-            let groupFeedHistoryID = PacketID.generate()
-            MainAppContext.shared.mainDataStore.saveGroupHistoryInfo(id: groupFeedHistoryID, groupID: groupID, payload: payload)
-            sendGroupFeedHistoryPayload(id: groupFeedHistoryID, groupID: groupID, payload: payload, to: userID, rerequestCount: 0, completion: completion)
-        } catch {
-            DDLogError("ProtoService/shareGroupHistory/\(groupID)/error could not serialize items")
-            completion(.failure(.aborted))
-        }
-    }
-
     func uploadPostForExternalShare(encryptedBlob: Data,
                                     expiry: Date,
                                     ogTitle: String,

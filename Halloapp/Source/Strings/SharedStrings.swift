@@ -139,12 +139,6 @@ extension Localizations {
         NSLocalizedString("alert.no.internet.try.again", value: "Please check if you have internet connectivity, then try again.", comment: "Message to tell the user to try again when they have internet connectivity again")
     }
 
-    // MARK: Misc
-
-    static var meCapitalized: String {
-        NSLocalizedString("meCapitalized", value: "Me", comment: "Displayed in place of own name (e.g., next to own comments)")
-    }
-
     // MARK: Audio Rermissions Alert
 
     static var micAccessDeniedTitle: String {

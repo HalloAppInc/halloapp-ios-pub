@@ -560,6 +560,11 @@ open class ContactStore {
         }
     }
 
+    public func fullName(for userID: UserID, showPushNumber: Bool = false, in managedObjectContext: NSManagedObjectContext) -> String {
+        // Fallback to a static string.
+        return fullNameIfAvailable(for: userID, ownName: Localizations.meCapitalized, showPushNumber: showPushNumber, in: managedObjectContext) ?? Localizations.unknownContact
+    }
+
     /// Returns display name for a user given their user ID. Returns `ownName` if `userID` matches active user ID.
     /// - Parameters:
     ///   - userId: `UserID` to look up
@@ -685,5 +690,19 @@ open class ContactStore {
                 fatalError("Unable to reset hideInSuggestedInvites: \(error)")
             }
         }
+    }
+}
+
+public extension Localizations {
+    static var userYouCapitalized: String {
+        NSLocalizedString("user.you.capitalized", value: "You", comment: "Capitalized reference to the user, second person pronoun")
+    }
+
+    static var userYou: String {
+        NSLocalizedString("user.you", value: "you", comment: "Reference to the user, second person pronoun")
+    }
+
+    static var meCapitalized: String {
+        NSLocalizedString("meCapitalized", value: "Me", comment: "Displayed in place of own name (e.g., next to own comments)")
     }
 }

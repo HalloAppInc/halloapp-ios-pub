@@ -102,6 +102,20 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
+    public func shareGroupHistory(items: Server_GroupFeedItems, with userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+        let groupID = items.gid
+        do {
+            DDLogInfo("ProtoServiceCore/shareGroupHistory/\(groupID)/begin")
+            let payload = try items.serializedData()
+            let groupFeedHistoryID = PacketID.generate()
+            AppContext.shared.mainDataStore.saveGroupHistoryInfo(id: groupFeedHistoryID, groupID: groupID, payload: payload)
+            sendGroupFeedHistoryPayload(id: groupFeedHistoryID, groupID: groupID, payload: payload, to: userID, rerequestCount: 0, completion: completion)
+        } catch {
+            DDLogError("ProtoServiceCore/shareGroupHistory/\(groupID)/error could not serialize items")
+            completion(.failure(.aborted))
+        }
+    }
+
     public func sendGroupFeedHistoryPayload(id groupFeedHistoryID: String, groupID: GroupID, payload: Data, to userID: UserID, rerequestCount: Int32, completion: @escaping ServiceRequestCompletion<Void>) {
         execute(whenConnectionStateIs: .connected, onQueue: .main) { [self] in
             guard let ownUserID = credentials?.userID,

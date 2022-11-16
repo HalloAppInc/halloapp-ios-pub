@@ -284,6 +284,50 @@ final class NotificationProtoService: ProtoServiceCore {
             hasAckBeenDelegated = true
             handleContentMissing(contentMissing, ack: ack)
 
+        case .historyResend(let historyResend):
+            // Dont process historyResend that was already decrypted and saved.
+            if isGroupFeedItemDecryptedAndSaved(contentID: historyResend.id) {
+                DDLogInfo("NotificationProtoService/didReceive/\(msg.id)/isGroupFeedItemDecryptedAndSaved/\(historyResend.id)/already saved - skip")
+                return
+            }
+            processHistoryResendStanza(historyResend: historyResend, fromUserId: UserID(msg.fromUid), rerequestCount: msg.rerequestCount) { [weak self] (groupHistoryPayload, shouldSendAck) in
+                guard let self = self else { return }
+                DDLogInfo("NotificationProtoService/didReceive/\(msg.id)/processGroupStanza/notify chat delegate to share group feed history")
+                if let groupHistoryPayload = groupHistoryPayload {
+                    self.coreChatData.processGroupFeedHistoryResend(groupHistoryPayload, for: historyResend.gid, fromUserID: UserID(msg.fromUid))
+                } else {
+                    DDLogError("NotificationProtoService/didReceive/\(msg.id)/unexpected - empty groupHistoryPayload")
+                }
+                // observe things around here and enable this.
+                if !shouldSendAck {
+                    DDLogError("NotificationProtoService/didReceive/\(msg.id)/skipping an ack here - failed to process historyResend stanza")
+                } else {
+                    ack()
+                }
+            }
+
+        case .groupStanza(let pbGroup):
+            if let group = HalloGroup(protoGroup: pbGroup, msgId: msg.id, retryCount: msg.retryCount) {
+                hasAckBeenDelegated = true
+                processGroupStanza(for: pbGroup, in: pbGroup.gid) { [weak self] (groupHistoryPayload, shouldSendAck) in
+                    guard let self = self else { return }
+                    DDLogInfo("NotificationProtoService/didReceive/\(msg.id)/processGroupStanza/notify chat delegate to update group")
+                    self.coreChatData.processIncomingXMPPGroup(group)
+                    DDLogInfo("NotificationProtoService/didReceive/\(msg.id)/processGroupStanza/notify chat delegate to share group feed history")
+                    self.coreChatData.processGroupHistoryPayload(historyPayload: groupHistoryPayload, withGroupMessage: group)
+                    DDLogInfo("NotificationProtoService/didReceive/\(msg.id)/processGroupStanza/finished processing")
+
+                    // observe things around here and enable this.
+                    if !shouldSendAck {
+                        DDLogError("NotificationProtoService/didReceive/\(msg.id)/skipping an ack here - failed to process groupStanza")
+                    } else {
+                        ack()
+                    }
+                }
+            } else {
+                DDLogError("NotificationProtoService/didReceive/\(msg.id)/error could not read group stanza")
+            }
+
         default:
             break
         }

@@ -153,7 +153,7 @@ public final class WhisperSession {
                 switch setupResult {
                 case .success(let keyBundle):
                     DDLogInfo("WhisperSession/\(self.userID)/rerequest/setup/complete")
-                    self.state = .ready(keyBundle, [:])
+                    self.updateState(to: .ready(keyBundle, [:]), saveToKeyStore: true)
                     wasSessionRestartSuccessful = true
                 case .failure(let error):
                     DDLogError("WhisperSession/\(self.userID)/rerequest/setup/error [\(error)]")
@@ -165,7 +165,7 @@ public final class WhisperSession {
             if case .ready = self.state, !wasSessionRestartSuccessful {
                 DDLogInfo("WhisperSession/\(self.userID)/rerequest/deleting-keys")
                 self.keyStore.deleteMessageKeyBundles(for: self.userID)
-                self.state = .awaitingSetup(attempts: 1)
+                self.updateState(to: .awaitingSetup(attempts: 1), saveToKeyStore: true)
             }
         }
     }
@@ -230,17 +230,17 @@ public final class WhisperSession {
             case .ready(_, _):
                 if let (keyBundle, messageKeys) = self.loadFromKeyStore() {
                     DDLogInfo("WhisperSession/reloadKeysFromKeyStore/userID: \(self.userID)/state: ready")
-                    self.state = .ready(keyBundle, messageKeys)
+                    self.updateState(to: .ready(keyBundle, messageKeys), saveToKeyStore: false)
                 } else {
                     DDLogInfo("WhisperSession/reloadKeysFromKeyStore/userID: \(self.userID)/state: awaitingSetup")
                     // If we are not able to retrieve keys properly.
                     // Then this means the keyBundle has been deleted - so we have to start afresh.
-                    self.state = .awaitingSetup(attempts: 0)
+                    self.updateState(to: .awaitingSetup(attempts: 0), saveToKeyStore: false)
                 }
             case .awaitingSetup(_):
                 DDLogInfo("WhisperSession/reloadKeysFromKeyStore/userID: \(self.userID)/state: awaitingSetup")
                 if let (keyBundle, messageKeys) = self.loadFromKeyStore() {
-                    self.state = .ready(keyBundle, messageKeys)
+                    self.updateState(to: .ready(keyBundle, messageKeys), saveToKeyStore: false)
                 }
                 // Else -- continue trying to setup keys.
             case .failed:
@@ -296,8 +296,11 @@ public final class WhisperSession {
     private lazy var sessionQueue = { DispatchQueue(label: "com.halloapp.whisper-\(userID)", qos: .userInitiated) }()
     private var pendingTasks = [WhisperTask]()
 
-    private var state: State {
-        didSet {
+    private var state: State
+
+    private func updateState(to state: State, saveToKeyStore: Bool = false) {
+        self.state = state
+        if saveToKeyStore {
             switch state {
             case .awaitingSetup(_):
                 DDLogInfo("WhisperSession/set-state/awaitingSetup")
@@ -305,6 +308,7 @@ public final class WhisperSession {
                 DDLogInfo("WhisperSession/set-state/retrievingKeys")
             case .ready(let keyBundle, let messageKeys):
                 DDLogInfo("WhisperSession/set-state/ready")
+
                 keyStore.saveKeyBundle(keyBundle)
                 keyStore.saveMessageKeys(messageKeys, for: userID)
             case .failed:
@@ -427,7 +431,7 @@ public final class WhisperSession {
         case .success((let keyBundle, let messageKeys)):
             switch Whisper.decrypt(payload, keyBundle: keyBundle, messageKeys: messageKeys) {
             case .success((let data, let keyBundle, let messageKeys)):
-                self.state = .ready(keyBundle, messageKeys)
+                self.updateState(to: .ready(keyBundle, messageKeys), saveToKeyStore: true)
                 self.deleteOneTimeKey(id: encryptedData.oneTimeKeyId)
                 completion(.success(data))
             case .failure(let failure):
@@ -510,10 +514,10 @@ public final class WhisperSession {
                     switch error {
                     case .serverError("invalid_uid"):
                         DDLogError("WhisperSession/\(self.userID)/setupOutbound/failed permanently")
-                        self.state = .failed
+                        self.updateState(to: .failed, saveToKeyStore: true)
                     default:
                         DDLogError("WhisperSession/\(self.userID)/setupOutbound/failed [\(attemptNumber)]")
-                        self.state = .awaitingSetup(attempts: attemptNumber)
+                        self.updateState(to: .awaitingSetup(attempts: attemptNumber), saveToKeyStore: true)
                     }
                 case .success(let whisperKeys):
                     var keyBundle: KeyBundle?
@@ -530,10 +534,10 @@ public final class WhisperSession {
                     }
                     if let keyBundle = keyBundle {
                         DDLogInfo("WhisperSession/\(self.userID)/setupOutbound/success")
-                        self.state = .ready(keyBundle, [:])
+                        self.updateState(to: .ready(keyBundle, [:]), saveToKeyStore: true)
                     } else {
                         DDLogError("WhisperSession/\(self.userID)/setupOutbound/failed although we got keys [\(attemptNumber)]")
-                        self.state = .awaitingSetup(attempts: attemptNumber)
+                        self.updateState(to: .awaitingSetup(attempts: attemptNumber), saveToKeyStore: true)
                     }
                 }
                 self.executeTasks()

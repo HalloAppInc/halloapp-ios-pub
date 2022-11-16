@@ -34,6 +34,7 @@ public protocol CoreService: CoreServiceCommon {
     func rerequestGroupFeedItemIfNecessary(id contentID: String, groupID: GroupID, contentType: GroupFeedRerequestContentType, failure: GroupDecryptionFailure, completion: @escaping ServiceRequestCompletion<Void>)
     func resendHistoryResendPayload(id historyResendID: String, groupID: GroupID, payload: Data, to toUserID: UserID, rerequestCount: Int32, completion: @escaping ServiceRequestCompletion<Void>)
     func sendGroupFeedHistoryPayload(id groupFeedHistoryID: String, groupID: GroupID, payload: Data, to toUserID: UserID, rerequestCount: Int32, completion: @escaping ServiceRequestCompletion<Void>)
+    func shareGroupHistory(items: Server_GroupFeedItems, with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Keys
     func getGroupMemberIdentityKeys(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Server_GroupStanza>)

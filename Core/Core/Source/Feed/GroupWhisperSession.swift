@@ -746,6 +746,7 @@ final class GroupWhisperSession {
             DDLogInfo("GroupWhisperSession/executeUpdateAudienceHash/\(groupID)/state \(state) begin")
             state = .updatingHash(attempts: attemptNumber, keyBundle: groupKeyBundle)
         }
+        let ownUserID = AppContext.shared.userData.userId
 
         service.getGroupMemberIdentityKeys(groupID: groupID) { result in
             self.sessionQueue.async {
@@ -782,7 +783,8 @@ final class GroupWhisperSession {
                             // or
                             // return true if this was a pendingUid from the old state.
                             // either-way we ensure that only members are being added to the pendingUid set.
-                            !oldMemberUids.contains(member) || currentPending.contains(member)
+                            // Also ensure we are not adding our own self to this list.
+                            (!oldMemberUids.contains(member) || currentPending.contains(member)) && member != ownUserID
                         }
                         groupKeyBundle.pendingUids = newPendingUids
                         groupKeyBundle.outgoingSession?.audienceHash = hash

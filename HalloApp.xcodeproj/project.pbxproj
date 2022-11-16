@@ -206,7 +206,6 @@
 		762EDBDD244E5A7800986617 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762EDBDC244E5A7800986617 /* HomeViewController.swift */; };
 		7633307F254A331D00A1ED68 /* HelpViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7633307E254A331D00A1ED68 /* HelpViewController.swift */; };
 		76333085254A352100A1ED68 /* SettingsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76333084254A352100A1ED68 /* SettingsTableViewCell.swift */; };
-		763B42AE2435A74E00FF0E82 /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763B42AD2435A74E00FF0E82 /* Date.swift */; };
 		76407DF8245CA3F00031F96A /* UIViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76407DF7245CA3F00031F96A /* UIViewController.swift */; };
 		76451C3A254795F500B9E268 /* MainAppStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76451C39254795F500B9E268 /* MainAppStrings.swift */; };
 		76451C402547960A00B9E268 /* SharedStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76451C3E2547960A00B9E268 /* SharedStrings.swift */; };
@@ -326,8 +325,6 @@
 		E5230B2C267AABCE0046A2EB /* Intents.intentdefinition in Sources */ = {isa = PBXBuildFile; fileRef = E5230B0F267A61BC0046A2EB /* Intents.intentdefinition */; };
 		E537A1B726792AEF0008B286 /* ChatDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = E537A1B626792AEF0008B286 /* ChatDraft.swift */; };
 		E552E8E1268249EB00C7774D /* DateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E552E8E0268249EB00C7774D /* DateTests.swift */; };
-		E552E8E3268249F600C7774D /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763B42AD2435A74E00FF0E82 /* Date.swift */; };
-		E552E8E426824C0E00C7774D /* DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B991A249C228700B05094 /* DateFormatter.swift */; };
 		E55B6099268B80C800A322DC /* ExportDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E55B6098268B80C800A322DC /* ExportDataModel.swift */; };
 		E5959700268E3F3800AA3BB9 /* DeleteAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E59596FF268E3F3800AA3BB9 /* DeleteAccountView.swift */; };
 		E5959702268E3F6500AA3BB9 /* DeleteAccountModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5959701268E3F6500AA3BB9 /* DeleteAccountModel.swift */; };
@@ -342,7 +339,6 @@
 		EA039C6326C49BC4002CC4CF /* EditGroupDescViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA039C6226C49BC4002CC4CF /* EditGroupDescViewController.swift */; };
 		EA0B9917249C1FFB00B05094 /* Character.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B9916249C1FFB00B05094 /* Character.swift */; };
 		EA0B9919249C205E00B05094 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B9918249C205E00B05094 /* String.swift */; };
-		EA0B991B249C228700B05094 /* DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B991A249C228700B05094 /* DateFormatter.swift */; };
 		EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0C315623EB97C800016EDB /* PostComposerView.swift */; };
 		EA0D20152368B04B008B8289 /* FeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20142368B04B008B8289 /* FeedData.swift */; };
 		EA1CEF5E2617964C00BC0C79 /* GroupInvitePreviewViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1CEF5D2617964C00BC0C79 /* GroupInvitePreviewViewController.swift */; };
@@ -448,7 +444,6 @@
 		F41FAA5227E54F2900FC5090 /* FeedPostMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41FAA5127E54F2800FC5090 /* FeedPostMenuViewController.swift */; };
 		F4271260286A721B009C56FA /* GroupGridSearchBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = F427125F286A721B009C56FA /* GroupGridSearchBar.swift */; };
 		F427FF3828D0FF50000D3EAD /* ComposerTitleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F427FF3728D0FF50000D3EAD /* ComposerTitleView.swift */; };
-		F427FF3A28D16220000D3EAD /* Group+Expiration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F427FF3928D16220000D3EAD /* Group+Expiration.swift */; };
 		F42F574827C86D7200988E9D /* FeedInviteCarouselCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */; };
 		F43DF0EA28F0A686008008B7 /* ShareProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43DF0E928F0A685008008B7 /* ShareProvider.swift */; };
 		F43DF0EC28F0A94D008008B7 /* WhatsAppShareProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43DF0EB28F0A94D008008B7 /* WhatsAppShareProvider.swift */; };
@@ -1028,7 +1023,6 @@
 		762EDBDC244E5A7800986617 /* HomeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HomeViewController.swift; path = HalloApp/Views/Home/HomeViewController.swift; sourceTree = SOURCE_ROOT; };
 		7633307E254A331D00A1ED68 /* HelpViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HelpViewController.swift; path = HalloApp/Views/Settings/HelpViewController.swift; sourceTree = SOURCE_ROOT; };
 		76333084254A352100A1ED68 /* SettingsTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsTableViewCell.swift; path = HalloApp/Views/Settings/SettingsTableViewCell.swift; sourceTree = SOURCE_ROOT; };
-		763B42AD2435A74E00FF0E82 /* Date.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Date.swift; path = HalloApp/Components/Extensions/Date.swift; sourceTree = SOURCE_ROOT; };
 		76407DF7245CA3F00031F96A /* UIViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIViewController.swift; path = HalloApp/Components/Extensions/UIViewController.swift; sourceTree = SOURCE_ROOT; };
 		76451C39254795F500B9E268 /* MainAppStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MainAppStrings.swift; path = HalloApp/Source/Strings/MainAppStrings.swift; sourceTree = SOURCE_ROOT; };
 		76451C3E2547960A00B9E268 /* SharedStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SharedStrings.swift; path = HalloApp/Source/Strings/SharedStrings.swift; sourceTree = SOURCE_ROOT; };
@@ -1157,7 +1151,6 @@
 		EA039C6226C49BC4002CC4CF /* EditGroupDescViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditGroupDescViewController.swift; sourceTree = "<group>"; };
 		EA0B9916249C1FFB00B05094 /* Character.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Character.swift; sourceTree = "<group>"; };
 		EA0B9918249C205E00B05094 /* String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
-		EA0B991A249C228700B05094 /* DateFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatter.swift; sourceTree = "<group>"; };
 		EA0C315623EB97C800016EDB /* PostComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostComposerView.swift; sourceTree = "<group>"; };
 		EA0D20142368B04B008B8289 /* FeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedData.swift; sourceTree = "<group>"; };
 		EA1CEF5D2617964C00BC0C79 /* GroupInvitePreviewViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInvitePreviewViewController.swift; sourceTree = "<group>"; };
@@ -1260,7 +1253,6 @@
 		F41FAA5127E54F2800FC5090 /* FeedPostMenuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostMenuViewController.swift; sourceTree = "<group>"; };
 		F427125F286A721B009C56FA /* GroupGridSearchBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridSearchBar.swift; sourceTree = "<group>"; };
 		F427FF3728D0FF50000D3EAD /* ComposerTitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerTitleView.swift; sourceTree = "<group>"; };
-		F427FF3928D16220000D3EAD /* Group+Expiration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Group+Expiration.swift"; sourceTree = "<group>"; };
 		F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedInviteCarouselCell.swift; sourceTree = "<group>"; };
 		F43DF0E928F0A685008008B7 /* ShareProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareProvider.swift; sourceTree = "<group>"; };
 		F43DF0EB28F0A94D008008B7 /* WhatsAppShareProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsAppShareProvider.swift; sourceTree = "<group>"; };
@@ -2100,7 +2092,6 @@
 				F8D876322746603700E69F41 /* AudioSessionManager.swift */,
 				68C8264A251A77A000BB8F3A /* NUX.swift */,
 				68EAABF027F8FC2300619B1A /* CommonMedia.swift */,
-				F427FF3928D16220000D3EAD /* Group+Expiration.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -2362,8 +2353,6 @@
 				EECC0A9028791CF700F5AFFF /* Combine.swift */,
 				EA0B9916249C1FFB00B05094 /* Character.swift */,
 				764AB41E24A6C5F300D4E354 /* Color.swift */,
-				763B42AD2435A74E00FF0E82 /* Date.swift */,
-				EA0B991A249C228700B05094 /* DateFormatter.swift */,
 				146B93782405F40500768AC6 /* Font.swift */,
 				EA0B9918249C205E00B05094 /* String.swift */,
 				F8E6DCDE271EB06F005EECC5 /* TimeInterval.swift */,
@@ -3124,7 +3113,6 @@
 				A1FF1ED728BE7DC80057FC27 /* ExistingNetworkViewController.swift in Sources */,
 				F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */,
 				A1AE40CF283DA7DB00C3EF3A /* QuotedMediaPanel.swift in Sources */,
-				EA0B991B249C228700B05094 /* DateFormatter.swift in Sources */,
 				A193F57128107A9B00B13D4B /* InsetCollectionView.swift in Sources */,
 				EA796B9C2469DDF100BC795E /* ChatQuotedLegacy+CoreDataProperties.swift in Sources */,
 				EAB1FFEF2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift in Sources */,
@@ -3172,7 +3160,6 @@
 				6832F4FC24FEE97800A9C202 /* HalloService.swift in Sources */,
 				EA3585712450BE2900E6E8AB /* Chat.xcdatamodeld in Sources */,
 				EECC0A9128791CF700F5AFFF /* Combine.swift in Sources */,
-				F427FF3A28D16220000D3EAD /* Group+Expiration.swift in Sources */,
 				EAA424FC24ECF1480025CBBE /* ChatGroupMessage+CoreDataClass.swift in Sources */,
 				EAEE49F0277153660042E654 /* ChatEvent+CoreDataClass.swift in Sources */,
 				5B649728276B91BA000031C2 /* Feed6ToFeed7.xcmappingmodel in Sources */,
@@ -3461,7 +3448,6 @@
 				E537A1B726792AEF0008B286 /* ChatDraft.swift in Sources */,
 				F494BEE72745E7DB00982E49 /* ActionSheetViewController.swift in Sources */,
 				E5D66D1C266954A200B23887 /* CommentDraft.swift in Sources */,
-				763B42AE2435A74E00FF0E82 /* Date.swift in Sources */,
 				EA3585792450BE3300E6E8AB /* ChatViewController.swift in Sources */,
 				A1FE82E927DEDB8F00024641 /* ContentInputView.swift in Sources */,
 				EA796B9E2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift in Sources */,
@@ -3484,8 +3470,6 @@
 				E552E8E1268249EB00C7774D /* DateTests.swift in Sources */,
 				685B76C124E262AF00BF666A /* MentionInputTests.swift in Sources */,
 				A1C18C7F27A1ED8C00A76102 /* HalloCodeTest.swift in Sources */,
-				E552E8E3268249F600C7774D /* Date.swift in Sources */,
-				E552E8E426824C0E00C7774D /* DateFormatter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -29,7 +29,6 @@ protocol HalloService: CoreService {
     func retractPost(_ id: FeedPostID, in groupID: GroupID?, completion: @escaping ServiceRequestCompletion<Void>)
     func retractComment(id: FeedPostCommentID, postID: FeedPostID, in groupID: GroupID?, completion: @escaping ServiceRequestCompletion<Void>)
     func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>)
-    func shareGroupHistory(items: Server_GroupFeedItems, with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>)
     func uploadPostForExternalShare(encryptedBlob: Data,
                                     expiry: Date,
                                     ogTitle: String,

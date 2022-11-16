@@ -581,75 +581,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     // MARK: Fetching Feed Data
 
     public func feedHistory(for groupID: GroupID, in managedObjectContext: NSManagedObjectContext, maxNumPosts: Int = Int.max, maxCommentsPerPost: Int = Int.max, maxReactionsPerComment: Int = Int.max) -> ([PostData], [CommentData]) {
-        let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-        // Fetch all feedposts in the group that have not expired yet.
-        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-            NSPredicate(format: "groupID == %@", groupID),
-            NSPredicate(format: "expiration >= now() || expiration == nil")
-        ])
-        // Fetch feedposts in reverse timestamp order.
-        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false)]
-        fetchRequest.returnsObjectsAsFaults = false
-        do {
-            // Fetch posts and extract postData
-            let posts = try managedObjectContext.fetch(fetchRequest).prefix(maxNumPosts)
-            let postsData = posts.map{ $0.postData }
-
-            // Fetch comments and extract commentData
-            var comments: [FeedPostComment] = []
-            for post in posts {
-                guard let postComments = post.comments else {
-                    break
-                }
-                let sortedComments = postComments.sorted { $0.timestamp > $1.timestamp }
-                comments.append(contentsOf: sortedComments.prefix(maxCommentsPerPost))
-            }
-
-            // Fetch reactions on comments.
-            var reactions: [CommonReaction] = []
-            for comment in comments {
-                guard let commentReactions = comment.reactions else {
-                    break
-                }
-                let sortedReactions = commentReactions.sorted { $0.timestamp > $1.timestamp }
-                reactions.append(contentsOf: sortedReactions.prefix(maxReactionsPerComment))
-            }
-
-            let commentsData = comments.map{ $0.commentData }
-            let reactionsData = reactions.compactMap{ $0.commentData }
-            let postIds = posts.map { $0.id }
-            let commentIds = comments.map { $0.id }
-            let reactionIds = reactions.map { $0.id }
-
-            var allCommentsData: [CommentData] = []
-            allCommentsData.append(contentsOf: commentsData)
-            allCommentsData.append(contentsOf: reactionsData)
-
-            // TODO: remove this log eventually.
-            DDLogDebug("FeedData/feedHistory/group: \(groupID)/postIds: \(postIds)/commentIds: \(commentIds)/reactionIds: \(reactionIds)")
-
-            DDLogInfo("FeedData/feedHistory/group: \(groupID)/posts: \(posts.count)/comments: \(comments.count)/reactions: \(reactions.count)")
-            return (postsData, allCommentsData)
-        } catch {
-            DDLogError("FeedData/fetch-posts/error  [\(error)]")
-            fatalError("Failed to fetch feed posts.")
-        }
+        coreFeedData.feedHistory(for: groupID, in: managedObjectContext, maxNumPosts: maxNumPosts, maxCommentsPerPost: maxCommentsPerPost, maxReactionsPerComment: maxReactionsPerComment)
     }
 
     public func authoredFeedHistory(for groupID: GroupID, in managedObjectContext: NSManagedObjectContext) -> ([PostData], [CommentData]) {
-        // Fetch all feed history and then filter authored content.
-        let (postsData, commentsData) = feedHistory(for: groupID, in: managedObjectContext)
-        let ownUserID = userData.userId
-        let authoredPostsData = postsData.filter{ $0.userId == ownUserID }
-        let authoredCommentsData = commentsData.filter{ $0.userId == ownUserID }
-
-        let authoredPostIds = authoredPostsData.map { $0.id }
-        let authoredCommentIds = authoredCommentsData.map { $0.id }
-        // TODO: remove this log eventually.
-        DDLogDebug("FeedData/authoredFeedHistory/group: \(groupID)/authoredPostIds: \(authoredPostIds)/authoredCommentIds: \(authoredCommentIds)")
-
-        DDLogInfo("FeedData/authoredFeedHistory/group: \(groupID)/authoredPosts: \(authoredPostsData.count)/authoredComments: \(authoredCommentsData.count)")
-        return (authoredPostsData, authoredCommentsData)
+        coreFeedData.authoredFeedHistory(for: groupID, in: managedObjectContext)
     }
 
     private func feedPosts(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext, archived: Bool = false) -> [FeedPost] {
@@ -905,86 +841,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     // MARK: History tombstones
     public func createTombstones(for groupID: GroupID, with contentsDetails: [Clients_ContentDetails]) {
         DDLogInfo("FeedData/createTombstones/groupID: \(groupID)/itemsCount: \(contentsDetails.count)")
-        self.performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
-            guard let self = self else { return }
-
-            var feedPostContexts: [FeedPostID: Clients_PostIdContext] = [:]
-            var commentContexts: [FeedPostCommentID: Clients_CommentIdContext] = [:]
-
-            contentsDetails.forEach { contentDetails in
-                switch contentDetails.contentID {
-                case .postIDContext(let postIdContext):
-                    // This is to protect against invalid data and clients responding without senderUid
-                    if postIdContext.senderUid != 0 {
-                        feedPostContexts[postIdContext.feedPostID] = postIdContext
-                    }
-                case .commentIDContext(let commentIdContext):
-                    // This is to protect against invalid data and clients responding without senderUid
-                    if commentIdContext.senderUid != 0 {
-                        commentContexts[commentIdContext.commentID] = commentIdContext
-                    }
-                case .none:
-                    break
-                }
-            }
-            DDLogInfo("FeedData/createTombstones/groupID: \(groupID)/postsCount: \(feedPostContexts.count)/commentsCount: \(commentContexts.count)")
-
-            var posts = self.feedPosts(with: Set(feedPostContexts.keys), in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
-            var comments = self.feedComments(with: Set(commentContexts.keys), in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
-            DDLogInfo("FeedData/createTombstones/groupID: \(groupID)/postsAlreadyPresentCount: \(posts.count)")
-            DDLogInfo("FeedData/createTombstones/groupID: \(groupID)/commentsAlreadyPresentCount: \(comments.count)")
-
-            // Create post tombstones
-            feedPostContexts.forEach { (postId, postIdContext) in
-                if posts[postId] == nil {
-                    let feedPost = FeedPost(context: managedObjectContext)
-                    feedPost.id = postId
-                    feedPost.status = .rerequesting
-                    feedPost.userId = UserID(postIdContext.senderUid)
-                    feedPost.timestamp = Date(timeIntervalSince1970: TimeInterval(postIdContext.timestamp))
-                    feedPost.groupId = groupID
-                    if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: managedObjectContext) {
-                        feedPost.expiration = group.postExpirationDate(from: feedPost.timestamp)
-                    } else {
-                        DDLogError("FeedData/createTombstones/groupID: \(groupID) not found, setting default expiration...")
-                        feedPost.expiration = feedPost.timestamp.addingTimeInterval(FeedPost.defaultExpiration)
-                    }
-                    posts[postId] = feedPost
-                } else {
-                    DDLogInfo("FeedData/createTombstones/groupID: \(groupID)/post: \(postId)/post already present - skip")
-                }
-            }
-
-            // Create comment tombsones only when posts are available.
-            commentContexts.forEach { (commentId, commentIdContext) in
-                if comments[commentId] == nil,
-                   let post = posts[commentIdContext.feedPostID] {
-                    let feedPostComment = FeedPostComment(context: managedObjectContext)
-                    feedPostComment.id = commentId
-                    feedPostComment.status = .rerequesting
-                    feedPostComment.userId = UserID(commentIdContext.senderUid)
-                    feedPostComment.timestamp = Date(timeIntervalSince1970: TimeInterval(commentIdContext.timestamp))
-                    feedPostComment.post = post
-                    feedPostComment.rawText = ""
-                    comments[commentId] = feedPostComment
-                } else {
-                    DDLogInfo("FeedData/createTombstones/groupID: \(groupID)/comment: \(commentId)/comment already present or post missing - skip")
-                }
-            }
-
-            // Update parent comment ids for the comments created.
-            commentContexts.forEach { (commentId, commentIdContext) in
-                if let comment = comments[commentId],
-                   let parentComment = comments[commentIdContext.parentCommentID] {
-                    comment.parent = parentComment
-                    comments[commentId] = comment
-                }
-            }
-
-            DDLogInfo("FeedData/createTombstones/groupID: \(groupID)/saving tombstones")
-            self.save(managedObjectContext)
-            DDLogInfo("FeedData/createTombstones/groupID: \(groupID)/saving tombstones/success")
-        }
+        coreFeedData.createTombstones(for: groupID, with: contentsDetails)
     }
 
     // MARK: Updates

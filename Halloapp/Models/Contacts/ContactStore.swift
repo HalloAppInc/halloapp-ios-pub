@@ -940,11 +940,6 @@ class ContactStoreMain: ContactStoreCore {
 
     // MARK: Contact Names
 
-    func fullName(for userID: UserID, showPushNumber: Bool = false, in managedObjectContext: NSManagedObjectContext) -> String {
-        // Fallback to a static string.
-        return fullNameIfAvailable(for: userID, ownName: Localizations.meCapitalized, showPushNumber: showPushNumber, in: managedObjectContext) ?? Localizations.unknownContact
-    }
-
     func firstName(for userID: UserID, in managedObjectContext: NSManagedObjectContext) -> String {
         if userID == self.userData.userId {
             // TODO: return correct pronoun.

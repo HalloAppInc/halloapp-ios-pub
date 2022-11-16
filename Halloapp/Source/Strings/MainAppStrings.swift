@@ -162,14 +162,6 @@ extension Localizations {
     
     // MARK: User
     
-    static var userYouCapitalized: String {
-        NSLocalizedString("user.you.capitalized", value: "You", comment: "Capitalized reference to the user, second person pronoun")
-    }
-    
-    static var userYou: String {
-        NSLocalizedString("user.you", value: "you", comment: "Reference to the user, second person pronoun")
-    }
-    
     static var userOptionBlock: String {
         NSLocalizedString("user.option.block", value: "Block on HalloApp", comment: "Option when user taps more on profile page")
     }

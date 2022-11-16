@@ -9,8 +9,4 @@
 import CoreCommon
 
 public extension Localizations {
-
-    static var unknownContact: String {
-        NSLocalizedString("unknown.contact", value: "Unknown Contact", comment: "Displayed in place of contact name if name is not known.")
-    }
 }

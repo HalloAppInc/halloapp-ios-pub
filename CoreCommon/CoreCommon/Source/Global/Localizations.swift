@@ -9,5 +9,7 @@
 import Foundation
 
 public enum Localizations {
-
+    public static var unknownContact: String {
+        NSLocalizedString("unknown.contact", value: "Unknown Contact", comment: "Displayed in place of contact name if name is not known.")
+    }
 }

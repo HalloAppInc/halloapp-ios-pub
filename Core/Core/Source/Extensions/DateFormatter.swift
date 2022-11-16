@@ -8,8 +8,8 @@
 
 import Foundation
 
-extension DateFormatter {
-        
+public extension DateFormatter {
+
     // 8:48 PM
     static let dateTimeFormatterTime: DateFormatter = {
         let dateFormatter = DateFormatter()
@@ -18,7 +18,7 @@ extension DateFormatter {
         dateFormatter.dateStyle = .none
         return dateFormatter
     }()
-    
+
     // Thu
     static let dateTimeFormatterDayOfWeek: DateFormatter = {
         let dateFormatter = DateFormatter()
@@ -26,7 +26,7 @@ extension DateFormatter {
         dateFormatter.setLocalizedDateFormatFromTemplate("E")
         return dateFormatter
     }()
-    
+
     // Thursday
     static let dateTimeFormatterDayOfWeekLong: DateFormatter = {
         let dateFormatter = DateFormatter()
@@ -42,7 +42,7 @@ extension DateFormatter {
         dateFormatter.setLocalizedDateFormatFromTemplate("dMMM")
         return dateFormatter
     }()
-    
+
     // January 20
     static let dateTimeFormatterMonthDayLong: DateFormatter = {
         let dateFormatter = DateFormatter()
@@ -50,7 +50,7 @@ extension DateFormatter {
         dateFormatter.setLocalizedDateFormatFromTemplate("dMMMM")
         return dateFormatter
     }()
-    
+
     // 06/20/2020
     static let dateTimeFormatterShortDate: DateFormatter = {
         let dateFormatter = DateFormatter()
@@ -67,7 +67,7 @@ extension DateFormatter {
         dateFormatter.setLocalizedDateFormatFromTemplate("MMMyyyy")
         return dateFormatter
     }()
-    
+
     // Thu 8:48 PM
     static let dateTimeFormatterDayOfWeekTime: DateFormatter = {
         let dateFormatter = DateFormatter()
@@ -83,7 +83,7 @@ extension DateFormatter {
         dateFormatter.setLocalizedDateFormatFromTemplate("jdMMMHHmm")
         return dateFormatter
     }()
-    
+
     // Jun 20 2020 8:48 PM
     static let dateTimeFormatterMonthDayYearTime: DateFormatter = {
         let dateFormatter = DateFormatter()
@@ -91,7 +91,7 @@ extension DateFormatter {
         dateFormatter.setLocalizedDateFormatFromTemplate("jdMMMyyyyHHmm")
         return dateFormatter
     }()
-    
+
     // January 20 2020
     static let dateTimeFormatterMonthDayYearLong: DateFormatter = {
         let dateFormatter = DateFormatter()

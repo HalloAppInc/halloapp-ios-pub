@@ -100,6 +100,8 @@
 		6A3E533E2824777500E98640 /* XMPPChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A3E533D2824777500E98640 /* XMPPChatMessage.swift */; };
 		6A482E4F27CD85700023CABF /* GroupFeedHistoryDecryption+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A482E4D27CD85700023CABF /* GroupFeedHistoryDecryption+CoreDataClass.swift */; };
 		6A482E5027CD85700023CABF /* GroupFeedHistoryDecryption+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A482E4E27CD85700023CABF /* GroupFeedHistoryDecryption+CoreDataProperties.swift */; };
+		6A4E228D291332F70047AC09 /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A4E228C291332F70047AC09 /* Date.swift */; };
+		6A4E228F291333290047AC09 /* DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A4E228E291333290047AC09 /* DateFormatter.swift */; };
 		6A5729772745885500E02BAC /* NotificationStatus+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5729752745885500E02BAC /* NotificationStatus+CoreDataClass.swift */; };
 		6A5729782745885500E02BAC /* NotificationStatus+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5729762745885500E02BAC /* NotificationStatus+CoreDataProperties.swift */; };
 		6A57297A2745C51100E02BAC /* NotificationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5729792745C51100E02BAC /* NotificationStore.swift */; };
@@ -257,6 +259,8 @@
 		6A3E533D2824777500E98640 /* XMPPChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPChatMessage.swift; sourceTree = "<group>"; };
 		6A482E4D27CD85700023CABF /* GroupFeedHistoryDecryption+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupFeedHistoryDecryption+CoreDataClass.swift"; sourceTree = "<group>"; };
 		6A482E4E27CD85700023CABF /* GroupFeedHistoryDecryption+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupFeedHistoryDecryption+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		6A4E228C291332F70047AC09 /* Date.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Date.swift; sourceTree = "<group>"; };
+		6A4E228E291333290047AC09 /* DateFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatter.swift; sourceTree = "<group>"; };
 		6A5729752745885500E02BAC /* NotificationStatus+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotificationStatus+CoreDataClass.swift"; sourceTree = "<group>"; };
 		6A5729762745885500E02BAC /* NotificationStatus+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotificationStatus+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		6A5729792745C51100E02BAC /* NotificationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationStore.swift; sourceTree = "<group>"; };
@@ -679,9 +683,11 @@
 		7681241C2486C133008C5216 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				6A4E228C291332F70047AC09 /* Date.swift */,
 				68A64E7F24D2128300F40F1F /* NSAttributedString.swift */,
 				68A64E8124D22E5500F40F1F /* NSRange.swift */,
 				F86919E126397F0C00B01306 /* UIImageView.swift */,
+				6A4E228E291333290047AC09 /* DateFormatter.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -860,6 +866,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6A4E228F291333290047AC09 /* DateFormatter.swift in Sources */,
 				F8BE61AA27A0640C0061FFC2 /* ChatListSyncItem.swift in Sources */,
 				6A5729772745885500E02BAC /* NotificationStatus+CoreDataClass.swift in Sources */,
 				6A5729782745885500E02BAC /* NotificationStatus+CoreDataProperties.swift in Sources */,
@@ -923,6 +930,7 @@
 				6A6BBAE827679EFF0063E8BC /* MainDataStore.xcdatamodeld in Sources */,
 				68A64E8424D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift in Sources */,
 				689FB93D27EA8300005CD6D8 /* FeedPostComment+CoreDataProperties.swift in Sources */,
+				6A4E228D291332F70047AC09 /* Date.swift in Sources */,
 				689FB94127EA9B6F005CD6D8 /* CommonMedia+CoreDataProperties.swift in Sources */,
 				688D8A2024ED9B3300258BB9 /* Proto+Mentions.swift in Sources */,
 				6A958D7D270764E6007C89C6 /* SenderStateBundle+CoreDataClass.swift in Sources */,

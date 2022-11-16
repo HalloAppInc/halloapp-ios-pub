@@ -12,6 +12,7 @@ import CoreData
 import Combine
 import CocoaLumberjackSwift
 import Intents
+import CryptoKit
 
 public struct FileSharingData {
     public init(name: String, size: Int, localURL: URL) {
@@ -1753,4 +1754,619 @@ extension CoreChatData {
         }
     }
 
+    public func processGroupHistoryPayload(historyPayload: Clients_GroupHistoryPayload?, withGroupMessage group: HalloGroup) {
+        guard let sender = group.sender else {
+            DDLogError("ChatData/didReceiveHistoryPayload/invalid group here: \(group)")
+            return
+        }
+        let groupID = group.groupId
+
+        // Check if self is a newly added member to the group
+        let memberDetails = historyPayload?.memberDetails
+        let ownUserID = userData.userId
+        let isSelfANewMember = memberDetails?.contains(where: { $0.uid == Int64(ownUserID) }) ?? false
+
+        // If self is a new member then we can just ignore.
+        // Nothing to share with anyone else.
+        if isSelfANewMember {
+            DDLogInfo("ChatData/didReceiveHistoryPayload/\(groupID)/self is newly added member - ignore historyResend stanza")
+            let numExpected = historyPayload?.contentDetails.count ?? 0
+            AppContext.shared.cryptoData.resetFeedHistory(groupID: groupID, timestamp: Date(), numExpected: numExpected)
+            if let contentDetails = historyPayload?.contentDetails {
+                AppContext.shared.coreFeedData.createTombstones(for: groupID, with: contentDetails)
+            }
+
+        } else if let historyPayload = historyPayload,
+                  sender != userData.userId {
+            // Members of the group on receiving a historyPayload stanza
+            // Must verify keys and hashes and then share the content.
+            DDLogInfo("ChatData/didReceiveHistoryPayload/\(groupID)/from: \(sender)/processing")
+            processGroupFeedHistoryResend(historyPayload, for: group.groupId, fromUserID: sender)
+
+        } else if sender == userData.userId {
+            // For admin who added the members
+            // share authored group feed history to all new member uids.
+            let newlyAddedMembers = group.members?.filter { $0.action == .add } ?? []
+            let newMemberUids = newlyAddedMembers.map{ $0.userId }
+
+            mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
+                let (postsData, commentsData) = AppContext.shared.coreFeedData.authoredFeedHistory(for: groupID, in: managedObjectContext)
+
+                DDLogInfo("ChatData/didReceiveHistoryPayload/\(groupID)/from self/processing")
+                self.shareGroupFeedItems(posts: postsData, comments: commentsData, in: groupID, to: newMemberUids)
+            }
+        } else {
+            DDLogInfo("ChatData/didReceiveHistoryPayload/\(groupID)/error - unexpected stanza")
+        }
+
+    }
+
+    public func processGroupFeedHistoryResend(_ historyPayload: Clients_GroupHistoryPayload, for groupID: GroupID, fromUserID: UserID) {
+        // Check if sender is in the address book.
+        // If yes - then verify the hash of the contents and send them to the new members.
+        // Else - log and return
+
+        mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
+            var isContactInAddressBook = false
+            self.contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in
+                isContactInAddressBook = self.contactStore.isContactInAddressBook(userId: fromUserID, in: contactsManagedObjectContext)
+            }
+
+            guard isContactInAddressBook else {
+                DDLogInfo("ChatData/processGroupFeedHistory/\(groupID)/sendingAdmin is not in address book - ignore historyResend stanza")
+                return
+            }
+
+            let contentsDetails = historyPayload.contentDetails
+            var contentsHashDict = [String: Data]()
+            contentsDetails.forEach { contentDetails in
+                switch contentDetails.contentID {
+                case .postIDContext(let postIdContext):
+                    contentsHashDict[postIdContext.feedPostID] = contentDetails.contentHash
+                case .commentIDContext(let commentIdContext):
+                    contentsHashDict[commentIdContext.commentID] = contentDetails.contentHash
+                case .none:
+                    break
+                }
+            }
+
+            let (postsData, commentsData) = AppContext.shared.coreFeedData.authoredFeedHistory(for: groupID, in: managedObjectContext)
+            var postsToShare: [PostData] = []
+            var commentsToShare: [CommentData] = []
+            do {
+                for post in postsData {
+                    let contentData = try post.clientContainer.serializedData()
+                    let actualHash = SHA256.hash(data: contentData).data
+                    let expectedHash = contentsHashDict[post.id]
+                    if let expectedHash = expectedHash,
+                       expectedHash == actualHash {
+                        postsToShare.append(post)
+                    } else {
+                        DDLogError("ChatData/processGroupFeedHistory/\(groupID)/post: \(post.id)/hash mismatch/expected: \(String(describing: expectedHash))/actual: \(actualHash)")
+                    }
+                }
+                for comment in commentsData {
+                    let contentData = try comment.clientContainer.serializedData()
+                    let actualHash = SHA256.hash(data: contentData).data
+                    let expectedHash = contentsHashDict[comment.id]
+                    if let expectedHash = expectedHash,
+                       expectedHash == actualHash {
+                        commentsToShare.append(comment)
+                    } else {
+                        DDLogError("ChatData/processGroupFeedHistory/\(groupID)/comment: \(comment.id)/hash mismatch/expected: \(String(describing: expectedHash))/actual: \(actualHash)")
+                    }
+                }
+
+                // Fetch identity keys of new members and compare with received keys.
+                var numberOfFailedVerifications = 0
+                let verifyKeysGroup = DispatchGroup()
+                var newMemberUids: [UserID] = []
+                let totalNewMemberUids = historyPayload.memberDetails.count
+                historyPayload.memberDetails.forEach { memberDetails in
+                    verifyKeysGroup.enter()
+                    let memberUid = UserID(memberDetails.uid)
+                    AppContext.shared.messageCrypter.setupOutbound(for: memberUid) { result in
+                        switch result {
+                        case .success(let keyBundle):
+                            let expected = keyBundle.inboundIdentityPublicEdKey
+                            let actual = memberDetails.publicIdentityKey
+                            if expected == actual {
+                                DDLogInfo("ChatData/processGroupFeedHistory/\(groupID)/verified \(memberUid) successfully")
+                                newMemberUids.append(memberUid)
+                            } else {
+                                DDLogError("ChatData/processGroupFeedHistory/\(groupID)/failed verification of \(memberUid)/expected: \(expected.bytes.prefix(4))/actual: \(actual.bytes.prefix(4))")
+                                numberOfFailedVerifications += 1
+                            }
+                        case .failure(let error):
+                            DDLogError("ChatData/processGroupFeedHistory/\(groupID)/failed to verify \(memberUid)/\(error)")
+                            numberOfFailedVerifications += 1
+                        }
+                        verifyKeysGroup.leave()
+                    }
+                }
+
+                // After verification - share group feed items to the verified new members.
+                verifyKeysGroup.notify(queue: .main) { [weak self] in
+                    guard let self = self else { return }
+                    if numberOfFailedVerifications > 0 {
+                        DDLogError("ProtoServiceCore/modifyGroup/\(groupID)/fetchMemberKeysCompletion/error - num: \(numberOfFailedVerifications)/\(totalNewMemberUids)")
+                    }
+
+                    // Now encrypt and send the stanza to the verified members.
+                    DDLogInfo("ChatData/processGroupFeedHistory/\(groupID)/postsToShare: \(postsToShare.count)/commentsToShare: \(commentsToShare.count)")
+                    self.shareGroupFeedItems(posts: postsToShare, comments: commentsToShare, in: groupID, to: newMemberUids)
+                }
+            } catch {
+                DDLogError("ChatData/processGroupFeedHistory/\(groupID)/failed serializing content: \(error)")
+            }
+        }
+    }
+
+    public func shareGroupFeedItems(posts: [PostData], comments: [CommentData], in groupID: GroupID, to memberUids: [UserID]) {
+        var groupFeedItemsToShare: [Server_GroupFeedItem] = []
+        for post in posts {
+            if let serverPost = post.serverPost {
+                var serverGroupFeedItem = Server_GroupFeedItem()
+                switch post.content {
+                case .unsupported, .waiting, .moment:
+                    // This cannot happen - since we are always sharing our own content.
+                    // our own content can never be unsupported or waiting
+                    // moments are only for the home feed
+                    DDLogError("ChatData/shareGroupFeedItems/\(groupID)/post: \(post.id)/invalid content here: \(post.content)")
+                    continue
+                case .retracted:
+                    serverGroupFeedItem.action = .retract
+                case .album, .text, .voiceNote:
+                    serverGroupFeedItem.action = .publish
+                }
+                serverGroupFeedItem.expiryTimestamp = post.expiration.flatMap { Int64($0.timeIntervalSince1970) } ?? -1
+                serverGroupFeedItem.post = serverPost
+                serverGroupFeedItem.isResentHistory = true
+                groupFeedItemsToShare.append(serverGroupFeedItem)
+            } else {
+                DDLogError("ChatData/shareGroupFeedItems/\(groupID)/post: \(post.id)/invalid proto")
+            }
+        }
+        for comment in comments {
+           if let serverComment = comment.serverComment {
+                var serverGroupFeedItem = Server_GroupFeedItem()
+               switch comment.content {
+               case .unsupported, .waiting:
+                   // This cannot happen - since we are always sharing our own content.
+                   // our own content can never be unsupported or waiting
+                   DDLogError("ChatData/shareGroupFeedItems/\(groupID)/comment: \(comment.id)/invalid content here: \(comment.content)")
+                   continue
+               case .retracted:
+                   serverGroupFeedItem.action = .retract
+               case .album, .text, .reaction, .voiceNote:
+                   serverGroupFeedItem.action = .publish
+               }
+                serverGroupFeedItem.comment = serverComment
+               serverGroupFeedItem.isResentHistory = true
+                groupFeedItemsToShare.append(serverGroupFeedItem)
+            } else {
+                DDLogError("ChatData/shareGroupFeedItems/\(groupID)/comment: \(comment.id)/invalid proto")
+            }
+        }
+        DDLogInfo("ChatData/shareGroupFeedItems/\(groupID)/items count: \(groupFeedItemsToShare.count)")
+        var groupFeedItemsStanza = Server_GroupFeedItems()
+        groupFeedItemsStanza.gid = groupID
+        groupFeedItemsStanza.items = groupFeedItemsToShare
+        // We need to encrypt this stanza and send it to all the new member uids.
+        memberUids.forEach { memberUid in
+            service.shareGroupHistory(items: groupFeedItemsStanza, with: memberUid) { result in
+                switch result {
+                case .success:
+                    DDLogInfo("ChatData/shareGroupFeedItems/\(groupID)/sent successfully to \(memberUid)")
+                case .failure(let error):
+                    DDLogError("ChatData/shareGroupFeedItems/\(groupID)/failed sending to \(memberUid)/error: \(error)")
+                }
+            }
+        }
+    }
+
+    // MARK: Groups
+    public func processIncomingXMPPGroup(_ group: XMPPGroup) {
+        mainDataStore.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            self.processIncomingGroup(xmppGroup: group, using: managedObjectContext)
+        }
+    }
+
+    public func processIncomingGroup(xmppGroup: XMPPGroup, using managedObjectContext: NSManagedObjectContext) {
+        DDLogInfo("ChatData/processIncomingGroup")
+
+        var contactNames = [UserID:String]()
+        // Update push names for member userids on any events received.
+        xmppGroup.members?.forEach { inboundMember in
+            // add to pushnames
+            if let name = inboundMember.name, !name.isEmpty {
+                contactNames[inboundMember.userId] = name
+            }
+        }
+        self.contactStore.addPushNames(contactNames)
+        // Saving push names early on will help us show push names for events/content from these users.
+
+        switch xmppGroup.action {
+        case .create:
+            processGroupCreateAction(xmppGroup: xmppGroup, in: managedObjectContext)
+        case .join:
+            processGroupJoinAction(xmppGroup: xmppGroup, in: managedObjectContext)
+        case .leave:
+            processGroupLeaveAction(xmppGroup: xmppGroup, in: managedObjectContext)
+        case .modifyMembers, .modifyAdmins, .autoPromoteAdmins:
+            processGroupModifyMembersAction(xmppGroup: xmppGroup, in: managedObjectContext)
+        case .changeName:
+            processGroupChangeNameAction(xmppGroup: xmppGroup, in: managedObjectContext)
+        case .changeDescription:
+            processGroupChangeDescriptionAction(xmppGroup: xmppGroup, in: managedObjectContext)
+        case .changeAvatar:
+            processGroupChangeAvatarAction(xmppGroup: xmppGroup, in: managedObjectContext)
+        case .setBackground:
+            processGroupSetBackgroundAction(xmppGroup: xmppGroup, in: managedObjectContext)
+        case .get:
+            // Sync group if we get a message from the server.
+            syncGroup(xmppGroup)
+        case .changeExpiry:
+            processGroupChangeExpiryAction(xmppGroup: xmppGroup, in: managedObjectContext)
+
+        default: break
+        }
+
+        mainDataStore.save(managedObjectContext)
+    }
+
+    public func processGroupCreateAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext, recordEvent: Bool = true) {
+
+        let chatGroup = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+
+        var contactNames = [UserID:String]()
+
+        // Add Group Creator
+        if let existingCreator = chatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroup.sender ?? "", in: managedObjectContext) {
+            existingCreator.type = .admin
+        } else {
+            guard let sender = xmppGroup.sender else { return }
+            let groupCreator =  GroupMember(context: managedObjectContext)
+            groupCreator.groupID = xmppGroup.groupId
+            groupCreator.userID = sender
+            groupCreator.type = .admin
+            groupCreator.group = chatGroup
+
+            if let name = xmppGroup.senderName {
+                contactNames[sender] = name
+            }
+        }
+
+        // Add new Group members to database
+        for xmppGroupMember in xmppGroup.members ?? [] {
+            DDLogDebug("ChatData/group/process/new/add-member [\(xmppGroupMember.userId)]")
+            processGroupAddMemberAction(chatGroup: chatGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
+
+            // add to pushnames
+            if let name = xmppGroupMember.name, !name.isEmpty {
+                contactNames[xmppGroupMember.userId] = name
+            }
+        }
+
+        if !contactNames.isEmpty {
+            contactStore.addPushNames(contactNames)
+        }
+        if recordEvent {
+            recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
+        }
+    }
+
+    public func processGroupJoinAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext, recordEvent: Bool = true) {
+        DDLogInfo("ChatData/group/processGroupJoinAction")
+        let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+
+        var membersAdded: [UserID] = []
+        for xmppGroupMember in xmppGroup.members ?? [] {
+            guard xmppGroupMember.action == .join else { continue }
+
+            membersAdded.append(xmppGroupMember.userId)
+            // add pushname first before recording message since user could be new
+            var contactNames = [UserID:String]()
+            if let name = xmppGroupMember.name, !name.isEmpty {
+                contactNames[xmppGroupMember.userId] = name
+            }
+            if !contactNames.isEmpty {
+                contactStore.addPushNames(contactNames)
+            }
+
+            processGroupAddMemberAction(chatGroup: group, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
+            if recordEvent {
+                recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
+            }
+        }
+
+        // Update group crypto state.
+        if !membersAdded.isEmpty {
+            AppContext.shared.messageCrypter.addMembers(userIds: membersAdded, in: xmppGroup.groupId)
+        }
+        getAndSyncGroup(groupId: xmppGroup.groupId)
+    }
+
+    public func processGroupLeaveAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext, recordEvent: Bool = true) {
+        // If the group no longer exists, and we're the removed member, we've likely deleted the group.  Do not attempt to recreate or add events.
+        if chatGroup(groupId: xmppGroup.groupId, in: managedObjectContext) == nil,
+           xmppGroup.members?.count == 1, let member = xmppGroup.members?.first, member.action == .leave, member.userId == userData.userId {
+            DDLogDebug("ChatData/group/process/new/skip-leave-member [\(xmppGroup.groupId)]")
+            return
+        }
+
+        _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+
+        var membersRemoved: [UserID] = []
+        for xmppGroupMember in xmppGroup.members ?? [] {
+            DDLogDebug("ChatData/group/process/new/leave-member [\(xmppGroupMember.userId)]")
+            guard xmppGroupMember.action == .leave else { continue }
+            deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId, in: managedObjectContext)
+
+            membersRemoved.append(xmppGroupMember.userId)
+            if xmppGroupMember.userId != AppContext.shared.userData.userId {
+                getAndSyncGroup(groupId: xmppGroup.groupId)
+            }
+            if recordEvent {
+                recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
+            }
+        }
+
+        // Update group crypto state.
+        if !membersRemoved.isEmpty {
+            AppContext.shared.messageCrypter.removeMembers(userIds: membersRemoved, in: xmppGroup.groupId)
+        }
+        // TODO: murali@: should we clear our crypto session here?
+        // but what if messages arrive out of order from the server.
+    }
+
+    public func processGroupModifyMembersAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext, recordEvent: Bool = true) {
+        DDLogDebug("ChatData/group/processGroupModifyMembersAction")
+        let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+
+        var membersAdded: [UserID] = []
+        var membersRemoved: [UserID] = []
+        for xmppGroupMember in xmppGroup.members ?? [] {
+            DDLogDebug("ChatData/group/process/modifyMembers [\(xmppGroupMember.userId)]/action: \(String(describing: xmppGroupMember.action))")
+
+            // add pushname first before recording message since user could be new
+            var contactNames = [UserID:String]()
+            if let name = xmppGroupMember.name, !name.isEmpty {
+                contactNames[xmppGroupMember.userId] = name
+            }
+            if !contactNames.isEmpty {
+                contactStore.addPushNames(contactNames)
+            }
+
+            switch xmppGroupMember.action {
+            case .add:
+                membersAdded.append(xmppGroupMember.userId)
+                processGroupAddMemberAction(chatGroup: group, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
+            case .remove:
+                membersRemoved.append(xmppGroupMember.userId)
+                deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId, in: managedObjectContext)
+            case .promote:
+                if let foundMember = group.members?.first(where: { $0.userID == xmppGroupMember.userId }) {
+                    foundMember.type = .admin
+                }
+            case .demote:
+                if let foundMember = group.members?.first(where: { $0.userID == xmppGroupMember.userId }) {
+                    foundMember.type = .member
+                }
+            default:
+                break
+            }
+
+            if recordEvent {
+                recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
+            }
+        }
+
+        // Always add members to group crypto session first and then remove members.
+        // This ensures that we clear our outgoing state for sure!
+        if !membersAdded.isEmpty {
+            AppContext.shared.messageCrypter.addMembers(userIds: membersAdded, in: xmppGroup.groupId)
+        }
+        if !membersRemoved.isEmpty {
+            AppContext.shared.messageCrypter.removeMembers(userIds: membersRemoved, in: xmppGroup.groupId)
+        }
+        getAndSyncGroup(groupId: xmppGroup.groupId)
+    }
+
+    public func processGroupChangeNameAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext, recordEvent: Bool = true) {
+        DDLogInfo("ChatData/group/processGroupChangeNameAction")
+        let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        group.name = xmppGroup.name
+        updateChatThread(type: xmppGroup.groupType, for: xmppGroup.groupId) { (chatThread) in
+            chatThread.title = xmppGroup.name
+        }
+        if recordEvent {
+            recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
+        }
+        getAndSyncGroup(groupId: xmppGroup.groupId)
+    }
+
+    public func processGroupChangeDescriptionAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext, recordEvent: Bool = true) {
+        DDLogInfo("ChatData/group/processGroupChangeDescriptionAction")
+        let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        group.desc = xmppGroup.description
+        mainDataStore.save(managedObjectContext)
+        if recordEvent {
+            recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
+        }
+        getAndSyncGroup(groupId: xmppGroup.groupId)
+    }
+
+    public func processGroupChangeAvatarAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext, recordEvent: Bool = true) {
+        DDLogInfo("ChatData/group/processGroupChangeAvatarAction")
+        let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        group.avatarID = xmppGroup.avatarID
+        if let avatarID = xmppGroup.avatarID {
+            AppContext.shared.avatarStore.updateOrInsertGroupAvatar(for: group.id, with: avatarID)
+        }
+        if recordEvent {
+            recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
+        }
+        getAndSyncGroup(groupId: xmppGroup.groupId)
+    }
+
+    public func processGroupSetBackgroundAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext, recordEvent: Bool = true) {
+        DDLogInfo("ChatData/group/processGroupSetBackgroundAction")
+        let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        group.background = xmppGroup.background
+        mainDataStore.save(managedObjectContext)
+        if recordEvent {
+            recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
+        }
+        getAndSyncGroup(groupId: xmppGroup.groupId)
+    }
+
+    public func processGroupCreateIfNotExist(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) -> Group {
+        DDLogDebug("ChatData/group/processGroupCreateIfNotExist/ [\(xmppGroup.groupId)]")
+        if let existingChatGroup = chatGroup(groupId: xmppGroup.groupId, in: managedObjectContext) {
+            DDLogDebug("ChatData/group/processGroupCreateIfNotExist/groupExist [\(xmppGroup.groupId)]")
+            return existingChatGroup
+        } else {
+            return addGroup(xmppGroup: xmppGroup, in: managedObjectContext)
+        }
+    }
+
+    public func processGroupChangeExpiryAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext, recordEvent: Bool = true) {
+        DDLogInfo("ChatData/group/processGroupChangeExpiry")
+        guard let expirationType = xmppGroup.expirationType, let expirationTime = xmppGroup.expirationTime else {
+            DDLogInfo("ChatData/group/processGroupChangeExpiry/Did not get a valid expirationType")
+            return
+        }
+        let group = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        group.expirationType = expirationType
+        group.expirationTime = expirationTime
+        mainDataStore.save(managedObjectContext)
+        if recordEvent {
+            recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
+        }
+        getAndSyncGroup(groupId: xmppGroup.groupId)
+    }
+
+    public func addGroup(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) -> Group {
+        DDLogDebug("ChatData/group/addGroup/new [\(xmppGroup.groupId)]")
+
+        // Add Group to database
+        let chatGroup = Group(context: managedObjectContext)
+        chatGroup.id = xmppGroup.groupId
+        chatGroup.name = xmppGroup.name
+        chatGroup.type = xmppGroup.groupType
+        chatGroup.lastUpdate = Date()
+        if let expirationTime = xmppGroup.expirationTime, let expirationType = xmppGroup.expirationType {
+            chatGroup.expirationTime = expirationTime
+            chatGroup.expirationType = expirationType
+        } else {
+            chatGroup.expirationTime = .thirtyDays
+            chatGroup.expirationType = .expiresInSeconds
+        }
+
+        // Add Chat Thread
+        if chatThread(type: xmppGroup.groupType, id: chatGroup.id, in: managedObjectContext) == nil {
+            let chatThread = CommonThread(context: managedObjectContext)
+            chatThread.type = xmppGroup.groupType
+            chatThread.groupId = chatGroup.id
+            chatThread.title = chatGroup.name
+            chatThread.lastMsgTimestamp = Date()
+        }
+        return chatGroup
+    }
+
+    func groupFeedEvents(with groupID: GroupID, in managedObjectContext: NSManagedObjectContext) -> [GroupEvent] {
+        let cutOffDate = Date(timeIntervalSinceNow: -Date.days(31))
+        let sortDescriptors = [
+            NSSortDescriptor(keyPath: \GroupEvent.timestamp, ascending: true)
+        ]
+
+        let fetchRequest = GroupEvent.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "groupID == %@ && timestamp >= %@", groupID, cutOffDate as NSDate)
+        fetchRequest.sortDescriptors = sortDescriptors
+        fetchRequest.returnsObjectsAsFaults = false
+
+        do {
+            let events = try managedObjectContext.fetch(fetchRequest)
+            return events
+        }
+        catch {
+            DDLogError("ChatData/group/fetch-events/error  [\(error)]")
+            return []
+        }
+    }
+
+    private func recordGroupMessageEvent(xmppGroup: XMPPGroup, xmppGroupMember: XMPPGroupMember?, in managedObjectContext: NSManagedObjectContext) {
+        DDLogVerbose("ChatData/recordGroupMessageEvent/groupID/\(xmppGroup.groupId)")
+
+        // hack: skip recording the event(s) of an avatar change and/or description change if the changes are done at group creation,
+        // since server api require separate requests for them but we want to show only the group creation event
+        // rough check by comparing if the last event (also first) was a group creation event and if avatar/description changes happened right after
+        let groupFeedEventsList = groupFeedEvents(with: xmppGroup.groupId, in: managedObjectContext)
+        if let lastEvent = groupFeedEventsList.last,
+           [.create].contains(lastEvent.action),
+           lastEvent.memberUserID == xmppGroupMember?.userId,
+           [.changeAvatar, .changeDescription].contains(xmppGroup.action),
+           let diff = Calendar.current.dateComponents([.second], from: lastEvent.timestamp, to: Date()).second,
+           diff < 3 {
+            return
+        }
+
+        let isCreateEvent = xmppGroup.action == .create
+
+
+        let event = GroupEvent(context: managedObjectContext)
+        event.senderUserID = xmppGroup.sender
+        event.memberUserID = xmppGroupMember?.userId
+        event.groupName = xmppGroup.name
+        event.groupID = xmppGroup.groupId
+        event.timestamp = Date()
+
+        if let expirationType = xmppGroup.expirationType {
+            event.groupExpirationType = expirationType
+            event.groupExpirationTime = xmppGroup.expirationTime ?? 0
+        }
+
+        event.action = {
+            switch xmppGroup.action {
+            case .create: return .create
+            case .join: return .join
+            case .leave: return .leave
+            case .delete: return .delete
+            case .changeName: return .changeName
+            case .changeDescription: return .changeDescription
+            case .changeAvatar: return .changeAvatar
+            case .setBackground: return .setBackground
+            case .modifyAdmins: return .modifyAdmins
+            case .modifyMembers: return .modifyMembers
+            case .changeExpiry: return .changeExpiry
+            case .autoPromoteAdmins: return .autoPromoteAdmins
+            default: return .none
+            }
+        }()
+
+        event.memberAction = {
+            switch xmppGroupMember?.action {
+            case .add: return .add
+            case .remove: return .remove
+            case .promote: return .promote
+            case .demote: return .demote
+            case .leave: return .leave
+            default: return .none
+            }
+        }()
+
+        if let chatThread = self.chatThread(type: xmppGroup.groupType, id: event.groupID, in: managedObjectContext) {
+
+            chatThread.lastFeedUserID = event.senderUserID
+            chatThread.lastFeedTimestamp = event.timestamp
+            chatThread.lastFeedText = event.text
+
+            // nb: unreadFeedCount is not incremented for group event messages
+            // and NUX zero zone unread welcome post count is recorded in NUX userDefaults, not unreadFeedCount
+        }
+
+        mainDataStore.save(managedObjectContext)
+    }
 }

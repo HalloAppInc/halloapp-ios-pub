@@ -23,13 +23,13 @@ fileprivate extension Localizations {
     static var today: String {
         NSLocalizedString("timestamp.today", value: "Today", comment: "Timestamp: `Today`")
     }
-    
+
     static var yesterday: String {
         NSLocalizedString("timestamp.yesterday", value: "Yesterday", comment: "Timestamp: `Yesterday`")
     }
 }
 
-extension Date {
+public extension Date {
     static var currentCalendar = Calendar.autoupdatingCurrent
     static func seconds(_ seconds: Int) -> TimeInterval { return TimeInterval(seconds) }
     static func minutes(_ minutes: Int) -> TimeInterval { return TimeInterval(minutes * 60) }
@@ -107,7 +107,7 @@ extension Date {
 
     func chatListTimestamp(_ currentTime: Date? = nil) -> String {
         let seconds = -timeIntervalSince(currentTime ?? Date())
-        
+
         if seconds < Date.minutes(1) {
             return Localizations.nowCapitalized
         } else if Calendar.current.isDateInToday(self) {
@@ -122,10 +122,10 @@ extension Date {
             return DateFormatter.dateTimeFormatterShortDate.string(from: self)
         }
     }
-    
+
     func chatMsgGroupingTimestamp(_ currentTime: Date? = nil) -> String {
         let seconds = -timeIntervalSince(currentTime ?? Date())
-        
+
         if Date.currentCalendar.isDateInToday(self) {
             return Localizations.today
         } else if Date.currentCalendar.isDateInYesterday(self) {
@@ -141,7 +141,7 @@ extension Date {
 
     func chatDisplayTimestamp(_ currentTime: Date? = nil) -> String {
         let seconds = -timeIntervalSince(currentTime ?? Date())
-        
+
         if seconds < Date.minutes(1) {
             return Localizations.nowLowercase
         } else {
@@ -149,10 +149,10 @@ extension Date {
             return dateFormatter.string(from: self)
         }
     }
-    
+
     func chatTimestamp(_ currentTime: Date? = nil) -> String {
         let seconds = -timeIntervalSince(currentTime ?? Date())
-        
+
         if seconds < Date.minutes(1) {
             return Localizations.nowLowercase
         } else if Calendar.current.isDateInToday(self) {
@@ -169,7 +169,7 @@ extension Date {
             return dateFormatter.string(from: self)
         }
     }
-    
+
     func lastSeenTimestamp(_ currentTime: Date? = nil) -> String {
         let seconds = -timeIntervalSince(currentTime ?? Date())
 
@@ -190,7 +190,7 @@ extension Date {
             return String(format: formatString, date, time)
         }
     }
-    
+
     func shortDateFormat() -> String {
         return DateFormatter.dateTimeFormatterShortDate.string(from: self)
     }
