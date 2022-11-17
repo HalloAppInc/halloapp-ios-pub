@@ -5294,7 +5294,7 @@ extension ChatData {
                     chatThread.lastFeedText = event.text
                 }
             case .groupChat:
-                chatThread.lastMsgUserId = event.senderUserID
+                chatThread.lastMsgUserId = nil
                 chatThread.lastMsgTimestamp = event.timestamp
                 chatThread.lastMsgText = event.text
             case .oneToOne:

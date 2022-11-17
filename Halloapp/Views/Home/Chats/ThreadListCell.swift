@@ -168,7 +168,26 @@ class ThreadListCell: UITableViewCell {
         let ham = HAMarkdown(font: Constants.LastMsgFont, color: Constants.LastMsgColor)
 
         result.append(ham.parse(messageText))
-
+        // For group chat messages, we prefix the preview with the message author name.
+        if chatThread.type == .groupChat {
+            let namePrefixedResult = NSMutableAttributedString(string: "")
+            var firstName: String?
+            if let lastMsgUserId = chatThread.lastMsgUserId {
+                if lastMsgUserId == MainAppContext.shared.userData.userId {
+                    firstName = Localizations.userYouCapitalized
+                } else {
+                    firstName = MainAppContext.shared.contactStore.firstName(for: lastMsgUserId, in: MainAppContext.shared.contactStore.viewContext)
+                    if firstName == Localizations.unknownContact {
+                        firstName = MainAppContext.shared.contactStore.normalizedPhoneNumber(for: lastMsgUserId, using: MainAppContext.shared.contactStore.viewContext)
+                    }
+                }
+            }
+            if let firstName = firstName {
+                namePrefixedResult.append(NSMutableAttributedString(string: firstName + ": ", attributes: [ .font: Constants.LastMsgFont ]))
+            }
+            namePrefixedResult.append(result)
+            return namePrefixedResult
+        }
         return result
     }
 
