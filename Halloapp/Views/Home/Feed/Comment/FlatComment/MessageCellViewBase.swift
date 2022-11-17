@@ -53,7 +53,7 @@ class MessageCellViewBase: UICollectionViewCell {
 
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultHigh + 50, for: .horizontal)
         return label
     }()
 
