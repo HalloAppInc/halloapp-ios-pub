@@ -104,7 +104,7 @@ public class ReactionViewController: UIViewController {
         
         super.init(nibName: nil, bundle: nil)
         
-        if chatMessage.isRetracted || !userBelongsToGroup {
+        if chatMessage.isRetracted || (chatMessage.chatMessageRecipient.chatType == .groupChat && !userBelongsToGroup) {
             emojiStack.isHidden = true
         }
         configureMessageToolbar(chatMessage: chatMessage)
