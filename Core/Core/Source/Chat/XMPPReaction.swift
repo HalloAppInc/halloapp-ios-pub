@@ -29,7 +29,7 @@ extension XMPPReaction: ChatMessageProtocol {
     public var linkPreviewData: [LinkPreviewProtocol] {
         return []
     }
-    
+
 
     public var timeIntervalSince1970: TimeInterval? {
         timestamp

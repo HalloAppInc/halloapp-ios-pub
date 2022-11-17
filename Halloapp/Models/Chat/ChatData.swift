@@ -1455,11 +1455,16 @@ class ChatData: ObservableObject {
 
             var lastMsgTextFallback: String?
             switch chatContent {
-            case .album(let text, _):
-                chatMessage.rawText = text
-            case .text(let text, _):
-                // TODO @dini merge linkPreviewData
-                chatMessage.rawText = text
+            case .album(let mentionText, _):
+                chatMessage.rawText = mentionText.collapsedText
+                chatMessage.mentions = mentionText.mentions.map { (index, user) in
+                    return MentionData(index: index, userID: user.userID, name: contactStore.pushNames[user.userID] ?? user.pushName ?? "")
+                }
+            case .text(let mentionText, _):
+                chatMessage.rawText = mentionText.collapsedText
+                chatMessage.mentions = mentionText.mentions.map { (index, user) in
+                    return MentionData(index: index, userID: user.userID, name: contactStore.pushNames[user.userID] ?? user.pushName ?? "")
+                }
             case .voiceNote(_):
                 chatMessage.rawText = ""
             case .reaction(let emoji):
@@ -1605,6 +1610,7 @@ class ChatData: ObservableObject {
                 isMsgToYourself: isMsgToYourself,
                 lastMsgMediaType: lastMsgMediaType,
                 lastMsgText: (chatMessage.rawText ?? "").isEmpty ? lastMsgTextFallback : chatMessage.rawText,
+                mentions: chatMessage.mentions,
                 using: managedObjectContext)
             mergedMessages.append((message, chatMessage))
         }
@@ -2416,7 +2422,7 @@ extension ChatData {
         }
         
         // Update Chat Thread
-        coreChatData.updateChatThreadOnMessageCreate(chatMessageRecipient: chatMessageRecipient, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, lastMsgText: chatMessage.rawText, using: context)
+        coreChatData.updateChatThreadOnMessageCreate(chatMessageRecipient: chatMessageRecipient, chatMessage: chatMessage, isMsgToYourself: isMsgToYourself, lastMsgMediaType: lastMsgMediaType, lastMsgText: chatMessage.rawText, mentions: chatMessage.mentions, using: context)
                        
         save(context)
 
@@ -3709,8 +3715,9 @@ extension ChatData {
         
         // Process chat content
         switch xmppChatMessage.content {
-        case .album(let text, let media):
-            chatMessage.rawText = text
+        case .album(let mentionText, let media):
+            chatMessage.rawText = mentionText.collapsedText
+            chatMessage.mentions = mentionText.mentionsArray
             for (index, xmppMedia) in media.enumerated() {
                 guard let downloadUrl = xmppMedia.url else { continue }
 
@@ -3774,8 +3781,9 @@ extension ChatData {
                 chatMedia.message = chatMessage
                 chatMedia.name = xmppMedia.name
             }
-        case .text(let text, let linkPreviewData):
-            chatMessage.rawText = text
+        case .text(let mentionText, let linkPreviewData):
+            chatMessage.rawText = mentionText.collapsedText
+            chatMessage.mentions = mentionText.mentionsArray
             addLinkPreview( chatMessage: chatMessage, linkPreviewData: linkPreviewData, using: managedObjectContext)
         case .reaction(let emoji):
             DDLogDebug("ChatData/processInboundChatMessage/processing reaction as message")
@@ -3813,7 +3821,7 @@ extension ChatData {
         let lastMsgText = (chatMessage.rawText ?? "").isEmpty ? lastMsgTextFallback : chatMessage.rawText
 
         // Update Chat Thread
-        coreChatData.updateChatThreadOnMessageCreate(chatMessageRecipient: xmppChatMessage.chatMessageRecipient, chatMessage: chatMessage, isMsgToYourself: false, lastMsgMediaType: lastMsgMediaType, lastMsgText: lastMsgText, using: managedObjectContext)
+        coreChatData.updateChatThreadOnMessageCreate(chatMessageRecipient: xmppChatMessage.chatMessageRecipient, chatMessage: chatMessage, isMsgToYourself: false, lastMsgMediaType: lastMsgMediaType, lastMsgText: lastMsgText, mentions: chatMessage.mentions, using: managedObjectContext)
 
         save(managedObjectContext)
 
@@ -4394,14 +4402,18 @@ extension ChatData {
             groupName = chatGroup(groupId: groupId, in: viewContext)?.name
         }
         let title = [name, groupName].compactMap({ $0 }).joined(separator: " @ ")
-        
-        let body: String
 
+        let attributedBody = NSMutableAttributedString(string: "", attributes: [ .font: UIFont.TextStyle.subheadline ])
         switch xmppChatMessage.content {
-        case .text(let text, _):
-            // TODO Dini present linkPreviewData here?
-            body = text
-        case .album(let text, let media):
+        case .text(let mentionText, _):
+            if let body = MainAppContext.shared.contactStore.textWithMentions(
+                mentionText.collapsedText,
+                mentions: mentionText.orderedMentions,
+                in: MainAppContext.shared.contactStore.viewContext) {
+                attributedBody.append(body)
+            }
+            
+        case .album(let mentionText, let media):
             let mediaStr: String? = {
                 guard let firstMedia = media.first else { return nil }
                 switch firstMedia.mediaType {
@@ -4411,25 +4423,35 @@ extension ChatData {
                 case .document: return "📄"
                 }
             }()
-            body = [mediaStr, text].compactMap { $0 }.joined(separator: " ")
+            if let mediaStr = mediaStr {
+                attributedBody.append(NSAttributedString(string: mediaStr))
+            }
+            if let body = MainAppContext.shared.contactStore.textWithMentions(
+                mentionText.collapsedText,
+                mentions: mentionText.orderedMentions,
+                in: MainAppContext.shared.contactStore.viewContext) {
+                attributedBody.append(body)
+            }
         case .voiceNote(_):
-            body =  "🎤"
+            let mediaStr =  "🎤"
+            attributedBody.append(NSAttributedString(string: "🎤"))
         case .location(_):
-            body = "📍"
+            attributedBody.append(NSAttributedString(string: "📍"))
         case .reaction(let emoji):
-            body = String(format: Localizations.chatUserReactedMessage, emoji)
+            attributedBody.append(NSAttributedString(string: String(format: Localizations.chatUserReactedMessage, emoji)))
         case .files(let files):
             let filenames = files.compactMap { $0.name }
             var bodyComponents: [String?] = ["📄", filenames.first]
             if filenames.count > 1 {
                 bodyComponents.append("...")
             }
-            body = bodyComponents.compactMap { $0 }.joined(separator: " ")
+            let body = bodyComponents.compactMap { $0 }.joined(separator: " ")
+            attributedBody.append(NSAttributedString(string: body))
         case .unsupported(_):
-            body = ""
+            break
         }
         AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: messageID) {
-            Banner.show(title: title, body: body, attributedBody: nil, userID: userID, groupID: xmppChatMessage.chatMessageRecipient.toGroupId, type: xmppChatMessage.chatMessageRecipient.chatType, using: MainAppContext.shared.avatarStore)
+            Banner.show(title: title, body: nil, attributedBody: attributedBody, userID: userID, groupID: xmppChatMessage.chatMessageRecipient.toGroupId, type: xmppChatMessage.chatMessageRecipient.chatType, using: MainAppContext.shared.avatarStore)
         }
     }
     

@@ -140,9 +140,9 @@ extension SharedChatMessage: ChatMessageProtocol {
                     }
                 }
             }
-            return .text(text ?? "", linkPreviewData)
+            return .text(MentionText(collapsedText: text ?? "", mentionArray: []), linkPreviewData)
         } else {
-            return .album(text, orderedMedia)
+            return .album(MentionText(collapsedText: text ?? "", mentionArray: []), orderedMedia)
         }
     }
 }

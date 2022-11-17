@@ -87,13 +87,13 @@ extension XMPPChatMessage {
                 self.content = .files([XMPPChatMedia(chatMedia: item)])
             } else {
                 self.content = .album(
-                    chatMessage.rawText,
+                    chatMessage.mentionText,
                     media.sorted(by: { $0.order < $1.order }).map{ XMPPChatMedia(chatMedia: $0) })
             }
         } else if let commonLocation = chatMessage.location {
             self.content = .location(ChatLocation(commonLocation))
         } else {
-            self.content = .text(chatMessage.rawText ?? "", chatMessage.linkPreviewData)
+            self.content = .text(chatMessage.mentionText, chatMessage.linkPreviewData)
         }
     }
 

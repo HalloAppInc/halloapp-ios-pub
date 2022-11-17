@@ -111,6 +111,12 @@ extension ChatMessage: ChatQuotedProtocol {
         set { mentionsValue = newValue }
     }
 
+    public var mentionText: MentionText {
+        return MentionText(
+            collapsedText: rawText ?? "",
+            mentionArray: Array(mentions))
+    }
+
     public var mediaList: [QuotedMedia] {
         if let media = media {
             return Array(media)

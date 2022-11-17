@@ -166,6 +166,7 @@ class ThreadListCell: UITableViewCell {
         }
 
         let ham = HAMarkdown(font: Constants.LastMsgFont, color: Constants.LastMsgColor)
+
         result.append(ham.parse(messageText))
 
         return result

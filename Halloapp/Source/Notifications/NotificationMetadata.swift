@@ -861,19 +861,26 @@ class NotificationMetadata: Codable {
     }
 
     static func bodyText(from chatContent: ChatContent, contactStore: ContactStore) -> String? {
-        // NB: contactStore will be needed once we support mentions
         switch chatContent {
-        case .text(let text, _):
-            return text
-        case .album(let text, let media):
-            guard let text = text, !text.isEmpty else {
+        case .text(let mentionText, _):
+            let attributedBody = AppContext.shared.contactStore.textWithMentions(
+                mentionText.collapsedText,
+                mentions: mentionText.orderedMentions,
+                in: AppContext.shared.contactStore.viewContext)
+            return attributedBody?.string ?? mentionText.collapsedText
+        case .album(let mentionText, let media):
+            guard !mentionText.collapsedText.isEmpty else {
                 return Self.notificationBody(forMedia: media.map { NotificationMediaType(commonMediaType: $0.mediaType) } )
             }
             let mediaIcon: String? = {
                 guard let firstMedia = media.first else { return nil }
                 return Self.mediaIcon(NotificationMediaType(commonMediaType: firstMedia.mediaType))
             }()
-            return [mediaIcon, text].compactMap { $0 }.joined(separator: " ")
+            let attributedBody = AppContext.shared.contactStore.textWithMentions(
+                mentionText.collapsedText,
+                mentions: mentionText.orderedMentions,
+                in: AppContext.shared.contactStore.viewContext)
+            return [mediaIcon, attributedBody?.string ?? mentionText.collapsedText].compactMap { $0 }.joined(separator: " ")
         case .voiceNote(_):
             return Localizations.newAudioNoteNotificationBody
         case .reaction(let emoji):

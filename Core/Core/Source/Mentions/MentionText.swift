@@ -124,4 +124,13 @@ public struct MentionText: Codable {
     public var mentionsArray: [MentionData] {
         return mentions.map { MentionData(index: $0, userID: $1.userID, name: $1.pushName ?? "") }
     }
+
+    public var orderedMentions: [FeedMentionProtocol] {
+        return mentions
+            .map { (i, user) in
+                MentionData(index: i, userID: user.userID, name: user.pushName ?? "")
+            }
+            .sorted { $0.index < $1.index }
+    }
+    
 }

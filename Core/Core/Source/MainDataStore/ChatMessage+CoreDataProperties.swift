@@ -110,6 +110,12 @@ public extension ChatMessage {
         }
     }
 
+    var orderedMentions: [FeedMentionProtocol] {
+        get {
+            return mentions.sorted { $0.index < $1.index }
+        }
+    }
+
     var chatMessageRecipient: ChatMessageRecipient {
         get {
             if let toUserId = self.toUserId { return .oneToOneChat(toUserId: toUserId, fromUserId: fromUserId) }

@@ -123,8 +123,8 @@ public protocol ChatMessageProtocol {
 }
 
 public enum ChatContent {
-    case text(String, [LinkPreviewProtocol])
-    case album(String?, [ChatMediaProtocol])
+    case text(MentionText, [LinkPreviewProtocol])
+    case album(MentionText, [ChatMediaProtocol])
     case reaction(String)
     case voiceNote(ChatMediaProtocol)
     case location(any ChatLocationProtocol)
@@ -189,10 +189,10 @@ public extension ChatMessageProtocol {
         case .album(let text, let media):
             var album = Clients_Album()
             album.media = media.compactMap { $0.albumMedia }
-            album.text = Clients_Text(text: text ?? "")
+            album.text = Clients_Text(mentionText: text)
             container.message = .album(album)
         case .text(let text, let linkPreviewData):
-            var clientsText = Clients_Text(text: text)
+            var clientsText = Clients_Text(mentionText: text)
             linkPreviewData.forEach { linkPreview in
                 clientsText.link.url = linkPreview.url.description
                 clientsText.link.title = linkPreview.title
@@ -434,10 +434,10 @@ extension Clients_ChatContainer {
     public var chatContent: ChatContent {
         switch message {
         case .text(let clientText):
-            return .text(clientText.text, clientText.linkPreviewData)
+            return .text(clientText.mentionText, clientText.linkPreviewData)
         case .album(let album):
             return .album(
-                album.text.text.isEmpty ? nil : album.text.text,
+                album.text.mentionText,
                 album.media.compactMap {  XMPPChatMedia(albumMedia: $0) })
         case .reaction(let reaction):
             return .reaction(reaction.emoji)

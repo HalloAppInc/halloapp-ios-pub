@@ -403,6 +403,7 @@ public class CoreChatData {
             isMsgToYourself: isMsgToYourself,
             lastMsgMediaType: lastMsgMediaType,
             lastMsgText: (chatMessage.rawText ?? "").isEmpty ? lastMsgTextFallback : chatMessage.rawText,
+            mentions: chatMessage.mentions,
             using: context)
 
         mainDataStore.save(context)
@@ -418,7 +419,7 @@ public class CoreChatData {
         return messageId
     }
 
-    public func updateChatThreadOnMessageCreate(chatMessageRecipient: ChatMessageRecipient, chatMessage: ChatMessage, isMsgToYourself:Bool, lastMsgMediaType: CommonThread.LastMediaType, lastMsgText: String?, using context: NSManagedObjectContext) {
+    public func updateChatThreadOnMessageCreate(chatMessageRecipient: ChatMessageRecipient, chatMessage: ChatMessage, isMsgToYourself:Bool, lastMsgMediaType: CommonThread.LastMediaType, lastMsgText: String?, mentions: [MentionData], using context: NSManagedObjectContext) {
         guard let recipientId = chatMessageRecipient.recipientId else {
             DDLogError("CoreChatData/updateChatThread/ unable to update chat thread chatMessageId: \(chatMessage.id)")
             return
@@ -466,7 +467,11 @@ public class CoreChatData {
 
         chatThread.lastMsgId = chatMessage.id
         chatThread.lastMsgUserId = chatMessage.fromUserId
-        chatThread.lastMsgText = lastMsgText
+        var mentionText: NSAttributedString?
+        contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in
+            mentionText = contactStore.textWithMentions(chatMessage.rawText, mentions: chatMessage.orderedMentions, in: contactsManagedObjectContext)
+        }
+        chatThread.lastMsgText = mentionText?.string
         chatThread.lastMsgMediaType = lastMsgMediaType
         if isIncomingMsg {
             chatThread.lastMsgStatus = .none
@@ -1393,8 +1398,9 @@ public class CoreChatData {
             var lastMsgTextFallback: String?
             // Process chat content
             switch chatMessageProtocol.content {
-            case .album(let text, let media):
-                chatMessage.rawText = text
+            case .album(let mentionText, let media):
+                chatMessage.rawText = mentionText.collapsedText
+                chatMessage.mentions = mentionText.mentionsArray
                 if let mediaType = media.first?.mediaType {
                     lastMsgMediaType = CommonThread.lastMediaType(for: mediaType)
                 } else {
@@ -1404,8 +1410,9 @@ public class CoreChatData {
                 guard (xmppMedia.url) != nil else { break }
                 chatMessage.rawText = ""
                 lastMsgMediaType = .audio
-            case .text(let text, _):
-                chatMessage.rawText = text
+            case .text(let mentionText, _):
+                chatMessage.rawText = mentionText.collapsedText
+                chatMessage.mentions = mentionText.mentionsArray
             case .reaction(let emoji):
                 DDLogDebug("CoreChatData/saveChatMessage/processing reaction as message")
                 chatMessage.rawText = emoji
@@ -1480,13 +1487,16 @@ public class CoreChatData {
             }
 
             // Update Chat Thread
-            let lastMsgText = (chatMessage.rawText ?? "").isEmpty ? lastMsgTextFallback : chatMessage.rawText
             if let recipientId = chatMessage.chatMessageRecipient.recipientId {
                 if let chatThread = self.chatThread(type: chatMessage.chatMessageRecipient.chatType, id: recipientId, in: context) {
                     chatThread.lastMsgTimestamp = chatMessage.timestamp
                     chatThread.lastMsgId = chatMessage.id
                     chatThread.lastMsgUserId = chatMessage.fromUserId
-                    chatThread.lastMsgText = lastMsgText
+                    var mentionText: NSAttributedString?
+                    self.contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in
+                        mentionText = self.contactStore.textWithMentions(chatMessage.rawText, mentions: chatMessage.orderedMentions, in: contactsManagedObjectContext)
+                    }
+                    chatThread.lastMsgText = mentionText?.string
                     chatThread.lastMsgMediaType = lastMsgMediaType
                     chatThread.lastMsgStatus = .none
                     chatThread.lastMsgTimestamp = chatMessage.timestamp
@@ -1508,7 +1518,11 @@ public class CoreChatData {
                     }
                     chatThread.lastMsgId = chatMessage.id
                     chatThread.lastMsgUserId = chatMessage.fromUserId
-                    chatThread.lastMsgText = lastMsgText
+                    var mentionText: NSAttributedString?
+                    self.contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in
+                        mentionText = self.contactStore.textWithMentions(chatMessage.rawText, mentions: chatMessage.orderedMentions, in: contactsManagedObjectContext)
+                    }
+                    chatThread.lastMsgText = mentionText?.string
                     chatThread.lastMsgMediaType = lastMsgMediaType
                     chatThread.lastMsgStatus = .none
                     chatThread.lastMsgTimestamp = chatMessage.timestamp

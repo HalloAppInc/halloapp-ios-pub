@@ -592,9 +592,9 @@ final class ProtoService: ProtoServiceCore {
                     let chatMessage = XMPPChatMessage(content: content, context: context, timestamp: serverGroupChatStanza.timestamp, from: UserID(msg.fromUid), chatMessageRecipient: .groupChat(toGroupId: GroupID(serverGroupChatStanza.gid), fromUserId: UserID(msg.fromUid)), id: msg.id, retryCount: msg.retryCount, rerequestCount: msg.rerequestCount)
                     switch chatMessage.content {
                     case .album(let text, let media):
-                        DDLogInfo("proto/didReceive/\(msg.id)/groupChat/user/\(chatMessage.fromUserId)/album [length=\(text?.count ?? 0)] [media=\(media.count)]")
+                        DDLogInfo("proto/didReceive/\(msg.id)/groupChat/user/\(chatMessage.fromUserId)/album [length=\(text.collapsedText.count ?? 0)] [media=\(media.count)]")
                     case .text(let text, let linkPreviewData):
-                        DDLogInfo("proto/didReceive/\(msg.id)/groupChat/user/\(chatMessage.fromUserId)/text [length=\(text.count)] [linkPreviewCount=\(linkPreviewData.count)]")
+                        DDLogInfo("proto/didReceive/\(msg.id)/groupChat/user/\(chatMessage.fromUserId)/text [length=\(text.collapsedText.count)] [linkPreviewCount=\(linkPreviewData.count)]")
                     case .voiceNote(_):
                         DDLogInfo("proto/didReceive/\(msg.id)/groupChat/user/\(chatMessage.fromUserId)/voiceNote")
                     case .reaction(_):
@@ -674,9 +674,9 @@ final class ProtoService: ProtoServiceCore {
                     let chatMessage = XMPPChatMessage(content: content, context: context, timestamp: serverChat.timestamp, from: UserID(msg.fromUid), chatMessageRecipient: .oneToOneChat(toUserId: UserID(msg.toUid), fromUserId: UserID(msg.fromUid)), id: msg.id, retryCount: msg.retryCount, rerequestCount: msg.rerequestCount)
                     switch chatMessage.content {
                     case .album(let text, let media):
-                        DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/album [length=\(text?.count ?? 0)] [media=\(media.count)]")
+                        DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/album [length=\(text.collapsedText.count)] [media=\(media.count)]")
                     case .text(let text, let linkPreviewData):
-                        DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/text [length=\(text.count)] [linkPreviewCount=\(linkPreviewData.count)]")
+                        DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/text [length=\(text.collapsedText.count)] [linkPreviewCount=\(linkPreviewData.count)]")
                     case .voiceNote(_):
                         DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId)/voiceNote")
                     case .reaction(_):

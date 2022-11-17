@@ -571,7 +571,11 @@ class DataStore: ShareExtensionDataStore {
         chatThread.type = chatMessageRecipient.chatType
         chatThread.lastMsgId = chatMessage.id
         chatThread.lastMsgUserId = chatMessage.fromUserId
-        chatThread.lastMsgText = chatMessage.rawText
+        let attributedText = AppContext.shared.contactStore.textWithMentions(
+            chatMessage.rawText,
+            mentions: chatMessage.mentions,
+            in: AppContext.shared.contactStore.viewContext)
+        chatThread.lastMsgText = attributedText?.string
         chatThread.lastMsgMediaType = lastMsgMediaType
         if isIncomingMsg {
             chatThread.lastMsgStatus = .none
