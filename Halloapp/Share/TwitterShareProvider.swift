@@ -32,7 +32,7 @@ class TwitterShareProvider: ShareProvider {
         return UIApplication.shared.canOpenURL(url)
     }
 
-    static func share(text: String?, image: UIImage?, completion: ((ShareProviderResult) -> Void)?) {
+    static func share(text: String?, image: UIImage?, completion: ShareProviderCompletion?) {
         guard let currentViewController = UIViewController.currentViewController,
               let composeViewController = SLComposeViewController(forServiceType: twitterServiceType) else {
             completion?(.failed)

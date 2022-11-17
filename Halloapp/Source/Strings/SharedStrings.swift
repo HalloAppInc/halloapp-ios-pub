@@ -149,6 +149,10 @@ extension Localizations {
         NSLocalizedString("chat.mic.access.denied.message", value: "To enable audio recording, please tap on Settings and then turn on Microphone", comment: "Alert message when missing microphone access")
     }
 
+    static var exporting: String {
+        NSLocalizedString("toast.exporting", value: "Exporting…", comment: "Toast displayed while preparing video for external share")
+    }
+
     // MARK: Privacy
 
     static var feedPrivacyShareWithAllContacts: String {

@@ -872,7 +872,10 @@ extension FeedCollectionViewController {
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedShareCarouselCell.reuseIdentifier, for: indexPath)
                 if let cell = cell as? FeedShareCarouselCell {
                     cell.shareAction = { [weak self] shareProvider in
-                        self?.share(postID: feedPostID, with: shareProvider)
+                        guard let self = self else {
+                            return
+                        }
+                        self.share(postID: feedPostID, mediaIndex: self.postDisplayData[feedPostID]?.currentMediaIndex, with: shareProvider)
                     }
                 }
                 return cell
@@ -1010,7 +1013,10 @@ extension FeedCollectionViewController {
             self?.handle(action: action)
         }
         cell.shareAction = { [weak self] in
-            self?.presentShareMenu(for: feedPost)
+            guard let self = self else {
+                return
+            }
+            self.presentShareMenu(for: feedPost, mediaIndex: self.postDisplayData[feedPost.id]?.currentMediaIndex)
         }
         cell.reactAction = { reaction in
             if let reaction = reaction, !reaction.isEmpty {
@@ -1029,7 +1035,10 @@ extension FeedCollectionViewController {
         HAMenu {
             if ServerProperties.enableMomentExternalShare, feedPost.isMoment, feedPost.userID == MainAppContext.shared.userData.userId {
                 HAMenuButton(title: Localizations.buttonShare, image: UIImage(systemName: "square.and.arrow.up")) { [weak self] in
-                    self?.presentShareMenu(for: feedPost)
+                    guard let self = self else {
+                        return
+                    }
+                    self.presentShareMenu(for: feedPost, mediaIndex: self.postDisplayData[feedPost.id]?.currentMediaIndex)
                 }
             }
 

@@ -23,7 +23,7 @@ class SystemShareProvider: ShareProvider {
         return true
     }
 
-    static func share(text: String?, image: UIImage?, completion: ((ShareProviderResult) -> Void)?) {
+    static func share(text: String?, image: UIImage?, completion: ShareProviderCompletion?) {
         guard let currentViewController = UIViewController.currentViewController else {
             DDLogError("SystemShareProvider/unable to find view controller to present on")
             completion?(.failed)

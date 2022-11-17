@@ -24,7 +24,7 @@ class MessagesShareProvider: DestinationShareProvider {
         return MFMessageComposeViewController.canSendText()
     }
 
-    static func share(destination: ABContact.NormalizedPhoneNumber?, text: String?, image: UIImage?, completion: ((ShareProviderResult) -> Void)?) {
+    static func share(destination: ABContact.NormalizedPhoneNumber?, text: String?, image: UIImage?, completion: ShareProviderCompletion?) {
         guard let currentViewController = UIViewController.currentViewController else {
             DDLogError("MessagesShareProvider/unable to find view controller to present on")
             completion?(.failed)
@@ -57,7 +57,7 @@ class MessagesShareProvider: DestinationShareProvider {
 
 private class MessageShareProviderMessageComposeViewController: MFMessageComposeViewController, MFMessageComposeViewControllerDelegate {
 
-    var completion: ((ShareProviderResult) -> Void)?
+    var completion: ShareProviderCompletion?
 
     func messageComposeViewController(_ controller: MFMessageComposeViewController, didFinishWith result: MessageComposeResult) {
         let shareProviderResult: ShareProviderResult

@@ -259,7 +259,7 @@ extension PostViewController: UserActionHandler {
             guard let self = self else {
                 return
             }
-            self.presentShareMenu(for: self.post)
+            self.presentShareMenu(for: self.post, mediaIndex: self.currentMediaIndex)
         }
 
         postView.commentAction = { [weak self] in
@@ -321,7 +321,7 @@ extension PostViewController: UserActionHandler {
                     guard let self = self else {
                         return
                     }
-                    self.presentShareMenu(for: self.post)
+                    self.presentShareMenu(for: self.post, mediaIndex: nil)
                 }
             }
             if post.hasSaveablePostMedia, post.canSaveMedia {

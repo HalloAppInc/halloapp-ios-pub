@@ -17,14 +17,14 @@ protocol ShareMenuPresenter: UIViewController {
 
 extension ShareMenuPresenter {
 
-    func presentShareMenu(for feedPost: FeedPost) {
+    func presentShareMenu(for feedPost: FeedPost, mediaIndex: Int?) {
         let postID = feedPost.id
         present(FeedPostMenuViewController(menu: FeedPostMenuViewController.Menu() {
             FeedPostMenuViewController.Section(postPreview: .init(image: MainAppContext.shared.feedData.externalShareThumbnail(for: feedPost),
                                                                   title: MainAppContext.shared.userData.name,
                                                                   subtitle: feedPost.externalShareDescription))
             FeedPostMenuViewController.Section(shareCarouselItem: .init(shareAction: { [weak self] shareProvider in
-                self?.share(postID: postID, with: shareProvider)
+                self?.share(postID: postID, mediaIndex: mediaIndex, with: shareProvider)
             }))
             FeedPostMenuViewController.Section {
                 FeedPostMenuViewController.Item(style: .standard,
@@ -49,24 +49,21 @@ extension ShareMenuPresenter {
         }), animated: true)
     }
 
-    func share(postID: FeedPostID, with shareProvider: ShareProvider.Type) {
+    func share(postID: FeedPostID, mediaIndex: Int?, with shareProvider: ShareProvider.Type) {
         guard let feedPost = MainAppContext.shared.feedData.feedPost(with: postID, in: MainAppContext.shared.feedData.viewContext) else {
             DDLogError("ShareMenuPresenter/shareWithShareProvider/post not found")
             return
         }
 
-        let completion: (ShareProviderResult) -> Void = { result in
+        let completion: ShareProviderCompletion = { result in
             DDLogInfo("ShareMenuPresenter/shareWithShareProvider/didCompleteShare/\(shareProvider.title)/\(result)")
         }
 
         Analytics.log(event: .externalShare, properties: [.shareDestination: shareProvider.analyticsShareDestination])
 
-        if shareProvider == InstagramStoriesShareProvider.self {
-            InstagramStoriesShareProvider.share(stickerImage: ExternalSharePreviewImageGenerator.image(for: feedPost),
-                                                backgroundImage: ExternalSharePreviewImageGenerator.backgroundImage(),
-                                                completion: completion)
-        } else if shareProvider == SnapchatShareProvider.self {
-            SnapchatShareProvider.share(text: nil, image: ExternalSharePreviewImageGenerator.image(for: feedPost), completion: completion)
+
+        if !feedPost.isAudioPost, let postShareProvider = shareProvider as? PostShareProvider.Type {
+            postShareProvider.share(post: feedPost, mediaIndex: mediaIndex, completion: completion)
         } else {
             generateExternalShareLink(postID: postID) { url, toast in
                 toast.hide()

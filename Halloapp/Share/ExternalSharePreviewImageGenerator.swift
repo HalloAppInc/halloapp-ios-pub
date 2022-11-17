@@ -6,6 +6,8 @@
 //  Copyright © 2022 HalloApp, Inc. All rights reserved.
 //
 
+import AVFoundation
+import CocoaLumberjackSwift
 import Core
 import CoreCommon
 import UIKit
@@ -13,261 +15,262 @@ import UIKit
 class ExternalSharePreviewImageGenerator {
 
     private struct Constants {
-        static let imageSizeWithBackgound = CGSize(width: 720, height: 1280)
-        // Draw view at 2x scale so fonts don't look abnormally small
-        static let backgroundSize = CGSize(width: imageSizeWithBackgound.width / 2, height: imageSizeWithBackgound.height / 2)
-        static let postInset: CGFloat = 16
-        static let postWidth = backgroundSize.width - 2 * postInset
-        static let momentWidth = postWidth - 16
+        static let preferredMaxMediaSize = CGSize(width: 320, height: 400)
+        static let scale: CGFloat = 2
     }
 
-    static func image(for post: FeedPost) -> UIImage {
-        let postView: UIView
-        if post.isMoment {
-            postView = ExternalSharePreviewMomentView(feedPost: post)
-            postView.backgroundColor = .externalShareBackgound
-            postView.layer.cornerRadius = 12
+    static func image(for post: FeedPost, mediaIndex: Int?) -> UIImage {
+        let orderedMedia = post.media?.sorted(by: { $0.order < $1.order })
+        let mediaImage: UIImage?
+        if let orderedMedia, !orderedMedia.isEmpty {
+            if post.isMoment,
+               orderedMedia.count >= 2,
+               let frontImage = orderedMedia[0].mediaURL.flatMap({ UIImage(contentsOfFile: $0.path) }),
+               let backImage = orderedMedia[1].mediaURL.flatMap({ UIImage(contentsOfFile: $0.path) }) {
+                let selfieLeading = post.isMomentSelfieLeading
+                mediaImage = UIImage.combine(leading: selfieLeading ? frontImage : backImage, trailing: selfieLeading ? backImage : frontImage)
+            } else {
+                let media: CommonMedia?
+                if let mediaIndex = mediaIndex, mediaIndex < orderedMedia.count, orderedMedia[mediaIndex].mediaURL != nil {
+                    media = orderedMedia[mediaIndex]
+                } else {
+                    media = orderedMedia.first { $0.mediaURL != nil }
+                }
+
+                if let media, let mediaURL = media.mediaURL {
+                    switch media.type {
+                    case .image:
+                        mediaImage = UIImage(contentsOfFile: mediaURL.path)
+                    case .video:
+                        mediaImage = VideoUtils.videoPreviewImage(url: mediaURL)
+                    case .audio, .document:
+                        // not supported
+                        mediaImage = nil
+                    }
+                } else {
+                    mediaImage = nil
+                }
+            }
+        } else if let linkPreviewMedia = post.linkPreviews?.first?.media?.first, linkPreviewMedia.type == .image, let mediaURL = linkPreviewMedia.mediaURL {
+            mediaImage = UIImage(contentsOfFile: mediaURL.path)
         } else {
-            postView = ExternalSharePreviewPostView(feedPost: post)
+            mediaImage = nil
         }
 
-        let postSize = postView.systemLayoutSizeFitting(CGSize(width: Constants.postWidth, height: 0),
-                                                        withHorizontalFittingPriority: .required,
-                                                        verticalFittingPriority: .fittingSizeLevel)
-        postView.frame = CGRect(origin: .zero, size: postSize)
+        let contactStore = MainAppContext.shared.contactStore
+        let text = contactStore.textWithMentions(post.rawText, mentions: post.orderedMentions, in: contactStore.viewContext)?.string
 
-        // always render in light mode
-        postView.overrideUserInterfaceStyle = .light
+        let viewToRender: UIView
+        if let mediaImage {
+            viewToRender = MediaPreviewView(mediaImage: mediaImage, text: text, preferredMaxImageSize: Constants.preferredMaxMediaSize)
+        } else if let text {
+            viewToRender = TextPreviewView(text: text)
+        } else {
+            // Nothing to show!
+            return UIImage()
+        }
+
+        let footerLabel = UILabel()
+        footerLabel.attributedText = watermarkAttributedString
+        footerLabel.numberOfLines = 0
+
+        let footerStack = UIStackView(arrangedSubviews: [viewToRender, footerLabel])
+        footerStack.axis = .vertical
+        footerStack.alignment = .center
+        footerStack.isLayoutMarginsRelativeArrangement = true
+        // leave space for external app chrome on bottom
+        footerStack.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 60, right: 0)
+        footerStack.spacing = 60
+
+        let renderSize = footerStack.systemLayoutSizeFitting(CGSize(width: Constants.preferredMaxMediaSize.width, height: CGFloat.greatestFiniteMagnitude),
+                                                              withHorizontalFittingPriority: .required,
+                                                              verticalFittingPriority: .fittingSizeLevel)
+
+        let bounds = CGRect(origin: .zero, size: renderSize)
+        footerStack.frame = bounds
 
         let format = UIGraphicsImageRendererFormat()
         format.opaque = false
 
-        let imageSize = CGSize(width: postSize.width * 2, height: postSize.height * 2)
-        return UIGraphicsImageRenderer(size: imageSize, format: format).image { context in
-            postView.drawHierarchy(in: CGRect(origin: .zero, size: imageSize), afterScreenUpdates: true)
+        let imageBounds = bounds.applying(CGAffineTransform(scaleX: Constants.scale, y: Constants.scale))
+
+        return UIGraphicsImageRenderer(bounds: imageBounds).image { context in
+            footerStack.drawHierarchy(in: imageBounds, afterScreenUpdates: true)
         }
     }
 
-    static func backgroundImage() -> UIImage {
-        return UIGraphicsImageRenderer(size: Constants.imageSizeWithBackgound).image { context in
-            ExternalSharePreviewBackgroundView(frame: CGRect(origin: .zero, size: Constants.backgroundSize)).drawHierarchy(in: context.format.bounds, afterScreenUpdates: true)
-        }
-    }
-}
+    private class MediaPreviewView: UIStackView {
 
-// MARK: - ExternalSharePreviewPostView
-
-extension ExternalSharePreviewImageGenerator {
-
-    private class ExternalSharePreviewPostView: UIView {
-
-        init(feedPost: FeedPost) {
+        init(mediaImage: UIImage, text: String?, preferredMaxImageSize: CGSize) {
             super.init(frame: .zero)
 
-            layoutMargins = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+            alignment = .center
+            axis = .vertical
+            spacing = 16
 
-            // By default the background view is transparent - render it over a feed colored background
-            let opaqueBackgroundView = UIView()
-            opaqueBackgroundView.backgroundColor = .feedBackground
-            opaqueBackgroundView.layer.cornerRadius = FeedPostCollectionViewCell.LayoutConstants.backgroundCornerRadius
-            opaqueBackgroundView.translatesAutoresizingMaskIntoConstraints = false
-            addSubview(opaqueBackgroundView)
+            let imageView = UIImageView(image: mediaImage)
+            imageView.clipsToBounds = true
+            imageView.contentMode = .scaleAspectFill
+            imageView.layer.cornerRadius = 4
 
-            let backgroundView = FeedItemBackgroundPanelView()
-            backgroundView.cornerRadius = FeedPostCollectionViewCell.LayoutConstants.backgroundCornerRadius
-            backgroundView.translatesAutoresizingMaskIntoConstraints = false
-            addSubview(backgroundView)
-
-            let header = FeedItemHeaderView()
-            header.translatesAutoresizingMaskIntoConstraints = false
-            backgroundView.addSubview(header)
-
-            let contentView = FeedItemContentView(mediaCarouselViewConfiguration: .init(loadMediaSynchronously: true), maxMediaHeight: 300)
-            contentView.translatesAutoresizingMaskIntoConstraints = false
-            backgroundView.addSubview(contentView)
-
-            let separator = UIView()
-            separator.backgroundColor = .separator
-            separator.translatesAutoresizingMaskIntoConstraints = false
-            backgroundView.addSubview(separator)
-
-            let footer = UIView()
-            footer.translatesAutoresizingMaskIntoConstraints = false
-            backgroundView.addSubview(footer)
-
-            let footerLabel = UILabel()
-            footerLabel.font = .gothamFont(ofFixedSize: 13, weight: .medium)
-            footerLabel.text = Localizations.postedFrom
-            footerLabel.textColor = .primaryBlackWhite.withAlphaComponent(0.75)
-
-            let logoImageView = UIImageView()
-            logoImageView.image = UIImage(named: "logo")
-
-            let footerStackView = UIStackView(arrangedSubviews: [footerLabel, logoImageView])
-            footerStackView.spacing = 4
-            footerStackView.translatesAutoresizingMaskIntoConstraints = false
-            footer.addSubview(footerStackView)
-
+            let imageSize = AVMakeRect(aspectRatio: mediaImage.size, insideRect: CGRect(origin: .zero, size: preferredMaxImageSize)).size
             NSLayoutConstraint.activate([
-                backgroundView.leadingAnchor.constraint(equalTo: leadingAnchor),
-                backgroundView.topAnchor.constraint(equalTo: topAnchor),
-                backgroundView.trailingAnchor.constraint(equalTo: trailingAnchor),
-                backgroundView.bottomAnchor.constraint(equalTo: bottomAnchor),
-
-                opaqueBackgroundView.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor),
-                opaqueBackgroundView.topAnchor.constraint(equalTo: backgroundView.topAnchor),
-                opaqueBackgroundView.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor),
-                opaqueBackgroundView.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor),
-
-                header.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor, constant: 8),
-                header.topAnchor.constraint(equalTo: backgroundView.topAnchor, constant: 8),
-                header.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor, constant: -8),
-
-                contentView.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor, constant: 8),
-                contentView.topAnchor.constraint(equalTo: header.bottomAnchor),
-                contentView.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor, constant: -8),
-
-                separator.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor),
-                separator.topAnchor.constraint(equalTo: contentView.bottomAnchor),
-                separator.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor),
-                separator.heightAnchor.constraint(equalToConstant: 1),
-
-                footer.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor, constant: 8),
-                footer.topAnchor.constraint(equalTo: separator.bottomAnchor),
-                footer.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor, constant: -8),
-                footer.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor, constant: -8),
-
-                footerStackView.leadingAnchor.constraint(equalTo: footer.leadingAnchor, constant: 8),
-                footerStackView.topAnchor.constraint(equalTo: footer.topAnchor, constant: 16),
-                footerStackView.bottomAnchor.constraint(equalTo: footer.bottomAnchor, constant: -8)
+                imageView.widthAnchor.constraint(equalToConstant: imageSize.width),
+                imageView.heightAnchor.constraint(equalToConstant: imageSize.height),
             ])
 
-            let contentWidth = Constants.postWidth - layoutMargins.left - layoutMargins.right
-            let gutterWidth = (1 - FeedPostCollectionViewCell.LayoutConstants.backgroundPanelHMarginRatio) * layoutMargins.left
-            header.configure(with: feedPost, contentWidth: contentWidth, showGroupName: false, useFullUserName: true)
-            header.refreshTimestamp(with: feedPost, dateFormatter: .dateTimeFormatterTime)
-            contentView.configure(with: feedPost, contentWidth: contentWidth, gutterWidth: gutterWidth, displayData: nil)
-            separator.isHidden = feedPost.hideFooterSeparator
+            addArrangedSubview(imageView)
+
+            if let text = text {
+                let label = UILabel()
+                label.font = .systemFont(ofSize: 16, weight: .regular)
+                label.numberOfLines = 3
+                label.text = text
+                label.textColor = .white.withAlphaComponent(0.75)
+                addArrangedSubview(label)
+            }
         }
 
-        required init?(coder: NSCoder) {
+        required init(coder: NSCoder) {
             fatalError()
         }
     }
-}
 
-// MARK: - ExternalSharePreviewMomentView
+    private class TextPreviewView: UIView {
 
-extension ExternalSharePreviewImageGenerator {
-
-    private class ExternalSharePreviewMomentView: UIView {
-
-        init(feedPost: FeedPost) {
+        init(text: String) {
             super.init(frame: .zero)
 
-            let header = FeedItemHeaderView()
-            header.avatarViewButton.avatarView.borderColor = .white
-            header.avatarViewButton.avatarView.borderWidth = 2
-            header.overrideUserInterfaceStyle = .dark
-            header.translatesAutoresizingMaskIntoConstraints = false
-            addSubview(header)
-
-            let momentView = MomentView(configuration: .fullscreen)
-            momentView.translatesAutoresizingMaskIntoConstraints = false
-            addSubview(momentView)
+            layer.cornerRadius = 20
+            backgroundColor = UIColor(red: 0.098, green: 0.094, blue: 0.086, alpha: 1)
 
             let label = UILabel()
-            label.font = .gothamFont(ofFixedSize: 13, weight: .medium)
-            label.text = Localizations.postedFrom
-            label.textColor = .primaryBlackWhite.withAlphaComponent(0.75 * 0.75)
-
-            let imageView = UIImageView()
-            imageView.image = UIImage(named: "logo")
-
-            let logoStackView = UIStackView(arrangedSubviews: [label, imageView])
-            logoStackView.axis = .vertical
-            logoStackView.spacing = 4
-            logoStackView.translatesAutoresizingMaskIntoConstraints = false
-            momentView.addSubview(logoStackView)
-
-            let momentLeadingConstraint = momentView.leadingAnchor.constraint(equalTo: leadingAnchor)
-            momentLeadingConstraint.priority = UILayoutPriority(1)
+            label.font = .systemFont(ofSize: 17, weight: .regular)
+            label.numberOfLines = 0
+            label.text = text
+            label.textAlignment = .center
+            label.textColor = .white
+            label.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(label)
 
             NSLayoutConstraint.activate([
-                header.topAnchor.constraint(equalTo: topAnchor, constant: 8),
-                header.leadingAnchor.constraint(equalTo: momentView.leadingAnchor),
-                header.trailingAnchor.constraint(equalTo: momentView.trailingAnchor),
-
-                momentView.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor),
-                momentView.centerXAnchor.constraint(equalTo: centerXAnchor),
-                momentView.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 8),
-                momentView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
-                momentView.widthAnchor.constraint(equalToConstant: Constants.momentWidth),
-                momentLeadingConstraint,
-
-                logoStackView.leadingAnchor.constraint(equalTo: momentView.leadingAnchor, constant: 10),
-                logoStackView.bottomAnchor.constraint(equalTo: momentView.bottomAnchor, constant: -16),
+                label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+                label.topAnchor.constraint(equalTo: topAnchor, constant: 16),
+                label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+                label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16)
             ])
-
-            let contentWidth = bounds.width - layoutMargins.left - layoutMargins.right
-            header.configure(with: feedPost, contentWidth: contentWidth, showGroupName: false, useFullUserName: true)
-            header.refreshTimestamp(with: feedPost, dateFormatter: .dateTimeFormatterTime)
-
-            momentView.configure(with: feedPost)
         }
 
         required init?(coder: NSCoder) {
             fatalError()
         }
     }
-}
 
-// MARK: - ExternalSharePreviewBackgroundView
+    private static let watermarkAttributedString: NSAttributedString = {
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineHeightMultiple = 1.25
+        paragraphStyle.alignment = .center
 
-extension ExternalSharePreviewImageGenerator {
+        let shadow = NSShadow()
+        shadow.shadowBlurRadius = 1.0
+        shadow.shadowOffset = CGSize(width: 0.0, height: 1.0)
+        shadow.shadowColor = UIColor.black.withAlphaComponent(0.1)
 
-    private class ExternalSharePreviewBackgroundView: UIView {
+        let defaultAttributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.gothamFont(ofFixedSize: 17, weight: .medium),
+            .foregroundColor: UIColor.white.withAlphaComponent(0.5),
+            .paragraphStyle: paragraphStyle,
+            .shadow: shadow,
+        ]
 
-        override init(frame: CGRect) {
-            super.init(frame: frame)
+        let postedFromString = String(format: Localizations.postedFrom, Localizations.appNameHalloApp)
+        let watermarkAttributedString = NSMutableAttributedString(string: postedFromString, attributes: defaultAttributes)
+        watermarkAttributedString.append(NSAttributedString(string: "\nhalloapp.com", attributes: defaultAttributes))
 
-            backgroundColor = .externalShareBackgound
-
-            let downloadLabel = UILabel()
-            downloadLabel.font = .gothamFont(ofFixedSize: 13, weight: .medium)
-            downloadLabel.text = Localizations.downloadHalloApp
-            downloadLabel.textColor = .white
-
-            let urlLabel = UILabel()
-            urlLabel.font = .gothamFont(ofFixedSize: 15, weight: .bold)
-            urlLabel.text = "halloapp.com/dl"
-            urlLabel.textColor = .white
-
-            let labelStack = UIStackView(arrangedSubviews: [downloadLabel, urlLabel])
-            labelStack.axis = .vertical
-            labelStack.alignment = .center
-            labelStack.translatesAutoresizingMaskIntoConstraints = false
-            addSubview(labelStack)
-
-            NSLayoutConstraint.activate([
-                labelStack.centerXAnchor.constraint(equalTo: centerXAnchor),
-                labelStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
-            ])
+        if let range = watermarkAttributedString.string.range(of: Localizations.appNameHalloApp) {
+            watermarkAttributedString.addAttribute(.foregroundColor, value: UIColor.white, range: NSRange(range, in: watermarkAttributedString.string))
         }
 
-        required init?(coder: NSCoder) {
-            fatalError()
+        return watermarkAttributedString
+    }()
+
+    static func video(for mediaURL: URL) async -> URL? {
+        let asset = AVAsset(url: mediaURL)
+
+        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetMediumQuality) else {
+            return nil
         }
+
+        let duration: CMTime
+        do {
+            if #available(iOS 15, *) {
+                duration = try await asset.load(.duration)
+            } else {
+                duration = asset.duration
+            }
+        } catch {
+            DDLogError("ExternalSharePreviewImageGenerator/video/error loading duration: \(error)")
+            return nil
+        }
+
+        // Add watermark
+        if let videoTrack = asset.tracks(withMediaType: .video).first {
+            let logoLayer = await overlayLayerForVideo(videoSize: videoTrack.naturalSize)
+            let videoComposition = AVMutableVideoComposition(propertiesOf: asset)
+            let trackID = asset.unusedTrackID()
+            videoComposition.animationTool = AVVideoCompositionCoreAnimationTool(additionalLayer: logoLayer, asTrackID: trackID)
+            let instruction = AVMutableVideoCompositionInstruction()
+            instruction.timeRange = CMTimeRange(start: .zero, end: .positiveInfinity)
+            let layerInstruction = AVMutableVideoCompositionLayerInstruction()
+            layerInstruction.trackID = trackID
+            layerInstruction.setOpacity(1.0, at: .zero)
+            let videoLayerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: videoTrack)
+            instruction.layerInstructions = [layerInstruction, videoLayerInstruction]
+            videoComposition.instructions = [instruction]
+            exportSession.videoComposition = videoComposition
+        }
+
+        exportSession.timeRange = CMTimeRange(start: .zero, end: CMTimeMinimum(CMTime(seconds: 15, preferredTimescale: 1), duration))
+        exportSession.outputFileType = .mp4
+        exportSession.outputURL = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent(UUID().uuidString, isDirectory: false)
+            .appendingPathExtension("mp4")
+
+        await exportSession.export()
+        if let error = exportSession.error {
+            DDLogError("ExternalSharePreviewImageGenerator/video/error exporting: \(error)")
+            return nil
+        }
+        return exportSession.outputURL
+    }
+
+    @MainActor
+    static func overlayLayerForVideo(videoSize: CGSize) -> CALayer {
+        let backgroundLayer = CALayer()
+        backgroundLayer.frame = CGRect(origin: .zero, size: videoSize)
+        backgroundLayer.isGeometryFlipped = true
+
+        let watermarkTextLayer = CATextLayer()
+        watermarkTextLayer.string = watermarkAttributedString
+        let watermarkSize = watermarkTextLayer.preferredFrameSize()
+        watermarkTextLayer.alignmentMode = .center
+        watermarkTextLayer.allowsFontSubpixelQuantization = true
+        watermarkTextLayer.anchorPoint = CGPoint(x: 0.5, y: 1.0)
+        watermarkTextLayer.frame = CGRect(origin: CGPoint(x: backgroundLayer.bounds.midX - watermarkSize.width * 0.5, y: backgroundLayer.bounds.maxY - 150),
+                                          size: watermarkSize)
+
+        let scale = 0.5 * videoSize.width / watermarkSize.width
+        watermarkTextLayer.transform = CATransform3DMakeScale(scale, scale, 1.0)
+        backgroundLayer.addSublayer(watermarkTextLayer)
+        watermarkTextLayer.displayIfNeeded()
+
+        return backgroundLayer
     }
 }
 
 private extension Localizations {
 
-    static var downloadHalloApp: String {
-        return NSLocalizedString("externalshare.download", value: "Download HalloApp for free:", comment: "Text on external share preview background, followed by URL")
-    }
-
     static var postedFrom: String {
-        return NSLocalizedString("externalshare.postedFrom", value: "Posted from", comment: "Attached to our logo as an image, 'Posted from HalloApp'")
+        return NSLocalizedString("externalshare.postedFrom", value: "Posted from %@", comment: "Always 'Posted from HalloApp', but we are applying additional formatting to HalloApp")
     }
 }

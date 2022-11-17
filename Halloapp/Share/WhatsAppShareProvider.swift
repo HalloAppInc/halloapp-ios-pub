@@ -26,7 +26,7 @@ class WhatsAppShareProvider: DestinationShareProvider {
         return UIApplication.shared.canOpenURL(url)
     }
     
-    static func share(destination: CoreCommon.ABContact.NormalizedPhoneNumber?, text: String?, image: UIImage?, completion: ((ShareProviderResult) -> Void)?) {
+    static func share(destination: CoreCommon.ABContact.NormalizedPhoneNumber?, text: String?, image: UIImage?, completion: ShareProviderCompletion?) {
         guard var urlComponents = URLComponents(string: "https://wa.me") else {
             completion?(.failed)
             return

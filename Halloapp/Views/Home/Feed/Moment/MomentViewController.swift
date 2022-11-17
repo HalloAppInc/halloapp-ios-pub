@@ -92,7 +92,7 @@ class MomentViewController: UIViewController, UIViewControllerMediaSaving, Share
             guard let self = self else {
                 return
             }
-            self.share(postID: self.post.id, with: shareProvider)
+            self.share(postID: self.post.id, mediaIndex: nil, with: shareProvider)
         }
         shareCarousel.translatesAutoresizingMaskIntoConstraints = false
 
@@ -514,7 +514,7 @@ class MomentViewController: UIViewController, UIViewControllerMediaSaving, Share
                     guard let self = self else {
                         return
                     }
-                    self.presentShareMenu(for: self.post)
+                    self.presentShareMenu(for: self.post, mediaIndex: nil)
                 }
             }
             if post.hasSaveablePostMedia, post.canSaveMedia {

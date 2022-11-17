@@ -2498,14 +2498,14 @@
 			isa = PBXGroup;
 			children = (
 				F43DF0F928F75C98008008B7 /* ExternalSharePreviewImageGenerator.swift */,
-				F43DF0E928F0A685008008B7 /* ShareProvider.swift */,
 				F43DF0F528F60E0B008008B7 /* InstagramStoriesShareProvider.swift */,
 				F43DF0F128F5F242008008B7 /* MessagesShareProvider.swift */,
-				F43DF0EF28F5EDE8008008B7 /* SystemShareProvider.swift */,
-				F43DF0EB28F0A94D008008B7 /* WhatsAppShareProvider.swift */,
-				F43DF0F728F60F4B008008B7 /* TwitterShareProvider.swift */,
-				F4867F3228ECA0B4006C22A8 /* ShareCarousel.swift */,
 				F4197B40291DD84C004811C7 /* SnapchatShareProvider.swift */,
+				F43DF0EF28F5EDE8008008B7 /* SystemShareProvider.swift */,
+				F43DF0F728F60F4B008008B7 /* TwitterShareProvider.swift */,
+				F43DF0EB28F0A94D008008B7 /* WhatsAppShareProvider.swift */,
+				F4867F3228ECA0B4006C22A8 /* ShareCarousel.swift */,
+				F43DF0E928F0A685008008B7 /* ShareProvider.swift */,
 			);
 			path = Share;
 			sourceTree = "<group>";

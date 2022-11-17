@@ -112,6 +112,13 @@ public extension FeedPost {
     var hasSaveablePostMedia: Bool {
         return media?.contains { [.image, .video].contains($0.type) } ?? false
     }
+
+    var isAudioPost: Bool {
+        if let media = media, let audioMedia = media.first {
+            return media.count == 1 && audioMedia.type == .audio
+        }
+        return false
+    }
 }
 
 extension FeedPost {
