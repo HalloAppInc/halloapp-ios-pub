@@ -55,7 +55,7 @@ class ChatData: ObservableObject {
 
     lazy var unreadGroupThreadCountController: CountController<CommonThread> = {
         let fetchRequest = CommonThread.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "groupID != nil && unreadCount > 0")
+        fetchRequest.predicate = NSPredicate(format: "groupID != nil && typeValue = %d && unreadCount > 0", GroupType.groupFeed.rawValue)
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "groupID", ascending: true)]
         return CountController(fetchRequest: fetchRequest, managedObjectContext: mainDataStore.viewContext)
     }()
