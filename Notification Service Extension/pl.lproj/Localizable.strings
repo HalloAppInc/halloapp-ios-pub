@@ -121,9 +121,6 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Zaktualizuj swoją aplikację.";
 
-/* Displayed in place of own name (e.g., next to own comments) */
-"meCapitalized" = "Ja";
-
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "Odrzuć";
 

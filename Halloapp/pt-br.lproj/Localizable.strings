@@ -322,30 +322,6 @@
 /* Chat entry that can be tapped to add the contact to address book */
 "chat.event.tap.to.add.contact" = "Toque para adicionar %@ ao seu catálogo de endereços";
 
-/* Message text shown with the user who changed a groups content expiry settings */
-"chat.group.event.expiry.changed" = "%1$@ alterou a expiração do conteúdo do grupo para %2$@";
-
-/* Message text shown when you change a groups content expiry settings */
-"chat.group.event.expiry.changed.you" = "Você alterou a expiração do conteúdo do grupo para %1@";
-
-/* Message text shown with the user who joined the group via invite link */
-"chat.group.event.join" = "%@ entrou no grupo através do link de convite de grupo";
-
-/* Message text shown when you join a group via invite link */
-"chat.group.event.join.you" = "Você entrou no grupo por meio do link de convite de grupo";
-
-/* Message text shown when a group member is auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
-"chat.group.event.member.autopromoted" = "%@ foi promovido automaticamente a administrador";
-
-/* Message text shown when you are auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
-"chat.group.event.member.autopromoted.you" = "Você foi promovido automaticamente a administrador";
-
-/* Message text shown with the user who left the group */
-"chat.group.event.member.left" = "%@ saiu";
-
-/* Message text shown when you leave a group */
-"chat.group.event.member.left.you" = "Você saiu";
-
 /* Group content expiry time limit option */
 "chat.group.expiry.option.24hours" = "24 horas";
 
@@ -754,18 +730,6 @@
 /* Indicates that an item has failed to be sent. */
 "failed.to.send" = "Falha ao enviar";
 
-/* Number of contacts added to a group. */
-"feed.collapsed.n.users.added" = "feed.recolhido.n.usuários.adicionados";
-
-/* Number of contacts that joined a group. */
-"feed.collapsed.n.users.joined" = "feed.recolhido.n.usuários.ingressados";
-
-/* Number of contacts that left a group. */
-"feed.collapsed.n.users.left" = "feed.recolhido.n.usuários.esquerda";
-
-/* Number of contacts removed from a group. */
-"feed.collapsed.n.users.removed" = "feed.recolhido.n.usuários.removido";
-
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "Aguardando este comentário. Isso pode demorar um pouco.";
 
@@ -951,60 +915,6 @@
 
 /* Label shown above group description input box */
 "group.description.label" = "Descrição do grupo";
-
-/* Message text shown with the user who added a group member */
-"group.event.added.member" = "%1$@ adicionou %2$@";
-
-/* Message text shown when you add a group member */
-"group.event.added.member.you" = "Você adicionou %1@";
-
-/* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar" = "%@ mudou o ícone do grupo";
-
-/* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar.you" = "Você alterou o ícone do grupo";
-
-/* Message text shown with the user who changed the background */
-"group.event.changed.background" = "%@ alterou a cor da tela de fundo";
-
-/* Message text shown when you change the background */
-"group.event.changed.background.you" = "Você alterou a cor de fundo";
-
-/* Message text shown with the user who changed the group description */
-"group.event.changed.description" = "%1@ alterou a descrição do grupo";
-
-/* Message text shown when you change the group description */
-"group.event.changed.description.you" = "Você alterou a descrição do grupo";
-
-/* Message text shown with the user who changed the group name */
-"group.event.changed.name" = "%1$@ mudou o nome do grupo para \"%2$@\"";
-
-/* Message text shown when you change the group name */
-"group.event.changed.name.you" = "Você alterou o nome do grupo para \"%1@\"";
-
-/* Message text shown with the user who created the group */
-"group.event.created.group" = "%1$@ criou o grupo \"%2$@\"";
-
-/* Message text shown when you create a group */
-"group.event.created.group.you" = "Você criou o grupo \"%1@\"";
-
-/* Message text shown with the user who demoted a group admin */
-"group.event.demoted.member" = "%1$@ removeu %2$@ como administrador";
-
-/* Message text shown when you demote a group admin */
-"group.event.demoted.member.you" = "Você removeu %1@ como administrador";
-
-/* Message text shown with the user who promoted a group member */
-"group.event.promoted.member" = "%1$@ tornou %2$@ um administrador";
-
-/* Message text shown when you promote a group member */
-"group.event.promoted.member.you" = "Você tornou %1@ um administrador";
-
-/* Message text shown with the user who removed a group member */
-"group.event.removed.member" = "%1$@ removeu %2$@";
-
-/* Message text shown when you remove a group member */
-"group.event.removed.member.you" = "Você removeu %1@";
 
 /* Indicates how many members are in the group */
 "group.feed.n.members" = "grupo.feed.n.membros";
@@ -1347,9 +1257,6 @@
 
 /* Title of a location in location list if it does not have a name. */
 "locationSharing.untitledLocation" = "Localização sem título";
-
-/* Displayed in place of own name (e.g., next to own comments) */
-"meCapitalized" = "Eu";
 
 /* Refers to albums in Photo Library. */
 "media.albums" = "Álbuns";
@@ -2223,30 +2130,6 @@
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
 "thread.list.preview.new.user.default" = "%@ está no HalloApp! 🎉";
 
-/* Last seen timestamp: full date in short format and time */
-"timestamp.last.seen.date.at.time" = "Visto pela última vez %1$@ às %2$@";
-
-/* Last seen timestamp: day of week and time */
-"timestamp.last.seen.dayofweek.at.time" = "Visto pela última vez %1$@ às %2$@";
-
-/* Last seen timestamp: today at specific time. */
-"timestamp.last.seen.today.at" = "Visto pela última vez hoje às %@";
-
-/* Last seen timestamp: yesterday at specific time. */
-"timestamp.last.seen.yesterday.at" = "Visto pela última vez ontem às %@";
-
-/* Capitalized translation of `Now` to be used as timestamp. */
-"timestamp.now.capitalized" = "Agora";
-
-/* Lowercase translation of `Now` to be used as timestamp. */
-"timestamp.now.lowercase" = "agora";
-
-/* Timestamp: `Today` */
-"timestamp.today" = "Hoje";
-
-/* Timestamp: `Yesterday` */
-"timestamp.yesterday" = "Ontem";
-
 /* Camera screen title */
 "title.camera" = "Câmera";
 
@@ -2348,12 +2231,6 @@
 
 /* Button to start voice call. Should be translated as verb. */
 "user.voice.call" = "Ligar";
-
-/* Reference to the user, second person pronoun */
-"user.you" = "você";
-
-/* Capitalized reference to the user, second person pronoun */
-"user.you.capitalized" = "Você";
 
 /* No comment provided by engineer. */
 "VIDEO" = "VÍDEO";

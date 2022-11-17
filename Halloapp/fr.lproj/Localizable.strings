@@ -265,18 +265,6 @@
 /* Text shown in Chat when the security keys of the contact user is chatting with, have changed */
 "chat.event.security.keys.changed" = "Les clés de sécurité avec %@ ont changé";
 
-/* Message text shown with the user who joined the group via invite link */
-"chat.group.event.join" = "%@ a rejoint le groupe avec un lien d'invitation de groupe";
-
-/* Message text shown when you join a group via invite link */
-"chat.group.event.join.you" = "Tu as rejoint le groupe via le lien d'invitation du groupe";
-
-/* Message text shown with the user who left the group */
-"chat.group.event.member.left" = "%@ restant";
-
-/* Message text shown when you leave a group */
-"chat.group.event.member.left.you" = "Tu es parti";
-
 /* Action label for adding members to a group */
 "chat.group.info.add.members" = "Ajouter des membres";
 
@@ -706,60 +694,6 @@
 /* Label shown above group description input box */
 "group.description.label" = "Description du groupe";
 
-/* Message text shown with the user who added a group member */
-"group.event.added.member" = "%1$@ a ajouté %2$@";
-
-/* Message text shown when you add a group member */
-"group.event.added.member.you" = "Tu as ajouté %1@";
-
-/* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar" = "%@ a modifié l'icône du groupe";
-
-/* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar.you" = "Tu as changé l'icône du groupe";
-
-/* Message text shown with the user who changed the background */
-"group.event.changed.background" = "%@ a changé la couleur de fond";
-
-/* Message text shown when you change the background */
-"group.event.changed.background.you" = "Tu as changé la couleur de l'arrière-plan";
-
-/* Message text shown with the user who changed the group description */
-"group.event.changed.description" = "%1@ a modifié la description du groupe";
-
-/* Message text shown when you change the group description */
-"group.event.changed.description.you" = "Vous avez modifié la description du groupe";
-
-/* Message text shown with the user who changed the group name */
-"group.event.changed.name" = "%1$@ a modifié le nom du groupe en \"%2$@\"";
-
-/* Message text shown when you change the group name */
-"group.event.changed.name.you" = "Tu as changé la couleur le nom du groupe pour « %1@ »";
-
-/* Message text shown with the user who created the group */
-"group.event.created.group" = "%1$@ a créé le groupe \"%2$@\"";
-
-/* Message text shown when you create a group */
-"group.event.created.group.you" = "Tu as créé le groupe « %1@ »";
-
-/* Message text shown with the user who demoted a group admin */
-"group.event.demoted.member" = "%1$@ a supprimé %2$@ en tant qu'administrateur";
-
-/* Message text shown when you demote a group admin */
-"group.event.demoted.member.you" = "Tu as supprimé %1@ en tant qu'administrateur";
-
-/* Message text shown with the user who promoted a group member */
-"group.event.promoted.member" = "%1$@ a défini %2$@ comme administrateur";
-
-/* Message text shown when you promote a group member */
-"group.event.promoted.member.you" = "Tu as fait de %1@ un administrateur";
-
-/* Message text shown with the user who removed a group member */
-"group.event.removed.member" = "%1$@ a supprimé %2$@";
-
-/* Message text shown when you remove a group member */
-"group.event.removed.member.you" = "Tu as supprimé %1@";
-
 /* Indicates how many members are in the group */
 "group.feed.n.members" = "groupe.flux.n.membres";
 
@@ -948,9 +882,6 @@
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Mettre à jour ton application.";
-
-/* Displayed in place of own name (e.g., next to own comments) */
-"meCapitalized" = "Moi";
 
 /* Refers to albums in Photo Library. */
 "media.albums" = "Albums";
@@ -1567,30 +1498,6 @@
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
 "thread.list.preview.new.user.default" = "%@ est sur HalloApp🎉";
 
-/* Last seen timestamp: full date in short format and time */
-"timestamp.last.seen.date.at.time" = "Dernière visite le %1$@ à %2$@";
-
-/* Last seen timestamp: day of week and time */
-"timestamp.last.seen.dayofweek.at.time" = "Dernière visite le %1$@ à %2$@";
-
-/* Last seen timestamp: today at specific time. */
-"timestamp.last.seen.today.at" = "Dernière visite aujourd'hui à %@";
-
-/* Last seen timestamp: yesterday at specific time. */
-"timestamp.last.seen.yesterday.at" = "Dernière visite hier à %@";
-
-/* Capitalized translation of `Now` to be used as timestamp. */
-"timestamp.now.capitalized" = "Maintenant";
-
-/* Lowercase translation of `Now` to be used as timestamp. */
-"timestamp.now.lowercase" = "maintenant";
-
-/* Timestamp: `Today` */
-"timestamp.today" = "Aujourd'hui";
-
-/* Timestamp: `Yesterday` */
-"timestamp.yesterday" = "Hier";
-
 /* Title for new message screen where user chooses who to message */
 "title.chat.new.message" = "Nouveau message";
 
@@ -1668,12 +1575,6 @@
 
 /* Button to start voice call. Should be translated as verb. */
 "user.voice.call" = "Appeler";
-
-/* Reference to the user, second person pronoun */
-"user.you" = "toi";
-
-/* Capitalized reference to the user, second person pronoun */
-"user.you.capitalized" = "Tu";
 
 /* No comment provided by engineer. */
 "VIDEO" = "VIDÉO";

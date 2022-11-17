@@ -322,24 +322,6 @@
 /* Chat entry that can be tapped to add the contact to address book */
 "chat.event.tap.to.add.contact" = "برای اضافه کردن @% به لیست مخاطبین کلیک کنید";
 
-/* Message text shown with the user who changed a groups content expiry settings */
-"chat.group.event.expiry.changed" = "@$1% انقضای محتوای گروه را به @$2% تغییر داد";
-
-/* Message text shown when you change a groups content expiry settings */
-"chat.group.event.expiry.changed.you" = "شما انقضای محتوای گروه را به %1@ تغییر دادید";
-
-/* Message text shown with the user who joined the group via invite link */
-"chat.group.event.join" = "%@ از طریق لینک به گروه پیوست";
-
-/* Message text shown when you join a group via invite link */
-"chat.group.event.join.you" = "شما با لینک به گروه پیوستید";
-
-/* Message text shown with the user who left the group */
-"chat.group.event.member.left" = "%@ گروه را ترک کرد";
-
-/* Message text shown when you leave a group */
-"chat.group.event.member.left.you" = "شما گروه را ترک کردید";
-
 /* Group content expiry time limit option */
 "chat.group.expiry.option.24hours" = "۲۴ ساعت";
 
@@ -733,18 +715,6 @@
 /* Indicates that an item has failed to be sent. */
 "failed.to.send" = "خطا در فرستادن";
 
-/* Number of contacts added to a group. */
-"feed.collapsed.n.users.added" = "feed.collapsed.n.users.added";
-
-/* Number of contacts that joined a group. */
-"feed.collapsed.n.users.joined" = "feed.collapsed.n.users.joined";
-
-/* Number of contacts that left a group. */
-"feed.collapsed.n.users.left" = "feed.collapsed.n.users.left";
-
-/* Number of contacts removed from a group. */
-"feed.collapsed.n.users.removed" = "feed.collapsed.n.users.removed";
-
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "در انتظار این نظر. ممکن است طول بکشد.";
 
@@ -924,60 +894,6 @@
 
 /* Label shown above group description input box */
 "group.description.label" = "توضیحات گروه";
-
-/* Message text shown with the user who added a group member */
-"group.event.added.member" = "%1$@ %2$@ را دعوت کرد";
-
-/* Message text shown when you add a group member */
-"group.event.added.member.you" = "شما @1% را دعوت کردید";
-
-/* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar" = "%@ تصویر گروه را تغییر داد";
-
-/* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar.you" = "شما تصویر گروه را تغییر دادید";
-
-/* Message text shown with the user who changed the background */
-"group.event.changed.background" = "%@ رنگ زمینه را تغییر داد";
-
-/* Message text shown when you change the background */
-"group.event.changed.background.you" = "شما رنگ زمینه را تغییر دادید";
-
-/* Message text shown with the user who changed the group description */
-"group.event.changed.description" = "%1@ توضیحات گروه را تغییر داد";
-
-/* Message text shown when you change the group description */
-"group.event.changed.description.you" = "شما توضیحات گروه را تغییر دادید";
-
-/* Message text shown with the user who changed the group name */
-"group.event.changed.name" = "%1$@ نام گروه را به \"%2$@\" تغییر داد";
-
-/* Message text shown when you change the group name */
-"group.event.changed.name.you" = "شما اسم گروه را به \"@1%\" تغییر دادید";
-
-/* Message text shown with the user who created the group */
-"group.event.created.group" = "%1$@ گروه \"%2$@\" را ایجاد کرد";
-
-/* Message text shown when you create a group */
-"group.event.created.group.you" = "شما گروه \"@1%\" را ایجاد کردید";
-
-/* Message text shown with the user who demoted a group admin */
-"group.event.demoted.member" = "@%1$ @%2$ را از سمت مدیر حذف کرد";
-
-/* Message text shown when you demote a group admin */
-"group.event.demoted.member.you" = "شما @1% را از سمت مدیر حذف کردید";
-
-/* Message text shown with the user who promoted a group member */
-"group.event.promoted.member" = "%1$@ %2$@ را مدیر گروه کرد";
-
-/* Message text shown when you promote a group member */
-"group.event.promoted.member.you" = "شما @1% را مدیر کردید";
-
-/* Message text shown with the user who removed a group member */
-"group.event.removed.member" = "%1$@ %2$@ را حذف کرد";
-
-/* Message text shown when you remove a group member */
-"group.event.removed.member.you" = "شما @1% را حذف کردید";
 
 /* Indicates how many members are in the group */
 "group.feed.n.members" = "group.feed.n.members";
@@ -1320,9 +1236,6 @@
 
 /* Title of a location in location list if it does not have a name. */
 "locationSharing.untitledLocation" = "مکان بدون نام";
-
-/* Displayed in place of own name (e.g., next to own comments) */
-"meCapitalized" = "من";
 
 /* Refers to albums in Photo Library. */
 "media.albums" = "آلبوم‌ها";
@@ -2120,30 +2033,6 @@
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
 "thread.list.preview.new.user.default" = "@% در هالواپ است! 🎉";
 
-/* Last seen timestamp: full date in short format and time */
-"timestamp.last.seen.date.at.time" = "آخرین بازدید @$1% ساعت @$2%";
-
-/* Last seen timestamp: day of week and time */
-"timestamp.last.seen.dayofweek.at.time" = "آخرین بازدید @$1% ساعت @$2%";
-
-/* Last seen timestamp: today at specific time. */
-"timestamp.last.seen.today.at" = "آخرین بازدید امروز ساعت %@";
-
-/* Last seen timestamp: yesterday at specific time. */
-"timestamp.last.seen.yesterday.at" = "آخرین بازدید دیروز ساعت %@";
-
-/* Capitalized translation of `Now` to be used as timestamp. */
-"timestamp.now.capitalized" = "الآن";
-
-/* Lowercase translation of `Now` to be used as timestamp. */
-"timestamp.now.lowercase" = "الآن";
-
-/* Timestamp: `Today` */
-"timestamp.today" = "امروز";
-
-/* Timestamp: `Yesterday` */
-"timestamp.yesterday" = "دیروز";
-
 /* Camera screen title */
 "title.camera" = "دوربین";
 
@@ -2242,12 +2131,6 @@
 
 /* Button to start voice call. Should be translated as verb. */
 "user.voice.call" = "تماس";
-
-/* Reference to the user, second person pronoun */
-"user.you" = "شما";
-
-/* Capitalized reference to the user, second person pronoun */
-"user.you.capitalized" = "شما";
 
 /* No comment provided by engineer. */
 "VIDEO" = "ویدیو";

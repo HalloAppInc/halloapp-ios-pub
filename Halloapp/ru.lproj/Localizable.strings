@@ -322,30 +322,6 @@
 /* Chat entry that can be tapped to add the contact to address book */
 "chat.event.tap.to.add.contact" = "Нажмите, чтобы добавить %@ в свою адресную книгу";
 
-/* Message text shown with the user who changed a groups content expiry settings */
-"chat.group.event.expiry.changed" = "%1$@ изменил срок действия контента группы на %2$@";
-
-/* Message text shown when you change a groups content expiry settings */
-"chat.group.event.expiry.changed.you" = "Вы изменили срок действия контента группы на %1@";
-
-/* Message text shown with the user who joined the group via invite link */
-"chat.group.event.join" = "%@ присоединился(-ась) к группе по ссылке-приглашению в группу";
-
-/* Message text shown when you join a group via invite link */
-"chat.group.event.join.you" = "Ты присоединился(-ась) к группе по ссылке группового приглашения";
-
-/* Message text shown when a group member is auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
-"chat.group.event.member.autopromoted" = "%@ были автоматически повышен до администратора";
-
-/* Message text shown when you are auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
-"chat.group.event.member.autopromoted.you" = "Вы были автоматически повышены до администратора";
-
-/* Message text shown with the user who left the group */
-"chat.group.event.member.left" = "%@ покинул группу";
-
-/* Message text shown when you leave a group */
-"chat.group.event.member.left.you" = "Ты ушел(-ла)";
-
 /* Group content expiry time limit option */
 "chat.group.expiry.option.24hours" = "24 часа";
 
@@ -754,18 +730,6 @@
 /* Indicates that an item has failed to be sent. */
 "failed.to.send" = "Не удалось отправить";
 
-/* Number of contacts added to a group. */
-"feed.collapsed.n.users.added" = "feed.collapsed.n.users.added";
-
-/* Number of contacts that joined a group. */
-"feed.collapsed.n.users.joined" = "feed.collapsed.n.users.joined";
-
-/* Number of contacts that left a group. */
-"feed.collapsed.n.users.left" = "feed.collapsed.n.users.left";
-
-/* Number of contacts removed from a group. */
-"feed.collapsed.n.users.removed" = "feed.collapsed.n.users.removed";
-
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "Ждем этого комментария. Это может занять некоторое время.";
 
@@ -951,60 +915,6 @@
 
 /* Label shown above group description input box */
 "group.description.label" = "Описание группы";
-
-/* Message text shown with the user who added a group member */
-"group.event.added.member" = "%1$@ добавил(-а) %2$@";
-
-/* Message text shown when you add a group member */
-"group.event.added.member.you" = "Ты добавил(-а) %1@";
-
-/* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar" = "%@ сменил(-а) иконку группы";
-
-/* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar.you" = "Ты изменил(-а) значок группы";
-
-/* Message text shown with the user who changed the background */
-"group.event.changed.background" = "%@ изменил(-а) цвет фона";
-
-/* Message text shown when you change the background */
-"group.event.changed.background.you" = "Ты изменил(-а) цвет фона";
-
-/* Message text shown with the user who changed the group description */
-"group.event.changed.description" = "%1@ изменил(а) описание группы";
-
-/* Message text shown when you change the group description */
-"group.event.changed.description.you" = "Вы изменили описание группы";
-
-/* Message text shown with the user who changed the group name */
-"group.event.changed.name" = "%1$@ сменил(-а) название группы на \"%2$@\"";
-
-/* Message text shown when you change the group name */
-"group.event.changed.name.you" = "Ты изменил(-а) имя группы на \"%1@\"";
-
-/* Message text shown with the user who created the group */
-"group.event.created.group" = "%1$@ создал(-а) группу \"%2$@\"";
-
-/* Message text shown when you create a group */
-"group.event.created.group.you" = "Ты создал(-а) группу \"%1@\"";
-
-/* Message text shown with the user who demoted a group admin */
-"group.event.demoted.member" = "%1$@ лишил(-а) %2$@ статуса администратора";
-
-/* Message text shown when you demote a group admin */
-"group.event.demoted.member.you" = "Ты лишил(-а) %1@ статуса администратора";
-
-/* Message text shown with the user who promoted a group member */
-"group.event.promoted.member" = "%1$@ сделал(-а) %2$@ администратором";
-
-/* Message text shown when you promote a group member */
-"group.event.promoted.member.you" = "Ты сделал(-а) %1@ администратором";
-
-/* Message text shown with the user who removed a group member */
-"group.event.removed.member" = "%1$@ удалил(-а) %2$@";
-
-/* Message text shown when you remove a group member */
-"group.event.removed.member.you" = "Ты удалил(-а) %1@";
 
 /* Indicates how many members are in the group */
 "group.feed.n.members" = "group.feed.n.members";
@@ -1347,9 +1257,6 @@
 
 /* Title of a location in location list if it does not have a name. */
 "locationSharing.untitledLocation" = "Место без названия";
-
-/* Displayed in place of own name (e.g., next to own comments) */
-"meCapitalized" = "Я";
 
 /* Refers to albums in Photo Library. */
 "media.albums" = "Альбомы";
@@ -2223,30 +2130,6 @@
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
 "thread.list.preview.new.user.default" = "%@ есть в HalloApp! 🎉";
 
-/* Last seen timestamp: full date in short format and time */
-"timestamp.last.seen.date.at.time" = "Последний раз видели %1$@ в %2$@";
-
-/* Last seen timestamp: day of week and time */
-"timestamp.last.seen.dayofweek.at.time" = "Последний раз видели в %1$@ в %2$@";
-
-/* Last seen timestamp: today at specific time. */
-"timestamp.last.seen.today.at" = "Последний раз видели сегодня в %@";
-
-/* Last seen timestamp: yesterday at specific time. */
-"timestamp.last.seen.yesterday.at" = "Последний раз видели вчера в %@";
-
-/* Capitalized translation of `Now` to be used as timestamp. */
-"timestamp.now.capitalized" = "Сейчас";
-
-/* Lowercase translation of `Now` to be used as timestamp. */
-"timestamp.now.lowercase" = "сейчас";
-
-/* Timestamp: `Today` */
-"timestamp.today" = "Сегодня";
-
-/* Timestamp: `Yesterday` */
-"timestamp.yesterday" = "Вчера";
-
 /* Camera screen title */
 "title.camera" = "Камера";
 
@@ -2348,12 +2231,6 @@
 
 /* Button to start voice call. Should be translated as verb. */
 "user.voice.call" = "Вызов";
-
-/* Reference to the user, second person pronoun */
-"user.you" = "вы";
-
-/* Capitalized reference to the user, second person pronoun */
-"user.you.capitalized" = "Вы";
 
 /* No comment provided by engineer. */
 "VIDEO" = "ВИДЕО";

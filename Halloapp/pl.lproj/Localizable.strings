@@ -265,18 +265,6 @@
 /* Text shown in Chat when the security keys of the contact user is chatting with, have changed */
 "chat.event.security.keys.changed" = "Zmieniły się klucze zabezpieczeń dla %@";
 
-/* Message text shown with the user who joined the group via invite link */
-"chat.group.event.join" = "Użytkownik %@ dołączył do grupy poprzez link zaproszenia do grupy";
-
-/* Message text shown when you join a group via invite link */
-"chat.group.event.join.you" = "Dołączyłeś(-aś) do grupy poprzez link zaproszenia do grupy";
-
-/* Message text shown with the user who left the group */
-"chat.group.event.member.left" = "Członek grupy %@ opuścił ją";
-
-/* Message text shown when you leave a group */
-"chat.group.event.member.left.you" = "Opuszczono grupę";
-
 /* Action label for adding members to a group */
 "chat.group.info.add.members" = "Dodaj członków do grupy";
 
@@ -706,60 +694,6 @@
 /* Label shown above group description input box */
 "group.description.label" = "Opis grupy";
 
-/* Message text shown with the user who added a group member */
-"group.event.added.member" = "Użytkownik %1$@ dodał użytkownika %2$@";
-
-/* Message text shown when you add a group member */
-"group.event.added.member.you" = "Użytkownik %1@ został przez Ciebie dodany";
-
-/* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar" = "Użytkownik %@ zmienił ikonę grupy";
-
-/* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar.you" = "Ikona grupy została przez Ciebie zmieniona";
-
-/* Message text shown with the user who changed the background */
-"group.event.changed.background" = "Użytkownik %@ zmienił kolor tła";
-
-/* Message text shown when you change the background */
-"group.event.changed.background.you" = "Kolor tła został przez Ciebie zmieniony";
-
-/* Message text shown with the user who changed the group description */
-"group.event.changed.description" = "Użytkownik %1@ zmienił opis grupy";
-
-/* Message text shown when you change the group description */
-"group.event.changed.description.you" = "Opis grupy został przez Ciebie zmieniony";
-
-/* Message text shown with the user who changed the group name */
-"group.event.changed.name" = "Użytkownik %1$@ zmienił nazwę grupy na: „%2$@”";
-
-/* Message text shown when you change the group name */
-"group.event.changed.name.you" = "Nazwa grupy została przez Ciebie zmieniona na: „%1@”";
-
-/* Message text shown with the user who created the group */
-"group.event.created.group" = "Użytkownik %1$@ stworzył grupę: „%2$@”";
-
-/* Message text shown when you create a group */
-"group.event.created.group.you" = "Grupa o nazwie „%1@” została przez Ciebie stworzona";
-
-/* Message text shown with the user who demoted a group admin */
-"group.event.demoted.member" = "Użytkownik %1$@ odebrał użytkownikowi %2$@ funkcję administratora";
-
-/* Message text shown when you demote a group admin */
-"group.event.demoted.member.you" = "Odebrałeś(-aś) użytkownikowi %1@ funkcję administratora";
-
-/* Message text shown with the user who promoted a group member */
-"group.event.promoted.member" = "Użytkownik %1$@ nadał użytkownikowi %2$@ funkcję administratora";
-
-/* Message text shown when you promote a group member */
-"group.event.promoted.member.you" = "Nadałeś(-aś) użytkownikowi %1@ funkcję administratora";
-
-/* Message text shown with the user who removed a group member */
-"group.event.removed.member" = "Użytkownik %1$@ usunął użytkownika %2$@";
-
-/* Message text shown when you remove a group member */
-"group.event.removed.member.you" = "Użytkownik %1@ został przez Ciebie usunięty";
-
 /* Indicates how many members are in the group */
 "group.feed.n.members" = "group.feed.n.members";
 
@@ -948,9 +882,6 @@
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Zaktualizuj swoją aplikację.";
-
-/* Displayed in place of own name (e.g., next to own comments) */
-"meCapitalized" = "Ja";
 
 /* Refers to albums in Photo Library. */
 "media.albums" = "Albumy";
@@ -1567,30 +1498,6 @@
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
 "thread.list.preview.new.user.default" = "%@ jest na HalloApp🎉";
 
-/* Last seen timestamp: full date in short format and time */
-"timestamp.last.seen.date.at.time" = "Ostatnio widziany(-a) %1$@ o %2$@";
-
-/* Last seen timestamp: day of week and time */
-"timestamp.last.seen.dayofweek.at.time" = "Ostatnio widziany(-a) o %2$@ w %1$@";
-
-/* Last seen timestamp: today at specific time. */
-"timestamp.last.seen.today.at" = "Ostatnio widziany(-a) dzisiaj o %@";
-
-/* Last seen timestamp: yesterday at specific time. */
-"timestamp.last.seen.yesterday.at" = "Ostatnio widziany(-a) wczoraj o %@";
-
-/* Capitalized translation of `Now` to be used as timestamp. */
-"timestamp.now.capitalized" = "Teraz";
-
-/* Lowercase translation of `Now` to be used as timestamp. */
-"timestamp.now.lowercase" = "teraz";
-
-/* Timestamp: `Today` */
-"timestamp.today" = "Dzisiaj";
-
-/* Timestamp: `Yesterday` */
-"timestamp.yesterday" = "Wczoraj";
-
 /* Title for new message screen where user chooses who to message */
 "title.chat.new.message" = "Nowa wiadomość";
 
@@ -1668,12 +1575,6 @@
 
 /* Button to start voice call. Should be translated as verb. */
 "user.voice.call" = "Połącz";
-
-/* Reference to the user, second person pronoun */
-"user.you" = "ty";
-
-/* Capitalized reference to the user, second person pronoun */
-"user.you.capitalized" = "Ty";
 
 /* No comment provided by engineer. */
 "VIDEO" = "WIDEO";

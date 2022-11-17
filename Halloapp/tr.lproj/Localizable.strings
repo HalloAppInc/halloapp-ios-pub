@@ -286,24 +286,6 @@
 /* Chat entry that can be tapped to add the contact to address book */
 "chat.event.tap.to.add.contact" = "%@ kişisini rehberine eklemek için dokun";
 
-/* Message text shown with the user who changed a groups content expiry settings */
-"chat.group.event.expiry.changed" = "%1$@, grubun içerik sona erme tarihini %2$@ olarak değiştirdi";
-
-/* Message text shown when you change a groups content expiry settings */
-"chat.group.event.expiry.changed.you" = "Grubun içerik sona erme tarihini %1@ olarak değiştirdin";
-
-/* Message text shown with the user who joined the group via invite link */
-"chat.group.event.join" = "%@, Grup Davet İlişimi ile gruba katıldı";
-
-/* Message text shown when you join a group via invite link */
-"chat.group.event.join.you" = "Gruba, Grup Davet İlişimi ile katıldın";
-
-/* Message text shown with the user who left the group */
-"chat.group.event.member.left" = "%@ ayrıldı";
-
-/* Message text shown when you leave a group */
-"chat.group.event.member.left.you" = "Ayrıldın";
-
 /* Group content expiry time limit option */
 "chat.group.expiry.option.24hours" = "24 saat";
 
@@ -871,60 +853,6 @@
 /* Label shown above group description input box */
 "group.description.label" = "Grup açıklaması";
 
-/* Message text shown with the user who added a group member */
-"group.event.added.member" = "%1$@, %2$@ kişisini ekledi";
-
-/* Message text shown when you add a group member */
-"group.event.added.member.you" = "%1@ kişisini ekledin";
-
-/* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar" = "%@, grubun simgesini değiştirdi";
-
-/* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar.you" = "Grup simgesini değiştirdin";
-
-/* Message text shown with the user who changed the background */
-"group.event.changed.background" = "%@, arka plan rengini değiştirdi";
-
-/* Message text shown when you change the background */
-"group.event.changed.background.you" = "Arka plan rengini değiştirdin";
-
-/* Message text shown with the user who changed the group description */
-"group.event.changed.description" = "%1@, grup açıklamasını değiştirdi";
-
-/* Message text shown when you change the group description */
-"group.event.changed.description.you" = "Grup açıklamasını değiştirdin";
-
-/* Message text shown with the user who changed the group name */
-"group.event.changed.name" = "%1$@, grubun adını \"%2$@\" olarak değiştirdi";
-
-/* Message text shown when you change the group name */
-"group.event.changed.name.you" = "Grubun adını \"%1@\" olarak değiştirdin";
-
-/* Message text shown with the user who created the group */
-"group.event.created.group" = "%1$@,  \"%2$@\" adlı grubu kurdu";
-
-/* Message text shown when you create a group */
-"group.event.created.group.you" = "\"%1@\" grubunu kurdun";
-
-/* Message text shown with the user who demoted a group admin */
-"group.event.demoted.member" = "%1$@, %2$@ kişisini yöneticilikten çıkardı";
-
-/* Message text shown when you demote a group admin */
-"group.event.demoted.member.you" = "%1@ kişisini yöneticilikten çıkardın";
-
-/* Message text shown with the user who promoted a group member */
-"group.event.promoted.member" = "%1$@, %2$@ kişisini yönetici yaptı";
-
-/* Message text shown when you promote a group member */
-"group.event.promoted.member.you" = "%1@ kişisini yönetici yaptın";
-
-/* Message text shown with the user who removed a group member */
-"group.event.removed.member" = "%1$@, %2$@ kişisini sildi";
-
-/* Message text shown when you remove a group member */
-"group.event.removed.member.you" = "%1@ kişisini sildin";
-
 /* Indicates how many members are in the group */
 "group.feed.n.members" = "grup.yayını.ve.üyeler";
 
@@ -1176,9 +1104,6 @@
 
 /* Title of a location in location list if it does not have a name. */
 "locationSharing.untitledLocation" = "Başlıksız konum";
-
-/* Displayed in place of own name (e.g., next to own comments) */
-"meCapitalized" = "Ben";
 
 /* Refers to albums in Photo Library. */
 "media.albums" = "Albümler";
@@ -1952,30 +1877,6 @@
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
 "thread.list.preview.new.user.default" = "%@ HalloApp'te! 🎉";
 
-/* Last seen timestamp: full date in short format and time */
-"timestamp.last.seen.date.at.time" = "Son görülme %1$@, %2$@";
-
-/* Last seen timestamp: day of week and time */
-"timestamp.last.seen.dayofweek.at.time" = "Son görülme %1$@, %2$@";
-
-/* Last seen timestamp: today at specific time. */
-"timestamp.last.seen.today.at" = "Son görülme bugün %@";
-
-/* Last seen timestamp: yesterday at specific time. */
-"timestamp.last.seen.yesterday.at" = "Son görülme dün %@";
-
-/* Capitalized translation of `Now` to be used as timestamp. */
-"timestamp.now.capitalized" = "Şimdi";
-
-/* Lowercase translation of `Now` to be used as timestamp. */
-"timestamp.now.lowercase" = "şimdi";
-
-/* Timestamp: `Today` */
-"timestamp.today" = "Bugün";
-
-/* Timestamp: `Yesterday` */
-"timestamp.yesterday" = "Dün";
-
 /* Camera screen title */
 "title.camera" = "Kamera";
 
@@ -2062,12 +1963,6 @@
 
 /* Button to start voice call. Should be translated as verb. */
 "user.voice.call" = "Ara";
-
-/* Reference to the user, second person pronoun */
-"user.you" = "sen";
-
-/* Capitalized reference to the user, second person pronoun */
-"user.you.capitalized" = "Sen";
 
 /* No comment provided by engineer. */
 "VIDEO" = "VİDEO";

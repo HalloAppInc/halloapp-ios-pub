@@ -322,30 +322,6 @@
 /* Chat entry that can be tapped to add the contact to address book */
 "chat.event.tap.to.add.contact" = "انقر لإضافة %@ إلى دفتر عناوينك";
 
-/* Message text shown with the user who changed a groups content expiry settings */
-"chat.group.event.expiry.changed" = "غيَّر %1$@ مدة صلاحية محتوى المجموعة لتصبح %2$@";
-
-/* Message text shown when you change a groups content expiry settings */
-"chat.group.event.expiry.changed.you" = "لقد غيَّرت مدة صلاحية محتوى المجموعة ليصبح %1@";
-
-/* Message text shown with the user who joined the group via invite link */
-"chat.group.event.join" = "%@ انضم إلى المجموعة من خلال رابط الدعوة";
-
-/* Message text shown when you join a group via invite link */
-"chat.group.event.join.you" = "أنت انضممت إلى المجموعة من خلال رابط الدعوة";
-
-/* Message text shown when a group member is auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
-"chat.group.event.member.autopromoted" = "تم تلقائيًا تعيين %@ مشرفًا";
-
-/* Message text shown when you are auto promoted to admin. When the one-and-only admin of a group leaves the group, a random member is promoted to admin */
-"chat.group.event.member.autopromoted.you" = "تم تلقائيًا تعيينك مشرفًا";
-
-/* Message text shown with the user who left the group */
-"chat.group.event.member.left" = "%@ غادر";
-
-/* Message text shown when you leave a group */
-"chat.group.event.member.left.you" = "أنت غادرت";
-
 /* Group content expiry time limit option */
 "chat.group.expiry.option.24hours" = "24 ساعة";
 
@@ -754,18 +730,6 @@
 /* Indicates that an item has failed to be sent. */
 "failed.to.send" = "تعذّر الإرسال";
 
-/* Number of contacts added to a group. */
-"feed.collapsed.n.users.added" = "feed.collapsed.n.users.added";
-
-/* Number of contacts that joined a group. */
-"feed.collapsed.n.users.joined" = "feed.collapsed.n.users.joined";
-
-/* Number of contacts that left a group. */
-"feed.collapsed.n.users.left" = "feed.collapsed.n.users.left";
-
-/* Number of contacts removed from a group. */
-"feed.collapsed.n.users.removed" = "feed.collapsed.n.users.removed";
-
 /* Text shown in place of a received post we are not able to decrypt yet. */
 "feed.comment.waiting" = "بانتظار هذا التعليق. قد يستغرق الأمر بعض الوقت.";
 
@@ -951,60 +915,6 @@
 
 /* Label shown above group description input box */
 "group.description.label" = "وصف المجموعة";
-
-/* Message text shown with the user who added a group member */
-"group.event.added.member" = "%1$@ أضاف %2$@";
-
-/* Message text shown when you add a group member */
-"group.event.added.member.you" = "أنت أضفت %1@";
-
-/* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar" = "%@ غيّر صورة المجموعة";
-
-/* Message text shown with the user who changed the group avatar */
-"group.event.changed.avatar.you" = "أنت غيّرت صورة المجموعة";
-
-/* Message text shown with the user who changed the background */
-"group.event.changed.background" = "%@ غيّر لون الخلفية";
-
-/* Message text shown when you change the background */
-"group.event.changed.background.you" = "أنت غيّرت لون الخلفية";
-
-/* Message text shown with the user who changed the group description */
-"group.event.changed.description" = "%1@ غيّر وصف المجموعة";
-
-/* Message text shown when you change the group description */
-"group.event.changed.description.you" = "أنت غيّرت وصف المجموعة";
-
-/* Message text shown with the user who changed the group name */
-"group.event.changed.name" = "%1$@ غيّر اسم المجموعة إلى \"%2$@\"";
-
-/* Message text shown when you change the group name */
-"group.event.changed.name.you" = "أنت غيّرت اسم المجموعة إلى \"%1@\"";
-
-/* Message text shown with the user who created the group */
-"group.event.created.group" = "%1$@ أنشأ المجموعة \"%2$@\"";
-
-/* Message text shown when you create a group */
-"group.event.created.group.you" = "أنت أنشأت المجموعة \"%1@\"";
-
-/* Message text shown with the user who demoted a group admin */
-"group.event.demoted.member" = "%1$@ أزال %2$@ من منصب مشرف";
-
-/* Message text shown when you demote a group admin */
-"group.event.demoted.member.you" = "أنت أزلت %1@ من منصب مشرف";
-
-/* Message text shown with the user who promoted a group member */
-"group.event.promoted.member" = "%1$@ عيّن %2$@ مشرفًا";
-
-/* Message text shown when you promote a group member */
-"group.event.promoted.member.you" = "أنت عيّنت %1@ مشرفًا";
-
-/* Message text shown with the user who removed a group member */
-"group.event.removed.member" = "%1$@ أزال %2$@";
-
-/* Message text shown when you remove a group member */
-"group.event.removed.member.you" = "أنت أزلت %1@";
 
 /* Indicates how many members are in the group */
 "group.feed.n.members" = "group.feed.n.members";
@@ -1347,9 +1257,6 @@
 
 /* Title of a location in location list if it does not have a name. */
 "locationSharing.untitledLocation" = "موقع بلا عنوان";
-
-/* Displayed in place of own name (e.g., next to own comments) */
-"meCapitalized" = "أنا";
 
 /* Refers to albums in Photo Library. */
 "media.albums" = "الألبومات";
@@ -2223,30 +2130,6 @@
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
 "thread.list.preview.new.user.default" = "%@ من مستخدمي هالوآب🎉";
 
-/* Last seen timestamp: full date in short format and time */
-"timestamp.last.seen.date.at.time" = "آخر ظهور %1$@ الساعة %2$@";
-
-/* Last seen timestamp: day of week and time */
-"timestamp.last.seen.dayofweek.at.time" = "آخر ظهور %1$@ الساعة %2$@";
-
-/* Last seen timestamp: today at specific time. */
-"timestamp.last.seen.today.at" = "آخر ظهور اليوم، الساعة %@";
-
-/* Last seen timestamp: yesterday at specific time. */
-"timestamp.last.seen.yesterday.at" = "آخر ظهور أمس، الساعة %@";
-
-/* Capitalized translation of `Now` to be used as timestamp. */
-"timestamp.now.capitalized" = "الآن";
-
-/* Lowercase translation of `Now` to be used as timestamp. */
-"timestamp.now.lowercase" = "الآن";
-
-/* Timestamp: `Today` */
-"timestamp.today" = "اليوم";
-
-/* Timestamp: `Yesterday` */
-"timestamp.yesterday" = "الأمس";
-
 /* Camera screen title */
 "title.camera" = "الكاميرا";
 
@@ -2348,12 +2231,6 @@
 
 /* Button to start voice call. Should be translated as verb. */
 "user.voice.call" = "اتصال";
-
-/* Reference to the user, second person pronoun */
-"user.you" = "أنت";
-
-/* Capitalized reference to the user, second person pronoun */
-"user.you.capitalized" = "أنت";
 
 /* No comment provided by engineer. */
 "VIDEO" = "فيديو";
