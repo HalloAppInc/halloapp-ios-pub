@@ -52,16 +52,6 @@ private extension Localizations {
     static var processingMedia: String {
         NSLocalizedString("share.composer.processing.media", value: "Processing Media...", comment: "Title of alert displayed while processing media shared by share extension")
     }
-
-    static func uploadingItems(_ numberOfItems: Int) -> String {
-        let format = NSLocalizedString("uploading.n.items", comment: "Message how many items are currently being upload")
-        return String.localizedStringWithFormat(format, numberOfItems)
-    }
-
-    static func upladingBytesProgress(partial: String, total: String) -> String {
-        let format = NSLocalizedString("uploading.bytes.progress", value: "%@ of %@", comment: "How many bytes from total have been uploaded")
-        return String.localizedStringWithFormat(format, partial, total)
-    }
 }
 
 class ShareComposerViewController: UIViewController {
@@ -91,7 +81,6 @@ class ShareComposerViewController: UIViewController {
     private var linkPreviewData: LinkPreviewData?
     private var linkViewImage: UIImage?
     private var linkPreviewMedia: PendingMedia?
-    private var progressUploadMonitor: ProgressUploadMonitor? // legacy uploader
     private var progressMonitor: ProcessingProgressMonitor? // new uploader
 
     private var mentions = MentionRangeMap()
@@ -697,15 +686,7 @@ class ShareComposerViewController: UIViewController {
             expandedText: mentionInput.text,
             mentionRanges: mentionInput.mentions).trimmed()
 
-        if ServerProperties.enableNewMediaUploader {
-            upload(text: text, mentionText: mentionText, media: media, files: files, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
-        } else {
-            showUploadingAlert()
-            let queue = DispatchQueue(label: "com.halloapp.share.prepare", qos: .userInitiated)
-            ShareExtensionContext.shared.coreService.execute(whenConnectionStateIs: .connected, onQueue: queue) { [media, linkPreviewData, linkPreviewMedia] in
-                self.prepareAndUpload(text: text, mentionText: mentionText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
-            }
-        }
+        upload(text: text, mentionText: mentionText, media: media, files: files, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
     }
 
     @objc func backAction() {
@@ -720,25 +701,6 @@ class ShareComposerViewController: UIViewController {
 
     @objc func hideKeyboardAction() {
         textView.resignFirstResponder()
-    }
-
-    private func showUploadingAlert() {
-        let mediaBytes = Int64(media
-            .compactMap { try? $0.fileURL?.resourceValues(forKeys: [.fileSizeKey]).fileSize }
-            .reduce(0) { $0 + $1 })
-
-        let fileBytes = Int64(files
-            .compactMap { try? $0.localURL.resourceValues(forKeys: [.fileSizeKey]).fileSize }
-            .reduce(0) { $0 + $1 })
-
-        progressUploadMonitor = ProgressUploadMonitor(mediaCount: media.count + files.count, bytesCount: mediaBytes + fileBytes) { [weak self] in
-            self?.shareButton.isEnabled = true
-        }
-
-        DispatchQueue.main.async {
-            guard let alert = self.progressUploadMonitor?.alert else { return }
-            self.present(alert, animated: true)
-        }
     }
 
     private func showProcessingAlertIfNeeded(for mediaIDs: [CommonMediaID]) {
@@ -892,100 +854,6 @@ class ShareComposerViewController: UIViewController {
                                                            linkPreviewMedia: linkPreviewMedia,
                                                            didCreateMessage: showProcessingAlertIfNeeded,
                                                            didBeginUpload: checkCompletionCountAndCompleteIfNeeded)
-            }
-        }
-    }
-
-    // MARK: - Legacy Upload Flow
-
-    private func prepareAndUpload(text: String, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?) {
-        let uploadDispatchGroup = DispatchGroup()
-        var results = [Result<String, Error>]()
-
-        media.forEach { mediaItem in
-            if let url = mediaItem.fileURL {
-                ImageServer.shared.attach(for: url, id: ShareExtensionContext.shared.dataStore.mediaProcessingId, index: Int(mediaItem.order))
-            }
-        }
-
-        for destination in destinations {
-            uploadDispatchGroup.enter()
-
-            switch destination {
-            case .feed:
-                DDLogInfo("ShareComposerViewController/upload feed")
-                ShareExtensionContext.shared.dataStore.post(text: mentionText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia) {
-                    results.append($0)
-                    uploadDispatchGroup.leave()
-                }
-            case .group(let group):
-                switch group.type {
-                case .groupFeed:
-                    DDLogInfo("ShareComposerViewController/upload group feed")
-                    ShareExtensionContext.shared.dataStore.post(group: group, text: mentionText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia) {
-                        results.append($0)
-                        uploadDispatchGroup.leave()
-                    }
-                case .groupChat:
-                    DDLogInfo("ShareComposerViewController/upload group chat")
-                    ShareExtensionContext.shared.dataStore.send(chatMessageRecipient: .groupChat(toGroupId: group.id, fromUserId: AppContext.shared.userData.userId), text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia) {
-                        results.append($0)
-                        uploadDispatchGroup.leave()
-                    }
-                case .oneToOne:
-                    break
-                }
-                
-                addIntent(chatGroup: group)
-            case .chat(let chat):
-                DDLogInfo("ShareComposerViewController/upload contact")
-                let userID = chat.userId
-                // TODO @Nandini handle sending to group chats
-                ShareExtensionContext.shared.dataStore.send(chatMessageRecipient: .oneToOneChat(toUserId: userID, fromUserId: AppContext.shared.userData.userId), text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia) {
-                    results.append($0)
-                    uploadDispatchGroup.leave()
-                }
-                addIntent(toUserId: userID)
-            }
-        }
-
-        uploadDispatchGroup.notify(queue: DispatchQueue.main) {
-            for result in results {
-                switch result {
-                case .success(let id):
-                    DDLogInfo("ShareComposerViewController/upload/success id=[\(id)]")
-                case .failure(let error):
-                    DDLogError("ShareComposerViewController/upload/error [\(error)]")
-                }
-            }
-
-            let fail = results.filter {
-                switch $0 {
-                case .success(_):
-                    return false
-                case .failure(_):
-                    return true
-                }
-            }.count > 0
-
-            if fail {
-                self.dismiss(animated: false)
-                self.showUploadingFailedAlert()
-                self.shareButton.isEnabled = true
-            } else {
-                ImageServer.shared.clearAllTasks(keepFiles: false)
-                ShareDataLoader.shared.reset()
-                self.progressUploadMonitor?.setProgress(1, animated: true)
-
-                // We need to update presence after successfully posting.
-                ShareExtensionContext.shared.coreService.sendPresenceIfPossible(.available)
-                ShareExtensionContext.shared.coreService.sendPresenceIfPossible(.away)
-
-                // let the user observe the full progress
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
-                    self.shareButton.isEnabled = true
-                    self.extensionContext?.completeRequest(returningItems: nil)
-                }
             }
         }
     }
@@ -1477,84 +1345,6 @@ fileprivate class ProcessingProgressMonitor {
     }
 
     func setProgress(_ progress: Float, animated: Bool) {
-        progressView.setProgress(progress, animated: animated)
-    }
-}
-
-fileprivate class ProgressUploadMonitor {
-    private var processingProgressCancellable: AnyCancellable?
-    private var uploadProgressCancellable: AnyCancellable?
-    private var mediaUploader: MediaUploader {
-        ShareExtensionContext.shared.dataStore.mediaUploader
-    }
-    private let mediaCount: Int
-    private let totalBytesCount: Int64
-    private let totalBytesString: String
-
-    let alert: UIAlertController
-
-    private lazy var progressView: UIProgressView = {
-        let progressView = UIProgressView(progressViewStyle: .default)
-        progressView.frame = CGRect(x: 27, y: 56, width: alert.view.bounds.width - 54 , height: 10)
-        progressView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        progressView.isUserInteractionEnabled = false
-
-        return progressView
-    }()
-
-    init(mediaCount: Int, bytesCount: Int64, cancel: @escaping () -> ()) {
-        self.mediaCount = mediaCount
-        totalBytesCount = bytesCount
-        totalBytesString = ByteCountFormatter.string(fromByteCount: bytesCount, countStyle: .file)
-
-        alert = UIAlertController(title: Localizations.uploadingItems(mediaCount), message: nil, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .default) { _ in
-            ShareExtensionContext.shared.dataStore.cancelSending()
-            cancel()
-        })
-
-        if mediaCount > 0 {
-            alert.message = progressMessage(bytesCount: 0)
-            alert.view.addSubview(progressView)
-            listenForProgress()
-        }
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    private func progressMessage(bytesCount: Int64) -> String {
-        let bytesCountString = ByteCountFormatter.string(fromByteCount: bytesCount, countStyle: .file)
-        let message = Localizations.upladingBytesProgress(partial: bytesCountString, total: totalBytesString)
-        return "\n\n\(message)"
-    }
-
-    private func listenForProgress() {
-        processingProgressCancellable = ImageServer.shared.progress.receive(on: DispatchQueue.main).sink { [weak self] id in
-            guard let self = self else { return }
-            self.updateProgress(for: id)
-        }
-
-        uploadProgressCancellable = mediaUploader.uploadProgressDidChange.receive(on: DispatchQueue.main).sink { [weak self] id in
-            guard let self = self else { return }
-            self.updateProgress(for: id)
-        }
-    }
-
-    private func updateProgress(for id: String) {
-        var (processingCount, processingProgress) = ImageServer.shared.progress(for: id)
-        var (uploadCount, uploadProgress) = mediaUploader.uploadProgress(forGroupId: id)
-
-        processingProgress = processingProgress * Float(processingCount) / Float(mediaCount)
-        uploadProgress = uploadProgress * Float(uploadCount) / Float(mediaCount)
-        let progress = (processingProgress + uploadProgress) / 2
-
-        setProgress(progress, animated: true)
-    }
-
-    func setProgress(_ progress: Float, animated: Bool) {
-        alert.message = progressMessage(bytesCount: Int64(Float(totalBytesCount) * progress))
         progressView.setProgress(progress, animated: animated)
     }
 }

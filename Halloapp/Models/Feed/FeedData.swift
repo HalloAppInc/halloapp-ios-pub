@@ -2830,157 +2830,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     let didSendGroupFeedPost = PassthroughSubject<FeedPost, Never>()
 
     func post(text: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, to destination: ShareDestination, momentInfo: PendingMomentInfo? = nil) {
-        if ServerProperties.enableNewMediaUploader {
-            coreFeedData.post(text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia, to: destination, momentInfo: momentInfo)
-            return
-        }
-
-        let managedObjectContext = viewContext
-        let postId: FeedPostID = PacketID.generate()
-
-        // Create and save new FeedPost object.
-        DDLogDebug("FeedData/new-post/create [\(postId)]")
-
-        let timestamp = Date()
-
-        let feedPost = FeedPost(context: managedObjectContext)
-        feedPost.id = postId
-        feedPost.userId = AppContext.shared.userData.userId
-        if case .group(let groupID, _, _) = destination {
-            feedPost.groupId = groupID
-            if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: managedObjectContext) {
-                guard group.type != .groupChat else { return }
-                feedPost.expiration = group.postExpirationDate(from: timestamp)
-            } else {
-                DDLogError("FeedData/createTombstones/groupID: \(groupID) not found, setting default expiration...")
-                feedPost.expiration = timestamp.addingTimeInterval(ServerProperties.enableGroupExpiry ? TimeInterval(Int64.thirtyDays) : FeedPost.defaultExpiration)
-            }
-        } else {
-            feedPost.expiration = timestamp.addingTimeInterval(FeedPost.defaultExpiration)
-        }
-        feedPost.rawText = text.collapsedText
-        feedPost.status = .sending
-        feedPost.timestamp = timestamp
-        feedPost.lastUpdated = timestamp
-
-        if let momentInfo {
-            feedPost.isMoment = true
-            feedPost.unlockedMomentUserID = momentInfo.unlockUserID
-            feedPost.isMomentSelfieLeading = momentInfo.isSelfieLeading && media.count > 1
-            feedPost.locationString = momentInfo.locationString
-
-            let notificationTimestamp = MainAppContext.shared.userDefaults.value(forKey: CoreFeedData.dailyMomentNotificationKey) as? Date
-            feedPost.momentNotificationTimestamp = notificationTimestamp
-        }
-
-        // Add mentions
-        feedPost.mentions = text.mentionsArray.map {
-            return MentionData(
-                index: $0.index,
-                userID: $0.userID,
-                name: self.contactStore.pushNames[$0.userID] ?? $0.name)
-        }
-        feedPost.mentions.filter { $0.name == "" }.forEach {
-            DDLogError("FeedData/new-post/mention/\($0.userID) missing push name")
-        }
-
-        // Add post media.
-        for (index, mediaItem) in media.enumerated() {
-            DDLogDebug("FeedData/new-post/add-media [\(mediaItem.fileURL!)]")
-            let feedMedia = CommonMedia(context: managedObjectContext)
-            feedMedia.id = "\(feedPost.id)-\(index)"
-            feedMedia.type = mediaItem.type
-            feedMedia.status = .readyToUpload
-            feedMedia.url = mediaItem.url
-            feedMedia.size = mediaItem.size!
-            feedMedia.key = ""
-            feedMedia.sha256 = ""
-            feedMedia.order = Int16(index)
-            feedMedia.blobVersion = (mediaItem.type == .video && ServerProperties.streamingSendingEnabled) ? .chunked : .default
-            feedMedia.post = feedPost
-            feedMedia.mediaDirectory = .commonMedia
-
-            if let url = mediaItem.fileURL {
-                ImageServer.shared.attach(for: url, id: postId, index: index)
-            }
-
-            // Copying depends on all data fields being set, so do this last.
-            do {
-                try self.downloadManager.copyMedia(from: mediaItem, to: feedMedia)
-            }
-            catch {
-                DDLogError("FeedData/new-post/copy-media/error [\(error)]")
-            }
-        }
-
-        // Add feed link preview if any
-        var linkPreview: CommonLinkPreview?
-        if let linkPreviewData = linkPreviewData {
-            linkPreview = CommonLinkPreview(context: managedObjectContext)
-            linkPreview?.id = PacketID.generate()
-            linkPreview?.url = linkPreviewData.url
-            linkPreview?.title = linkPreviewData.title
-            linkPreview?.desc = linkPreviewData.description
-            // Set preview image if present
-            if let linkPreviewMedia = linkPreviewMedia {
-                let previewMedia = CommonMedia(context: managedObjectContext)
-                previewMedia.id = "\(linkPreview?.id ?? UUID().uuidString)-0"
-                previewMedia.type = linkPreviewMedia.type
-                previewMedia.status = .readyToUpload
-                previewMedia.url = linkPreviewMedia.url
-                previewMedia.size = linkPreviewMedia.size!
-                previewMedia.key = ""
-                previewMedia.sha256 = ""
-                previewMedia.order = 0
-                previewMedia.linkPreview = linkPreview
-                previewMedia.mediaDirectory = .commonMedia
-
-                // Copying depends on all data fields being set, so do this last.
-                do {
-                    try self.downloadManager.copyMedia(from: linkPreviewMedia, to: previewMedia)
-                }
-                catch {
-                    DDLogError("FeedData/new-post/copy-likePreviewmedia/error [\(error)]")
-                }
-            }
-            linkPreview?.post = feedPost
-        }
-
-        switch destination {
-        case .feed(let privacyListType):
-            guard let postAudience = try? MainAppContext.shared.privacySettings.feedAudience(for: privacyListType) else { return }
-
-            let feedPostInfo = ContentPublishInfo(context: managedObjectContext)
-            let receipts = postAudience.userIds.reduce(into: [UserID : Receipt]()) { (receipts, userId) in
-                receipts[userId] = Receipt()
-            }
-            feedPostInfo.receipts = receipts
-            feedPostInfo.audienceType = postAudience.audienceType
-            feedPost.info = feedPostInfo
-        case .group(let groupId, _, _):
-            guard let chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: managedObjectContext) else {
-                return
-            }
-            let feedPostInfo = ContentPublishInfo(context: managedObjectContext)
-            var receipts = [UserID : Receipt]()
-            chatGroup.members?.forEach({ member in
-                receipts[member.userID] = Receipt()
-            })
-            feedPostInfo.receipts = receipts
-            feedPostInfo.audienceType = .group
-            feedPost.info = feedPostInfo
-        case .contact:
-            // ChatData is responsible for this case
-            break
-        }
-
-        self.save(managedObjectContext)
-
-        self.beginMediaUploadAndSend(feedPost: feedPost)
-
-        if feedPost.groupId != nil {
-            self.didSendGroupFeedPost.send(feedPost)
-        }
+        coreFeedData.post(text: text, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia, to: destination, momentInfo: momentInfo)
     }
 
     func post(comment: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia : PendingMedia?, to feedPostID: FeedPostID, replyingTo parentCommentId: FeedPostCommentID? = nil) {
@@ -3304,57 +3154,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    // DEPRECATED - Use coreFeedData.send once the new uploader is enabled everywhere
-    private func send(post: FeedPost) {
-        let feed: Feed
-        if let groupId = post.groupId {
-            feed = .group(groupId)
-        } else {
-            guard let postAudience = post.audience else {
-                DDLogError("FeedData/send-post/\(post.id) No audience set")
-                post.status = .sendError
-                save(post.managedObjectContext!)
-                return
-            }
-            feed = .personal(postAudience)
-        }
-
-        let postId = post.id
-
-        guard !contentInFlight.contains(postId) else {
-            DDLogInfo("FeedData/send-post/postID: \(postId) already-in-flight")
-            return
-        }
-        DDLogInfo("FeedData/send-post/postID: \(postId) begin")
-        contentInFlight.insert(postId)
-
-        service.publishPost(post.postData, feed: feed) { result in
-            switch result {
-            case .success(let timestamp):
-                DDLogInfo("FeedData/send-post/postID: \(postId) success")
-                self.contentInFlight.remove(postId)
-                self.updateFeedPost(with: postId) { (feedPost) in
-                    feedPost.timestamp = timestamp
-                    feedPost.status = .sent
-
-                    MainAppContext.shared.endBackgroundTask(postId)
-                    self.coreFeedData.addIntent(groupId: post.groupID)
-                }
-            case .failure(let error):
-                DDLogError("FeedData/send-post/postID: \(postId) error \(error)")
-                self.contentInFlight.remove(postId)
-                // TODO: Track this state more precisely. Even if this attempt was a definite failure, a previous attempt may have succeeded.
-                if error.isKnownFailure {
-                    self.updateFeedPost(with: postId) { (feedPost) in
-                        feedPost.status = .sendError
-
-                        MainAppContext.shared.endBackgroundTask(postId)
-                    }
-                }
-            }
-        }
-    }
-
     func sharePastPostsWith(userId: UserID) {
         guard !MainAppContext.shared.privacySettings.blocked.userIds.contains(userId) else {
             DDLogInfo("FeedData/share-posts/\(userId) User is blocked")
@@ -3405,160 +3204,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     // MARK: Media Upload
 
     public func uploadProgressPublisher(for post: FeedPost) -> AnyPublisher<Float, Never> {
-        if ServerProperties.enableNewMediaUploader {
-            return coreFeedData.uploadProgressPublisher(for: post)
-        } else {
-            let postID = post.id
-            let mediaCount = post.mediaCount
-            guard mediaCount > 0 else {
-                return Just(Float(1)).eraseToAnyPublisher()
-            }
-            // Send PostID to handle initial progress population
-            return Publishers.Merge3(ImageServer.shared.progress, MainAppContext.shared.feedData.mediaUploader.uploadProgressDidChange, Just(postID))
-                .filter { $0 == postID }
-                .map { _ -> Float in
-                    var (processingCount, processingProgress) = ImageServer.shared.progress(for: postID)
-                    var (uploadCount, uploadProgress) = MainAppContext.shared.feedData.mediaUploader.uploadProgress(forGroupId: postID)
-
-                    processingProgress = processingProgress * Float(processingCount) / Float(mediaCount)
-                    uploadProgress = uploadProgress * Float(uploadCount) / Float(mediaCount)
-                    return (processingProgress + uploadProgress) / 2.0
-                }
-                .eraseToAnyPublisher()
-        }
+        return coreFeedData.uploadProgressPublisher(for: post)
     }
 
     private func beginMediaUploadAndSend(feedPost: FeedPost) {
-        if ServerProperties.enableNewMediaUploader {
-            coreFeedData.beginMediaUploadAndSend(feedPost: feedPost)
-        } else {
-            if let linkPreview = feedPost.linkPreviews?.first {
-                // upload link preview media followed by comment media and send over the wire
-                uploadMediaAndSend(feedLinkPreview: linkPreview)
-            } else {
-                // upload comment media if any and send data over the wire.
-                uploadMediaAndSend(feedPost: feedPost)
-            }
-        }
-    }
-
-    private func uploadMediaAndSend(feedPost: FeedPost) {
-        let postId = feedPost.id
-
-        MainAppContext.shared.beginBackgroundTask(postId)
-
-        // Either all media has already been uploaded or post does not contain media.
-        guard let mediaItemsToUpload = feedPost.media?.filter({ [.none, .readyToUpload, .processedForUpload, .uploading, .uploadError].contains($0.status) }), !mediaItemsToUpload.isEmpty else {
-            send(post: feedPost)
-            return
-        }
-
-        var numberOfFailedUploads = 0
-        var totalUploadSize = 0
-        let totalUploads = mediaItemsToUpload.count
-        let startTime = Date()
-        DDLogInfo("FeedData/upload-media/\(postId)/starting [\(totalUploads)]")
-
-        let uploadGroup = DispatchGroup()
-        let uploadCompletion: (Result<Int, Error>) -> Void = { result in
-            switch result {
-            case .success(let size):
-                totalUploadSize += size
-            case .failure(_):
-                numberOfFailedUploads += 1
-            }
-
-            uploadGroup.leave()
-        }
-
-        // mediaItem is a CoreData object and it should not be passed across threads.
-        for mediaItem in mediaItemsToUpload {
-            let mediaIndex = mediaItem.order
-            uploadGroup.enter()
-            DDLogDebug("FeedData/process-mediaItem/feedPost: \(postId)/\(mediaItem.order), index: \(mediaIndex)")
-            let outputFileID = "\(postId)-\(mediaIndex)"
-
-            if let url = mediaItem.mediaURL, mediaItem.sha256.isEmpty, mediaItem.key.isEmpty {
-                DDLogDebug("FeedData/process-mediaItem/feedPost: \(postId)/\(mediaIndex)/url: \(url)")
-                let output = url.deletingLastPathComponent().appendingPathComponent(outputFileID, isDirectory: false).appendingPathExtension("processed").appendingPathExtension(url.pathExtension)
-
-                ImageServer.shared.prepare(mediaItem.type, url: url, for: postId, index: Int(mediaIndex), shouldStreamVideo: mediaItem.blobVersion == .chunked) { [weak self] in
-                    guard let self = self else { return }
-                    DDLogDebug("FeedData/process-mediaItem/\(postId)/\(mediaIndex)/result: \($0)")
-                    switch $0 {
-                    case .success(let result):
-                        guard result.copy(to: output) else {
-                            break
-                        }
-                        if result.url != url {
-                            result.clear()
-                        }
-
-                        let path = self.downloadManager.relativePath(from: output)
-                        DDLogDebug("FeedData/process-mediaItem/success: \(postId)/\(mediaIndex)")
-                        self.updateFeedPost(with: postId, block: { (feedPost) in
-                            if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
-                                media.size = result.size
-                                media.key = result.key
-                                media.sha256 = result.sha256
-                                media.chunkSize = result.chunkSize
-                                media.blobSize = result.blobSize
-                                media.relativeFilePath = path
-                            }
-                        }) {
-                            self.upload(postId: postId, mediaIndex: mediaIndex, completion: uploadCompletion)
-                        }
-                        return
-                    case .failure(_):
-                        break
-                    }
-                    DDLogDebug("FeedData/process-mediaItem/failure: \(postId)/\(mediaIndex)")
-                    numberOfFailedUploads += 1
-
-                    self.updateFeedPost(with: postId, block: { (feedPost) in
-                        if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
-                            media.status = .uploadError
-                        }
-                    }) {
-                        uploadGroup.leave()
-                    }
-                }
-            } else {
-                DDLogDebug("FeedData/process-mediaItem/processed already: \(postId)/\(mediaIndex)")
-                self.upload(postId: postId, mediaIndex: mediaIndex, completion: uploadCompletion)
-            }
-        }
-
-        uploadGroup.notify(queue: .main) {
-            DDLogInfo("FeedData/upload-media/\(postId)/all/finished [\(totalUploads-numberOfFailedUploads)/\(totalUploads)]")
-            ImageServer.shared.clearAllTasks(for: postId)
-            self.mediaUploader.clearTasks(withGroupID: postId)
-            if numberOfFailedUploads > 0 {
-                self.updateFeedPost(with: postId) { (feedPost) in
-                    feedPost.status = .sendError
-                }
-            } else {
-                // TODO(murali@): one way to avoid looking up the object from the database is to keep an updated in-memory version of the post.
-                self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-                    guard let feedPost = self.feedPost(with: postId, in: managedObjectContext) else {
-                        DDLogError("FeedData/missing-post [\(postId)]")
-                        return
-                    }
-                    self.send(post: feedPost)
-                }
-            }
-
-            let numPhotos = mediaItemsToUpload.filter { $0.type == .image }.count
-            let numVideos = mediaItemsToUpload.filter { $0.type == .video }.count
-            AppContext.shared.eventMonitor.observe(
-                .mediaUpload(
-                    postID: postId,
-                    duration: Date().timeIntervalSince(startTime),
-                    numPhotos: numPhotos,
-                    numVideos: numVideos,
-                    totalSize: totalUploadSize,
-                    status: numberOfFailedUploads == 0 ? .ok : .fail))
-        }
+        coreFeedData.beginMediaUploadAndSend(feedPost: feedPost)
     }
 
     private func uploadMediaAndSend(feedLinkPreview: CommonLinkPreview) {
@@ -3572,11 +3222,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 // Comment link preview
                 if let commentID = commentID, let feedComment = self.feedComment(with: commentID, in: managedObjectContext) {
                     self.uploadMediaAndSend(feedComment: feedComment)
-                    return
-                }
-                // Post link preview
-                if let postID = postID, let feedPost = self.feedPost(with: postID, in: managedObjectContext) {
-                    self.uploadMediaAndSend(feedPost: feedPost)
                     return
                 }
                 DDLogError("FeedData/missing-feedLinkPreview/feedLinkPreviewId [\(feedLinkPreview.id)]")
@@ -3680,11 +3325,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     // Comment link preview
                     if let commentID = commentID, let feedComment = self.feedComment(with: commentID, in: managedObjectContext) {
                         self.uploadMediaAndSend(feedComment: feedComment)
-                        return
-                    }
-                    // Post link preview
-                    if let postID = postID, let feedPost = self.feedPost(with: postID, in: managedObjectContext) {
-                        self.uploadMediaAndSend(feedPost: feedPost)
                         return
                     }
                     DDLogError("FeedData/missing-feedLinkPreview/feedLinkPreviewId [\(feedLinkPreview.id)]")
@@ -3808,94 +3448,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     //                        numPhotos: mediaItemsToUpload.filter { $0.type == .image }.count,
     //                        numVideos: mediaItemsToUpload.filter { $0.type == .video }.count,
     //                        totalSize: totalUploadSize))
-                }
-            }
-        }
-    }
-
-    private func upload(postId: FeedPostID, mediaIndex: Int16, completion: @escaping (Result<Int, Error>) -> Void) {
-        performSeriallyOnBackgroundContext { managedObjectContext in
-            guard let post = self.feedPost(with: postId, in: managedObjectContext),
-                  let postMedia = post.media?.first(where: { $0.order == mediaIndex }) else {
-                DDLogError("FeedData/upload/fetch post and media \(postId)/\(mediaIndex) - missing")
-                return
-            }
-
-            DDLogDebug("FeedData/upload/media \(postId)/\(postMedia.order), index:\(mediaIndex)")
-            guard let processed = postMedia.mediaURL else {
-                DDLogError("FeedData/upload-media/\(postId)/\(mediaIndex) missing file path")
-                return completion(.failure(MediaUploadError.invalidUrls))
-            }
-
-            MainAppContext.shared.mediaHashStore.fetch(url: processed, blobVersion: postMedia.blobVersion) { [weak self] upload in
-                guard let self = self else { return }
-
-                self.performSeriallyOnBackgroundContext { managedObjectContext in
-                    // Lookup object from coredata again instead of passing around the object across threads.
-                    DDLogInfo("FeedData/upload/fetch upload hash \(postId)/\(mediaIndex)")
-                    guard let post = self.feedPost(with: postId, in: managedObjectContext),
-                          let media = post.media?.first(where: { $0.order == mediaIndex }) else {
-                        DDLogError("FeedData/upload/upload hash finished/fetch post and media/ \(postId)/\(mediaIndex) - missing")
-                        return
-                    }
-
-                    if let url = upload?.url {
-                        DDLogInfo("Media \(processed) has been uploaded before at \(url).")
-                        if let uploadUrl = media.uploadUrl {
-                            DDLogInfo("FeedData/upload/upload url is supposed to be nil here/\(postId)/\(media.order), uploadUrl: \(uploadUrl)")
-                            // we set it to be nil here explicitly.
-                            media.uploadUrl = nil
-                        }
-                        media.url = url
-                    } else {
-                        DDLogInfo("FeedData/uploading media now\(postId)/\(media.order), index:\(mediaIndex)")
-                    }
-
-                    self.mediaUploader.upload(media: media, groupId: postId, didGetURLs: { (mediaURLs) in
-                        DDLogInfo("FeedData/upload-media/\(postId)/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
-
-                        // Save URLs acquired during upload to the database.
-                        self.updateFeedPost(with: postId) { (feedPost) in
-                            if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
-                                switch mediaURLs {
-                                case .getPut(let getURL, let putURL):
-                                    media.url = getURL
-                                    media.uploadUrl = putURL
-
-                                case .patch(let patchURL):
-                                    media.uploadUrl = patchURL
-                                    media.url = nil
-
-                                case .download(let downloadURL):
-                                    media.url = downloadURL
-                                }
-                            }
-                        }
-                    }) { (uploadResult) in
-                        DDLogInfo("FeedData/upload-media/\(postId)/\(mediaIndex)/finished result=[\(uploadResult)]")
-
-                        // Save URLs acquired during upload to the database.
-                        self.updateFeedPost(with: postId, block: { feedPost in
-                            if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
-                                switch uploadResult {
-                                case .success(let details):
-                                    media.url = details.downloadURL
-                                    media.status = .uploaded
-
-                                    if media.url == upload?.url, let key = upload?.key, let sha256 = upload?.sha256 {
-                                        media.key = key
-                                        media.sha256 = sha256
-                                    }
-
-                                    MainAppContext.shared.mediaHashStore.update(url: processed, blobVersion: media.blobVersion, key: media.key, sha256: media.sha256, downloadURL: media.url!)
-                                case .failure(_):
-                                    media.status = .uploadError
-                                }
-                            }
-                        }) {
-                            completion(uploadResult.map { $0.fileSize })
-                        }
-                    }
                 }
             }
         }
@@ -4242,7 +3794,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         
     }
     
-
     private func deleteMedia(feedPost: FeedPost) {
         feedPost.media?.forEach { (media) in
             cancelDownloadAndDeleteMedia(mediaItem: media)

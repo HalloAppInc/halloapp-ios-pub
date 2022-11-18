@@ -48,7 +48,6 @@ public struct ServerProperties {
         case postReactions = "post_reactions"
         case chatReactions = "chat_reactions"
         case commentReactions = "comment_reactions"
-        case enableNewMediaUploader = "background_upload"
         case enableChatLocationSharing = "location_sharing"
         case closeFriendRecommendations = "close_friends_recos"
         case enableGroupChat = "group_chat"
@@ -98,7 +97,6 @@ public struct ServerProperties {
         static let postReactions = false
         static let chatReactions = false
         static let commentReactions = false
-        static let enableNewMediaUploader = true
         static let enableChatLocationSharing = false
         static let closeFriendRecommendations = false
         static let enableGroupChat = false
@@ -311,8 +309,6 @@ public struct ServerProperties {
                 value = chatReactions
             case .commentReactions:
                 value = commentReactions
-            case .enableNewMediaUploader:
-                value = enableNewMediaUploader
             case .enableChatLocationSharing:
                 value = enableChatLocationSharing
             case .closeFriendRecommendations:
@@ -472,10 +468,6 @@ public struct ServerProperties {
     
     public static var commentReactions: Bool {
         ServerProperties.bool(forKey: .commentReactions) ?? Defaults.commentReactions
-    }
-
-    public static var enableNewMediaUploader: Bool {
-        ServerProperties.bool(forKey: .enableNewMediaUploader) ?? Defaults.enableNewMediaUploader
     }
 
     public static var closeFriendRecommendations: Bool {
