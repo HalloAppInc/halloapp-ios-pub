@@ -19,7 +19,7 @@ class ExternalSharePreviewImageGenerator {
         static let scale: CGFloat = 2
     }
 
-    static func image(for post: FeedPost, mediaIndex: Int?) -> UIImage {
+    static func image(for post: FeedPost, mediaIndex: Int?, addBottomPadding: Bool = false) -> UIImage {
         let orderedMedia = post.media?.sorted(by: { $0.order < $1.order })
         let mediaImage: UIImage?
         if let orderedMedia, !orderedMedia.isEmpty {
@@ -74,12 +74,22 @@ class ExternalSharePreviewImageGenerator {
         footerLabel.attributedText = watermarkAttributedString
         footerLabel.numberOfLines = 0
 
-        let footerStack = UIStackView(arrangedSubviews: [viewToRender, footerLabel])
+        let stackedViews: [UIView]
+        if addBottomPadding {
+            // leave space for external app chrome on bottom, provided by stackview spacing
+            let spacerView = UIView()
+            NSLayoutConstraint.activate([
+                spacerView.widthAnchor.constraint(equalToConstant: 0),
+                spacerView.heightAnchor.constraint(equalToConstant: 0),
+            ])
+            stackedViews = [viewToRender, footerLabel, spacerView]
+        } else {
+            stackedViews = [viewToRender, footerLabel]
+        }
+
+        let footerStack = UIStackView(arrangedSubviews: stackedViews)
         footerStack.axis = .vertical
         footerStack.alignment = .center
-        footerStack.isLayoutMarginsRelativeArrangement = true
-        // leave space for external app chrome on bottom
-        footerStack.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 60, right: 0)
         footerStack.spacing = 60
 
         let renderSize = footerStack.systemLayoutSizeFitting(CGSize(width: Constants.preferredMaxMediaSize.width, height: CGFloat.greatestFiniteMagnitude),
@@ -145,10 +155,13 @@ class ExternalSharePreviewImageGenerator {
             backgroundColor = UIColor(red: 0.098, green: 0.094, blue: 0.086, alpha: 1)
 
             let label = UILabel()
-            label.font = .systemFont(ofSize: 17, weight: .regular)
-            label.numberOfLines = 0
+            if text.count <= 140 {
+                label.font = .systemFont(ofSize: 24, weight: .regular)
+            } else {
+                label.font = .systemFont(ofSize: 19, weight: .regular)
+            }
+            label.numberOfLines = 16
             label.text = text
-            label.textAlignment = .center
             label.textColor = .white
             label.translatesAutoresizingMaskIntoConstraints = false
             addSubview(label)
@@ -194,10 +207,11 @@ class ExternalSharePreviewImageGenerator {
         return watermarkAttributedString
     }()
 
-    static func video(for mediaURL: URL) async -> URL? {
+    static func video(for mediaURL: URL, addWatermark: Bool = false) async -> URL? {
         let asset = AVAsset(url: mediaURL)
 
-        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetMediumQuality) else {
+        let preset = addWatermark ? AVAssetExportPresetPassthrough : AVAssetExportPresetMediumQuality // can't add watermark with passthrough
+        guard let exportSession = AVAssetExportSession(asset: asset, presetName: preset) else {
             return nil
         }
 
@@ -214,7 +228,7 @@ class ExternalSharePreviewImageGenerator {
         }
 
         // Add watermark
-        if let videoTrack = asset.tracks(withMediaType: .video).first {
+        if addWatermark, let videoTrack = asset.tracks(withMediaType: .video).first {
             let logoLayer = await overlayLayerForVideo(videoSize: videoTrack.naturalSize)
             let videoComposition = AVMutableVideoComposition(propertiesOf: asset)
             let trackID = asset.unusedTrackID()
@@ -265,6 +279,52 @@ class ExternalSharePreviewImageGenerator {
         watermarkTextLayer.displayIfNeeded()
 
         return backgroundLayer
+    }
+
+    static func watermarkImage(size: CGSize) -> UIImage {
+        let watermarkLabel = UILabel()
+        watermarkLabel.attributedText = watermarkAttributedString
+        watermarkLabel.numberOfLines = 0
+        watermarkLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let backgroundView = UIView()
+        backgroundView.addSubview(watermarkLabel)
+
+        let widthConstraint = backgroundView.widthAnchor.constraint(equalToConstant: size.width)
+        widthConstraint.priority = .defaultLow
+
+        let heightConstraint = backgroundView.heightAnchor.constraint(equalToConstant: size.height)
+        heightConstraint.priority = .defaultLow
+
+        let verticalPositionConstraint = NSLayoutConstraint(item: watermarkLabel, attribute: .centerY, relatedBy: .equal, toItem: backgroundView, attribute: .bottom, multiplier: 0.8, constant: 0)
+        verticalPositionConstraint.priority = .defaultHigh
+
+        NSLayoutConstraint.activate([
+            widthConstraint,
+            heightConstraint,
+            watermarkLabel.leadingAnchor.constraint(greaterThanOrEqualTo: backgroundView.leadingAnchor),
+            watermarkLabel.centerXAnchor.constraint(equalTo: backgroundView.centerXAnchor),
+            watermarkLabel.topAnchor.constraint(greaterThanOrEqualTo: backgroundView.topAnchor),
+            watermarkLabel.bottomAnchor.constraint(greaterThanOrEqualTo: backgroundView.bottomAnchor),
+            verticalPositionConstraint,
+        ])
+
+        let renderSize = backgroundView.systemLayoutSizeFitting(CGSize(width: Constants.preferredMaxMediaSize.width, height: CGFloat.greatestFiniteMagnitude),
+                                                                withHorizontalFittingPriority: .required,
+                                                                verticalFittingPriority: .fittingSizeLevel)
+
+        let bounds = CGRect(origin: .zero, size: renderSize)
+        backgroundView.frame = bounds
+
+        let format = UIGraphicsImageRendererFormat()
+        format.opaque = false
+
+        let imageBounds = bounds.applying(CGAffineTransform(scaleX: Constants.scale, y: Constants.scale))
+
+        let img = UIGraphicsImageRenderer(bounds: imageBounds).image { context in
+            backgroundView.drawHierarchy(in: imageBounds, afterScreenUpdates: true)
+        }
+        return img
     }
 }
 

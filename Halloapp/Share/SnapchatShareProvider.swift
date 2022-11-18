@@ -28,7 +28,8 @@ class SnapchatShareProvider: PostShareProvider {
 
     static var canShare: Bool {
         // Disable until we get prod API keys
-        return URL(string: "snapchat://").flatMap { UIApplication.shared.canOpenURL($0) } ?? false
+        return false
+        // return URL(string: "snapchat://").flatMap { UIApplication.shared.canOpenURL($0) } ?? false
     }
 
     static func share(text: String?, image: UIImage?, completion: ShareProviderCompletion?) {
@@ -36,7 +37,7 @@ class SnapchatShareProvider: PostShareProvider {
     }
 
     static func share(post: FeedPost, mediaIndex: Int?, completion: ShareProviderCompletion?) {
-        let image = ExternalSharePreviewImageGenerator.image(for: post, mediaIndex: mediaIndex)
+        let image = ExternalSharePreviewImageGenerator.image(for: post, mediaIndex: mediaIndex, addBottomPadding: true)
 
         if let orderedMedia = post.media?.sorted(by: { $0.order < $1.order }), !orderedMedia.isEmpty {
             if mediaIndex ?? 0 < orderedMedia.count {

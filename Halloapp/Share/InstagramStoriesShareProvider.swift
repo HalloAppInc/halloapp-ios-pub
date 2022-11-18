@@ -6,6 +6,7 @@
 //  Copyright © 2022 HalloApp, Inc. All rights reserved.
 //
 
+import AVFoundation
 import CocoaLumberjackSwift
 import Core
 import CoreCommon
@@ -50,7 +51,9 @@ class InstagramStoriesShareProvider: PostShareProvider {
                             toast.hide()
 
                             if let videoURL {
-                                share(stickerImage: nil, backgroundImage: nil, backgroundVideoURL: videoURL) { result in
+                                let videoSize = AVURLAsset(url: videoURL).tracks(withMediaType: .video).first?.naturalSize ?? .zero
+                                let watermarkImage = ExternalSharePreviewImageGenerator.watermarkImage(size: videoSize)
+                                share(stickerImage: watermarkImage, backgroundImage: nil, backgroundVideoURL: videoURL) { result in
                                     do {
                                         try FileManager.default.removeItem(at: videoURL)
                                     } catch {
