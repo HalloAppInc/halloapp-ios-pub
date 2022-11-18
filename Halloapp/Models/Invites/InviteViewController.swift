@@ -424,6 +424,7 @@ final class InviteCellView: UIView {
             guard let friendCount = contact.friendCount, friendCount > 1 else {
                 return nil
             }
+            
             return Localizations.contactsOnHalloApp(friendCount)
         }()
 
@@ -621,9 +622,12 @@ extension Localizations {
     }
 
     static func contactsOnHalloApp(_ count: Int) -> String {
-        let format = NSLocalizedString("invite.contact.count",
+        let preInvite = ServerProperties.preInviteString(langID: Locale.current.languageCode?.lowercased() ?? "")
+        let fallback = NSLocalizedString("invite.contact.count",
                                        value: "%d contacts on HalloApp",
                                        comment: "Shows number of current HalloApp users who have this contact in their list")
+
+        let format = preInvite ?? fallback
         return String(format: format, count)
     }
 

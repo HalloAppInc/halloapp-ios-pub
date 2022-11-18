@@ -34,6 +34,7 @@ public struct ServerProperties {
         case isGroupCommentNotificationsEnabled = "group_comments_notification"
         case isHomeCommentNotificationsEnabled = "home_feed_comment_notifications"
         case isFileSharingEnabled = "file_sharing"
+        case preInviteStrings = "pre_invite_strings"
         case inviteStrings = "invite_strings"
         case nseRuntimeSec = "nse_runtime_sec"
         case newChatUI = "new_chat_ui"
@@ -282,6 +283,8 @@ public struct ServerProperties {
                 value = isHomeCommentNotificationsEnabled
             case .isFileSharingEnabled:
                 value = isFileSharingEnabled
+            case .preInviteStrings:
+                value = preInviteString(langID: Locale.current.languageCode?.lowercased() ?? "") ?? ""
             case .inviteStrings:
                 value = inviteString(langID: Locale.current.languageCode?.lowercased() ?? "") ?? ""
             case .nseRuntimeSec:
@@ -429,6 +432,10 @@ public struct ServerProperties {
 
     public static var enableChatLocationSharing: Bool {
         ServerProperties.bool(forKey: .enableChatLocationSharing) ?? Defaults.enableChatLocationSharing
+    }
+
+    public static func preInviteString(langID: String) -> String? {
+        return json(forKey: .preInviteStrings)?[langID] as? String
     }
     
     public static func inviteString(langID: String) -> String? {
