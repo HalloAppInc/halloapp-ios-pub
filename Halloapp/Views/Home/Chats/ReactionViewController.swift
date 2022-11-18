@@ -218,7 +218,7 @@ public class ReactionViewController: UIViewController {
             let forwardButton = createMenuButton(imageName: "arrowshape.turn.up.right", labelName: forwardLabel)
             forwardButton.addTarget(self, action: #selector(handleForwarding), for: .touchUpInside)
             // Disabling forwarding for audio messages
-            if AppContext.shared.userDefaults.bool(forKey: "enableChatForwarding"), chatMessage.media?.first?.type != .audio {
+            if chatMessage.media?.first?.type != .audio {
                 items.append(UIBarButtonItem(customView: forwardButton))
                 items.append(space)
             }

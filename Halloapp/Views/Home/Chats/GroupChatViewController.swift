@@ -461,6 +461,9 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
         DDLogInfo("GroupChatViewController/viewWillAppear")
         super.viewWillAppear(animated)
         navigationController?.navigationBar.tintColor = UIColor.groupFeedTopNav
+        // while forwarding messages, we redirect the user to the recipients chat thread.
+        // the input text field disappears in this scenario. reloading input views fixes this.
+        reloadInputViews()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
