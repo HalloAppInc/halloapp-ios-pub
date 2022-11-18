@@ -156,8 +156,8 @@ class ContactStoreMain: ContactStoreCore {
 
     // MARK: Init
 
-    required init(userData: UserData) {
-        super.init(userData: userData)
+    required init(userData: UserData, userDefaults: UserDefaults) {
+        super.init(userData: userData, userDefaults: userDefaults)
 
         NotificationCenter.default.addObserver(forName: NSNotification.Name.CNContactStoreDidChange, object: nil, queue: nil) { _ in
             DDLogDebug("CNContactStoreDidChange")

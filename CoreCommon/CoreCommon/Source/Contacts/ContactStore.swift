@@ -91,9 +91,11 @@ open class ContactStore {
 
     public private(set) var pushNames: [UserID: String] = [:]
     private var pushNumbersData: [UserID: PushNumberData] = [:]
+    private var userDefaults: UserDefaults
 
-    required public init(userData: UserData) {
+    required public init(userData: UserData, userDefaults: UserDefaults) {
         self.userData = userData
+        self.userDefaults = userDefaults
         persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
 
         viewContext.performAndWait {
@@ -116,28 +118,48 @@ open class ContactStore {
 
     public func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
         let enqueuedTime = Date()
-        backgroundProcessingQueue.async { [weak self] in
-            guard let self = self else { return }
-
+        if userDefaults.bool(forKey: "disableQueueSerialization") {
             let context = self.newBackgroundContext()
-            context.performAndWait {
+            context.perform {
                 if -enqueuedTime.timeIntervalSinceNow > AppContextCommon.queueStallTimeout {
                     AppContextCommon.shared.errorLogger?.logError(NSError(domain: "stalledContactStoreQueue", code: 1408))
                 }
                 block(context)
+            }
+        } else {
+            backgroundProcessingQueue.async { [weak self] in
+                guard let self = self else { return }
+
+                let context = self.newBackgroundContext()
+                context.performAndWait {
+                    if -enqueuedTime.timeIntervalSinceNow > AppContextCommon.queueStallTimeout {
+                        AppContextCommon.shared.errorLogger?.logError(NSError(domain: "stalledContactStoreQueue", code: 1408))
+                    }
+                    block(context)
+                }
             }
         }
     }
 
     public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
         let enqueuedTime = Date()
-        backgroundProcessingQueue.sync {
+        if userDefaults.bool(forKey: "disableQueueSerialization") {
             let context = self.newBackgroundContext()
             context.performAndWait {
                 if -enqueuedTime.timeIntervalSinceNow > AppContextCommon.queueStallTimeout {
-                    AppContextCommon.shared.errorLogger?.logError(NSError(domain: "stalledContactStoreQueue", code: 1408))
+                    AppContextCommon.shared.errorLogger?.logError(NSError(domain: "stalledContactStoreQueue", code: 1409))
                 }
                 block(context)
+            }
+        } else {
+            backgroundProcessingQueue.sync {
+                let context = self.newBackgroundContext()
+                context.performAndWait {
+                    if -enqueuedTime.timeIntervalSinceNow > AppContextCommon.queueStallTimeout {
+                        AppContextCommon.shared.errorLogger?.logError(NSError(domain: "stalledContactStoreQueue", code: 1408))
+                    }
+                    block(context)
+                }
             }
         }
     }

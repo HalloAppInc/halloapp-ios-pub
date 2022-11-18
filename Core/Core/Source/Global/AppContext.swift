@@ -295,7 +295,7 @@ open class AppContext: AppContextCommon {
         ValueTransformer.setValueTransformer(FeedPostReceiptInfoTransformer(), forName: .feedPostReceiptInfoTransformer)
         ValueTransformer.setValueTransformer(MentionValueTransformer(), forName: .mentionValueTransformer)
         mainDataStoreImpl = MainDataStore(userData: userData, appTarget: appTarget, userDefaults: userDefaults)
-        contactStoreImpl = (contactStoreClass.init(userData: userData) as! ContactStoreCore)
+        contactStoreImpl = (contactStoreClass.init(userData: userData, userDefaults: userDefaults) as! ContactStoreCore)
         privacySettingsImpl = PrivacySettings(contactStore: contactStoreImpl)
         messageCrypterImpl = MessageCrypter(userData: userData, service: coreService, keyStore: keyStore)
         keyStore.delegate = messageCrypter
