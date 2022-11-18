@@ -499,6 +499,15 @@
 /* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has expired. */
 "chat.quoted.post.expired.label" = "زمان پست گذشت";
 
+/* Section title showing all the users to whom a particular message has been delivered to in a group chat */
+"chat.status.delivered.to" = "ارسال شد به";
+
+/* Section title showing all the users who have played a particular audio message in group chat */
+"chat.status.played.by" = "پخش شده توسط";
+
+/* Section title showing all the users who have read a particular message in group chat */
+"chat.status.read.by" = "شنیده شده توسط";
+
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "در حال نوشتن...";
 
@@ -694,6 +703,9 @@
 /* Title for posts that are externally shared, 'John Smith's HalloApp Post' */
 "externalShare.og.title3" = "پست هالواپ @%";
 
+/* Always 'Posted from HalloApp', but we are applying additional formatting to HalloApp */
+"externalshare.postedFrom" = "پست شده از";
+
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "دوربین";
 
@@ -874,6 +886,9 @@
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "نظر نوشتن";
 
+/* Button under someone's post. Noun. */
+"feedpost.button.comments" = "نظرها";
+
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "پاسخ خصوصی";
 
@@ -891,6 +906,9 @@
 
 /* Title of group background screen */
 "group.bg.title" = "زمینه";
+
+/* When a user is no longer a member of a chat group, this message is displyed at the bottom of the chat, preventing them from sending messages. */
+"group.chat.contact.is.not.member" = "نمیتوانید در این گروه پیام بفرستید چون دیگر عضو این گروه نیستید.";
 
 /* Label shown above group description input box */
 "group.description.label" = "توضیحات گروه";
@@ -1319,6 +1337,10 @@
 /* label on a chat message to indicate the chat message has been forwarded */
 "message.forwarded" = "هدایت شده";
 
+/* Message action which shows receipt info when tapped. Verb.
+   Title of the view that displays receipt info for a message. */
+"message.info" = "اطلاعات";
+
 /* Message action. Verb. */
 "message.reply" = "پاسخ";
 
@@ -1327,6 +1349,9 @@
 
 /* Disclaimer to tell the user that their moments go to all of their contacts on HalloApp. */
 "moment.contacts.disclaimer" = "لحظه شما فقط با مخاطبین هالواپتان به اشتراک گذاشته میشود";
+
+/* The format of a moment's location string. The first argument could be a point of interest or the name of a neighborhood, whereas the second could be a city or state name. E.g., "Brooklyn Bridge, New York". */
+"moment.location.format" = "@$1%، @$2%";
 
 /* Text displayed the first time the user acts to post a second moment in the same day. */
 "moment.replacement.disclaimer" = "لحظه جدید شما جایگزین لحظه قبلیتان میشود";
@@ -1424,6 +1449,12 @@
 /* Content for unknown contact notification. */
 "notification.contact.unknown.content" = "یکی از مخاطب‌هایتان اکنون در هالواپ است";
 
+/* Body of the daily moment notification. */
+"notification.daily.moment.body" = "شما ۲ دقیقه وقت دارید لحظه به اشتراک بگذارید";
+
+/* Title of the daily moment notification. */
+"notification.daily.moment.title" = "لحظه روزانه";
+
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ دعوت شما را به هالواپ پذیرفت";
 
@@ -1484,6 +1515,9 @@
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "ویدیو 📹";
 
+/* Push notification for a reaction to post */
+"notification.post.reaction" = "به یک پست @% عکس‌العمل نشان داد";
+
 /* New moment unlock notification text to be shown to the user. */
 "notification.unlocked.moment.1" = "@% برای دیدن لحظه شما، لحظه‌ای را به اشتراک گذاشت";
 
@@ -1532,6 +1566,9 @@
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "اینجا کلیک کنید برای به اشتراک گذاشتن اخبار با دوستان و ‌آشنایانتان در هالواپ";
 
+/* Preset text for the composer when the user is creating their first post. */
+"onboarding.post.text" = "سلام! من از هالواپ استفاده میکنم.";
+
 /* Title of the button that opens the camera. */
 "open.camera" = "باز کردن دوربین";
 
@@ -1540,6 +1577,9 @@
 
 /* Menu option to open a location in (Apple) Maps. */
 "openInMapsApp.maps" = "باز کردن در نقشه اپل";
+
+/* Title that suggests something is optional. */
+"optional.title" = "اختیاری";
 
 /* button to launch photo and video library */
 "photo.and.video.library" = "آلبوم عکس و ویدیو";
@@ -1805,6 +1845,42 @@
 /* Confirmation when a user was successfully removed from favorites. */
 "removed.user.from.favorites" = "@% از محبوب‌ها حذف شد";
 
+/* Title of the button that both reports and blocks a user. */
+"report.and.block" = "گزارش و بلاک";
+
+/* Title of the button to report a post. */
+"report.post" = "گزارش پست";
+
+/* Title of the button that both reports a post and removes it. */
+"report.post.and.remove" = "گزارش و حذف پست";
+
+/* Message that's displayed when reporting a post failed. */
+"report.post.failure" = "خطا در گزارش پست";
+
+/* Message confirming if the user wants to report someone's post. */
+"report.post.message" = "آیا مطمئن هستید میخواهید این پست @% را گزارش کنید؟";
+
+/* Message that's displayed after successfully reporting a post. */
+"report.post.success" = "پست گزارش شده";
+
+/* Title of the report button. */
+"report.title" = "گزارش";
+
+/* Title of a button that reports a user. */
+"report.user" = "گزارش کاربر";
+
+/* Message that's displayed when reporting a user failed. */
+"report.user.failure" = "خطا در گزارش @%";
+
+/* Message confirming if the user wants to report someone. */
+"report.user.message" = "آیا مطمئن هستید میخواهید @% را گزارش کنید؟";
+
+/* Message that's displayed after successfully reporting a user. */
+"report.user.success" = "@% گزارش شد";
+
+/* Title of the dialog that appears when reporting a user. */
+"report.user.title" = "گزارش @%";
+
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "برای اطمینان از ایمنی ارتباطتان با %@، لطفاً شماره بالا را با شماره‌ای که روی دستگاه ایشان هست مقایسه کنید، یا کد کیوآر را از تلفن ایشان اسکن کنید.";
 
@@ -1982,6 +2058,9 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "به شبکه ارتباطی من در هالواپ بپیوندید. برنامه را رایگان از halloapp.com/dl دانلود کنید";
 
+/* Title for inline external share prompt */
+"share.carousel.title" = "به اشتراک گذاشتن با دوستان بیشتر:";
+
 /* Show more groups in the share group selection */
 "share.destination.more" = "نمایش بیشتر...";
 
@@ -1990,6 +2069,21 @@
 
 /* Text placed on the blurred overlay of someone else's moment. */
 "shared.moment" = "لحظه @%";
+
+/* Title for sharing to instagram stories */
+"shareprovider.instagramstories.title" = "استوری اینستاگرام";
+
+/* Name of system messages app */
+"shareprovider.messages.title" = "پیامک‌ها";
+
+/* Title for button launching system share dialog */
+"shareprovider.system.title" = "به اشتراک گذاشتن از طریق";
+
+/* Name of Twitter app */
+"shareprovider.twitter.title" = "تویتر";
+
+/* Whatsapp messages share destination */
+"shareprovider.whatsapp.title" = "واتس‌اپ";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "برای بازگشت به تماس کلیک کنید";
@@ -2113,6 +2207,9 @@
 
 /* Message asking if the user is sure they want to block this user */
 "user.block.message" = "مطمئنید میخواهید %@ را در هالواپ مسدود کنید؟‌ میتوانید بعداً نظرتان را عوض کنید.";
+
+/* Label shown in group chat when a user is typing */
+"user.chat.typing" = "@% در حال نوشتن است...";
 
 /* Option when user taps more on profile page */
 "user.option.block" = "مسدود کردن در هالواپ";

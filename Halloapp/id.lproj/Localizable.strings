@@ -691,9 +691,6 @@
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Agar dapat terhubung, Anda harus bertukar nomor telepon";
 
-/* Text on external share preview background, followed by URL */
-"externalshare.download" = "Unduh gratis HalloApp:";
-
 /* Description of an externally shared post containing an audio post */
 "externalShare.og.description.audio" = "Postingan audio";
 
@@ -706,7 +703,7 @@
 /* Title for posts that are externally shared, 'John Smith's HalloApp Post' */
 "externalShare.og.title3" = "Postingan HalloApp %@";
 
-/* Attached to our logo as an image, 'Posted from HalloApp' */
+/* Always 'Posted from HalloApp', but we are applying additional formatting to HalloApp */
 "externalshare.postedFrom" = "Diposting dari";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */

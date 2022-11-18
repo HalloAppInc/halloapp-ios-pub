@@ -691,9 +691,6 @@
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Para conectarse deben intercambiar números de teléfono";
 
-/* Text on external share preview background, followed by URL */
-"externalshare.download" = "Descarga HalloApp gratis:";
-
 /* Description of an externally shared post containing an audio post */
 "externalShare.og.description.audio" = "Publicación de audio";
 
@@ -706,7 +703,7 @@
 /* Title for posts that are externally shared, 'John Smith's HalloApp Post' */
 "externalShare.og.title3" = "%@ Publicación de HalloApp";
 
-/* Attached to our logo as an image, 'Posted from HalloApp' */
+/* Always 'Posted from HalloApp', but we are applying additional formatting to HalloApp */
 "externalshare.postedFrom" = "Publicado desde";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
@@ -2174,6 +2171,9 @@
 
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "Visto por";
+
+/* Toast displayed while preparing video for external share */
+"toast.exporting" = "Exportando...";
 
 /* Text on the bottom sheet's button that dismisses the sheet. */
 "try.moments" = "Prueba Momentos";

@@ -216,6 +216,9 @@
 /* Row in Settings screen */
 "title.privacy" = "Privacy";
 
+/* Toast displayed while preparing video for external share */
+"toast.exporting" = "Wordt geëxporteerd…";
+
 /* How many bytes from total have been uploaded */
 "uploading.bytes.progress" = "%1$@ van %2$@";
 
