@@ -65,7 +65,7 @@ class MomentComposerViewController: UIViewController, MomentLocationToggleDelega
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.clipsToBounds = true
-        view.layer.cornerRadius = NewCameraViewController.Layout.innerRadius(for: .moment)
+        view.layer.cornerRadius = 15
         view.layer.cornerCurve = .continuous
         return view
     }()
@@ -105,7 +105,7 @@ class MomentComposerViewController: UIViewController, MomentLocationToggleDelega
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = .momentPolaroid
-        view.layer.cornerRadius = NewCameraViewController.Layout.cornerRadius(for: .moment)
+        view.layer.cornerRadius = 15
         view.layer.cornerCurve = .continuous
         return view
     }()
@@ -166,7 +166,7 @@ class MomentComposerViewController: UIViewController, MomentLocationToggleDelega
         background.addSubview(sendButtonContainer)
         sendButtonContainer.addSubview(sendButton)
 
-        let padding = NewCameraViewController.Layout.padding(for: .moment)
+        let padding: CGFloat = 10
         let minimizeLocationToggleWidth = locationToggle.widthAnchor.constraint(equalToConstant: 0)
         minimizeLocationToggleWidth.priority = UILayoutPriority(1)
 
@@ -491,7 +491,7 @@ extension MomentComposerViewController {
 
         let backMedia = PendingMedia(type: .image)
         let frontMedia = PendingMedia(type: .image)
-        let isSelfieLeading = leadingResult.direction == .front
+        let isSelfieLeading = leadingResult.cameraPosition == .front
         let unlockUserID = unlockUserID
         let locationString = locationToggle.locationString
 

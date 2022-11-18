@@ -1009,7 +1009,7 @@ extension MomentViewController: ContentInputDelegate {
     }
 
     private func presentCameraViewController() {
-        let vc = NewCameraViewController()
+        let vc = NewCameraViewController(presets: [.moment], initialPresetIndex: 0)
         vc.delegate = self
 
         let nc = UINavigationController(rootViewController: vc)
@@ -1037,8 +1037,8 @@ extension MomentViewController: ContentInputDelegate {
 
 extension MomentViewController: CameraViewControllerDelegate {
 
-    func cameraViewController(_ viewController: NewCameraViewController, didCapture results: [CaptureResult], isFinished: Bool) {
-        if let image = results.first?.image, isFinished {
+    func cameraViewController(_ viewController: NewCameraViewController, didCapture results: [CaptureResult], with preset: CameraPreset) {
+        if let image = results.first?.image {
             let media = PendingMedia(type: .image)
             media.image = image
             addMediaWhenAvailable(media)

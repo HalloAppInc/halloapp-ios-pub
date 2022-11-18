@@ -53,18 +53,17 @@ final class NewMomentViewController: UIViewController {
     /// - note: We keep a reference to the view controller itself so that we can easily get
     ///         layout values when performing the animation.
     private lazy var cameraController: NewCameraViewController = {
-        let options: NewCameraViewController.Options
+//        let options: NewCameraViewController.Options
+//
+//#if targetEnvironment(simulator)
+//        options = [.moment, .showLibraryButton]
+//#else
+//        options = [.moment]
+//#endif
 
-#if targetEnvironment(simulator)
-        options = [.moment, .showLibraryButton]
-#else
-        options = [.moment]
-#endif
-
-        let vc = NewCameraViewController(style: .moment, options: options)
+        let vc = NewCameraViewController(presets: [.moment], initialPresetIndex: 0)
         vc.delegate = self
         vc.title = Localizations.newMomentTitle
-        vc.subtitle = prompt
         return vc
     }()
 
@@ -229,7 +228,6 @@ final class NewMomentViewController: UIViewController {
         sendButtonSnapshot.alpha = 0
 
         view.addSubview(sendButtonSnapshot)
-        cameraController.hideControls = true
         self.sendButtonSnapshot = sendButtonSnapshot
 
         UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.9) {
@@ -243,7 +241,6 @@ final class NewMomentViewController: UIViewController {
         // go back to the camera
         state = .camera
         shouldDiscardIncomingCaptureResult = true
-        cameraController.hideControls = false
         cameraController.resume()
 
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0) {
@@ -376,7 +373,7 @@ final class NewMomentViewController: UIViewController {
 
 extension NewMomentViewController: CameraViewControllerDelegate {
 
-    func cameraViewController(_ viewController: NewCameraViewController, didCapture results: [CaptureResult], isFinished: Bool) {
+    func cameraViewController(_ viewController: NewCameraViewController, didCapture results: [CaptureResult], with preset: CameraPreset) {
         if shouldDiscardIncomingCaptureResult {
             // this result is from a capture the user backed out of; discard the result
             return
@@ -385,7 +382,7 @@ extension NewMomentViewController: CameraViewControllerDelegate {
         composerController.configure(with: results, animateTrailing: results.count != 2)
         displayComposer()
 
-        if isFinished {
+        if results.count == 2 {
             composerController.sendButton.isEnabled = true
             cameraController.pause()
         }
@@ -430,7 +427,7 @@ extension NewMomentViewController {
         blur.translatesAutoresizingMaskIntoConstraints = false
         blur.layer.masksToBounds = true
         blur.layer.cornerCurve = .continuous
-        blur.layer.cornerRadius = NewCameraViewController.Layout.innerRadius(for: .moment)
+        blur.layer.cornerRadius = 15
 
         let label = UILabel()
         label.numberOfLines = 0
@@ -453,20 +450,6 @@ extension NewMomentViewController {
         cameraController.view.addSubview(blur)
         blur.contentView.addSubview(stack)
 
-        NSLayoutConstraint.activate([
-            blur.leadingAnchor.constraint(equalTo: cameraController.primaryViewfinder.leadingAnchor),
-            blur.trailingAnchor.constraint(equalTo: cameraController.primaryViewfinder.trailingAnchor),
-            blur.topAnchor.constraint(equalTo: cameraController.primaryViewfinder.topAnchor),
-            blur.bottomAnchor.constraint(equalTo: cameraController.primaryViewfinder.bottomAnchor),
-
-            stack.leadingAnchor.constraint(equalTo: blur.contentView.leadingAnchor),
-            stack.trailingAnchor.constraint(equalTo: blur.contentView.trailingAnchor),
-            stack.topAnchor.constraint(greaterThanOrEqualTo: blur.contentView.topAnchor),
-            stack.bottomAnchor.constraint(lessThanOrEqualTo: blur.contentView.bottomAnchor),
-            stack.centerYAnchor.constraint(equalTo: blur.contentView.centerYAnchor)
-        ])
-
-        cameraController.isEnabled = false
         cameraController.subtitleLabel.isHidden = true
         unlockingExplainerOverlay = blur
         button.addTarget(self, action: #selector(dismissUnlockingExplainer), for: .touchUpInside)
@@ -474,7 +457,7 @@ extension NewMomentViewController {
 
     @objc
     private func dismissUnlockingExplainer(_ sender: UIButton) {
-        cameraController.isEnabled = true
+
         cameraController.subtitleLabel.isHidden = false
         unlockingExplainerOverlay?.removeFromSuperview()
 

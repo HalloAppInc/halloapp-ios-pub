@@ -13,65 +13,19 @@ import AVFoundation
 import CoreMotion
 import CocoaLumberjackSwift
 
-protocol CameraModelDelegate: AnyObject {
-    @MainActor func modelCouldNotStart(_ model: CameraModel, with error: Error)
+protocol CameraSessionManagerDelegate: AnyObject {
+    @MainActor func sessionManager(_ sessionManager: CameraSessionManager, couldNotStart withError: Error)
     /// This method is called just before the session's `startRunning()` method is called.
     /// It's a good place to attach a preview layer to the session.
-    @MainActor func modelWillStart(_ model: CameraModel)
-    @MainActor func modelDidStart(_ model: CameraModel)
-    @MainActor func modelDidStop(_ model: CameraModel)
-    @MainActor func model(_ model: CameraModel, didRecordVideoTo url: URL, error: Error?)
+    @MainActor func sessionManagerWillStart(_ sessionManager: CameraSessionManager)
+    @MainActor func sessionManagerDidStart(_ sessionManager: CameraSessionManager)
+    @MainActor func sessionManagerDidStop(_ sessionManager: CameraSessionManager)
+    @MainActor func sessionManager(_ sessionManager: CameraSessionManager, didRecordVideoTo url: URL, error: Error?)
 }
 
-extension CameraModel {
+class CameraSessionManager: NSObject {
 
-    enum CameraModelError: Swift.Error {
-        case permissions(AVMediaType)
-        case cameraInitialization(AVCaptureDevice.Position)
-        case microphoneInitialization
-        case photoOutput
-        case videoOutput
-        case audioOutput
-
-        var description: String? {
-            switch self {
-            case .permissions(let format) where format == .video:
-                break
-            case .permissions(let format) where format == .audio:
-                break
-            case .cameraInitialization(let side) where side == .back:
-                return NSLocalizedString("camera.init.error.1", value: "Cannot initialize the back camera", comment: "")
-            case .cameraInitialization(let side) where side == .front:
-                return NSLocalizedString("camera.init.error.2", value: "Cannot initialize the front camera", comment: "")
-            case .microphoneInitialization:
-                return NSLocalizedString("camera.init.error.3", value: "Cannot initialize the microphone", comment: "")
-            case .photoOutput:
-                return NSLocalizedString("camera.init.error.7", value: "Cannot capture photos", comment: "")
-            case .videoOutput:
-                return NSLocalizedString("camera.init.error.8", value: "Cannot record video", comment: "")
-            case .audioOutput:
-                return NSLocalizedString("camera.init.error.9", value: "Cannot record audio", comment: "")
-            default:
-                break
-            }
-
-            return nil
-        }
-    }
-
-    struct Options: OptionSet {
-        let rawValue: Int
-
-        static let monitorOrientation = Options(rawValue: 1 << 0)
-        static let multicam = Options(rawValue: 1 << 1)
-    }
-}
-
-///
-class CameraModel: NSObject {
-
-    private let options: Options
-    weak var delegate: CameraModelDelegate?
+    weak var delegate: CameraSessionManagerDelegate?
 
     let session: AVCaptureSession
     /// For capturing audio during video recording.
@@ -115,9 +69,7 @@ class CameraModel: NSObject {
 
 // MARK: - published properties
 
-    @Published private(set) var orientation: UIDeviceOrientation = .portrait
-    @Published private(set) var activeCamera = AVCaptureDevice.Position.unspecified
-    @Published var isFlashEnabled = false
+    @Published private(set) var activeCamera: CameraPosition = .unspecified
 
     @Published private(set) var isTakingPhoto = false
     @Published private(set) var isRecordingVideo = false
@@ -126,11 +78,9 @@ class CameraModel: NSObject {
     private var videoRecordingStartTime: TimeInterval?
 
     private var cancellables: Set<AnyCancellable> = []
-    private var orientationTask: Task<Void, Never>?
 
-    init(options: Options) {
-        self.options = options
-        isUsingMultipleCameras = AVCaptureMultiCamSession.isMultiCamSupported && options.contains(.multicam)
+    override init() {
+        isUsingMultipleCameras = AVCaptureMultiCamSession.isMultiCamSupported
         session = isUsingMultipleCameras ? AVCaptureMultiCamSession() : AVCaptureSession()
 
         super.init()
@@ -138,13 +88,6 @@ class CameraModel: NSObject {
     }
 
     private func formSubscriptions() {
-        $orientation
-            .receive(on: sessionQueue)
-            .sink { [weak self] orientation in
-                self?.updatePhoto(orientation: orientation)
-            }
-            .store(in: &cancellables)
-
         NotificationCenter.default.publisher(for: .AVCaptureSessionRuntimeError)
             .receive(on: sessionQueue)
             .sink { [weak self] notification in
@@ -194,6 +137,10 @@ class CameraModel: NSObject {
             // retain the previous orientation
             break
         }
+
+        if let secondaryConnection = secondaryPhotoOutput?.connection(with: .video), connection.isVideoOrientationSupported {
+            secondaryConnection.videoOrientation = connection.videoOrientation
+        }
     }
 
     private func updateVideoMirroring(for camera: AVCaptureDevice.Position) {
@@ -217,7 +164,7 @@ class CameraModel: NSObject {
 
 // MARK: - using the session's queue
 
-extension CameraModel {
+extension CameraSessionManager {
     /// Await a throwing block that is performed on `sessionQueue`.
     private func perform(_ block: @escaping () throws -> Void) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Swift.Error>) -> Void in
@@ -245,7 +192,7 @@ extension CameraModel {
 
 // MARK: - methods for session setup
 
-extension CameraModel {
+extension CameraSessionManager {
 
     @discardableResult
     private func hasPermissions(for type: AVMediaType) async -> Bool {
@@ -278,17 +225,17 @@ extension CameraModel {
             sessionIsSetup = true
             await startSession()
         } catch {
-            await delegate?.modelCouldNotStart(self, with: error)
+            await delegate?.sessionManager(self, couldNotStart: error)
         }
     }
 
     private func setupSession() async throws {
         if await !hasPermissions(for: .video) {
-            throw CameraModelError.permissions(.video)
+            throw CameraSessionError.permissions(.video)
         }
 
         if await !hasPermissions(for: .audio) {
-            throw CameraModelError.permissions(.audio)
+            throw CameraSessionError.permissions(.audio)
         }
 
         try await perform { [weak self, session] in
@@ -302,7 +249,11 @@ extension CameraModel {
     }
 
     private func startSession() async {
-        await delegate?.modelWillStart(self)
+        guard !session.isRunning else {
+            return
+        }
+
+        await delegate?.sessionManagerWillStart(self)
         await perform { [weak self] in
             self?.setFormats()
 
@@ -317,8 +268,7 @@ extension CameraModel {
             self?.session.startRunning()
         }
 
-        startListeningForOrientation()
-        await delegate?.modelDidStart(self)
+        await delegate?.sessionManagerDidStart(self)
     }
 
     /// - note: Only called from `sessionQueue`.
@@ -350,7 +300,7 @@ extension CameraModel {
             if session.canAddConnection(connection) {
                 session.addConnection(connection)
             } else {
-                throw CameraModelError.cameraInitialization(.back)
+                throw CameraSessionError.cameraInitialization(.back)
             }
         }
 
@@ -359,7 +309,6 @@ extension CameraModel {
 
             let connection = AVCaptureConnection(inputPorts: [port], output: output)
             try addConnection(connection)
-            activeCamera = .back
         }
 
         if let input = frontInput, session.canAddInput(input), let port = input.ports.first, let output = secondaryPhotoOutput {
@@ -430,7 +379,7 @@ extension CameraModel {
             let input = try? AVCaptureDeviceInput(device: device),
             session.canAddInput(input)
         else {
-            throw CameraModelError.cameraInitialization(.back)
+            throw CameraSessionError.cameraInitialization(.back)
         }
 
         backCamera = device
@@ -443,7 +392,7 @@ extension CameraModel {
             let input = try? AVCaptureDeviceInput(device: device),
             session.canAddInput(input)
         else {
-            throw CameraModelError.cameraInitialization(.front)
+            throw CameraSessionError.cameraInitialization(.front)
         }
 
         frontCamera = device
@@ -456,7 +405,7 @@ extension CameraModel {
             let input = try? AVCaptureDeviceInput(device: device),
             audioSession.canAddInput(input)
         else {
-            throw CameraModelError.cameraInitialization(.front)
+            throw CameraSessionError.cameraInitialization(.front)
         }
 
         microphone = device
@@ -466,33 +415,34 @@ extension CameraModel {
     private func setupPhotoOutput() throws {
         let output = AVCapturePhotoOutput()
         guard session.canAddOutput(output) else {
-            throw CameraModelError.photoOutput
+            throw CameraSessionError.photoOutput
         }
 
-        output.maxPhotoQualityPrioritization = .speed
         session.addOutputWithNoConnections(output)
+        output.maxPhotoQualityPrioritization = .quality
         primaryPhotoOutput = output
 
         if isUsingMultipleCameras {
             try setupSecondPhotoOutput()
         }
 
-        updatePhoto(orientation: orientation)
+        updatePhoto(orientation: .portrait)
         updateVideoMirroring(for: activeCamera)
     }
 
     private func setupSecondPhotoOutput() throws {
         let output = AVCapturePhotoOutput()
         guard session.canAddOutput(output) else {
-            throw CameraModelError.photoOutput
+            throw CameraSessionError.photoOutput
         }
 
-        output.maxPhotoQualityPrioritization = .speed
-        output.isDepthDataDeliveryEnabled = false
-        output.isHighResolutionCaptureEnabled = false
-        output.isPortraitEffectsMatteDeliveryEnabled = false
         session.addOutputWithNoConnections(output)
+        output.maxPhotoQualityPrioritization = .quality
+        output.isDepthDataDeliveryEnabled = false
+        output.isPortraitEffectsMatteDeliveryEnabled = false
+
         secondaryPhotoOutput = output
+        updatePhoto(orientation: .portrait)
     }
 
     private func setupVideoOutput() throws {
@@ -503,7 +453,7 @@ extension CameraModel {
             session.addOutput(videoOutput)
             self.videoOutput = videoOutput
         } else {
-            throw CameraModelError.videoOutput
+            throw CameraSessionError.videoOutput
         }
 
         let audioOutput = AVCaptureAudioDataOutput()
@@ -513,12 +463,11 @@ extension CameraModel {
             audioSession.addOutput(audioOutput)
             self.audioOuput = audioOutput
         } else {
-            throw CameraModelError.audioOutput
+            throw CameraSessionError.audioOutput
         }
     }
 
     private func stopCaptureSession(teardown: Bool = true) async {
-        stopListeningForOrientation()
         await perform { [session, audioSession] in
             session.stopRunning()
             audioSession.stopRunning()
@@ -531,35 +480,13 @@ extension CameraModel {
             }
         }
 
-        await delegate?.modelDidStop(self)
-    }
-}
-
-// MARK: - listening for device orientation
-
-extension CameraModel {
-
-    private func startListeningForOrientation() {
-        guard options.contains(.monitorOrientation) else {
-            return
-        }
-
-        orientationTask?.cancel()
-        orientationTask = Task(priority: .userInitiated) { [weak self] in
-            for await orientation in CMDeviceMotion.orientations {
-                self?.orientation = orientation
-            }
-        }
-    }
-
-    private func stopListeningForOrientation() {
-        orientationTask?.cancel()
+        await delegate?.sessionManagerDidStop(self)
     }
 }
 
 // MARK: - changing the model's state
 
-extension CameraModel {
+extension CameraSessionManager {
     func flipCamera() {
         Task {
             guard activeCamera != .unspecified else {
@@ -567,9 +494,7 @@ extension CameraModel {
             }
 
             let side: AVCaptureDevice.Position = activeCamera == .back ? .front: .back
-            activeCamera = .unspecified
             await flipCamera(to: side)
-            activeCamera = side
         }
     }
 
@@ -678,84 +603,79 @@ extension CameraModel {
 
 // MARK: - taking photos
 
-extension CameraModel: AVCapturePhotoCaptureDelegate {
+extension CameraSessionManager: AVCapturePhotoCaptureDelegate {
 
     private var defaultPhotoSettings: AVCapturePhotoSettings {
         let settings = AVCapturePhotoSettings.init(format: [AVVideoCodecKey: AVVideoCodecType.jpeg])
-        settings.flashMode = isFlashEnabled ? .on : .off
-        settings.isHighResolutionPhotoEnabled = false
-
         return settings
     }
 
-    func takePhoto(captureType: CaptureRequest.CaptureType, progress: @escaping ([CaptureResult], Bool) -> Void) {
-        guard !isTakingPhoto, captureType.primaryPosition != .unspecified else {
-            return
+    func takePhoto(with request: CaptureRequest) -> Bool {
+        guard !isTakingPhoto else {
+            return false
         }
 
-        let request = CaptureRequest(type: captureType,
-                               isMultiCam: isUsingMultipleCameras,
-                                 progress: progress)
-        captureRequest = request
         isTakingPhoto = true
+        captureRequest = request
 
         if isUsingMultipleCameras {
             takeMultiCamPhoto(request)
         } else {
             takeSingleCamPhoto(request)
         }
+
+        return true
     }
 
     private func takeMultiCamPhoto(_ request: CaptureRequest) {
+        let primaryCameraPosition = request.layout.primaryCameraPosition
+        let output1: AVCapturePhotoOutput?
+        let output2: AVCapturePhotoOutput?
         let s1 = defaultPhotoSettings
         var s2: AVCapturePhotoSettings?
 
-        let output1 = request.type.primaryPosition == .back ? primaryPhotoOutput : secondaryPhotoOutput
-        let output2 = output1 === primaryPhotoOutput ? secondaryPhotoOutput : primaryPhotoOutput
-
-        request.set(settings: s1, for: request.type.primaryPosition)
-        output1?.capturePhoto(with: s1, delegate: self)
-
-        if case .both(_) = request.type, let opposite = request.type.primaryPosition.opposite {
-            let settings = defaultPhotoSettings
-            request.set(settings: settings, for: opposite)
-            s2 = settings
+        switch primaryCameraPosition {
+        case .back:
+            output1 = primaryPhotoOutput
+            output2 = secondaryPhotoOutput
+        default:
+            output1 = secondaryPhotoOutput
+            output2 = primaryPhotoOutput
         }
 
-        if let s2 = s2 {
+        request.set(settings: s1, for: primaryCameraPosition)
+        output1?.capturePhoto(with: s1, delegate: self)
+
+        switch request.layout {
+        case .splitPortrait(leading: _), .splitLandscape(top: _):
+            let settings = defaultPhotoSettings
+            request.set(settings: settings, for: primaryCameraPosition.opposite)
+            s2 = settings
+        default:
+            break
+        }
+
+        if let s2 {
             output2?.capturePhoto(with: s2, delegate: self)
         }
     }
 
     private func takeSingleCamPhoto(_ request: CaptureRequest) {
+        let primaryCameraPosition = request.layout.primaryCameraPosition
         let settings = defaultPhotoSettings
-        request.set(settings: settings, for: request.type.primaryPosition)
 
-        if case .both(_) = request.type, let opposite = request.type.primaryPosition.opposite {
-            let settings = defaultPhotoSettings
-            request.set(settings: settings, for: opposite)
+        request.set(settings: settings, for: primaryCameraPosition)
+        if request.shouldTakeDelayedPhoto {
+            request.set(settings: defaultPhotoSettings, for: primaryCameraPosition.opposite)
         }
 
         primaryPhotoOutput?.capturePhoto(with: settings, delegate: self)
     }
 
-    private func takeDelayedSecondPhoto(_ settings: AVCapturePhotoSettings) async {
-        guard let output = primaryPhotoOutput else {
-            return
-        }
-
-        await flipCamera(to: activeCamera == .back ? .front : .back)
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-            if let self = self {
-                output.capturePhoto(with: settings, delegate: self)
-            }
-        }
-    }
-
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         if let error = error {
-            DDLogError("CameraModel/finishedProcessingPhoto/received error \(String(describing: error))")
+            isTakingPhoto = false
+            captureRequest?.set(error: error)
             return
         }
 
@@ -781,11 +701,25 @@ extension CameraModel: AVCapturePhotoCaptureDelegate {
             isTakingPhoto = false
         }
     }
+
+    private func takeDelayedSecondPhoto(_ settings: AVCapturePhotoSettings) async {
+        guard let output = primaryPhotoOutput else {
+            return
+        }
+
+        await flipCamera(to: activeCamera == .back ? .front : .back)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+            if let self = self {
+                output.capturePhoto(with: settings, delegate: self)
+            }
+        }
+    }
 }
 
 // MARK: - recording videos
 
-extension CameraModel: AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAudioDataOutputSampleBufferDelegate {
+extension CameraSessionManager: AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAudioDataOutputSampleBufferDelegate {
     private typealias Dimensions = (height: Int32, width: Int32)
 
     private var videoURL: URL {
@@ -841,8 +775,8 @@ extension CameraModel: AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAu
                 DDLogError("CameraModel/stopRecording task/asset writer finished with error: \(String(describing: error))")
             }
 
-            let viewError = writer.error == nil ? nil : CameraModelError.videoOutput
-            await delegate?.model(self, didRecordVideoTo: writer.outputURL, error: viewError)
+            let viewError = writer.error == nil ? nil : CameraSessionError.videoOutput
+            await delegate?.sessionManager(self, didRecordVideoTo: writer.outputURL, error: viewError)
         }
 
         cleanUpAfterRecordingVideo()
@@ -934,7 +868,7 @@ extension CameraModel: AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAu
     ///         buffers to be rotated as they come in.
     private var videoTransform: CGAffineTransform {
         var rotation = CGAffineTransform.identity
-        switch orientation {
+        switch UIDevice.current.orientation {
         case .portraitUpsideDown:
             rotation = rotation.rotated(by: -.pi / 2)
         case .landscapeLeft:
@@ -1011,7 +945,7 @@ extension CameraModel: AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAu
 
 // MARK: - monitoring multi-cam system pressure
 
-extension CameraModel {
+extension CameraSessionManager {
     /// Checks and adjusts the performance cost of running a multi-cam session.
     ///
     /// We want to keep the session's `hardwareCost` and `systemPressureCost` values between 0 and 1.

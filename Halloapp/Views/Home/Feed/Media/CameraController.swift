@@ -357,8 +357,8 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
         if videoGranted {
             return true
         } else {
-            showPermissionDeniedAlert(title: Localizations.cameraAccessPromptTitle,
-                                      message: Localizations.cameraAccessPromptBody)
+            showPermissionDeniedAlert(title: Localizations.cameraPermissionsTitle,
+                                      message: Localizations.cameraPermissionsBody)
             return false
         }
     }
@@ -369,8 +369,8 @@ class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
         if audioGranted {
             return true
         } else {
-            showPermissionDeniedAlert(title: Localizations.microphoneAccessPromptTitle,
-                                    message: Localizations.microphoneAccessPromptBody)
+            showPermissionDeniedAlert(title: Localizations.microphonePermissionsTitle,
+                                    message: Localizations.microphonePermissionsBody)
             return false
         }
     }

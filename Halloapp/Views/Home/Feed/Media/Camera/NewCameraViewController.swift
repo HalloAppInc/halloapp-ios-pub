@@ -16,180 +16,76 @@ import Core
 protocol CameraViewControllerDelegate: AnyObject {
     func cameraViewControllerDidReleaseShutter(_ viewController: NewCameraViewController)
     func cameraViewController(_ viewController: NewCameraViewController, didRecordVideoTo url: URL)
-    func cameraViewController(_ viewController: NewCameraViewController, didCapture results: [CaptureResult], isFinished: Bool)
+    func cameraViewController(_ viewController: NewCameraViewController, didCapture results: [CaptureResult], with preset: CameraPreset)
     func cameraViewController(_ viewController: NewCameraViewController, didSelect media: PendingMedia)
 }
 
-extension NewCameraViewController {
+class NewCameraViewController: UIViewController, CameraPresetConfigurable {
 
-    struct Layout {
-        static func cornerRadius(for style: Configuration = .normal) -> CGFloat {
-            style == .moment ? 14 : 20
-        }
-
-        static func innerRadius(for style: Configuration = .normal) -> CGFloat {
-            let difference: CGFloat = style == .moment ? 4 : 7
-            return cornerRadius(for: style) - difference
-        }
-
-        static func padding(for style: Configuration = .normal) -> CGFloat {
-            style == .moment ? 8 : 10
-        }
-    }
-
-    class var secondaryButtonColor: UIColor {
-        UIColor { traits in
-            switch traits.userInterfaceStyle {
-            case .dark:
-                return .white.withAlphaComponent(0.9)
-            default:
-                return .black.withAlphaComponent(0.9)
-            }
-        }
-    }
-
-    class var backgroundColor: UIColor {
-        UIColor { traits in
-            switch traits.userInterfaceStyle {
-            case .dark:
-                return .black
-            default:
-                return .feedBackground
-            }
-        }
-    }
-
-    private enum ViewfinderLayout {
-        case primaryLeading, secondaryLeading, primaryFull, secondaryFull
-
-        var toggled: Self {
-            switch self {
-            case .primaryLeading:
-                return .primaryFull
-            case .secondaryLeading:
-                return .secondaryFull
-            case .primaryFull:
-                return .primaryLeading
-            case .secondaryFull:
-                return .secondaryLeading
-            }
-        }
-
-        var flipped: Self {
-            switch self {
-            case .primaryLeading:
-                return .secondaryLeading
-            case .secondaryLeading:
-                return .primaryLeading
-            case .primaryFull:
-                return .secondaryFull
-            case .secondaryFull:
-                return .primaryFull
-            }
-        }
-    }
-
-    struct Options: OptionSet {
-        let rawValue: Int
-
-        static let showDismissButton = Options(rawValue: 1 << 0)
-        static let showLibraryButton = Options(rawValue: 1 << 1)
-
-        static let moment: Options = [.showDismissButton]
-    }
-}
-
-class NewCameraViewController: UIViewController {
-
-    enum Configuration { case normal, moment }
-
-    let configuration: Configuration
-    let options: Options
-    private var layout: ViewfinderLayout = .primaryFull
-
-    private lazy var model: CameraModel = {
-        let forceSingleCamSession = MainAppContext.shared.userDefaults.bool(forKey: "moments.force.single.cam.session")
-        let momentOptions: CameraModel.Options = forceSingleCamSession ? [] : [.multicam]
-        let options: CameraModel.Options = configuration == .moment ? momentOptions : [.monitorOrientation]
-
-        let model = CameraModel(options: options)
-        return model
-    }()
-
+    let viewModel: CameraViewModel
     private var cancellables: Set<AnyCancellable> = []
 
-    private(set) lazy var primaryViewfinder: ViewfinderView = {
-        let view = ViewfinderView()
+    private lazy var viewfinderContainerHeightConstraint: NSLayoutConstraint = .init()
+
+    private lazy var viewfinderContainer: ViewfinderContainer = {
+        let view = ViewfinderContainer()
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.clipsToBounds = true
+        view.backgroundColor = .black
+        view.layer.cornerRadius = 10
+        view.layer.cornerCurve = .continuous
         view.delegate = self
         return view
     }()
-
-    /// - note: Not used in non-multicam sessions.
-    private lazy var secondaryViewfinder: ViewfinderView = {
-        let view = ViewfinderView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.delegate = self
-        return view
-    }()
-
-    private var viewfinderConstraints: [NSLayoutConstraint] = []
-
-    var aspectRatio: CGFloat {
-        configuration == .moment ? 1 : 4 / 3
-    }
 
     private(set) lazy var background: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = configuration == .moment ? .momentPolaroid : .feedPostBackground
-        view.layer.cornerRadius = Layout.cornerRadius(for: configuration)
+        view.backgroundColor = .secondarySystemFill
+        view.layer.cornerRadius = 14
         view.layer.cornerCurve = .continuous
-        return view
-    }()
-
-    private lazy var viewfinderContainer: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
         view.clipsToBounds = true
-        view.backgroundColor = .black
-        view.layer.cornerRadius = Layout.innerRadius(for: configuration)
-        view.layer.cornerCurve = .continuous
         return view
     }()
 
-    private lazy var controlsContainer: UIView = {
+    private lazy var subtitleContainer: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
-    
+
     private lazy var shutterButton: CameraShutterButton = {
         let shutter = CameraShutterButton()
         shutter.translatesAutoresizingMaskIntoConstraints = false
-        shutter.isEnabled = isEnabled
         shutter.onTap = { [weak self] in self?.handleShutterTap() }
         shutter.onLongPress = { [weak self] in self?.handleShutterLongPress($0) }
         return shutter
+    }()
+
+    private lazy var presetPicker: CameraPresetPicker = {
+        let picker = CameraPresetPicker(presets: viewModel.presets)
+        picker.translatesAutoresizingMaskIntoConstraints = false
+        picker.isHidden = viewModel.presets.count <= 1
+
+        picker.onSelection = { [weak self] preset in
+            self?.viewModel.actions.send(.selectedPreset(preset))
+        }
+
+        return picker
     }()
 
     private lazy var flipCameraButton: LargeHitButton = {
         let button = LargeHitButton(type: .system)
         button.targetIncrease = 12
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(UIImage(named: "CameraFlip")?.withRenderingMode(.alwaysTemplate), for: .normal)
-        button.tintColor = configuration == .moment ? .black : Self.secondaryButtonColor
+        button.setImage(UIImage(systemName: "camera.rotate")?.withRenderingMode(.alwaysTemplate), for: .normal)
+        button.tintColor = .white
         button.addTarget(self, action: #selector(flipCameraPushed), for: .touchUpInside)
         return button
     }()
 
-    private lazy var flashButton: LargeHitButton = {
-        let button = LargeHitButton(type: .system)
-        button.targetIncrease = 12
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(UIImage(named: "CameraFlashOff")?.withRenderingMode(.alwaysTemplate), for: .normal)
-        button.tintColor = configuration == .moment ? .black : Self.secondaryButtonColor
-        button.addTarget(self, action: #selector(flashButtonPushed), for: .touchUpInside)
+    private lazy var flashButton: UIBarButtonItem = {
+        let button = UIBarButtonItem(image: UIImage(systemName: "bolt.slash"), style: .plain, target: nil, action: nil)
         return button
     }()
 
@@ -224,6 +120,7 @@ class NewCameraViewController: UIViewController {
             videoDurationLabel.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor),
         ] + minimizers)
 
+        view.isHidden = true
         return view
     }()
 
@@ -250,33 +147,29 @@ class NewCameraViewController: UIViewController {
         label.textAlignment = .center
         label.textColor = .secondaryLabel
         label.font = .systemFont(ofSize: 16)
+        label.adjustsFontSizeToFitWidth = true
         label.setContentCompressionResistancePriority(.required, for: .vertical)
         return label
     }()
 
-    private lazy var selectionGenerator = UISelectionFeedbackGenerator()
+    private lazy var galleryImageView: UIImageView = {
+        let view = UIImageView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.preferredSymbolConfiguration = .init(pointSize: 22, weight: .medium)
+        view.image = UIImage(systemName: "photo.on.rectangle")
+        view.backgroundColor = .darkGray
+        view.contentMode = .center
+        view.tintColor = .lightGray
+        view.clipsToBounds = true
+        view.layer.cornerRadius = 10
+        return view
+    }()
 
     var onDismiss: (() -> Void)?
-
-    var subtitle: String? {
-        didSet { subtitleLabel.text = subtitle }
-    }
-
-    var hideControls: Bool = false {
-        didSet { controlsContainer.isHidden = hideControls }
-    }
-
-    var isEnabled: Bool = true {
-        didSet {
-            if oldValue != isEnabled { refreshEnabledState() }
-        }
-    }
-
     weak var delegate: CameraViewControllerDelegate?
 
-    init(style: Configuration = .normal, options: Options = [.showDismissButton, .showLibraryButton]) {
-        self.configuration = style
-        self.options = options
+    init(presets: [CameraPreset], initialPresetIndex: Int) {
+        viewModel = CameraViewModel(presets: presets, initial: initialPresetIndex)
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -285,133 +178,153 @@ class NewCameraViewController: UIViewController {
     }
 
     deinit {
-        primaryViewfinder.previewLayer.session = nil
-        secondaryViewfinder.previewLayer.session = nil
-
-        model.stop(teardown: true)
+        viewfinderContainer.primaryViewfinder.previewLayer.session = nil
+        viewfinderContainer.secondaryViewfinder.previewLayer.session = nil
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = Self.backgroundColor
+        view.backgroundColor = .black
 
-        model.delegate = self
-        subscribeToModelUpdates()
+        view.addSubview(subtitleContainer)
+        view.addSubview(background)
+        view.addSubview(viewfinderContainer)
+        view.addSubview(shutterButton)
+        view.addSubview(presetPicker)
+        view.addSubview(galleryImageView)
+        view.addSubview(flipCameraButton)
+        view.addSubview(durationLabelContainer)
+        subtitleContainer.addSubview(subtitleLabel)
 
-        installUI()
-        shutterButton.allowsLongPress = configuration != .moment
-    }
+        let maximizeBackgroundWidth = background.widthAnchor.constraint(equalTo: view.widthAnchor)
+        let minimizePicker = presetPicker.heightAnchor.constraint(equalToConstant: 0)
 
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
+        minimizePicker.priority = UILayoutPriority(1)
+        maximizeBackgroundWidth.priority = .defaultHigh
 
-        model.stop(teardown: false)
+        NSLayoutConstraint.activate([
+            subtitleContainer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            subtitleContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 50),
+            subtitleContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -50),
+            subtitleContainer.bottomAnchor.constraint(equalTo: background.topAnchor, constant: -10),
+
+            subtitleLabel.topAnchor.constraint(greaterThanOrEqualTo: subtitleContainer.topAnchor),
+            subtitleLabel.bottomAnchor.constraint(lessThanOrEqualTo: subtitleContainer.bottomAnchor),
+            subtitleLabel.leadingAnchor.constraint(equalTo: subtitleContainer.leadingAnchor),
+            subtitleLabel.trailingAnchor.constraint(equalTo: subtitleContainer.trailingAnchor),
+            subtitleLabel.centerYAnchor.constraint(equalTo: subtitleContainer.centerYAnchor),
+
+            background.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            background.bottomAnchor.constraint(equalTo: presetPicker.topAnchor, constant: -15),
+            maximizeBackgroundWidth,
+
+            viewfinderContainer.leadingAnchor.constraint(equalTo: background.layoutMarginsGuide.leadingAnchor),
+            viewfinderContainer.topAnchor.constraint(equalTo: background.layoutMarginsGuide.topAnchor),
+            viewfinderContainer.trailingAnchor.constraint(equalTo: background.layoutMarginsGuide.trailingAnchor),
+
+            shutterButton.centerXAnchor.constraint(equalTo: background.centerXAnchor),
+            shutterButton.topAnchor.constraint(equalTo: viewfinderContainer.bottomAnchor, constant: 15),
+            shutterButton.bottomAnchor.constraint(equalTo: background.bottomAnchor, constant: -15),
+
+            presetPicker.leadingAnchor.constraint(equalTo: background.leadingAnchor),
+            presetPicker.trailingAnchor.constraint(equalTo: background.trailingAnchor),
+            presetPicker.bottomAnchor.constraint(equalTo: galleryImageView.topAnchor, constant: -20),
+            minimizePicker,
+
+            galleryImageView.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
+            galleryImageView.widthAnchor.constraint(equalToConstant: 45),
+            galleryImageView.heightAnchor.constraint(equalTo: galleryImageView.widthAnchor),
+            galleryImageView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+
+            flipCameraButton.centerYAnchor.constraint(equalTo: galleryImageView.centerYAnchor),
+            flipCameraButton.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
+        ])
+
+        installBarButtons()
+        formSubscriptions()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-
-        model.start()
+        viewModel.actions.send(.willAppear)
     }
 
-    private func installUI() {
-        view.addSubview(background)
-        view.addSubview(viewfinderContainer)
-        view.addSubview(controlsContainer)
-        view.addSubview(subtitleLabel)
-        view.addSubview(durationLabelContainer)
-
-        viewfinderContainer.addSubview(primaryViewfinder)
-        viewfinderContainer.addSubview(secondaryViewfinder)
-
-        let leftContainer = UIView()
-        let rightContainer = UIView()
-        leftContainer.translatesAutoresizingMaskIntoConstraints = false
-        rightContainer.translatesAutoresizingMaskIntoConstraints = false
-
-        controlsContainer.addSubview(shutterButton)
-        controlsContainer.addSubview(leftContainer)
-        controlsContainer.addSubview(rightContainer)
-
-        leftContainer.addSubview(flashButton)
-        rightContainer.addSubview(flipCameraButton)
-
-        let edgeMargin: CGFloat = configuration == .moment ? 0 : 15
-        let padding = Layout.padding(for: configuration)
-
-        let minimizeControlHeight = controlsContainer.heightAnchor.constraint(equalToConstant: 0)
-        let backgroundWidth = background.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -edgeMargin * 2)
-        let backgroundCenterY = background.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-
-        minimizeControlHeight.priority = UILayoutPriority(1)
-        backgroundWidth.priority = .defaultHigh
-        backgroundCenterY.priority = .defaultHigh
-
-        NSLayoutConstraint.activate([
-            background.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            background.topAnchor.constraint(greaterThanOrEqualTo: subtitleLabel.bottomAnchor, constant: 20),
-            backgroundWidth,
-            backgroundCenterY,
-            background.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -30),
-
-            viewfinderContainer.leadingAnchor.constraint(equalTo: background.leadingAnchor, constant: padding),
-            viewfinderContainer.topAnchor.constraint(equalTo: background.topAnchor, constant: padding),
-            viewfinderContainer.trailingAnchor.constraint(equalTo: background.trailingAnchor, constant: -padding),
-            viewfinderContainer.heightAnchor.constraint(equalTo: viewfinderContainer.widthAnchor, multiplier: aspectRatio),
-
-            controlsContainer.topAnchor.constraint(equalTo: viewfinderContainer.bottomAnchor, constant: 12),
-            controlsContainer.leadingAnchor.constraint(equalTo: background.leadingAnchor),
-            controlsContainer.trailingAnchor.constraint(equalTo: background.trailingAnchor),
-            controlsContainer.bottomAnchor.constraint(equalTo: background.bottomAnchor, constant: -12),
-            minimizeControlHeight,
-
-            leftContainer.topAnchor.constraint(equalTo: controlsContainer.topAnchor),
-            leftContainer.leadingAnchor.constraint(equalTo: controlsContainer.leadingAnchor),
-            leftContainer.trailingAnchor.constraint(equalTo: shutterButton.leadingAnchor, constant: -10),
-            leftContainer.bottomAnchor.constraint(equalTo: controlsContainer.bottomAnchor),
-
-            rightContainer.topAnchor.constraint(equalTo: controlsContainer.topAnchor),
-            rightContainer.leadingAnchor.constraint(equalTo: shutterButton.trailingAnchor, constant: 10),
-            rightContainer.trailingAnchor.constraint(equalTo: controlsContainer.trailingAnchor),
-            rightContainer.bottomAnchor.constraint(equalTo: controlsContainer.bottomAnchor),
-
-            shutterButton.centerXAnchor.constraint(equalTo: controlsContainer.centerXAnchor),
-            shutterButton.centerYAnchor.constraint(equalTo: controlsContainer.centerYAnchor),
-            shutterButton.topAnchor.constraint(greaterThanOrEqualTo: controlsContainer.topAnchor, constant: 10),
-            shutterButton.bottomAnchor.constraint(lessThanOrEqualTo: controlsContainer.bottomAnchor, constant: 10),
-
-            flashButton.centerYAnchor.constraint(equalTo: leftContainer.centerYAnchor),
-            flashButton.centerXAnchor.constraint(equalTo: leftContainer.centerXAnchor),
-            flipCameraButton.centerYAnchor.constraint(equalTo: rightContainer.centerYAnchor),
-            flipCameraButton.centerXAnchor.constraint(equalTo: rightContainer.centerXAnchor),
-
-            subtitleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-            subtitleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 40),
-            subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -40),
-            subtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-        ])
-
-        if case .moment = configuration, model.isUsingMultipleCameras {
-            layout = .primaryLeading
-        }
-
-        updateLayout(layout)
-
-        installBarButtons()
-        // have the buttons be disabled until the session is ready
-        refreshEnabledState()
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        viewModel.actions.send(.onDisappear)
     }
 
     private func installBarButtons() {
         let configuration = UIImage.SymbolConfiguration(weight: .bold)
         let chevronImage = UIImage(systemName: "chevron.down", withConfiguration: configuration)?.withRenderingMode(.alwaysTemplate)
-        let libraryImage = UIImage(systemName: "photo")?.withRenderingMode(.alwaysTemplate)
-
         let downButton = UIBarButtonItem(image: chevronImage, style: .plain, target: self, action: #selector(dismissTapped))
-        let libraryButton = UIBarButtonItem(image: libraryImage, style: .plain, target: self, action: #selector(libraryTapped))
 
-        navigationItem.leftBarButtonItem = options.contains(.showDismissButton) ? downButton : nil
-        navigationItem.rightBarButtonItem = options.contains(.showLibraryButton) ? libraryButton : nil
+        navigationItem.leftBarButtonItem = downButton
+        navigationItem.rightBarButtonItem = flashButton
+    }
+
+    func set(preset: CameraPreset, animator: UIViewPropertyAnimator?) {
+        let currentPreset = viewModel.activePreset
+        let allowsGalleryAccess = preset.options.contains(.galleryAccess)
+
+        title = preset.title ?? Localizations.fabAccessibilityCamera
+        subtitleLabel.text = preset.subtitle
+
+        if let background = preset.backgroundView {
+            updateBackgroundView(background)
+        }
+
+        updateAspectRatio(preset.aspectRatio)
+
+        presetPicker.set(preset: preset, animator: animator)
+        viewfinderContainer.set(preset: preset, animator: animator)
+
+        func updates() {
+            currentPreset?.backgroundView?.alpha = 0
+            preset.backgroundView?.alpha = 1
+            galleryImageView.alpha = allowsGalleryAccess ? 1 : 0
+            galleryImageView.isUserInteractionEnabled = allowsGalleryAccess
+        }
+
+        animator?.addAnimations {
+            updates()
+            self.view.layoutIfNeeded()
+        }
+
+        animator?.addCompletion { [weak self] _ in
+            currentPreset?.backgroundView?.removeFromSuperview()
+            self?.viewModel.actions.send(.changedPreset)
+        }
+
+        if animator == nil {
+            updates()
+            viewModel.actions.send(.changedPreset)
+        }
+
+        animator?.startAnimation()
+    }
+
+    private func updateAspectRatio(_ aspectRatio: CGFloat) {
+        viewfinderContainerHeightConstraint.isActive = false
+        viewfinderContainerHeightConstraint = viewfinderContainer.heightAnchor.constraint(equalTo: viewfinderContainer.widthAnchor,
+                                                                                          multiplier: aspectRatio)
+        viewfinderContainerHeightConstraint.isActive = true
+    }
+
+    private func updateBackgroundView(_ background: UIView) {
+        background.alpha = 0
+        background.translatesAutoresizingMaskIntoConstraints = false
+
+        self.background.addSubview(background)
+
+        NSLayoutConstraint.activate([
+            background.leadingAnchor.constraint(equalTo: self.background.leadingAnchor),
+            background.trailingAnchor.constraint(equalTo: self.background.trailingAnchor),
+            background.topAnchor.constraint(equalTo: self.background.topAnchor),
+            background.bottomAnchor.constraint(equalTo: self.background.bottomAnchor),
+        ])
+
+        view.layoutIfNeeded()
     }
 
     @objc
@@ -422,7 +335,7 @@ class NewCameraViewController: UIViewController {
 
     @objc
     private func libraryTapped(_ sender: UIBarButtonItem) {
-        let picker = MediaPickerViewController(config: configuration == .moment ? .moment : .feed) { [weak self] picker, _, media, _ in
+        let picker = MediaPickerViewController(config: .moment) { [weak self] picker, _, media, _ in
             picker.dismiss(animated: true)
 
             if let self = self, let media = media.first {
@@ -434,146 +347,92 @@ class NewCameraViewController: UIViewController {
         present(nc, animated: true)
     }
 
-    private func subscribeToModelUpdates() {
-        model.$orientation
-            .filter { [model] _ in !model.isRecordingVideo }
-            .receive(on: DispatchQueue.main)
+    private func formSubscriptions() {
+        var animatePresetChange = false
+        viewModel.$activePreset
+            .compactMap { $0 }
+            .sink { [weak self] preset in
+                let animator = animatePresetChange ? UIViewPropertyAnimator(duration: 0.3, curve: .easeInOut) : nil
+                self?.set(preset: preset, animator: animator)
+                animatePresetChange = true
+            }
+            .store(in: &cancellables)
+
+        viewModel.$cameraModel
+            .compactMap { $0 }
+            .sink { [weak self] model in
+                self?.connectViewfinders(to: model)
+            }
+            .store(in: &cancellables)
+
+        viewModel.$orientation
             .sink { [weak self] in
                 self?.refresh(orientation: $0)
             }
             .store(in: &cancellables)
 
-        model.$activeCamera
-            .receive(on: DispatchQueue.main)
-            .map { [weak self] in $0 != .unspecified && (self?.isEnabled ?? false) && (self?.model.session.isRunning ?? false) }
-            .assign(to: \.isEnabled, onWeak: flipCameraButton)
-            .store(in: &cancellables)
-
-        model.$isFlashEnabled
-            .receive(on: DispatchQueue.main)
-            .map { UIImage(named: $0 ? "CameraFlashOn" : "CameraFlashOff")?.withRenderingMode(.alwaysTemplate) }
-            .sink { [weak self] in
-                self?.flashButton.setImage($0, for: .normal)
-            }
-            .store(in: &cancellables)
-
-        model.$videoDuration
-            .map { $0 == nil }
-            .receive(on: DispatchQueue.main)
-            .assign(to: \.isHidden, onWeak: durationLabelContainer)
-            .store(in: &cancellables)
-
-        model.$videoDuration
-            .compactMap { [durationFormatter] in
-                if let seconds = $0 {
-                    return durationFormatter.string(from: TimeInterval(seconds))
+        viewModel.$viewfinderState
+            .sink { [weak self] state in
+                guard let self, let state else {
+                    return
                 }
 
-                return nil
-            }
-            .receive(on: DispatchQueue.main)
-            .assign(to: \.text, onWeak: videoDurationLabel)
-            .store(in: &cancellables)
+                let current = self.viewModel.viewfinderState ?? state
+                let shouldUpdateLayout = !self.viewModel.isCurrentlyChangingPreset
 
-        model.$isRecordingVideo
-            .receive(on: DispatchQueue.main)
-            .map { !$0 }
-            .assign(to: \.isEnabled, onWeak: flashButton)
-            .store(in: &cancellables)
-
-        model.$isRecordingVideo
-            .dropFirst()
-            .filter { !$0 }
-            .map { [model] _ in
-                model.orientation
-            }
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] in
-                // update orientation after recording finishes
-                self?.refresh(orientation: $0)
+                self.viewfinderContainer.change(from: current, to: state, updateLayout: shouldUpdateLayout)
             }
             .store(in: &cancellables)
-    }
 
-    private func refreshEnabledState() {
-        let enabled = isEnabled && model.session.isRunning
+        viewModel.photos
+            .sink { [weak self] photos in
+                self?.process(results: photos)
+            }
+            .store(in: &cancellables)
 
-        shutterButton.isEnabled = enabled
-        flashButton.isEnabled = enabled
-        flipCameraButton.isEnabled = enabled && model.activeCamera != .unspecified
+        viewModel.$error
+            .sink { [weak self] error in
+                if let error {
+                    self?.presentAlert(for: error)
+                }
+            }
+            .store(in: &cancellables)
     }
 
     func pause() {
-        if model.session.isRunning {
-            model.stop(teardown: false)
-        }
+        viewModel.actions.send(.pause)
     }
 
     func resume() {
-        if !model.session.isRunning {
-            model.start()
-        }
+        viewModel.actions.send(.resume)
     }
 
     private func handleShutterTap() {
-        guard
-            !model.isTakingPhoto,
-            let type = captureType
-        else {
-            DDLogError("CameraViewController/handleShutterTap/no capture type")
-            return
-        }
-
-        model.takePhoto(captureType: type) { [weak self] results, isFinished in
-            if let self = self {
-                self.delegate?.cameraViewController(self, didCapture: results, isFinished: isFinished)
-            }
-        }
-
-        delegate?.cameraViewControllerDidReleaseShutter(self)
-    }
-
-    private var captureType: CaptureRequest.CaptureType? {
-        guard let position = layout == .primaryFull || layout == .primaryLeading ? primaryViewfinder.cameraPosition : secondaryViewfinder.cameraPosition else {
-            return nil
-        }
-
-        let type: CaptureRequest.CaptureType?
-        switch configuration {
-        case .normal:
-            type = .single(position)
-
-        case .moment where model.isUsingMultipleCameras && (layout == .primaryFull || layout == .secondaryFull):
-            // user has toggled one of the previews to full screen, so we don't take the second photo
-            type = .single(position)
-
-        case .moment:
-            type = .both(primary: position)
-        }
-
-        return type
+        viewModel.actions.send(.tappedShutter)
     }
 
     private func handleShutterLongPress(_ ended: Bool) {
-        if ended {
-            model.stopRecording()
-        } else {
-            model.startRecording()
-        }
+        // TODO:
     }
     
     @objc
     private func flipCameraPushed(_ sender: UIButton) {
-        if model.isUsingMultipleCameras {
-            updateLayout(layout.flipped, animated: false)
-        } else {
-            model.flipCamera()
-        }
+        viewModel.actions.send(.flipCamera)
     }
 
     @objc
     private func flashButtonPushed(_ sender: UIButton) {
-        model.isFlashEnabled = !model.isFlashEnabled
+        viewModel.actions.send(.toggleFlash)
+    }
+
+    private func connectViewfinders(to session: CameraSessionManager) {
+        let primary = viewfinderContainer.primaryViewfinder
+        let secondary = viewfinderContainer.secondaryViewfinder
+
+        session.connect(preview: primary.previewLayer, to: .back)
+        if session.isUsingMultipleCameras {
+            session.connect(preview: secondary.previewLayer, to: .front)
+        }
     }
 
     private func refresh(orientation: UIDeviceOrientation) {
@@ -591,7 +450,7 @@ class NewCameraViewController: UIViewController {
 
         let transform = CGAffineTransform(rotationAngle: angle)
         UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0.5) {
-            self.flashButton.transform = transform
+            self.flashButton.customView?.transform = transform
             self.flipCameraButton.transform = transform
         }
 
@@ -623,205 +482,316 @@ class NewCameraViewController: UIViewController {
         durationLabelConstraints = constraints
         NSLayoutConstraint.activate(durationLabelConstraints)
     }
-
-    private func updateLayout(_ newLayout: ViewfinderLayout, animated: Bool = true) {
-        NSLayoutConstraint.deactivate(viewfinderConstraints)
-        viewfinderConstraints = constraints(for: newLayout)
-        NSLayoutConstraint.activate(viewfinderConstraints)
-
-        layout = newLayout
-
-        let isSplitLayout = newLayout == .primaryLeading || newLayout == .secondaryLeading
-        let previewState: ViewfinderView.State = isSplitLayout ? .split : .full
-        primaryViewfinder.state = previewState
-        secondaryViewfinder.state = previewState
-
-        if model.isUsingMultipleCameras {
-            primaryViewfinder.hideToggle = newLayout == .secondaryLeading || newLayout == .secondaryFull
-            secondaryViewfinder.hideToggle = !primaryViewfinder.hideToggle
-        }
-
-        if animated {
-            let animator = UIViewPropertyAnimator(duration: 0.45,
-                                             controlPoint1: .init(x: 0.19, y: 1),
-                                             controlPoint2: .init(x: 0.22, y: 1))
-            animator.addAnimations { self.view.layoutIfNeeded() }
-            return animator.startAnimation()
-        }
-
-        view.layoutIfNeeded()
-    }
-
-    private func constraints(for layout: ViewfinderLayout) -> [NSLayoutConstraint] {
-        let container = viewfinderContainer
-        var constraints = [NSLayoutConstraint]()
-
-        let mainViewfinder = layout == .primaryFull || layout == .primaryLeading ? primaryViewfinder : secondaryViewfinder
-        let otherViewfinder = mainViewfinder === primaryViewfinder ? secondaryViewfinder : primaryViewfinder
-
-        switch layout {
-        case .primaryLeading, .secondaryLeading:
-            constraints = [
-                mainViewfinder.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-                mainViewfinder.trailingAnchor.constraint(equalTo: container.centerXAnchor),
-                otherViewfinder.leadingAnchor.constraint(equalTo: container.centerXAnchor),
-                otherViewfinder.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            ]
-
-        case .primaryFull, .secondaryFull:
-            constraints = [
-                mainViewfinder.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-                mainViewfinder.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-                otherViewfinder.leadingAnchor.constraint(equalTo: container.trailingAnchor),
-                otherViewfinder.widthAnchor.constraint(equalTo: mainViewfinder.widthAnchor),
-            ]
-        }
-
-        constraints.append(contentsOf: [
-            mainViewfinder.topAnchor.constraint(equalTo: container.topAnchor),
-            mainViewfinder.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-            otherViewfinder.topAnchor.constraint(equalTo: container.topAnchor),
-            otherViewfinder.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-        ])
-
-        return constraints
-    }
 }
 
-// MARK: - CameraModel delegate methods
+// MARK: - processing capture results
 
-extension NewCameraViewController: CameraModelDelegate {
+extension NewCameraViewController {
 
-    func modelWillStart(_ model: CameraModel) {
-        model.connect(preview: primaryViewfinder.previewLayer, to: .back)
-        if model.isUsingMultipleCameras {
-            model.connect(preview: secondaryViewfinder.previewLayer, to: .front)
-        }
-
-        primaryViewfinder.previewLayer.videoGravity = .resizeAspectFill
-        secondaryViewfinder.previewLayer.videoGravity = .resizeAspectFill
-    }
-
-    func modelDidStart(_ model: CameraModel) {
-        refreshEnabledState()
-    }
-
-    func modelDidStop(_ model: CameraModel) {
-        refreshEnabledState()
-    }
-
-    func modelCouldNotStart(_ model: CameraModel, with error: Error) {
-        guard case let error as CameraModel.CameraModelError = error else {
+    private func process(results: [CaptureResult]) {
+        guard let preset = viewModel.activePreset else {
             return
         }
 
-        switch error {
-        case .permissions(let type):
-            showPermissionAlert(for: type)
-        default:
-        #if targetEnvironment(simulator)
-            DDLogInfo("setupAndStartSession/Ignoring invalid session as we are running on a simulator")
-        #else
-            showInitializationAlert(for: error)
-        #endif
+        let cropToViewfinder = preset.options.contains(.cropToViewfinder)
+        let mergeImages = preset.options.contains(.mergeMulticamImages)
+
+        var results = results.map { cropToViewfinder ? crop(result: $0) : $0 }
+        if mergeImages, results.count == 2 {
+            results = merge(results: results)
         }
-    }
 
-    /// Shown when the the app lacks either camera or microphone permissions.
-    private func showPermissionAlert(for type: AVMediaType) {
-        let title = type == .video ? Localizations.cameraAccessPromptTitle : Localizations.microphoneAccessPromptTitle
-        let body = type == .video ? Localizations.cameraAccessPromptBody : Localizations.microphoneAccessPromptBody
-        let alert = UIAlertController(title: title, message: body, preferredStyle: .alert)
-
-        alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel) { [weak self] _ in
-            self?.dismiss(animated: true)
-        })
-
-        alert.addAction(UIAlertAction(title: Localizations.settingsAppName, style: .default) { _ in
-            if let url = URL(string: UIApplication.openSettingsURLString) {
-                UIApplication.shared.open(url)
+        // correct orientations
+        results = results.map { result in
+            guard let cgImage = result.image.cgImage else {
+                return result
             }
-        })
 
-        present(alert, animated: true)
-    }
+            let correctedOrientation = correctedImageOrientation(original: result.image.imageOrientation, device: result.orientation)
+            let corrected = UIImage(cgImage: cgImage, scale: result.image.scale, orientation: correctedOrientation).correctlyOrientedImage()
 
-    /// Shown when there was some initialization error and the session could not start.
-    private func showInitializationAlert(for error: CameraModel.CameraModelError) {
-        let title = Localizations.cameraInitializationErrorTtile
-        let body = error.description
-        let alert = UIAlertController(title: title, message: body, preferredStyle: .alert)
-
-        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default) { [weak self] _ in
-            self?.dismiss(animated: true)
-        })
-
-        present(alert, animated: true)
-    }
-
-    func model(_ model: CameraModel, didRecordVideoTo url: URL, error: Error?) {
-        if case let error as CameraModel.CameraModelError = error {
-            return showInitializationAlert(for: error)
+            return CaptureResult(identifier: result.identifier,
+                                      image: corrected,
+                             cameraPosition: result.cameraPosition,
+                                orientation: .portrait,
+                                     layout: result.layout,
+                 resultsNeededForCompletion: result.resultsNeededForCompletion)
         }
 
-        delegate?.cameraViewController(self, didRecordVideoTo: url)
+        delegate?.cameraViewController(self, didCapture: results, with: preset)
+    }
+
+    private func merge(results: [CaptureResult]) -> [CaptureResult] {
+        guard let layout = results.first?.layout else {
+            return results
+        }
+
+        var merged: CaptureResult?
+
+        switch layout {
+        case .splitPortrait(leading: _):
+            merged = mergePortrait(results: results)
+        case .splitLandscape(top: _):
+            merged = mergeLandscape(results: results)
+        default:
+            break
+        }
+
+        if let merged {
+            return [merged]
+        }
+
+        return results
+    }
+
+    private func mergePortrait(results: [CaptureResult]) -> CaptureResult? {
+        guard
+            let position = results.first?.layout.primaryCameraPosition,
+            let leading = results.first(where: { $0.cameraPosition == position }),
+            let trailing = results.first(where: { $0.cameraPosition != position })
+        else {
+            return nil
+        }
+
+        let isRightToLeft = view.effectiveUserInterfaceLayoutDirection == .rightToLeft
+        let left = isRightToLeft ? trailing : leading
+        let right = isRightToLeft ? leading : trailing
+
+        let targetHeight = floor(max(left.image.size.height, right.image.size.height))
+        let leftWidth = left.image.size.width * targetHeight / left.image.size.height
+        let rightWidth = right.image.size.width * targetHeight / right.image.size.height
+        let targetWidth = floor(max(leftWidth, rightWidth))
+
+        let targetSize = CGSize(width: targetWidth, height: targetHeight)
+        let leftRect = drawingRect(for: left.image, targetSize: targetSize)
+        var rightRect = drawingRect(for: right.image, targetSize: targetSize)
+
+        rightRect.origin.x += targetWidth
+        UIGraphicsBeginImageContext(.init(width: targetWidth * 2, height: targetHeight))
+
+        left.image.draw(in: leftRect)
+        right.image.draw(in: rightRect)
+
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+
+        if let image {
+            return CaptureResult(identifier: left.identifier,
+                                      image: image,
+                             cameraPosition: .unspecified,
+                                orientation: left.orientation,
+                                     layout: left.layout,
+                 resultsNeededForCompletion: 1)
+        }
+
+        return nil
+    }
+
+    private func mergeLandscape(results: [CaptureResult]) -> CaptureResult? {
+        guard
+            let position = results.first?.layout.primaryCameraPosition,
+            let top = results.first(where: { $0.cameraPosition == position }),
+            let bottom = results.first(where: { $0.cameraPosition != position })
+        else {
+            return nil
+        }
+
+        let targetWidth = floor(max(top.image.size.width, bottom.image.size.width))
+        let topHeight = top.image.size.height * targetWidth / top.image.size.width
+        let bottomHeight = bottom.image.size.height * targetWidth / bottom.image.size.width
+        let targetHeight = floor(max(topHeight, bottomHeight))
+
+        let targetSize = CGSize(width: targetWidth, height: targetHeight)
+        let topRect = drawingRect(for: top.image, targetSize: targetSize)
+        var bottomRect = drawingRect(for: bottom.image, targetSize: targetSize)
+
+        bottomRect.origin.y += targetHeight
+        UIGraphicsBeginImageContext(.init(width: targetWidth, height: targetHeight * 2))
+
+        top.image.draw(in: topRect)
+        bottom.image.draw(in: bottomRect)
+
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+
+        if let image {
+            return CaptureResult(identifier: top.identifier,
+                                      image: image,
+                             cameraPosition: .unspecified,
+                                orientation: top.orientation,
+                                     layout: top.layout,
+                 resultsNeededForCompletion: 1)
+        }
+
+        return nil
+    }
+
+    /// - Returns: A capture result where `image` is cropped to what is visible in the viewfinder.
+    private func crop(result: CaptureResult) -> CaptureResult {
+        guard let cgImage = result.image.cgImage else {
+            DDLogError("CameraViewController/crop-result/cgImage is nil")
+            return result
+        }
+
+        let previewLayer: AVCaptureVideoPreviewLayer
+        switch result.cameraPosition {
+        case .back, .unspecified:
+            previewLayer = viewfinderContainer.primaryViewfinder.previewLayer
+        case .front:
+            previewLayer = viewfinderContainer.secondaryViewfinder.previewLayer
+        @unknown default:
+            previewLayer = viewfinderContainer.primaryViewfinder.previewLayer
+        }
+
+        let viewfinderRect = previewLayer.metadataOutputRectConverted(fromLayerRect: previewLayer.bounds)
+        let imageWidth = CGFloat(cgImage.width)
+        let imageHeight = CGFloat(cgImage.height)
+
+        let cropRect = CGRect(x: viewfinderRect.origin.x * imageWidth,
+                              y: viewfinderRect.origin.y * imageHeight,
+                          width: viewfinderRect.size.width * imageWidth,
+                         height: viewfinderRect.size.height * imageHeight)
+
+        if let cropped = cgImage.cropping(to: cropRect) {
+            let image = UIImage(cgImage: cropped, scale: result.image.scale, orientation: result.image.imageOrientation)
+            return CaptureResult(identifier: result.identifier,
+                                      image: image,
+                             cameraPosition: result.cameraPosition,
+                                orientation: result.orientation,
+                                     layout: result.layout,
+                 resultsNeededForCompletion: result.resultsNeededForCompletion)
+        }
+
+        return result
+    }
+
+    /// - note: Cropped images can have a very slight difference in their aspect ratios, causing the merged
+    ///         image to sometimes have a white border along an edge. To fix this we make sure the image is
+    ///         scaled so that it fills its portion of the output.
+    private func drawingRect(for image: UIImage, targetSize: CGSize) -> CGRect {
+        let targetWidth = targetSize.width
+        let targetHeight = targetSize.height
+        let aspect = image.size.width / image.size.height
+        let drawingRect: CGRect
+
+        if targetWidth / aspect > targetHeight {
+            let height = targetWidth / aspect
+            drawingRect = .init(x: 0,
+                                y: (targetHeight - height) / 2,
+                            width: targetWidth,
+                           height: height)
+        } else {
+            let width = targetHeight * aspect
+            drawingRect = .init(x: (targetWidth - width) / 2,
+                                y: 0,
+                            width: width,
+                           height: targetHeight)
+        }
+
+        return drawingRect
+    }
+
+    private func correctedImageOrientation(original: UIImage.Orientation, device: UIDeviceOrientation) -> UIImage.Orientation {
+        let final: UIImage.Orientation
+
+        switch (original, device) {
+        // merged image
+        case (.up, .portrait):
+            final = .up
+        case (.up, .landscapeLeft):
+            final = .left
+        case (.up, .landscapeRight):
+            final = .right
+        case (.up, .portraitUpsideDown):
+            final = .down
+        // back camera
+        case (.right, .portrait):
+            final = .right
+        case (.right, .landscapeLeft):
+            final = .up
+        case (.right, .landscapeRight):
+            final = .down
+        case (.right, .portraitUpsideDown):
+            final = .left
+        // front camera
+        case (.leftMirrored, .portrait):
+            final = .leftMirrored
+        case (.leftMirrored, .landscapeLeft):
+            final = .downMirrored
+        case (.leftMirrored, .landscapeRight):
+            final = .upMirrored
+        case (.leftMirrored, .portraitUpsideDown):
+            final = .rightMirrored
+
+        default:
+            final = original
+        }
+
+        return final
     }
 }
 
-// MARK: - ViewfinderViewDelegate methods
+// MARK: - presenting errors
 
-extension NewCameraViewController: ViewfinderViewDelegate {
+extension NewCameraViewController {
 
-    func viewfinderDidToggleExpansion(_ view: ViewfinderView) {
-        let newLayout = layout.toggled
-        selectionGenerator.selectionChanged()
+    private func presentAlert(for error: CameraSessionError) {
+#if targetEnvironment(simulator)
+            DDLogInfo("setupAndStartSession/Ignoring invalid session as we are running on a simulator")
+            return
+#endif
 
-        updateLayout(newLayout)
+        let title = error.title
+        let description = error.description
+        let alert = UIAlertController(title: title, message: description, preferredStyle: .alert)
+
+        switch error {
+        case .permissions(_):
+            alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel) { [weak self] _ in
+                self?.dismiss(animated: true)
+            })
+
+            alert.addAction(UIAlertAction(title: Localizations.settingsAppName, style: .default) { _ in
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            })
+
+        default:
+            alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default) { [weak self] _ in
+                self?.dismiss(animated: true)
+            })
+        }
+
+        present(alert, animated: true)
+    }
+}
+
+// MARK: - ViewfinderContainerDelegate methods
+
+extension NewCameraViewController: ViewfinderContainerDelegate {
+
+    func viewfinderContainerDidSelectLayoutChange(_ container: ViewfinderContainer) {
+        viewModel.actions.send(.pushedNextLayout)
+    }
+
+    func viewfinderContainerDidToggleExpansion(_ container: ViewfinderContainer) {
+        viewModel.actions.send(.pushedToggleLayout)
+    }
+
+    func viewfinderContainerDidCompleteLayoutChange(_ container: ViewfinderContainer) {
+        viewModel.actions.send(.completedNextLayout)
     }
 
     func viewfinder(_ view: ViewfinderView, focusedOn point: CGPoint) {
         if let position = view.cameraPosition {
-            model.focus(position, on: point)
+            viewModel.actions.send(.tappedFocus(position, point))
         }
     }
 
     func viewfinder(_ view: ViewfinderView, zoomedTo scale: CGFloat) {
         if let position = view.cameraPosition {
-            model.zoom(position, to: scale)
+            viewModel.actions.send(.pinchedZoom(position, scale))
         }
-    }
-}
-
-// MARK: - localization
-
-extension Localizations {
-    static var cameraAccessPromptTitle: String {
-        NSLocalizedString("camera.permissions.title",
-                   value: "Camera Access",
-                 comment: "Title of alert for when the app does not have permissions to access the camera.")
-    }
-
-    static var cameraAccessPromptBody: String {
-        NSLocalizedString("media.camera.access.request",
-                   value: "HalloApp does not have access to your camera. To enable access, tap Settings and turn on Camera",
-                 comment: "Alert asking to enable Camera permission after attempting to use in-app camera.")
-    }
-
-    static var microphoneAccessPromptTitle: String {
-        NSLocalizedString("media.mic.access.request.title",
-                   value: "Want Videos with Sound?",
-                 comment: "Alert asking to enable Microphone permission after attempting to use in-app camera.")
-    }
-
-    static var microphoneAccessPromptBody: String {
-        NSLocalizedString("media.mic.access.request.body",
-                   value: "To record videos with sound, HalloApp needs microphone access. To enable access, tap Settings and turn on Microphone.",
-                 comment: "Alert asking to enable Camera permission after attempting to use in-app camera.")
-    }
-
-    static var cameraInitializationErrorTtile: String {
-        NSLocalizedString("camera.init.error.title",
-                   value: "Initialization Error",
-                 comment: "Title for a popup alerting about camera initialization error.")
     }
 }

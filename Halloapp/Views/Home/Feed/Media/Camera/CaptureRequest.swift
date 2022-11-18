@@ -11,42 +11,66 @@ import AVFoundation
 
 class CaptureRequest {
 
-    typealias Position = AVCaptureDevice.Position
+    typealias ProgressStream = AsyncThrowingStream<CaptureResult, Error>
 
     let identifier = UUID()
-    let type: CaptureType
-    let isMultiCam: Bool
+    let layout: ViewfinderLayout
+    let orientation: UIDeviceOrientation
+    let shouldTakeDelayedPhoto: Bool
 
-    private var directions: [Int64: Position] = [:]
-    private var settings: [Position: AVCapturePhotoSettings] = [:]
+    private var directions: [Int64: CameraPosition] = [:]
+    private var settings: [CameraPosition: AVCapturePhotoSettings] = [:]
     private var results: [CaptureResult] = []
+    private(set) var error: Error?
 
-    let progress: ([CaptureResult], Bool) -> Void
+    let progress: ProgressStream
+    private let continuation: ProgressStream.Continuation?
 
     var isFulfilled: Bool {
+        results.count == resultsNeeded
+    }
+
+    var resultsNeeded: Int {
         let needed: Int
-        switch type {
-        case .both(_):
+        switch layout {
+        case .splitLandscape(top: _), .splitPortrait(leading: _):
+            needed = 2
+        case .fullPortrait(_) where shouldTakeDelayedPhoto, .fullLandscape(_) where shouldTakeDelayedPhoto:
             needed = 2
         default:
             needed = 1
         }
 
-        return results.count == needed
+        return needed
     }
 
-    init(type: CaptureType, isMultiCam: Bool, progress: @escaping ([CaptureResult], Bool) -> Void) {
-        self.type = type
-        self.isMultiCam = isMultiCam
-        self.progress = progress
+    init?(layout: ViewfinderLayout, orientation: UIDeviceOrientation, takeDelayedSecondPhoto: Bool) {
+        guard layout.primaryCameraPosition != .unspecified else {
+            return nil
+        }
+
+        self.layout = layout
+        self.orientation = orientation
+        self.shouldTakeDelayedPhoto = takeDelayedSecondPhoto
+
+        var continuation: ProgressStream.Continuation?
+        progress = ProgressStream {
+            continuation = $0
+        }
+
+        self.continuation = continuation
     }
 
-    func set(settings: AVCapturePhotoSettings, for direction: Position) {
-        self.settings[direction] = settings
-        directions[settings.uniqueID] = direction
+    deinit {
+        continuation?.finish()
     }
 
-    func set(photo: AVCapturePhoto) -> Position? {
+    func set(settings: AVCapturePhotoSettings, for position: CameraPosition) {
+        self.settings[position] = settings
+        directions[settings.uniqueID] = position
+    }
+
+    func set(photo: AVCapturePhoto) -> CameraPosition? {
         guard
             let image = photo.uiImage,
             let direction = directions[photo.resolvedSettings.uniqueID]
@@ -55,60 +79,29 @@ class CaptureRequest {
         }
 
         let result = CaptureResult(identifier: identifier,
-                                        image: image.correctlyOrientedImage(),
-                                    direction: direction,
-                                    isPrimary: direction == type.primaryPosition)
-        results.append(result)
+                                        image: image,
+                               cameraPosition: direction,
+                                  orientation: orientation,
+                                       layout: layout,
+                   resultsNeededForCompletion: resultsNeeded)
 
-        if isMultiCam {
-            if isFulfilled {
-                progress(results, true)
-            }
-        } else {
-            progress([result], isFulfilled)
+        results.append(result)
+        continuation?.yield(result)
+
+        if isFulfilled {
+            continuation?.finish()
         }
 
         return direction
     }
 
-    func settings(for direction: Position) -> AVCapturePhotoSettings? {
-        settings[direction]
+    func set(error: Error) {
+        self.error = error
+        continuation?.finish(throwing: error)
     }
-}
 
-// MARK: - CaptureType enum
-
-extension CaptureRequest {
-
-    enum CaptureType {
-        case single(Position), both(primary: Position)
-
-        var primaryPosition: Position {
-            switch self {
-            case .single(let position):
-                return position
-            case .both(primary: let position):
-                return position
-            }
-        }
-    }
-}
-
-// MARK: - Position extension
-
-extension CaptureRequest.Position {
-
-    var opposite: Self? {
-        switch self {
-        case .back:
-            return .front
-        case .front:
-            return .back
-        case .unspecified:
-            return nil
-        @unknown default:
-            return nil
-        }
+    func settings(for position: CameraPosition) -> AVCapturePhotoSettings? {
+        settings[position]
     }
 }
 
@@ -118,6 +111,12 @@ struct CaptureResult {
     /// Equal to the identifier of the capture request.
     let identifier: UUID
     let image: UIImage
-    let direction: CaptureRequest.Position
-    let isPrimary: Bool
+    let cameraPosition: CameraPosition
+    let orientation: UIDeviceOrientation
+    let layout: ViewfinderLayout
+    let resultsNeededForCompletion: Int
+
+    var isPrimary: Bool {
+        cameraPosition == layout.primaryCameraPosition
+    }
 }

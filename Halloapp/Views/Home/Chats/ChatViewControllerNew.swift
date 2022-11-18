@@ -1453,12 +1453,12 @@ extension ChatViewControllerNew: ContentInputDelegate {
     }
     
     private func presentCameraViewController() {
-        let vc = CameraViewController(configuration: .init(showCancelButton: true, format: .normal),
-                                          didFinish: { [weak self] in self?.dismiss(animated: true)},
-                                       didPickImage: { [weak self] image in self?.didTake(photo: image)},
-                                       didPickVideo: { [weak self] videoURL in self?.didTake(video: videoURL)})
+        let vc = NewCameraViewController(presets: [.photo, .moment], initialPresetIndex: 0)
+        let nc = UINavigationController(rootViewController: vc)
+        nc.modalPresentationStyle = .fullScreen
+        nc.overrideUserInterfaceStyle = .dark
 
-        present(UINavigationController(rootViewController: vc), animated: true)
+        present(nc, animated: true)
     }
 
     private func didTake(photo: UIImage) {

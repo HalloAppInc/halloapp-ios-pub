@@ -268,6 +268,9 @@
 		76DFA00524195F2400F49CA4 /* XMPPContactSyncRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */; };
 		76E00DF624FEC4A800E06252 /* ProfileHeaderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E00DF324FEC2FC00E06252 /* ProfileHeaderViewController.swift */; };
 		76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */; };
+		A104661729145F7700BF7AC7 /* CameraViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A104661629145F7700BF7AC7 /* CameraViewModel.swift */; };
+		A10466192915A3D600BF7AC7 /* CameraPresetPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10466182915A3D600BF7AC7 /* CameraPresetPicker.swift */; };
+		A104661D291844A200BF7AC7 /* ViewfinderLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A104661C291844A200BF7AC7 /* ViewfinderLayout.swift */; };
 		A111BDFC27C96D9100E5DB4E /* UserActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A111BDFB27C96D9100E5DB4E /* UserActions.swift */; };
 		A11272EA2856C5930009EBD7 /* NewMomentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11272E92856C5930009EBD7 /* NewMomentViewController.swift */; };
 		A11272EC2856E47B0009EBD7 /* MomentComposerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */; };
@@ -276,6 +279,7 @@
 		A13C928C28D8D3A40096CE00 /* AllowContactsPermissionCollectionViewHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C928B28D8D3A40096CE00 /* AllowContactsPermissionCollectionViewHeader.swift */; };
 		A13C928E28D915A00096CE00 /* InAppPermissionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C928D28D915A00096CE00 /* InAppPermissionsViewController.swift */; };
 		A13C929028D9255C0096CE00 /* PermissionExplainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C928F28D9255C0096CE00 /* PermissionExplainerView.swift */; };
+		A152424129106C47003120C7 /* CameraPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = A152424029106C47003120C7 /* CameraPreset.swift */; };
 		A1562B1728D0EA630082F1E5 /* ViewfinderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1562B1628D0EA630082F1E5 /* ViewfinderView.swift */; };
 		A1562B1928D0EED40082F1E5 /* CaptureRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1562B1828D0EED40082F1E5 /* CaptureRequest.swift */; };
 		A15B2D96283EA9A0000CE989 /* LargeHitButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15B2D95283EA9A0000CE989 /* LargeHitButton.swift */; };
@@ -284,7 +288,7 @@
 		A15E6C84280F1AA6008CAEA0 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15E6C83280F1AA6008CAEA0 /* SettingsViewController.swift */; };
 		A16117C828E246820034F382 /* CMDeviceMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16117C728E246820034F382 /* CMDeviceMotion.swift */; };
 		A16297F2289C6F000081C0AA /* NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16297F1289C6EFF0081C0AA /* NSAttributedString.swift */; };
-		A17B5129284FD48600B75405 /* CameraModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17B5128284FD48600B75405 /* CameraModel.swift */; };
+		A17B5129284FD48600B75405 /* CameraSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17B5128284FD48600B75405 /* CameraSessionManager.swift */; };
 		A17DCD7027C0885F00E00073 /* ExpandableTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17DCD6F27C0885F00E00073 /* ExpandableTextView.swift */; };
 		A188383628BD5D80005BBCC2 /* RoundedRectChevronButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A188383528BD5D80005BBCC2 /* RoundedRectChevronButton.swift */; };
 		A188383928BD5DA6005BBCC2 /* PhoneNumberEntryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A188383828BD5DA6005BBCC2 /* PhoneNumberEntryViewController.swift */; };
@@ -300,6 +304,7 @@
 		A1AFE7782821E135008BBC80 /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFE7772821E135008BBC80 /* MomentView.swift */; };
 		A1C18C7C27A1EC9100A76102 /* HalloCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C18C7B27A1EC9100A76102 /* HalloCode.swift */; };
 		A1C18C7F27A1ED8C00A76102 /* HalloCodeTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C18C7E27A1ED8C00A76102 /* HalloCodeTest.swift */; };
+		A1CD44872926B16F00623FF6 /* CameraSessionError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CD44862926B16F00623FF6 /* CameraSessionError.swift */; };
 		A1DD9748287E39A000B98618 /* StackedMomentCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1DD9747287E39A000B98618 /* StackedMomentCollectionViewCell.swift */; };
 		A1DD974A287E569900B98618 /* StackedMomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1DD9749287E569900B98618 /* StackedMomentView.swift */; };
 		A1E6767B28513F5E0086EDD2 /* CameraShutterButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1E6767A28513F5E0086EDD2 /* CameraShutterButton.swift */; };
@@ -1078,6 +1083,9 @@
 		76E81D27255E485F0068CD62 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		76F43F2D2489BD8900D47920 /* Notification Service Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Notification Service Extension.entitlements"; sourceTree = "<group>"; };
 		76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContactPickerViewController.swift; path = HalloApp/Components/Views/ContactPickerViewController.swift; sourceTree = SOURCE_ROOT; };
+		A104661629145F7700BF7AC7 /* CameraViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraViewModel.swift; sourceTree = "<group>"; };
+		A10466182915A3D600BF7AC7 /* CameraPresetPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPresetPicker.swift; sourceTree = "<group>"; };
+		A104661C291844A200BF7AC7 /* ViewfinderLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewfinderLayout.swift; sourceTree = "<group>"; };
 		A111BDFB27C96D9100E5DB4E /* UserActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserActions.swift; path = Halloapp/Views/Home/UserActions.swift; sourceTree = SOURCE_ROOT; };
 		A11272E92856C5930009EBD7 /* NewMomentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewMomentViewController.swift; sourceTree = "<group>"; };
 		A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentComposerViewController.swift; sourceTree = "<group>"; };
@@ -1086,6 +1094,7 @@
 		A13C928B28D8D3A40096CE00 /* AllowContactsPermissionCollectionViewHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllowContactsPermissionCollectionViewHeader.swift; sourceTree = "<group>"; };
 		A13C928D28D915A00096CE00 /* InAppPermissionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppPermissionsViewController.swift; sourceTree = "<group>"; };
 		A13C928F28D9255C0096CE00 /* PermissionExplainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionExplainerView.swift; sourceTree = "<group>"; };
+		A152424029106C47003120C7 /* CameraPreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreset.swift; sourceTree = "<group>"; };
 		A1562B1628D0EA630082F1E5 /* ViewfinderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewfinderView.swift; sourceTree = "<group>"; };
 		A1562B1828D0EED40082F1E5 /* CaptureRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureRequest.swift; sourceTree = "<group>"; };
 		A15B2D95283EA9A0000CE989 /* LargeHitButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeHitButton.swift; sourceTree = "<group>"; };
@@ -1094,7 +1103,7 @@
 		A15E6C83280F1AA6008CAEA0 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		A16117C728E246820034F382 /* CMDeviceMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CMDeviceMotion.swift; sourceTree = "<group>"; };
 		A16297F1289C6EFF0081C0AA /* NSAttributedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSAttributedString.swift; sourceTree = "<group>"; };
-		A17B5128284FD48600B75405 /* CameraModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraModel.swift; sourceTree = "<group>"; };
+		A17B5128284FD48600B75405 /* CameraSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraSessionManager.swift; sourceTree = "<group>"; };
 		A17DCD6F27C0885F00E00073 /* ExpandableTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandableTextView.swift; sourceTree = "<group>"; };
 		A188383528BD5D80005BBCC2 /* RoundedRectChevronButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedRectChevronButton.swift; sourceTree = "<group>"; };
 		A188383828BD5DA6005BBCC2 /* PhoneNumberEntryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneNumberEntryViewController.swift; sourceTree = "<group>"; };
@@ -1110,6 +1119,7 @@
 		A1AFE7772821E135008BBC80 /* MomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentView.swift; sourceTree = "<group>"; };
 		A1C18C7B27A1EC9100A76102 /* HalloCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloCode.swift; sourceTree = "<group>"; };
 		A1C18C7E27A1ED8C00A76102 /* HalloCodeTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloCodeTest.swift; sourceTree = "<group>"; };
+		A1CD44862926B16F00623FF6 /* CameraSessionError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraSessionError.swift; sourceTree = "<group>"; };
 		A1DD9747287E39A000B98618 /* StackedMomentCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StackedMomentCollectionViewCell.swift; sourceTree = "<group>"; };
 		A1DD9749287E569900B98618 /* StackedMomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StackedMomentView.swift; sourceTree = "<group>"; };
 		A1E6767A28513F5E0086EDD2 /* CameraShutterButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraShutterButton.swift; sourceTree = "<group>"; };
@@ -1876,10 +1886,15 @@
 			isa = PBXGroup;
 			children = (
 				A1E695AB284304AF00025E38 /* NewCameraViewController.swift */,
+				A10466182915A3D600BF7AC7 /* CameraPresetPicker.swift */,
+				A104661629145F7700BF7AC7 /* CameraViewModel.swift */,
+				A152424029106C47003120C7 /* CameraPreset.swift */,
 				A1E6767A28513F5E0086EDD2 /* CameraShutterButton.swift */,
-				A17B5128284FD48600B75405 /* CameraModel.swift */,
+				A17B5128284FD48600B75405 /* CameraSessionManager.swift */,
 				A1562B1628D0EA630082F1E5 /* ViewfinderView.swift */,
+				A104661C291844A200BF7AC7 /* ViewfinderLayout.swift */,
 				A1562B1828D0EED40082F1E5 /* CaptureRequest.swift */,
+				A1CD44862926B16F00623FF6 /* CameraSessionError.swift */,
 			);
 			path = Camera;
 			sourceTree = "<group>";
@@ -3176,6 +3191,7 @@
 				680528CD264F14B9001F6A57 /* SafetyNumber.swift in Sources */,
 				EA388C5C2520EB9500DEAB53 /* Banner.swift in Sources */,
 				68130169268D369A001BBDC6 /* ContactSelectionViewController.swift in Sources */,
+				A104661729145F7700BF7AC7 /* CameraViewModel.swift in Sources */,
 				F43DF0FA28F75C98008008B7 /* ExternalSharePreviewImageGenerator.swift in Sources */,
 				A1DD974A287E569900B98618 /* StackedMomentView.swift in Sources */,
 				761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */,
@@ -3191,7 +3207,7 @@
 				F445A73927FFB8270046D382 /* ShareMenuPresenter.swift in Sources */,
 				EA796B9B2469DDF100BC795E /* ChatQuotedLegacy+CoreDataClass.swift in Sources */,
 				322DDDE52739A2A6006BE1E0 /* ChatLinkPreviewView.swift in Sources */,
-				A17B5129284FD48600B75405 /* CameraModel.swift in Sources */,
+				A17B5129284FD48600B75405 /* CameraSessionManager.swift in Sources */,
 				32C83FC42690463C00BEB4F5 /* PrivacyPermissionDeniedController.swift in Sources */,
 				7653F2FA255DB4E7001CC946 /* FeedCollectionViewController.swift in Sources */,
 				F408E27B281B0BDE00A49B29 /* MigrationViewController.swift in Sources */,
@@ -3241,6 +3257,7 @@
 				F4FF3ADC27FCD25F00CD4998 /* ExternalSharePost.swift in Sources */,
 				6ABBB206272D90FB007A595D /* Call.swift in Sources */,
 				764AB41824A67A5C00D4E354 /* Privacy.swift in Sources */,
+				A104661D291844A200BF7AC7 /* ViewfinderLayout.swift in Sources */,
 				F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */,
 				F4867F3328ECA0B4006C22A8 /* ShareCarousel.swift in Sources */,
 				A1E6767B28513F5E0086EDD2 /* CameraShutterButton.swift in Sources */,
@@ -3289,6 +3306,7 @@
 				EECB00B4286E454F003996B3 /* LocationListViewController.swift in Sources */,
 				E5981A4A266032260014FFC9 /* FeedPermissionExplanationAlert.swift in Sources */,
 				A18A409728EF578D002A0BDE /* MomentLocationToggle.swift in Sources */,
+				A152424129106C47003120C7 /* CameraPreset.swift in Sources */,
 				321A70132704FF3B005603B8 /* FeedLinkPreview+CoreDataClass.swift in Sources */,
 				F84A8E5925D408C3003A8528 /* VideoEditViewController.swift in Sources */,
 				68C0B9D427FA737E00F3A092 /* ChatDataLegacy.swift in Sources */,
@@ -3342,6 +3360,7 @@
 				F8606DD6257E7402006CD1A6 /* MediaExplorerImageCell.swift in Sources */,
 				68781D822600170D0045AB61 /* InviteViewController.swift in Sources */,
 				A1E695AC284304AF00025E38 /* NewCameraViewController.swift in Sources */,
+				A1CD44872926B16F00623FF6 /* CameraSessionError.swift in Sources */,
 				761BD0FC24B3D75800B567F6 /* InviteManager.swift in Sources */,
 				328447C4282DD48700F76AB5 /* MessageCellViewCall.swift in Sources */,
 				765D03D72492C971007A7D3B /* ZoomableImageView.swift in Sources */,
@@ -3427,6 +3446,7 @@
 				68629294265C660D00C54367 /* FeedPermissionAlert.swift in Sources */,
 				68CCB16726964851007015FA /* InitializingViewController.swift in Sources */,
 				F4F157DC276AA5B7002FDB9E /* DeleteAccountTextView.swift in Sources */,
+				A10466192915A3D600BF7AC7 /* CameraPresetPicker.swift in Sources */,
 				EAA4C0A12739F505002F1628 /* AddGroupMembersWelcomeView.swift in Sources */,
 				F43DF0F628F60E0B008008B7 /* InstagramStoriesShareProvider.swift in Sources */,
 				EA039C6326C49BC4002CC4CF /* EditGroupDescViewController.swift in Sources */,

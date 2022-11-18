@@ -364,8 +364,7 @@ final class NewPostViewController: UINavigationController {
     }
 
     private func makeNewCameraViewController() -> UIViewController {
-        let options: NewCameraViewController.Options = usedInTabBar ? [.showLibraryButton] : [.showDismissButton, .showLibraryButton]
-        let vc = NewCameraViewController(options: options)
+        let vc = NewCameraViewController(presets: [.photo, .moment], initialPresetIndex: 0)
 
         vc.title = Localizations.fabAccessibilityCamera
         vc.delegate = self
@@ -446,11 +445,7 @@ extension NewPostViewController: CameraViewControllerDelegate {
 
     }
 
-    func cameraViewController(_ viewController: NewCameraViewController, didCapture results: [CaptureResult], isFinished: Bool) {
-        guard isFinished else {
-            return
-        }
-
+    func cameraViewController(_ viewController: NewCameraViewController, didCapture results: [CaptureResult], with preset: CameraPreset) {
         let media = results.map { result -> PendingMedia in
             let media = PendingMedia(type: .image)
             media.image = result.image

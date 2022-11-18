@@ -170,7 +170,7 @@ extension SafetyNumberViewController: QRCodeScannerDelegate {
         case .unauthorized:
             popQRScannerAndShowAlert(
                 title: nil,
-                message: Localizations.cameraAccessPromptBody)
+                message: Localizations.cameraPermissionsBody)
         }
     }
 }
