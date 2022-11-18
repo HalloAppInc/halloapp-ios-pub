@@ -50,7 +50,8 @@ class SnapchatShareProvider: PostShareProvider {
                         DispatchQueue.main.async {
                             toast.hide()
                             if let videoURL {
-                                share(text: nil, stickerImage: nil, backgroundImage: nil, backgroundVideoURL: videoURL) { result in
+                                let stickerImage = ExternalSharePreviewImageGenerator.watermarkImage(size: .zero)
+                                share(text: nil, stickerImage: stickerImage, backgroundImage: nil, backgroundVideoURL: videoURL) { result in
                                     do {
                                         try FileManager.default.removeItem(at: videoURL)
                                     } catch {
@@ -86,7 +87,13 @@ class SnapchatShareProvider: PostShareProvider {
         }
 
         if let stickerImage = stickerImage {
-            content.sticker = SCSDKSnapSticker(stickerImage: stickerImage)
+            let sticker = SCSDKSnapSticker(stickerImage: stickerImage)
+            sticker.posX = 0.5
+            sticker.posY = 0.8
+            sticker.width = stickerImage.size.width / 2
+            sticker.height = stickerImage.size.height / 2
+            content.sticker = sticker
+
         }
 
         content.caption = text

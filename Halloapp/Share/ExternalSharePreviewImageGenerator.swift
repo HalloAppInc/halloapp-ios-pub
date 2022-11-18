@@ -286,6 +286,8 @@ class ExternalSharePreviewImageGenerator {
         watermarkLabel.attributedText = watermarkAttributedString
         watermarkLabel.numberOfLines = 0
         watermarkLabel.translatesAutoresizingMaskIntoConstraints = false
+        watermarkLabel.setContentCompressionResistancePriority(.required, for: .vertical)
+        watermarkLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
 
         let backgroundView = UIView()
         backgroundView.addSubview(watermarkLabel)
@@ -297,7 +299,7 @@ class ExternalSharePreviewImageGenerator {
         heightConstraint.priority = .defaultLow
 
         let verticalPositionConstraint = NSLayoutConstraint(item: watermarkLabel, attribute: .centerY, relatedBy: .equal, toItem: backgroundView, attribute: .bottom, multiplier: 0.8, constant: 0)
-        verticalPositionConstraint.priority = .defaultHigh
+        verticalPositionConstraint.priority = UILayoutPriority(1)
 
         NSLayoutConstraint.activate([
             widthConstraint,
@@ -305,13 +307,12 @@ class ExternalSharePreviewImageGenerator {
             watermarkLabel.leadingAnchor.constraint(greaterThanOrEqualTo: backgroundView.leadingAnchor),
             watermarkLabel.centerXAnchor.constraint(equalTo: backgroundView.centerXAnchor),
             watermarkLabel.topAnchor.constraint(greaterThanOrEqualTo: backgroundView.topAnchor),
-            watermarkLabel.bottomAnchor.constraint(greaterThanOrEqualTo: backgroundView.bottomAnchor),
+            watermarkLabel.bottomAnchor.constraint(lessThanOrEqualTo: backgroundView.bottomAnchor),
             verticalPositionConstraint,
         ])
 
-        let renderSize = backgroundView.systemLayoutSizeFitting(CGSize(width: Constants.preferredMaxMediaSize.width, height: CGFloat.greatestFiniteMagnitude),
-                                                                withHorizontalFittingPriority: .required,
-                                                                verticalFittingPriority: .fittingSizeLevel)
+        let renderSize = backgroundView.systemLayoutSizeFitting(CGSize(width: CGFloat.greatestFiniteMagnitude,
+                                                                       height: CGFloat.greatestFiniteMagnitude))
 
         let bounds = CGRect(origin: .zero, size: renderSize)
         backgroundView.frame = bounds
