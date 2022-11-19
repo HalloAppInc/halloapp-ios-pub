@@ -505,7 +505,7 @@ class ViewfinderContainer: UIView, CameraPresetConfigurable {
         animator.addCompletion { [weak self] _ in
             snapshot.removeFromSuperview()
 
-            UIView.animate(withDuration: 0.15, delay: 0) {
+            UIView.animate(withDuration: 0.25, delay: 0) {
                 self?.blurView.effect = nil
             }
         }

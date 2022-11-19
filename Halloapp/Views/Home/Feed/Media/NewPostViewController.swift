@@ -68,9 +68,9 @@ final class NewPostViewController: UINavigationController {
         return .portrait
     }
 
-    init(source: NewPostMediaSource, destination: ShareDestination, usedInTabBar: Bool = false, showDestinationPicker: Bool, didFinish: @escaping ((Bool) -> Void)) {
+    init(state: NewPostState, destination: ShareDestination, usedInTabBar: Bool = false, showDestinationPicker: Bool, didFinish: @escaping ((Bool, [ShareDestination]) -> Void)) {
         self.didFinish = didFinish
-        self.state = NewPostState(mediaSource: source)
+        self.state = state
         self.destination = destination
         self.usedInTabBar = usedInTabBar
         self.showDestinationPicker = showDestinationPicker
@@ -101,7 +101,7 @@ final class NewPostViewController: UINavigationController {
 
     // MARK: Private
 
-    private let didFinish: ((Bool) -> Void)
+    private let didFinish: ((Bool, [ShareDestination]) -> Void)
     private var state: NewPostState
     private var destination: ShareDestination
     private let usedInTabBar: Bool
@@ -121,7 +121,7 @@ final class NewPostViewController: UINavigationController {
         }
     }
 
-    private func cleanupAndFinish(didPost: Bool = false) {
+    private func cleanupAndFinish(didPost: Bool = false, destinations: [ShareDestination] = []) {
         // Display warning about deleting voice note
         if !didPost, state.pendingVoiceNote != nil {
             let alert = UIAlertController(title: Localizations.voiceNoteDeleteWarningTitle,
@@ -157,7 +157,7 @@ final class NewPostViewController: UINavigationController {
             setViewControllers([first], animated: true)
         }
 
-        didFinish(didPost)
+        didFinish(didPost, destinations)
     }
 
     private func pushComposer() {
@@ -323,7 +323,7 @@ final class NewPostViewController: UINavigationController {
             }
         }
 
-        cleanupAndFinish(didPost: true)
+        cleanupAndFinish(didPost: true, destinations: destinations)
     }
 
     private func sendChatMessage(chatMessageRecipient: ChatMessageRecipient,
@@ -364,7 +364,7 @@ final class NewPostViewController: UINavigationController {
     }
 
     private func makeNewCameraViewController() -> UIViewController {
-        let vc = NewCameraViewController(presets: [.photo, .moment], initialPresetIndex: 0)
+        let vc = NewCameraViewController(presets: [.photo], initialPreset: 0)
 
         vc.title = Localizations.fabAccessibilityCamera
         vc.delegate = self
@@ -391,51 +391,6 @@ final class NewPostViewController: UINavigationController {
         pickerController.title = Localizations.newPost
         
         return pickerController
-    }
-
-    private func onCameraImagePicked(_ uiImage: UIImage) {
-        var pendingMedia = [PendingMedia]()
-        let normalizedImage = uiImage.correctlyOrientedImage()
-        let mediaToPost = PendingMedia(type: .image)
-        mediaToPost.image = normalizedImage
-
-        pendingMedia.append(mediaToPost)
-        state.pendingMedia = pendingMedia
-        pushComposer()
-    }
-
-    private func onCameraVideoPicked(_ videoURL: URL) {
-        var pendingMedia = [PendingMedia]()
-        let mediaToPost = PendingMedia(type: .video)
-        mediaToPost.originalVideoURL = videoURL
-        mediaToPost.fileURL = videoURL
-
-        pendingMedia.append(mediaToPost)
-        state.pendingMedia = pendingMedia
-        pushComposer()
-    }
-}
-
-extension NewPostViewController: UIImagePickerControllerDelegate {
-    func imagePickerController(_ pickerController: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-        var pendingMedia = [PendingMedia]()
-        if let uiImage = info[.originalImage] as? UIImage {
-            let normalizedImage = uiImage.correctlyOrientedImage()
-            let mediaToPost = PendingMedia(type: .image)
-            mediaToPost.image = normalizedImage
-
-            pendingMedia.append(mediaToPost)
-        } else if let videoURL = info[.mediaURL] as? URL {
-            let mediaToPost = PendingMedia(type: .video)
-            mediaToPost.originalVideoURL = videoURL
-            mediaToPost.fileURL = videoURL
-
-            pendingMedia.append(mediaToPost)
-        } else {
-            DDLogError("UIImagePickerController returned unknown media type")
-        }
-        state.pendingMedia = pendingMedia
-        pushComposer()
     }
 }
 
@@ -465,8 +420,8 @@ extension NewPostViewController: CameraViewControllerDelegate {
         pushComposer()
     }
 
-    func cameraViewController(_ viewController: NewCameraViewController, didSelect media: PendingMedia) {
-        state.pendingMedia = [media]
+    func cameraViewController(_ viewController: NewCameraViewController, didSelect media: [PendingMedia]) {
+        state.pendingMedia = media
         pushComposer()
     }
 }

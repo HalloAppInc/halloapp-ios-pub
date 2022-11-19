@@ -13,13 +13,21 @@ import Core
 import CoreCommon
 import CocoaLumberjackSwift
 
+protocol MomentComposerViewControllerDelegate: AnyObject {
+    var distanceFromTopForBackground: CGFloat { get }
+    var heightForBackground: CGFloat { get }
+
+    func momentComposerDidEnableSend(_ composer: MomentComposerViewController)
+    func momentComposerDidSend(_ composer: MomentComposerViewController)
+    func momentComposerDidCancel(_ composer: MomentComposerViewController)
+}
+
 class MomentComposerViewController: UIViewController, MomentLocationToggleDelegate {
 
-    let context: NewMomentViewController.Context
-
-    private var media: PendingMedia?
+    let context: MomentContext
     /// Used to wait for the creation of the media's file path.
     private var sendCancellable: AnyCancellable?
+    weak var delegate: MomentComposerViewControllerDelegate?
 
     private lazy var audienceIndicator: UIView = {
         let pill = PillView()
@@ -65,7 +73,7 @@ class MomentComposerViewController: UIViewController, MomentLocationToggleDelega
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.clipsToBounds = true
-        view.layer.cornerRadius = 15
+        view.layer.cornerRadius = 10
         view.layer.cornerCurve = .continuous
         return view
     }()
@@ -105,7 +113,7 @@ class MomentComposerViewController: UIViewController, MomentLocationToggleDelega
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = .momentPolaroid
-        view.layer.cornerRadius = 15
+        view.layer.cornerRadius = 14
         view.layer.cornerCurve = .continuous
         return view
     }()
@@ -134,16 +142,18 @@ class MomentComposerViewController: UIViewController, MomentLocationToggleDelega
         return toggle
     }()
 
+    private var maskToShowCamera = true
+
     @UserDefault(key: "shown.replace.moment.disclaimer", defaultValue: false)
     private static var hasShownReplacementDisclaimer: Bool
 
-    var onPost: (() -> Void)?
-    var onCancel: (() -> Void)?
-
-    init(context: NewMomentViewController.Context) {
+    init(context: MomentContext) {
         self.context = context
         super.init(nibName: nil, bundle: nil)
         title = Localizations.newMomentTitle
+
+        modalPresentationStyle = .custom
+        transitioningDelegate = self
     }
 
     required init?(coder: NSCoder) {
@@ -152,6 +162,7 @@ class MomentComposerViewController: UIViewController, MomentLocationToggleDelega
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        navigationController?.overrideUserInterfaceStyle = .dark
         view.backgroundColor = .black
 
         view.addSubview(audienceIndicator)
@@ -166,7 +177,6 @@ class MomentComposerViewController: UIViewController, MomentLocationToggleDelega
         background.addSubview(sendButtonContainer)
         sendButtonContainer.addSubview(sendButton)
 
-        let padding: CGFloat = 10
         let minimizeLocationToggleWidth = locationToggle.widthAnchor.constraint(equalToConstant: 0)
         minimizeLocationToggleWidth.priority = UILayoutPriority(1)
 
@@ -174,9 +184,9 @@ class MomentComposerViewController: UIViewController, MomentLocationToggleDelega
             background.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             background.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
-            scrollViewContainer.leadingAnchor.constraint(equalTo: background.leadingAnchor, constant: padding),
-            scrollViewContainer.trailingAnchor.constraint(equalTo: background.trailingAnchor, constant: -padding),
-            scrollViewContainer.topAnchor.constraint(equalTo: background.topAnchor, constant: padding),
+            scrollViewContainer.leadingAnchor.constraint(equalTo: background.layoutMarginsGuide.leadingAnchor),
+            scrollViewContainer.trailingAnchor.constraint(equalTo: background.layoutMarginsGuide.trailingAnchor),
+            scrollViewContainer.topAnchor.constraint(equalTo: background.layoutMarginsGuide.topAnchor),
             scrollViewContainer.heightAnchor.constraint(equalTo: scrollViewContainer.widthAnchor),
 
             leadingImageScrollView.leadingAnchor.constraint(equalTo: scrollViewContainer.leadingAnchor),
@@ -221,6 +231,13 @@ class MomentComposerViewController: UIViewController, MomentLocationToggleDelega
         navigationItem.leftBarButtonItem = barButton
         barButton.tintColor = .white
 
+        let appearance = UINavigationBarAppearance()
+        appearance.backgroundColor = .black
+        appearance.shadowColor = nil
+        appearance.titleTextAttributes = [.font: UIFont.gothamFont(ofFixedSize: 16, weight: .medium)]
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+
         let showTap = UITapGestureRecognizer(target: self, action: #selector(audiencePillTapped))
         audienceIndicator.addGestureRecognizer(showTap)
 
@@ -231,26 +248,36 @@ class MomentComposerViewController: UIViewController, MomentLocationToggleDelega
         locationToggle.requestLocation()
     }
 
-    func configure(with media: PendingMedia) {
-        DDLogInfo("MomentComposerViewController/configure/start")
-        self.media = media
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
 
-        sendCancellable = media.ready
-            .first { $0 }
-            .sink { [weak self] _ in
-                guard let self = self else {
-                    return
-                }
+        if maskToShowCamera {
+            addMaskToShowCamera()
+        }
+    }
 
-                self.leadingImageScrollView.imageView.image = media.image
-                self.leadingImageScrollView.sizeImage()
+    private func addMaskToShowCamera() {
+        let frame = scrollViewContainer.frame
+        let mask = CAShapeLayer()
 
-                self.sendButton.isEnabled = true
-                self.sendCancellable = nil
-            }
+        mask.frame = view.bounds
+        mask.fillColor = UIColor.black.cgColor
+        mask.fillRule = .evenOdd
+
+        let path = UIBezierPath(rect: view.bounds)
+        let cutoutPath = UIBezierPath(roundedRect: view.convert(frame, from: scrollViewContainer.superview),
+                                     cornerRadius: scrollViewContainer.layer.cornerRadius)
+        path.append(cutoutPath)
+
+        mask.path = path.cgPath
+        view.layer.mask = mask
     }
 
     func configure(with results: [CaptureResult], animateTrailing: Bool) {
+        guard let first = results.first else {
+            return
+        }
+
         for result in results {
             let scrollView = result.isPrimary ? leadingImageScrollView : trailingImageScrollView
 
@@ -260,6 +287,17 @@ class MomentComposerViewController: UIViewController, MomentLocationToggleDelega
             if !result.isPrimary {
                 updateTrailingImageViewDisplay(show: true, animate: animateTrailing)
             }
+
+            if view.layer.mask != nil {
+                maskToShowCamera = false
+                view.layer.mask = nil
+            }
+        }
+
+        let deliveredResults = [leadingImageScrollView.captureResult, trailingImageScrollView.captureResult].compactMap { $0 }
+        if first.resultsNeededForCompletion == deliveredResults.count {
+            sendButton.isEnabled = true
+            delegate?.momentComposerDidEnableSend(self)
         }
     }
 
@@ -295,7 +333,7 @@ class MomentComposerViewController: UIViewController, MomentLocationToggleDelega
         hideTrailingImageViewConstraint.isActive = true
 
         sendButton.isEnabled = false
-        onCancel?()
+        delegate?.momentComposerDidCancel(self)
     }
 
     @objc
@@ -346,7 +384,7 @@ class MomentComposerViewController: UIViewController, MomentLocationToggleDelega
             }
         } else {
             MainAppContext.shared.feedData.postMoment(info: info, media: media)
-            onPost?()
+            delegate?.momentComposerDidSend(self)
         }
     }
 
@@ -470,7 +508,7 @@ class MomentComposerViewController: UIViewController, MomentLocationToggleDelega
             }
         }
 
-        onPost?()
+        delegate?.momentComposerDidSend(self)
     }
 }
 
@@ -582,6 +620,21 @@ extension FeedData {
                                 linkPreviewMedia: nil,
                                               to: .feed(.all),
                                       momentInfo: info)
+    }
+}
+
+// MARK: - UIViewControllerTransitioningDelegate methods
+
+extension MomentComposerViewController: UIViewControllerTransitioningDelegate {
+
+    func animationController(forPresented presented: UIViewController,
+                             presenting: UIViewController,
+                             source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        MomentComposerPresentTransition()
+    }
+
+    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        MomentComposerDismissTransition()
     }
 }
 

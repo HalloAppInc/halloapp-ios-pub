@@ -463,6 +463,8 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             AppContext.shared.observeAndSave(event: .fabAction(type: fabActionType))
         }
 
+        let state = NewPostState(mediaSource: source)
+
         if source == .voiceNote && MainAppContext.shared.callManager.isAnyCallActive {
             // When we have an active call ongoing: we should not record audio.
             // We should present an alert saying that this action is not allowed.
@@ -475,7 +477,7 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
             }))
             present(alert, animated: true)
         } else {
-            let newPostViewController = NewPostViewController(source: source, destination: .feed(.all), showDestinationPicker: true) { didPost in
+            let newPostViewController = NewPostViewController(state: state, destination: .feed(.all), showDestinationPicker: true) { didPost, _ in
                 // Reset back to all
                 MainAppContext.shared.privacySettings.activeType = .all
                 self.dismiss(animated: true)

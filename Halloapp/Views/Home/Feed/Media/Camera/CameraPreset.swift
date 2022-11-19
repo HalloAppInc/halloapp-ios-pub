@@ -10,6 +10,7 @@ import Foundation
 import UIKit
 import AVFoundation
 import CoreCommon
+import Core
 
 protocol CameraPresetConfigurable {
     func set(preset: CameraPreset, animator: UIViewPropertyAnimator?)
@@ -77,13 +78,23 @@ extension CameraPreset {
         AVCaptureMultiCamSession.isMultiCamSupported
     }
 
-    static var moment: Self {
+    static func moment(_ context: MomentContext) -> Self {
         let supportsMulticam = Self.supportsMulticam
         let layout: ViewfinderLayout
         var options: Options = [.photo]
 
         let title = Localizations.newMomentTitle
-        let subtitle = Localizations.newMomentCameraSubtitle
+        let subtitle: String
+
+        switch context {
+        case .normal:
+            subtitle = Localizations.newMomentCameraSubtitle
+        case .unlock(let post):
+            let name = MainAppContext.shared.contactStore.firstName(for: post.userID,
+                                                                     in: MainAppContext.shared.contactStore.viewContext)
+            subtitle = String(format: Localizations.newMomentCameraUnlockSubtitle, name)
+        }
+
         let background = UIView()
         background.backgroundColor = .momentPolaroid
 
@@ -94,6 +105,10 @@ extension CameraPreset {
             layout = .fullPortrait(.back)
             options.insert([.takeDelayedSecondPhoto])
         }
+
+        #if targetEnvironment(simulator)
+            options.insert(.galleryAccess)
+        #endif
 
         return CameraPreset(name: "Moment",
                          options: options,

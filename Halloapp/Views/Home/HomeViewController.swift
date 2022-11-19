@@ -270,9 +270,7 @@ class HomeViewController: UITabBarController {
     }
 
     private func cameraNavigationController() -> UIViewController {
-        let controller = NewPostViewController(source: .camera, destination: .feed(.all), usedInTabBar: true, showDestinationPicker: true) { didPost in
-
-        }
+        let controller = CameraTabPlaceholderViewController()
 
         controller.title = Localizations.fabAccessibilityCamera
         controller.tabBarItem.image = UIImage(named: "TabBarCamera")?.withTintColor(.tabBar, renderingMode: .alwaysOriginal)
@@ -530,6 +528,16 @@ extension HomeViewController: UITabBarControllerDelegate {
                 viewController.scrollToTop(animated: true)
             }
         }
+
+        if viewController is CameraTabPlaceholderViewController {
+            var start = CGPoint(x: tabBar.frame.midX, y: tabBar.frame.midY - 20)
+            let vc = CameraPostViewController(startPoint: start)
+
+            present(vc, animated: true)
+
+            return false
+        }
+
         return true
     }
 

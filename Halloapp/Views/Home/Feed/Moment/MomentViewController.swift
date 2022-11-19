@@ -445,7 +445,7 @@ class MomentViewController: UIViewController, UIViewControllerMediaSaving, Share
     }
 
     private func forward(action: UserAction) {
-        presentingViewController?.dismiss(animated: true) { [delegate] in
+        dismissAll(animated: true) { [delegate] in
             delegate?.handle(action: action)
         }
     }
@@ -461,7 +461,7 @@ class MomentViewController: UIViewController, UIViewControllerMediaSaving, Share
             }
         }
 
-        dismiss(animated: true)
+        dismissAll(animated: true)
     }
 
     @objc
@@ -587,7 +587,7 @@ class MomentViewController: UIViewController, UIViewControllerMediaSaving, Share
                     self?.present(alert, animated: true, completion: nil)
 
                 default:
-                    self?.presentingViewController?.dismiss(animated: true)
+                    self?.dismissAll(animated: true)
                 }
             }
         }
@@ -719,7 +719,7 @@ extension MomentViewController {
                 return
             }
             // when there are no other moments, we dismiss once the snapshot leaves the frame entirely
-            self.dismiss(animated: true)
+            self.dismissAll(animated: true)
         }
 
         installPushBehavior(gesture, closure)
@@ -1009,7 +1009,7 @@ extension MomentViewController: ContentInputDelegate {
     }
 
     private func presentCameraViewController() {
-        let vc = NewCameraViewController(presets: [.moment], initialPresetIndex: 0)
+        let vc = NewCameraViewController(presets: [.photo], initialPreset: 0)
         vc.delegate = self
 
         let nc = UINavigationController(rootViewController: vc)
@@ -1068,7 +1068,7 @@ extension MomentViewController: CameraViewControllerDelegate {
         addMediaWhenAvailable(media)
     }
 
-    func cameraViewController(_ viewController: NewCameraViewController, didSelect media: PendingMedia) {
+    func cameraViewController(_ viewController: NewCameraViewController, didSelect media: [PendingMedia]) {
 
     }
 }
@@ -1134,7 +1134,13 @@ extension MomentViewController {
 
 extension MomentViewController: UIViewControllerTransitioningDelegate {
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        return MomentPresenter(startView: transitionStartView)
+
+        switch presenting {
+        case let nc as UINavigationController where nc.topViewController is MomentComposerViewController:
+            return MomentUnlockPresentTransition()
+        default:
+            return MomentPresenter(startView: transitionStartView)
+        }
     }
 
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {

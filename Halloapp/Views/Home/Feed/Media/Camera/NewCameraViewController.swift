@@ -9,6 +9,7 @@
 import UIKit
 import Combine
 import AVFoundation
+import Photos
 import CocoaLumberjackSwift
 import CoreCommon
 import Core
@@ -17,7 +18,7 @@ protocol CameraViewControllerDelegate: AnyObject {
     func cameraViewControllerDidReleaseShutter(_ viewController: NewCameraViewController)
     func cameraViewController(_ viewController: NewCameraViewController, didRecordVideoTo url: URL)
     func cameraViewController(_ viewController: NewCameraViewController, didCapture results: [CaptureResult], with preset: CameraPreset)
-    func cameraViewController(_ viewController: NewCameraViewController, didSelect media: PendingMedia)
+    func cameraViewController(_ viewController: NewCameraViewController, didSelect media: [PendingMedia])
 }
 
 class NewCameraViewController: UIViewController, CameraPresetConfigurable {
@@ -165,11 +166,19 @@ class NewCameraViewController: UIViewController, CameraPresetConfigurable {
         return view
     }()
 
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        .portrait
+    }
+
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        .lightContent
+    }
+
     var onDismiss: (() -> Void)?
     weak var delegate: CameraViewControllerDelegate?
 
-    init(presets: [CameraPreset], initialPresetIndex: Int) {
-        viewModel = CameraViewModel(presets: presets, initial: initialPresetIndex)
+    init(presets: [CameraPreset], initialPreset: Int) {
+        viewModel = CameraViewModel(presets: presets, initial: initialPreset)
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -240,8 +249,13 @@ class NewCameraViewController: UIViewController, CameraPresetConfigurable {
             flipCameraButton.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
         ])
 
+        let galleryTap = UITapGestureRecognizer(target: self, action: #selector(galleryTapped))
+        galleryImageView.addGestureRecognizer(galleryTap)
+
         installBarButtons()
         formSubscriptions()
+
+        fetchLatestPhoto()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -261,6 +275,15 @@ class NewCameraViewController: UIViewController, CameraPresetConfigurable {
 
         navigationItem.leftBarButtonItem = downButton
         navigationItem.rightBarButtonItem = flashButton
+
+        let appearance = UINavigationBarAppearance()
+        appearance.backgroundColor = .black
+        appearance.shadowColor = nil
+
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.compactAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.overrideUserInterfaceStyle = .dark
     }
 
     func set(preset: CameraPreset, animator: UIViewPropertyAnimator?) {
@@ -307,7 +330,7 @@ class NewCameraViewController: UIViewController, CameraPresetConfigurable {
     private func updateAspectRatio(_ aspectRatio: CGFloat) {
         viewfinderContainerHeightConstraint.isActive = false
         viewfinderContainerHeightConstraint = viewfinderContainer.heightAnchor.constraint(equalTo: viewfinderContainer.widthAnchor,
-                                                                                          multiplier: aspectRatio)
+                                                                                       multiplier: aspectRatio)
         viewfinderContainerHeightConstraint.isActive = true
     }
 
@@ -334,11 +357,11 @@ class NewCameraViewController: UIViewController, CameraPresetConfigurable {
     }
 
     @objc
-    private func libraryTapped(_ sender: UIBarButtonItem) {
-        let picker = MediaPickerViewController(config: .moment) { [weak self] picker, _, media, _ in
+    private func galleryTapped(_ gesture: UITapGestureRecognizer) {
+        let picker = MediaPickerViewController(config: .init(destination: .feed(.all))) { [weak self] picker, _, media, _ in
             picker.dismiss(animated: true)
 
-            if let self = self, let media = media.first {
+            if let self, !media.isEmpty {
                 self.delegate?.cameraViewController(self, didSelect: media)
             }
         }
@@ -408,6 +431,7 @@ class NewCameraViewController: UIViewController, CameraPresetConfigurable {
     }
 
     private func handleShutterTap() {
+        delegate?.cameraViewControllerDidReleaseShutter(self)
         viewModel.actions.send(.tappedShutter)
     }
 
@@ -481,6 +505,26 @@ class NewCameraViewController: UIViewController, CameraPresetConfigurable {
         NSLayoutConstraint.deactivate(durationLabelConstraints)
         durationLabelConstraints = constraints
         NSLayoutConstraint.activate(durationLabelConstraints)
+    }
+
+    private func fetchLatestPhoto() {
+        let options = PHFetchOptions()
+        options.sortDescriptors = [.init(key: "creationDate", ascending: false)]
+        options.fetchLimit = 1
+
+        guard let asset = PHAsset.fetchAssets(with: options).firstObject else {
+            return
+        }
+
+        PHImageManager.default().requestImage(for: asset,
+                                       targetSize: .init(width: 100, height: 100),
+                                      contentMode: .aspectFill,
+                                          options: nil) { image, mapping in
+
+            DispatchQueue.main.async { [weak self] in
+                self?.galleryImageView.image = image ?? self?.galleryImageView.image
+            }
+        }
     }
 }
 

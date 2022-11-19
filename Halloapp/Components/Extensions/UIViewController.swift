@@ -84,6 +84,11 @@ extension UIViewController {
 
         return viewController
     }
+
+    /// Dismisses all modal view controllers.
+    func dismissAll(animated: Bool, completion: (() -> Void)? = nil) {
+        view.window?.rootViewController?.dismiss(animated: animated, completion: completion)
+    }
 }
 
 protocol UIViewControllerHandleTapNotification {
