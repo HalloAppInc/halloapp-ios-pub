@@ -193,7 +193,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
                 default:
                     break
                 }
-            case .group(let groupID, let name):
+            case .group(let groupID, _, let name):
                 cell.configureGroup(groupID, name: name, isSelected: isSelected)
             case .contact(let userID, let name, let phone):
                 cell.configureUser(userID, name: name, phone: phone, isSelected: isSelected)
@@ -425,9 +425,13 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
                             if let contact = MainAppContext.shared.contactStore.contact(withUserId: contactID, in: MainAppContext.shared.contactStore.viewContext) {
                                 return DestinationPickerDestination(section: .frequentlyContacted, shareDestination: .contact(id: contactID, name: contact.fullName, phone: contact.phoneNumber))
                             }
-                        case .chatGroup(groupID: let groupID), .feedGroup(groupID: let groupID):
+                        case .chatGroup(groupID: let groupID):
                             if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext) {
-                                return DestinationPickerDestination(section: .frequentlyContacted, shareDestination: .group(id: groupID, name: group.name))
+                                return DestinationPickerDestination(section: .frequentlyContacted, shareDestination: .group(id: groupID, type: .groupChat, name: group.name))
+                            }
+                        case .feedGroup(groupID: let groupID):
+                            if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext) {
+                                return DestinationPickerDestination(section: .frequentlyContacted, shareDestination: .group(id: groupID, type: .groupFeed, name: group.name))
                             }
                         }
                         return nil
@@ -444,7 +448,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
                     let destination: ShareDestination = .contact(id: userID, name: name, phone: phoneNumbers[userID])
                     snapshot.appendItems([DestinationPickerDestination(section: .recent, shareDestination: destination)], toSection: .recent)
                 } else if let groupID = item.groupID, let title = item.title {
-                    let destination: ShareDestination = .group(id: groupID, name: title)
+                    let destination: ShareDestination = .group(id: groupID, type: item.type, name: title)
                     snapshot.appendItems([DestinationPickerDestination(section: .recent, shareDestination: destination)], toSection: .recent)
                 }
             }

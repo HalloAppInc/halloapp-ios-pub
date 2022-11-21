@@ -54,7 +54,7 @@ class ComposerDestinationRowView: UICollectionView {
                 cell.configure(count: self.contactsCount)
 
                 return cell
-            case .group(let groupId, let title):
+            case .group(let groupId, _, let title):
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ItemViewCell.reuseIdentifier, for: indexPath) as? ItemViewCell else {
                     return nil
                 }

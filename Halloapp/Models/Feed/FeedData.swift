@@ -2846,7 +2846,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let feedPost = FeedPost(context: managedObjectContext)
         feedPost.id = postId
         feedPost.userId = AppContext.shared.userData.userId
-        if case .group(let groupID, _) = destination {
+        if case .group(let groupID, _, _) = destination {
             feedPost.groupId = groupID
             if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: managedObjectContext) {
                 guard group.type != .groupChat else { return }
@@ -2957,7 +2957,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPostInfo.receipts = receipts
             feedPostInfo.audienceType = postAudience.audienceType
             feedPost.info = feedPostInfo
-        case .group(let groupId, _):
+        case .group(let groupId, _, _):
             guard let chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: managedObjectContext) else {
                 return
             }

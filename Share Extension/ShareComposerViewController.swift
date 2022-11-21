@@ -828,7 +828,7 @@ class ShareComposerViewController: UIViewController {
                                                     didBeginUpload: checkCompletionCountAndCompleteIfNeeded)
 
             case .group(let groupListSyncItem):
-                let destination: Core.ShareDestination = .group(id: groupListSyncItem.id, name: groupListSyncItem.name)
+                let destination: Core.ShareDestination = .group(id: groupListSyncItem.id, type: groupListSyncItem.type, name: groupListSyncItem.name)
                 switch groupListSyncItem.type {
                 case .groupFeed:
                     AppContext.shared.coreFeedData.post(text: mentionText,

@@ -532,6 +532,7 @@ extension HomeViewController: UITabBarControllerDelegate {
         if viewController is CameraTabPlaceholderViewController {
             var start = CGPoint(x: tabBar.frame.midX, y: tabBar.frame.midY - 20)
             let vc = CameraPostViewController(startPoint: start)
+            vc.delegate = self
 
             present(vc, animated: true)
 
@@ -551,6 +552,64 @@ extension HomeViewController: UITabBarControllerDelegate {
         }
 
         navigationController.popToRootViewController(animated: false)
+    }
+}
+
+// MARK: - CameraPostViewControllerDelegate methods
+
+extension HomeViewController: CameraPostViewControllerDelegate {
+
+    func cameraPostViewController(_ viewController: CameraPostViewController, didPostTo destinations: [ShareDestination]) {
+        let destinations = ShareDestination.privacySort(destinations)
+        guard let firstDestination = destinations.first else {
+            return
+        }
+
+        let secondDestination = destinations.count > 1 ? destinations[1] : nil
+        var index = TabBarSelection.home.index
+        var shouldNavigateToThread = false
+
+        switch (firstDestination, secondDestination) {
+        case (.feed(_), _):
+            // to go the top of home feed
+            break
+        case (.group(_, let firstType, _), .group(_, let secondType, _)) where firstType == .groupFeed && secondType == .groupFeed:
+            // at least two group feed posts; go to groups grid
+            index = TabBarSelection.group.index
+        case (.group(_, let type, _), _) where type == .groupFeed:
+            // only one group feed destination; go to top of the home feed
+            break
+
+        case (.group(_, let firstType, _), .group(_, let secondType, _)) where firstType == .groupChat && secondType == .groupChat:
+            // at least two group chat messages; go to chat list
+            index = TabBarSelection.chat.index
+        case (.group(_, let type, _), .contact(_, _, _)) where type == .groupChat:
+            // one group chat and at least one one-on-one chat; go to chat list
+            index = TabBarSelection.chat.index
+        case (.group(_, let type, _), _) where type == .groupChat:
+            // only one group chat destination; go to the thread
+            index = TabBarSelection.chat.index
+            shouldNavigateToThread = true
+
+        case (.contact(_, _, _), .contact(_, _, _)):
+            // at least two one-on-one messages; go to chat list
+            index = TabBarSelection.chat.index
+        case (.contact(_, _, _), _):
+            // only one one-on-one message; go to the thread
+            index = TabBarSelection.chat.index
+            shouldNavigateToThread = true
+
+        default:
+            break
+        }
+
+        selectedIndex = index
+        ((selectedViewController as? UINavigationController)?.topViewController as? UIViewControllerScrollsToTop)?.scrollToTop(animated: false)
+
+        if shouldNavigateToThread {
+            let handler = ((selectedViewController as? UINavigationController)?.children.first as? UIViewControllerHandleShareDestination)
+            handler?.route(to: firstDestination)
+        }
     }
 }
 

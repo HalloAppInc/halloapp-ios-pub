@@ -20,11 +20,11 @@ public typealias FeedPostID = String
 
 public enum ShareDestination: Hashable, Equatable {
     case feed(PrivacyListType)
-    case group(id: GroupID, name: String)
+    case group(id: GroupID, type: GroupType, name: String)
     case contact(id: UserID, name: String?, phone: String?)
 
     public static func destination(from group: Group) -> ShareDestination {
-        return .group(id: group.id, name: group.name)
+        return .group(id: group.id, type: group.type, name: group.name)
     }
 
     public static func destination(from contact: ABContact) -> ShareDestination? {
@@ -36,11 +36,30 @@ public enum ShareDestination: Hashable, Equatable {
         switch self {
         case .feed(_):
             return nil
-        case .group(_, let name):
+        case .group(_, _, let name):
             return name
         case .contact(_, let name, _):
             return name
         }
+    }
+
+    /// - Returns: An array sorted by how public each destination is (feed -> group feed -> group chat -> one-on-one chat).
+    public static func privacySort(_ destinations: [ShareDestination]) -> [ShareDestination] {
+        destinations.sorted(by: { lhs, rhs in
+            switch (lhs, rhs) {
+            case (.feed(_), .group(_, _, _)):
+                return true
+            case (.feed(_), .contact(_, _, _)):
+                return true
+            case (.group(_, let lhsType, _), .group(_, let rhsType, _)) where lhsType == .groupFeed && rhsType == .groupChat:
+                return true
+            case (.group(_, _, _), .contact(_, _, _)):
+                return true
+
+            default:
+                return false
+            }
+        })
     }
 }
 

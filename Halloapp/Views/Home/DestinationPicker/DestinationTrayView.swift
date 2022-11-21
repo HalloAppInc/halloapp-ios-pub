@@ -23,7 +23,7 @@ class DestinationTrayView: UICollectionView {
             switch destination {
             case .feed(let privacyType):
                 cell.configureHome(privacyType: privacyType)
-            case .group(let groupID, let name):
+            case .group(let groupID, _, let name):
                 cell.configureGroup(with: groupID, name: name)
             case .contact(let userID, let name, _):
                 cell.configureUser(with: userID, name: name)

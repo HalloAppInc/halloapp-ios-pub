@@ -565,7 +565,7 @@ class ComposerViewController: UIViewController {
 
         if media.count > 0 {
             titleView.alignment = .leading
-            if case .group(_, _) = config.destination {
+            if case .group(_, _, _) = config.destination {
                 titleView.title = Localizations.newPostTitle
             } else if initialType == .unified, !config.isOnboarding {
                 titleView.title = Localizations.newPostTitle
@@ -1291,7 +1291,7 @@ extension ComposerViewController {
         switch config.destination {
         case .feed(let privacyListType):
             mentionableUsers = Mentions.mentionableUsersForNewPost(privacyListType: privacyListType)
-        case .group(let id, _):
+        case .group(let id, _, _):
             mentionableUsers = Mentions.mentionableUsers(forGroupID: id, in: MainAppContext.shared.feedData.viewContext)
         case .contact:
             mentionableUsers = []

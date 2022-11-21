@@ -1819,7 +1819,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
                 switch selectedDestination {
                 case .contact(id: let id, name: _, phone: _):
                     toUserIds.append(id)
-                case .group(id: let id, _):
+                case .group(id: let id, _, _):
                     toChatGroupIDs.append(id)
                 default:
                     break

@@ -217,6 +217,7 @@ extension CameraPostViewController: MomentComposerViewControllerDelegate {
     }
 
     func momentComposerDidSend(_ composer: MomentComposerViewController) {
+        delegate?.cameraPostViewController(self, didPostTo: [.feed(.all)])
         showSnapshotAndDismiss()
     }
 

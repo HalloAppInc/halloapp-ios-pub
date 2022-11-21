@@ -51,7 +51,7 @@ class PostComposerViewConfiguration: ObservableObject {
         switch destination {
         case .feed(_):
             return .userPost(destination)
-        case .group(_, _):
+        case .group(_, _, _):
             return .groupPost(destination)
         case .contact(_, _, _):
             return .message(destination)
@@ -581,7 +581,7 @@ class PostComposerViewController: UIViewController {
             changeDestinationIconConstraint?.constant = 13
 
             changeDestinationLabel.text = PrivacyList.name(forPrivacyListType: privacyListType)
-        case .group(let groupID, let name):
+        case .group(let groupID, _, let name):
             changeDestinationButton.setBackgroundColor(.primaryBlue, for: .normal)
             let avatarData = MainAppContext.shared.avatarStore.groupAvatarData(for: groupID)
             if let image = avatarData.image {
@@ -1452,7 +1452,7 @@ fileprivate struct TextView: UIViewRepresentable {
             switch destination {
             case .feed(let privacyListType):
                 return Mentions.mentionableUsersForNewPost(privacyListType: privacyListType)
-            case .group(let groupID, _):
+            case .group(let groupID, _, _):
                 return Mentions.mentionableUsers(forGroupID: groupID, in: MainAppContext.shared.feedData.viewContext)
             case .contact:
                 return []

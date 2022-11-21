@@ -95,6 +95,10 @@ protocol UIViewControllerHandleTapNotification {
     func processNotification(metadata: NotificationMetadata)
 }
 
+protocol UIViewControllerHandleShareDestination {
+    func route(to destination: ShareDestination)
+}
+
 fileprivate class LargeHitAvatarButton: AvatarViewButton {
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
         return bounds.insetBy(dx: -12, dy: -12).contains(point)

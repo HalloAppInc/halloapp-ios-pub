@@ -612,6 +612,33 @@ extension ChatListViewController: UIViewControllerScrollsToTop {
     }
 }
 
+// MARK: - UIViewControllerHandleShareDestination methods
+
+extension ChatListViewController: UIViewControllerHandleShareDestination {
+
+    func route(to destination: ShareDestination) {
+        var viewController: UIViewController?
+        switch destination {
+        case .group(id: let id, type: let type, _) where type == .groupChat:
+            if let group = MainAppContext.shared.chatData.chatGroup(groupId: id, in: MainAppContext.shared.chatData.viewContext) {
+                let vc = GroupChatViewController(for: group)
+                vc.chatViewControllerDelegate = self
+                viewController = vc
+            }
+        case .contact(id: let id, _, _):
+            let vc = ChatViewControllerNew(for: id)
+            vc.chatViewControllerDelegate = self
+            viewController = vc
+        default:
+            break
+        }
+
+        if let viewController {
+            navigationController?.pushViewController(viewController, animated: false)
+        }
+    }
+}
+
 // MARK: Table Header Delegate
 extension ChatListViewController: ChatListHeaderViewDelegate {
     func chatListHeaderView(_ chatListHeaderView: ChatListHeaderView) {

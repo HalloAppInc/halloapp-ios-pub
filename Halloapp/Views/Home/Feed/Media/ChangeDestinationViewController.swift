@@ -169,7 +169,7 @@ class ChangeDestinationViewController: UIViewController {
                 }
 
                 return cell
-            case .group(let groupID, let name):
+            case .group(let groupID, _, let name):
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GroupCell.reuseIdentifier, for: indexPath) as? GroupCell else { return nil }
                 cell.configure(groupId: groupID, title: name, isSelected: isSelected)
 
@@ -277,12 +277,13 @@ class ChangeDestinationViewController: UIViewController {
 
             let searchItems = searchString.components(separatedBy: " ")
             threads?.forEach {
-                guard let groupId = $0.groupId, let title = $0.title else { return }
+                guard
+                    let groupId = $0.groupId, let title = $0.title else { return }
 
                 let titleLowercased = title.lowercased()
                 for item in searchItems {
                     if titleLowercased.contains(item) {
-                        snapshot.appendItems([.group(id: groupId, name: title)], toSection: 1)
+                        snapshot.appendItems([.group(id: groupId, type: $0.type, name: title)], toSection: 1)
                     }
                 }
             }
@@ -294,7 +295,7 @@ class ChangeDestinationViewController: UIViewController {
                 snapshot.appendSections([1])
                 snapshot.appendItems(threads.compactMap {
                     guard let groupId = $0.groupId, let title = $0.title else { return nil }
-                    return .group(id: groupId, name: title)
+                    return .group(id: groupId, type: $0.type, name: title)
                 }, toSection: 1)
             }
         }

@@ -285,33 +285,31 @@ final class NewPostViewController: UINavigationController {
                     chatReplyMessageSenderID: nil,
                     chatReplyMessageMediaIndex: 0,
                     result: result)
-            case .group(let groupId, _):
-                if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.feedData.viewContext) {
-                    switch group.type {
-                    case .groupFeed:
-                        makePost(
-                            text: text,
-                            media: result.media,
-                            linkPreviewData: result.linkPreviewData,
-                            linkPreviewMedia: result.linkPreviewMedia,
-                            to: destination, result: result)
-                    case .groupChat:
-                        sendChatMessage(
-                            chatMessageRecipient: .groupChat(toGroupId: groupId, fromUserId: AppContext.shared.userData.userId),
-                            text: text,
-                            media: result.media,
-                            files: [],
-                            linkPreviewData: result.linkPreviewData,
-                            linkPreviewMedia: result.linkPreviewMedia,
-                            feedPostId: nil,
-                            feedPostMediaIndex: 0,
-                            chatReplyMessageID: nil,
-                            chatReplyMessageSenderID: nil,
-                            chatReplyMessageMediaIndex: 0,
-                            result: result)
-                    case .oneToOne:
-                        break
-                    }
+            case .group(let groupId, let type, _):
+                switch type {
+                case .groupFeed:
+                    makePost(
+                        text: text,
+                        media: result.media,
+                        linkPreviewData: result.linkPreviewData,
+                        linkPreviewMedia: result.linkPreviewMedia,
+                        to: destination, result: result)
+                case .groupChat:
+                    sendChatMessage(
+                        chatMessageRecipient: .groupChat(toGroupId: groupId, fromUserId: AppContext.shared.userData.userId),
+                        text: text,
+                        media: result.media,
+                        files: [],
+                        linkPreviewData: result.linkPreviewData,
+                        linkPreviewMedia: result.linkPreviewMedia,
+                        feedPostId: nil,
+                        feedPostMediaIndex: 0,
+                        chatReplyMessageID: nil,
+                        chatReplyMessageSenderID: nil,
+                        chatReplyMessageMediaIndex: 0,
+                        result: result)
+                case .oneToOne:
+                    break
                 }
             case .feed(_):
                 makePost(
