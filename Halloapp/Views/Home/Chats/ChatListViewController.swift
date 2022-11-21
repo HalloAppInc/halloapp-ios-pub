@@ -224,15 +224,9 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
                 
                 self?.view.window?.rootViewController?.dismiss(animated: true, completion: nil)
                 guard let self = self else { return }
-                if ServerProperties.newChatUI {
-                    let vc = ChatViewControllerNew(for: conversationID.id, with: nil, at: 0)
-                    vc.chatViewControllerDelegate = self
-                    self.navigationController?.pushViewController(vc, animated: true)
-                } else {
-                    let vc = ChatViewController(for: conversationID.id, with: nil, at: 0)
-                    vc.delegate = self
-                    self.navigationController?.pushViewController(vc, animated: true)
-                }
+                let vc = ChatViewControllerNew(for: conversationID.id, with: nil, at: 0)
+                vc.chatViewControllerDelegate = self
+                self.navigationController?.pushViewController(vc, animated: true)
             })
         )
 
@@ -590,15 +584,10 @@ extension ChatListViewController: UIViewControllerHandleTapNotification {
         DDLogInfo("ChatListViewController/routeTo/\(userID)")
 
         navigationController?.popToRootViewController(animated: false)
-        if ServerProperties.newChatUI {
-            let vc = ChatViewControllerNew(for: userID, with: nil, at: 0)
-            vc.chatViewControllerDelegate = self
-            self.navigationController?.pushViewController(vc, animated: animated)
-        } else {
-            let vc = ChatViewController(for: userID, with: nil, at: 0)
-            vc.delegate = self
-            self.navigationController?.pushViewController(vc, animated: animated)
-        }
+
+        let vc = ChatViewControllerNew(for: userID, with: nil, at: 0)
+        vc.chatViewControllerDelegate = self
+        self.navigationController?.pushViewController(vc, animated: animated)
     }
 }
 
@@ -689,15 +678,9 @@ extension ChatListViewController: UITableViewDelegate {
         switch chatThread.type {
         case .oneToOne:
             if let chatWithUserId = chatThread.userID {
-                if ServerProperties.newChatUI {
-                    let vc = ChatViewControllerNew(for: chatWithUserId, with: nil, at: 0)
-                    vc.chatViewControllerDelegate = self
-                    self.navigationController?.pushViewController(vc, animated: true)
-                } else {
-                    let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
-                    vc.delegate = self
-                    self.navigationController?.pushViewController(vc, animated: true)
-                }
+                let vc = ChatViewControllerNew(for: chatWithUserId, with: nil, at: 0)
+                vc.chatViewControllerDelegate = self
+                self.navigationController?.pushViewController(vc, animated: true)
             }
         case .groupChat:
             if let groupId = chatThread.groupId, let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId, in: MainAppContext.shared.chatData.viewContext) {
@@ -810,18 +793,10 @@ extension ChatListViewController: UISearchBarDelegate {
 extension ChatListViewController: NewChatViewControllerDelegate {
     func newChatViewController(_ controller: NewChatViewController, didSelect userId: UserID) {
         controller.dismiss(animated: true) {
-            if ServerProperties.newChatUI {
-                let vc = ChatViewControllerNew(for: userId)
-                self.navigationController?.pushViewController(vc, animated: true)
-                DispatchQueue.main.async {
-                    vc.showKeyboard()
-                }
-            } else {
-                let vc = ChatViewController(for: userId)
-                self.navigationController?.pushViewController(vc, animated: true)
-                DispatchQueue.main.async {
-                    vc.showKeyboard()
-                }
+            let vc = ChatViewControllerNew(for: userId)
+            self.navigationController?.pushViewController(vc, animated: true)
+            DispatchQueue.main.async {
+                vc.showKeyboard()
             }
         }
     }
@@ -838,13 +813,6 @@ extension ChatListViewController: NewChatViewControllerDelegate {
 
 extension ChatListViewController: ChatViewControllerDelegate {
     func chatViewController(_ chatViewController: GroupChatViewController, userActioned: Bool) {
-        DispatchQueue.main.async {
-            self.scrollToTop(animated: false)
-        }
-    }
-    
-    func chatViewController(_ controller: ChatViewController, userActioned: Bool) {
-        searchController.isActive = false
         DispatchQueue.main.async {
             self.scrollToTop(animated: false)
         }

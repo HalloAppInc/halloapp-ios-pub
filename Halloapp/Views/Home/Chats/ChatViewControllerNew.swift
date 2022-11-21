@@ -102,6 +102,11 @@ fileprivate enum Section: Hashable {
     case chats
 }
 
+protocol ChatViewControllerDelegate: AnyObject {
+    func chatViewController(_ chatViewController: ChatViewControllerNew, userActioned: Bool)
+    func chatViewController(_ chatViewController: GroupChatViewController, userActioned: Bool)
+}
+
 class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegate, UICollectionViewDelegate, UIViewControllerMediaSaving {
 
     // Wait for ios to create a cell if it does not exist
@@ -2295,5 +2300,24 @@ extension ChatViewControllerNew: TextLabelDelegate {
     func textLabelDidRequestToExpand(_ label: TextLabel) {
         label.numberOfLines = 0
         collectionView.collectionViewLayout.invalidateLayout()
+    }
+}
+
+extension Localizations {
+
+    static var chatDeleteTitle: String {
+        NSLocalizedString("chat.delete.title", value: "Delete selected message?", comment: "Title of deletion menu")
+    }
+
+    static var chatDeleteForMe: String {
+        NSLocalizedString("chat.delete.me", value: "Delete for me", comment: "Button to locally delete a chat message")
+    }
+
+    static var chatDeleteForEveryone: String {
+        NSLocalizedString("chat.delete.everyone", value: "Delete for everyone", comment: "Button to retract a chat message for everyone")
+    }
+
+    static var addMediaOptionDocument: String {
+        NSLocalizedString("add.media.option.document", value: "Document", comment: "Menu option for adding generic file")
     }
 }

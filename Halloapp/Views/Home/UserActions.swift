@@ -70,13 +70,8 @@ extension UserActionHandler where Self: UIViewController {
         // slight delay because otherwise the dismissal of the context menu makes the
         // push animation look abrupt
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
-            if ServerProperties.newChatUI {
-                let vc = ChatViewControllerNew(for: id)
-                self?.navigationController?.pushViewController(vc, animated: true)
-            } else {
-                let vc = ChatViewController(for: id)
-                self?.navigationController?.pushViewController(vc, animated: true)
-            }
+            let vc = ChatViewControllerNew(for: id)
+            self?.navigationController?.pushViewController(vc, animated: true)
         }
     }
     

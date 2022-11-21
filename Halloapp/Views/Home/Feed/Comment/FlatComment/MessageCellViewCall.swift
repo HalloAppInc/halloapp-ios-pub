@@ -11,6 +11,16 @@ import Core
 import CoreCommon
 import UIKit
 
+struct ChatCallData: Hashable {
+    var userID: UserID
+    var timestamp: Date?
+    var duration: TimeInterval
+    var wasSuccessful: Bool
+    var wasIncoming: Bool
+    var type: CallType
+    var isMissedCall: Bool
+}
+
 protocol MessageCellViewCallDelegate: AnyObject {
     func chatCallView(_ callView: MessageCellViewCall, didTapCallButtonWithData callData: ChatCallData)
 }

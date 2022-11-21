@@ -37,7 +37,6 @@ public struct ServerProperties {
         case preInviteStrings = "pre_invite_strings"
         case inviteStrings = "invite_strings"
         case nseRuntimeSec = "nse_runtime_sec"
-        case newChatUI = "new_chat_ui"
         case maxPostMediaItems = "max_post_media_items"
         case maxChatMediaItems = "max_chat_media_items"
         case sendClearTextHomeFeedContent = "cleartext_home_feed"
@@ -86,7 +85,6 @@ public struct ServerProperties {
         static let isHomeCommentNotificationsEnabled = false
         static let isFileSharingEnabled = false
         static let nseRuntimeSec = 17.0
-        static let newChatUI = false
         static let maxPostMediaItems = 10
         static let maxChatMediaItems = 30
         static let sendClearTextHomeFeedContent = true
@@ -287,8 +285,6 @@ public struct ServerProperties {
                 value = inviteString(langID: Locale.current.languageCode?.lowercased() ?? "") ?? ""
             case .nseRuntimeSec:
                 value = nseRuntimeSec
-            case .newChatUI:
-                value = newChatUI
             case .maxPostMediaItems:
                 value = maxPostMediaItems
             case .maxChatMediaItems:
@@ -420,10 +416,6 @@ public struct ServerProperties {
 
     public static var nseRuntimeSec: TimeInterval {
         ServerProperties.double(forKey: .nseRuntimeSec) ?? Defaults.nseRuntimeSec
-    }
-
-    public static var newChatUI: Bool {
-        ServerProperties.bool(forKey: .newChatUI) ?? Defaults.newChatUI
     }
 
     public static var enableChatLocationSharing: Bool {

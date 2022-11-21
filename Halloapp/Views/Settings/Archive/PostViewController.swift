@@ -277,18 +277,10 @@ extension PostViewController: UserActionHandler {
             guard let self = self else {
                 return
             }
-            if ServerProperties.newChatUI {
-                let chatViewController = ChatViewControllerNew(for: self.post.userId,
-                                                               with: self.post.id,
-                                                               at: Int32(self.currentMediaIndex))
-                self.navigationController?.pushViewController(chatViewController, animated: true)
-            } else {
-                let chatViewController = ChatViewController(for: self.post.userId,
-                                                            with: self.post.id,
-                                                            at: Int32(self.currentMediaIndex))
-                self.navigationController?.pushViewController(chatViewController, animated: true)
-            }
-            
+            let chatViewController = ChatViewControllerNew(for: self.post.userId,
+                                                           with: self.post.id,
+                                                           at: Int32(self.currentMediaIndex))
+            self.navigationController?.pushViewController(chatViewController, animated: true)
         }
 
         postView.showGroupFeedAction = { [weak self] groupID in
@@ -435,11 +427,7 @@ extension PostViewController: PostDashboardViewControllerDelegate {
 
         case .message(let userId, let postId):
             actionToPerformOnDashboardDismiss = {
-                if ServerProperties.newChatUI {
-                    self.navigationController?.pushViewController(ChatViewControllerNew(for: userId, with: postId), animated: true)
-                } else {
-                    self.navigationController?.pushViewController(ChatViewController(for: userId, with: postId), animated: true)
-                }
+                self.navigationController?.pushViewController(ChatViewControllerNew(for: userId, with: postId), animated: true)
             }
 
         case .blacklist(let userId):

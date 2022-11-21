@@ -231,7 +231,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         get {
             let fetchRequest = NSFetchRequest<GroupMember>(entityName: "GroupMember")
             fetchRequest.sortDescriptors = [
-                NSSortDescriptor(keyPath: \ChatGroupMember.typeValue, ascending: true)
+                NSSortDescriptor(keyPath: \GroupMember.typeValue, ascending: true)
             ]
             fetchRequest.predicate = NSPredicate(format: "groupID = %@", groupID)
             return fetchRequest
@@ -724,13 +724,8 @@ extension GroupInfoViewController: UITableViewDelegate {
                 if isContactInAddressBook {
                     actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoMessageUser, style: .default) { [weak self] _ in
                         guard let self = self else { return }
-                        if ServerProperties.newChatUI {
-                            let vc = ChatViewControllerNew(for: memberUserID)
-                            self.navigationController?.pushViewController(vc, animated: true)
-                        } else {
-                            let vc = ChatViewController(for: memberUserID)
-                            self.navigationController?.pushViewController(vc, animated: true)
-                        }
+                        let vc = ChatViewControllerNew(for: memberUserID)
+                        self.navigationController?.pushViewController(vc, animated: true)
                     })
                 }
 
