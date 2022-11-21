@@ -1453,7 +1453,7 @@ extension ChatViewControllerNew: ContentInputDelegate {
     }
     
     private func presentCameraViewController() {
-        let vc = NewCameraViewController(presets: [.photo], initialPreset: 0)
+        let vc = NewCameraViewController(presets: [.photo], initialPresetIndex: 0)
         let nc = UINavigationController(rootViewController: vc)
         nc.modalPresentationStyle = .fullScreen
         nc.overrideUserInterfaceStyle = .dark

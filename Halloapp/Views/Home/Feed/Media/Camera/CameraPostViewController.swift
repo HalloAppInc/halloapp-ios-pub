@@ -19,7 +19,7 @@ class CameraPostViewController: UIViewController {
     weak var delegate: CameraPostViewControllerDelegate?
 
     private lazy var cameraViewController: NewCameraViewController = {
-        let vc = NewCameraViewController(presets: [.photo, .moment(.normal)], initialPreset: 0)
+        let vc = NewCameraViewController(presets: [.photo, .moment(.normal)], initialPresetIndex: 0)
         vc.delegate = self
         vc.overrideUserInterfaceStyle = .dark
         return vc
@@ -203,11 +203,13 @@ extension CameraPostViewController: UIViewControllerTransitioningDelegate {
 extension CameraPostViewController: MomentComposerViewControllerDelegate {
 
     var distanceFromTopForBackground: CGFloat {
-        cameraViewController.background.frame.minY
+        view.layoutIfNeeded()
+        return cameraViewController.background.frame.minY
     }
 
     var heightForBackground: CGFloat {
-        cameraViewController.background.bounds.height
+        view.layoutIfNeeded()
+        return cameraViewController.background.bounds.height
     }
 
     func momentComposerDidEnableSend(_ composer: MomentComposerViewController) {

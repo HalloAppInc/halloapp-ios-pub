@@ -1009,7 +1009,7 @@ extension MomentViewController: ContentInputDelegate {
     }
 
     private func presentCameraViewController() {
-        let vc = NewCameraViewController(presets: [.photo], initialPreset: 0)
+        let vc = NewCameraViewController(presets: [.photo], initialPresetIndex: 0)
         vc.delegate = self
 
         let nc = UINavigationController(rootViewController: vc)

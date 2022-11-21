@@ -22,7 +22,7 @@ class MomentComposerPresentTransition: NSObject, UIViewControllerAnimatedTransit
         let presenter = composer?.delegate
 
         guard let to, let presenter, let composer else {
-            fatalError()
+            return
         }
 
         to.view.alpha = 0

@@ -52,7 +52,7 @@ final class NewMomentViewController: UIViewController {
     /// - note: We keep a reference to the view controller itself so that we can easily get
     ///         layout values when performing the animation.
     private(set) lazy var cameraViewController: NewCameraViewController = {
-        let vc = NewCameraViewController(presets: [.moment(context)], initialPreset: 0)
+        let vc = NewCameraViewController(presets: [.moment(context)], initialPresetIndex: 0)
         vc.delegate = self
         vc.title = Localizations.newMomentTitle
         return vc
@@ -279,11 +279,13 @@ extension NewMomentViewController: CameraViewControllerDelegate {
 extension NewMomentViewController: MomentComposerViewControllerDelegate {
 
     var distanceFromTopForBackground: CGFloat {
-        cameraViewController.background.frame.origin.y
+        view.layoutIfNeeded()
+        return cameraViewController.background.frame.origin.y
     }
 
     var heightForBackground: CGFloat {
-        cameraViewController.background.bounds.height
+        view.layoutIfNeeded()
+        return cameraViewController.background.bounds.height
     }
 
     func momentComposerDidEnableSend(_ composer: MomentComposerViewController) {
@@ -340,21 +342,7 @@ extension NewMomentViewController {
         stack.layoutMargins = UIEdgeInsets(top: 25, left: 35, bottom: 15, right: 35)
         stack.spacing = 20
 
-        cameraViewController.view.addSubview(blur)
         blur.contentView.addSubview(stack)
-
-//        NSLayoutConstraint.activate([
-//            blur.leadingAnchor.constraint(equalTo: cameraController.primaryViewfinder.leadingAnchor),
-//            blur.trailingAnchor.constraint(equalTo: cameraController.primaryViewfinder.trailingAnchor),
-//            blur.topAnchor.constraint(equalTo: cameraController.primaryViewfinder.topAnchor),
-//            blur.bottomAnchor.constraint(equalTo: cameraController.primaryViewfinder.bottomAnchor),
-//
-//            stack.leadingAnchor.constraint(equalTo: blur.contentView.leadingAnchor),
-//            stack.trailingAnchor.constraint(equalTo: blur.contentView.trailingAnchor),
-//            stack.topAnchor.constraint(greaterThanOrEqualTo: blur.contentView.topAnchor),
-//            stack.bottomAnchor.constraint(lessThanOrEqualTo: blur.contentView.bottomAnchor),
-//            stack.centerYAnchor.constraint(equalTo: blur.contentView.centerYAnchor)
-//        ])
 
         unlockingExplainerOverlay = blur
         button.addTarget(self, action: #selector(dismissUnlockingExplainer), for: .touchUpInside)

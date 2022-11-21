@@ -305,10 +305,8 @@
 		A1AFE7782821E135008BBC80 /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1AFE7772821E135008BBC80 /* MomentView.swift */; };
 		A1C18C7C27A1EC9100A76102 /* HalloCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C18C7B27A1EC9100A76102 /* HalloCode.swift */; };
 		A1C18C7F27A1ED8C00A76102 /* HalloCodeTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C18C7E27A1ED8C00A76102 /* HalloCodeTest.swift */; };
-		A1CD44872926B16F00623FF6 /* CameraSessionError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CD44862926B16F00623FF6 /* CameraSessionError.swift */; };
 		A1CD447F291C6AC000623FF6 /* CameraAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CD447E291C6AC000623FF6 /* CameraAnimator.swift */; };
 		A1CD4481291C722100623FF6 /* CameraPostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CD4480291C722100623FF6 /* CameraPostViewController.swift */; };
-		A1CD4483291DB75800623FF6 /* MomentComposerAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CD4482291DB75800623FF6 /* MomentComposerAnimator.swift */; };
 		A1CD44852924027200623FF6 /* MomentComposerTransitions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CD44842924027200623FF6 /* MomentComposerTransitions.swift */; };
 		A1CD44872926B16F00623FF6 /* CameraSessionError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CD44862926B16F00623FF6 /* CameraSessionError.swift */; };
 		A1DD9748287E39A000B98618 /* StackedMomentCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1DD9747287E39A000B98618 /* StackedMomentCollectionViewCell.swift */; };
@@ -1126,10 +1124,8 @@
 		A1AFE7772821E135008BBC80 /* MomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentView.swift; sourceTree = "<group>"; };
 		A1C18C7B27A1EC9100A76102 /* HalloCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloCode.swift; sourceTree = "<group>"; };
 		A1C18C7E27A1ED8C00A76102 /* HalloCodeTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloCodeTest.swift; sourceTree = "<group>"; };
-		A1CD44862926B16F00623FF6 /* CameraSessionError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraSessionError.swift; sourceTree = "<group>"; };
 		A1CD447E291C6AC000623FF6 /* CameraAnimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraAnimator.swift; sourceTree = "<group>"; };
 		A1CD4480291C722100623FF6 /* CameraPostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPostViewController.swift; sourceTree = "<group>"; };
-		A1CD4482291DB75800623FF6 /* MomentComposerAnimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentComposerAnimator.swift; sourceTree = "<group>"; };
 		A1CD44842924027200623FF6 /* MomentComposerTransitions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentComposerTransitions.swift; sourceTree = "<group>"; };
 		A1CD44862926B16F00623FF6 /* CameraSessionError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraSessionError.swift; sourceTree = "<group>"; };
 		A1DD9747287E39A000B98618 /* StackedMomentCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StackedMomentCollectionViewCell.swift; sourceTree = "<group>"; };
@@ -1907,7 +1903,6 @@
 				A104661C291844A200BF7AC7 /* ViewfinderLayout.swift */,
 				A1562B1828D0EED40082F1E5 /* CaptureRequest.swift */,
 				A1CD44862926B16F00623FF6 /* CameraSessionError.swift */,
-				A1CD44862926B16F00623FF6 /* CameraSessionError.swift */,
 				A1CD447E291C6AC000623FF6 /* CameraAnimator.swift */,
 				A1CD4480291C722100623FF6 /* CameraPostViewController.swift */,
 			);
@@ -1940,7 +1935,6 @@
 				A1AFE775281FAA6B008BBC80 /* MomentViewController.swift */,
 				A11272E92856C5930009EBD7 /* NewMomentViewController.swift */,
 				A1CD44842924027200623FF6 /* MomentComposerTransitions.swift */,
-				A1CD4482291DB75800623FF6 /* MomentComposerAnimator.swift */,
 				A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */,
 				A18A409628EF578D002A0BDE /* MomentLocationToggle.swift */,
 				A11FA896285BE02900ACDA76 /* MomentsExplainerViewController.swift */,
@@ -3419,7 +3413,6 @@
 				326823802886245700AB459A /* DestinationTrayView.swift in Sources */,
 				F4C29B142838704C00A4FE08 /* UICollectionView.swift in Sources */,
 				6AC68EF726399BAE0073CBE9 /* ServerStrings.swift in Sources */,
-				A1CD4483291DB75800623FF6 /* MomentComposerAnimator.swift in Sources */,
 				76E00DF624FEC4A800E06252 /* ProfileHeaderViewController.swift in Sources */,
 				EA96D5B626689A0400F85731 /* GroupInviteQRViewController.swift in Sources */,
 				EECB00B0286E2396003996B3 /* LocationSharingViewController.swift in Sources */,

@@ -177,8 +177,8 @@ class NewCameraViewController: UIViewController, CameraPresetConfigurable {
     var onDismiss: (() -> Void)?
     weak var delegate: CameraViewControllerDelegate?
 
-    init(presets: [CameraPreset], initialPreset: Int) {
-        viewModel = CameraViewModel(presets: presets, initial: initialPreset)
+    init(presets: [CameraPreset], initialPresetIndex: Int) {
+        viewModel = CameraViewModel(presets: presets, initial: initialPresetIndex)
         super.init(nibName: nil, bundle: nil)
     }
 

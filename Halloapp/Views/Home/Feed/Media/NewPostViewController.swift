@@ -364,7 +364,7 @@ final class NewPostViewController: UINavigationController {
     }
 
     private func makeNewCameraViewController() -> UIViewController {
-        let vc = NewCameraViewController(presets: [.photo], initialPreset: 0)
+        let vc = NewCameraViewController(presets: [.photo], initialPresetIndex: 0)
 
         vc.title = Localizations.fabAccessibilityCamera
         vc.delegate = self
