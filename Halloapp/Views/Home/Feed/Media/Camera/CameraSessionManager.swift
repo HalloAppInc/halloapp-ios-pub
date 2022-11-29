@@ -20,7 +20,6 @@ protocol CameraSessionManagerDelegate: AnyObject {
     @MainActor func sessionManagerWillStart(_ sessionManager: CameraSessionManager)
     @MainActor func sessionManagerDidStart(_ sessionManager: CameraSessionManager)
     @MainActor func sessionManagerDidStop(_ sessionManager: CameraSessionManager)
-    @MainActor func sessionManager(_ sessionManager: CameraSessionManager, didRecordVideoTo url: URL, error: Error?)
 }
 
 class CameraSessionManager: NSObject {
@@ -34,7 +33,7 @@ class CameraSessionManager: NSObject {
     /// 1. Prevent the orange status bar dot from appearing when there is no recording taking place
     /// 2. Only pause the user's audio if they're recording video. Adding the input to the main capture
     ///    session at record time causes a stutter in the preview.
-    private(set) lazy var audioSession: AVCaptureSession = AVCaptureSession()
+    private let audioSession: AVCaptureSession
     private lazy var sessionQueue = DispatchQueue(label: "camera.queue", qos: .userInteractive)
 
     let isUsingMultipleCameras: Bool
@@ -51,37 +50,30 @@ class CameraSessionManager: NSObject {
     private var primaryPhotoOutput: AVCapturePhotoOutput?
     private var secondaryPhotoOutput: AVCapturePhotoOutput?
 
-    private var captureRequest: CaptureRequest?
+    private var captureRequest: PhotoCaptureRequest?
 
 // MARK: - video recording properties
 
     private lazy var videoQueue = DispatchQueue(label: "video.writing.queue", qos: .userInitiated)
-    private var hasWrittenVideo = false
-    private var assetWriter: AVAssetWriter?
-    private var videoWriterInput: AVAssetWriterInput?
-    private var audioWriterInput: AVAssetWriterInput?
-    private var videoOutput: AVCaptureVideoDataOutput?
-    private var audioOuput: AVCaptureAudioDataOutput?
+    private lazy var videoRecorder = VideoRecorder()
+
+    private var primaryVideoOutput: AVCaptureVideoDataOutput?
+    private var secondaryVideoOutput: AVCaptureVideoDataOutput?
+
+    private var audioOutput: AVCaptureAudioDataOutput?
 
     var maximumVideoDuration: TimeInterval = 60
     private var videoTimeout: DispatchWorkItem?
 
 
-// MARK: - published properties
-
     @Published private(set) var activeCamera: CameraPosition = .unspecified
-
-    @Published private(set) var isTakingPhoto = false
-    @Published private(set) var isRecordingVideo = false
-
-    @Published private(set) var videoDuration: TimeInterval?
-    private var videoRecordingStartTime: TimeInterval?
 
     private var cancellables: Set<AnyCancellable> = []
 
     override init() {
         isUsingMultipleCameras = AVCaptureMultiCamSession.isMultiCamSupported
         session = isUsingMultipleCameras ? AVCaptureMultiCamSession() : AVCaptureSession()
+        audioSession = AVCaptureSession()
 
         super.init()
         formSubscriptions()
@@ -152,11 +144,11 @@ class CameraSessionManager: NSObject {
             connection.isVideoMirrored = camera == .front
         }
 
-        if let connection = videoOutput?.connection(with: .video), connection.isVideoMirroringSupported {
+        if let connection = primaryVideoOutput?.connection(with: .video), connection.isVideoMirroringSupported {
             connection.isVideoMirrored = camera == .front
 
             if connection.isVideoOrientationSupported {
-                videoOutput?.connection(with: .video)?.videoOrientation = .landscapeRight
+                primaryVideoOutput?.connection(with: .video)?.videoOrientation = .landscapeRight
             }
         }
     }
@@ -243,8 +235,9 @@ extension CameraSessionManager {
             defer { session.commitConfiguration() }
 
             try self?.setupPhotoOutput()
-            try self?.setupInputs()
             try self?.setupVideoOutput()
+            try self?.setupAudioOutput()
+            try self?.setupInputs()
         }
     }
 
@@ -304,19 +297,30 @@ extension CameraSessionManager {
             }
         }
 
-        if let input = backInput, session.canAddInput(input), let port = input.ports.first, let output = primaryPhotoOutput {
+        if let input = backInput, session.canAddInput(input), let port = input.ports.first, let primaryPhotoOutput, let primaryVideoOutput {
             session.addInputWithNoConnections(input)
 
-            let connection = AVCaptureConnection(inputPorts: [port], output: output)
-            try addConnection(connection)
+            let photoConnection = AVCaptureConnection(inputPorts: [port], output: primaryPhotoOutput)
+            try addConnection(photoConnection)
+
+            let videoConnection = AVCaptureConnection(inputPorts: [port], output: primaryVideoOutput)
+            try addConnection(videoConnection)
         }
 
-        if let input = frontInput, session.canAddInput(input), let port = input.ports.first, let output = secondaryPhotoOutput {
+        if let input = frontInput, session.canAddInput(input), let port = input.ports.first, let secondaryPhotoOutput, let secondaryVideoOutput {
             session.addInputWithNoConnections(input)
 
-            let connection = AVCaptureConnection(inputPorts: [port], output: output)
-            try addConnection(connection)
-            connection.isVideoMirrored = true
+            let photoConnection = AVCaptureConnection(inputPorts: [port], output: secondaryPhotoOutput)
+            try addConnection(photoConnection)
+            photoConnection.automaticallyAdjustsVideoMirroring = false
+            photoConnection.isVideoMirrored = true
+
+            let videoConnection = AVCaptureConnection(inputPorts: [port], output: secondaryVideoOutput)
+            try addConnection(videoConnection)
+
+            videoConnection.videoOrientation = .landscapeRight
+            videoConnection.automaticallyAdjustsVideoMirroring = false
+            videoConnection.isVideoMirrored = true
         }
     }
 
@@ -367,6 +371,11 @@ extension CameraSessionManager {
             let connection = AVCaptureConnection(inputPort: port, videoPreviewLayer: preview)
             if session.canAddConnection(connection) {
                 session.addConnection(connection)
+
+                if input === frontInput {
+                    connection.automaticallyAdjustsVideoMirroring = false
+                    connection.isVideoMirrored = true
+                }
             }
         } else {
             DDLogError("CameraModel/connect-preview/unable to get port for [\(direction)]")
@@ -446,22 +455,54 @@ extension CameraSessionManager {
     }
 
     private func setupVideoOutput() throws {
-        let videoOutput = AVCaptureVideoDataOutput()
-        videoOutput.setSampleBufferDelegate(self, queue: videoQueue)
+        let output = AVCaptureVideoDataOutput()
+        output.setSampleBufferDelegate(self, queue: videoQueue)
 
-        if session.canAddOutput(videoOutput) {
-            session.addOutput(videoOutput)
-            self.videoOutput = videoOutput
+        if session.canAddOutput(output) {
+            session.addOutput(output)
+            self.primaryVideoOutput = output
         } else {
             throw CameraSessionError.videoOutput
         }
 
+        setVideoSettings(for: output)
+
+        if isUsingMultipleCameras {
+            try setupSecondVideoOutput()
+        }
+    }
+
+    private func setupSecondVideoOutput() throws {
+        let output = AVCaptureVideoDataOutput()
+        output.setSampleBufferDelegate(self, queue: videoQueue)
+
+        if session.canAddOutput(output) {
+            session.addOutputWithNoConnections(output)
+            self.secondaryVideoOutput = output
+        } else {
+            throw CameraSessionError.videoOutput
+        }
+
+        setVideoSettings(for: output)
+    }
+
+    private func setVideoSettings(for output: AVCaptureVideoDataOutput) {
+        if output.availableVideoPixelFormatTypes.contains(kCVPixelFormatType_Lossy_32BGRA) {
+            output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_Lossy_32BGRA)]
+        } else if output.availableVideoPixelFormatTypes.contains(kCVPixelFormatType_Lossless_32BGRA) {
+            output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_Lossless_32BGRA)]
+        } else {
+            output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)]
+        }
+    }
+
+    private func setupAudioOutput() throws {
         let audioOutput = AVCaptureAudioDataOutput()
         audioOutput.setSampleBufferDelegate(self, queue: videoQueue)
 
         if audioSession.canAddOutput(audioOutput) {
             audioSession.addOutput(audioOutput)
-            self.audioOuput = audioOutput
+            self.audioOutput = audioOutput
         } else {
             throw CameraSessionError.audioOutput
         }
@@ -610,12 +651,11 @@ extension CameraSessionManager: AVCapturePhotoCaptureDelegate {
         return settings
     }
 
-    func takePhoto(with request: CaptureRequest) -> Bool {
-        guard !isTakingPhoto else {
+    func takePhoto(with request: PhotoCaptureRequest) -> Bool {
+        guard captureRequest == nil else {
             return false
         }
 
-        isTakingPhoto = true
         captureRequest = request
 
         if isUsingMultipleCameras {
@@ -627,7 +667,7 @@ extension CameraSessionManager: AVCapturePhotoCaptureDelegate {
         return true
     }
 
-    private func takeMultiCamPhoto(_ request: CaptureRequest) {
+    private func takeMultiCamPhoto(_ request: PhotoCaptureRequest) {
         let primaryCameraPosition = request.layout.primaryCameraPosition
         let output1: AVCapturePhotoOutput?
         let output2: AVCapturePhotoOutput?
@@ -660,7 +700,7 @@ extension CameraSessionManager: AVCapturePhotoCaptureDelegate {
         }
     }
 
-    private func takeSingleCamPhoto(_ request: CaptureRequest) {
+    private func takeSingleCamPhoto(_ request: PhotoCaptureRequest) {
         let primaryCameraPosition = request.layout.primaryCameraPosition
         let settings = defaultPhotoSettings
 
@@ -674,8 +714,8 @@ extension CameraSessionManager: AVCapturePhotoCaptureDelegate {
 
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         if let error = error {
-            isTakingPhoto = false
             captureRequest?.set(error: error)
+            captureRequest = nil
             return
         }
 
@@ -698,7 +738,6 @@ extension CameraSessionManager: AVCapturePhotoCaptureDelegate {
 
         if request.isFulfilled {
             captureRequest = nil
-            isTakingPhoto = false
         }
     }
 
@@ -720,208 +759,65 @@ extension CameraSessionManager: AVCapturePhotoCaptureDelegate {
 // MARK: - recording videos
 
 extension CameraSessionManager: AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAudioDataOutputSampleBufferDelegate {
-    private typealias Dimensions = (height: Int32, width: Int32)
 
-    private var videoURL: URL {
-        URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("\(UUID().uuidString).mp4")
-    }
-
-    func startRecording() {
-        guard !isRecordingVideo else {
-            return
+    func startRecording(with request: VideoCaptureRequest) async -> Bool {
+        guard
+            var videoSettings = primaryVideoOutput?.recommendedVideoSettingsForAssetWriter(writingTo: .mov) as? [String: Any],
+            let audioSettings = audioOutput?.recommendedAudioSettingsForAssetWriter(writingTo: .mov) as? [String: Any]
+        else {
+            return false
         }
 
-        Task {
-            DDLogInfo("CameraModel/startRecording")
-            await perform { [audioSession] in
-                audioSession.startRunning()
-            }
+        videoSettings[AVVideoHeightKey] = 768
+        videoSettings[AVVideoWidthKey] = 1024
 
-            prepareForVideoRecording()
-            isRecordingVideo = true
+        await perform { [weak self] in
+            self?.audioSession.startRunning()
         }
-    }
 
-    func prepareForVideoRecording() {
-        prepareVideoRecordingInputs()
-
-        let timeout = DispatchWorkItem { [weak self] in self?.stopRecording() }
-        DispatchQueue.main.asyncAfter(deadline: .now() + maximumVideoDuration, execute: timeout)
-        videoTimeout = timeout
-
-        videoDuration = 0
+        return videoRecorder.start(with: request, videoSettings: videoSettings, audioSettings: audioSettings)
     }
 
     func stopRecording() {
-        guard isRecordingVideo, let writer = assetWriter else {
-            return
-        }
-
-        DDLogInfo("CameraModel/stopRecording")
-        isRecordingVideo = false
-
-        videoDuration = nil
-        videoTimeout?.cancel()
-        videoTimeout = nil
-
         Task {
-            guard writer.status != .unknown else {
-                DDLogError("CameraModel/stopRecording task/asset writer has unknown status")
-                return
+            await videoRecorder.stop()
+
+            await perform { [audioSession] in
+                audioSession.stopRunning()
             }
-
-            await writer.finishWriting()
-            if let error = writer.error {
-                DDLogError("CameraModel/stopRecording task/asset writer finished with error: \(String(describing: error))")
-            }
-
-            let viewError = writer.error == nil ? nil : CameraSessionError.videoOutput
-            await delegate?.sessionManager(self, didRecordVideoTo: writer.outputURL, error: viewError)
         }
-
-        cleanUpAfterRecordingVideo()
-    }
-
-    private func cleanUpAfterRecordingVideo() {
-        assetWriter = nil
-        videoWriterInput = nil
-        audioWriterInput = nil
-        hasWrittenVideo = false
-
-        sessionQueue.async { [audioSession] in
-            audioSession.stopRunning()
-        }
-    }
-
-    private func prepareVideoRecordingInputs() {
-        guard
-            let writer = try? AVAssetWriter(outputURL: videoURL, fileType: AVFileType.mp4),
-            let format = backCamera?.activeFormat.formatDescription
-        else {
-            DDLogError("CameraModel/prepareForVideoRecording/unable to create asset writer")
-            return
-        }
-
-        assetWriter = writer
-        let dimensions = CMVideoFormatDescriptionGetDimensions(format)
-        setupWriterInputs((dimensions.height, dimensions.width))
-
-        guard
-            let videoInput = videoWriterInput,
-            let audioInput = audioWriterInput,
-            writer.canAdd(videoInput),
-            writer.canAdd(audioInput)
-        else {
-            DDLogError("CameraModel/prepareForVideoRecording/unable to add inputs to asset writer")
-            return
-        }
-
-        writer.add(videoInput)
-        writer.add(audioInput)
-    }
-
-    private func setupWriterInputs(_ dimensions: Dimensions) {
-        let videoSettings = [
-            AVVideoCodecKey: AVVideoCodecType.h264,
-            AVVideoHeightKey: dimensions.height,
-            AVVideoWidthKey: dimensions.width,
-            AVVideoScalingModeKey: AVVideoScalingModeResizeAspectFill,
-        ] as [String : Any]
-
-        let videoInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
-        videoInput.expectsMediaDataInRealTime = true
-        videoInput.transform = videoTransform
-
-        let audioSettings = [
-            AVFormatIDKey: kAudioFormatMPEG4AAC,
-            AVNumberOfChannelsKey: 1,
-            AVSampleRateKey: 44100,
-            AVEncoderBitRateKey: 64000
-        ] as [String: Any]
-
-        let audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
-        audioInput.expectsMediaDataInRealTime = true
-
-        self.videoWriterInput = videoInput
-        self.audioWriterInput = audioInput
-    }
-
-    private func scaleVideoDimensionsIfNecessary(_ dimensions: Dimensions) -> Dimensions {
-        let maxWidth: CGFloat = 1024
-        let ogHeight = CGFloat(dimensions.height)
-        let ogWidth = CGFloat(dimensions.width)
-
-        if ogWidth <= maxWidth {
-            return dimensions
-        }
-
-        let scaleFactor = maxWidth / ogWidth
-        let scaledHeight = Int32(ogHeight * scaleFactor)
-        let scaledWidth = Int32(ogWidth * scaleFactor)
-
-        return (scaledHeight, scaledWidth)
-    }
-
-    /// Used for rotating video according to the device's orientation.
-    ///
-    /// - note: Far more efficient than setting the orientation on the output, which causes the actual
-    ///         buffers to be rotated as they come in.
-    private var videoTransform: CGAffineTransform {
-        var rotation = CGAffineTransform.identity
-        switch UIDevice.current.orientation {
-        case .portraitUpsideDown:
-            rotation = rotation.rotated(by: -.pi / 2)
-        case .landscapeLeft:
-            // this seems to be the default; the other angles are based on this
-            break
-        case .landscapeRight:
-            rotation = rotation.rotated(by: .pi)
-        default:
-            rotation = rotation.rotated(by: .pi / 2)
-        }
-
-        return rotation
     }
 
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        guard
-            isRecordingVideo,
-            let writer = assetWriter,
-            let videoInput = videoWriterInput,
-            let audioInput = audioWriterInput
-        else {
+        guard let request = videoRecorder.request, CMSampleBufferDataIsReady(sampleBuffer) else {
             return
         }
 
-        if case .unknown = writer.status, output === videoOutput {
-            // make sure we start writing on a video sample buffer to avoid the initial frames being black
-            writer.startWriting()
-            writer.startSession(atSourceTime: sampleBuffer.presentationTimeStamp)
-
-            let currentTimestamp = sampleBuffer.presentationTimeStamp
-            let currentTime = Double(currentTimestamp.value) / Double(currentTimestamp.timescale)
-            videoRecordingStartTime = currentTime
+        var shouldFlipBuffers = false
+        switch request.layout {
+        case .fullPortrait(.front), .fullLandscape(.front):
+            shouldFlipBuffers = true
+        default:
+            break
         }
 
-        guard CMSampleBufferDataIsReady(sampleBuffer) else {
-            return
-        }
+        switch output {
+        case secondaryVideoOutput where shouldFlipBuffers:
+            videoRecorder.update(primaryBuffer: sampleBuffer)
 
-        if output === videoOutput, videoInput.isReadyForMoreMediaData {
-            videoInput.append(sampleBuffer)
-            hasWrittenVideo = true
-        }
+        case primaryVideoOutput where !shouldFlipBuffers:
+            videoRecorder.update(primaryBuffer: sampleBuffer)
 
-        if output === audioOuput, hasWrittenVideo, audioInput.isReadyForMoreMediaData {
+        case secondaryVideoOutput:
+            videoRecorder.update(secondaryBuffer: sampleBuffer)
+
+        case audioOutput:
             let correctedTimestamp = convertTimestamp(for: sampleBuffer)
             CMSampleBufferSetOutputPresentationTimeStamp(sampleBuffer, newValue: correctedTimestamp)
-            audioInput.append(sampleBuffer)
-        }
+            videoRecorder.update(audioBuffer: sampleBuffer)
 
-        let currentTimestamp = sampleBuffer.presentationTimeStamp
-        let currentTime = Double(currentTimestamp.value) / Double(currentTimestamp.timescale)
-        sessionQueue.async { [weak self] in
-            self?.videoDuration = currentTime - (self?.videoRecordingStartTime ?? currentTime)
+        default:
+            break
         }
     }
 
@@ -966,14 +862,14 @@ extension CameraSessionManager {
 
         if exceededSystemCost || exceededHardwareCost {
             // prioritize changing frame rate since we're only taking photos
-            if reduceFrameRate(for: backInput) {
-                checkMultiCamPerformanceCost()
-            } else if reduceFrameRate(for: frontInput) {
-                checkMultiCamPerformanceCost()
-
-            } else if binVideo(for: backInput) {
+            if binVideo(for: backInput) {
                 checkMultiCamPerformanceCost()
             } else if binVideo(for: frontInput) {
+                checkMultiCamPerformanceCost()
+
+            } else if reduceFrameRate(for: backInput) {
+                checkMultiCamPerformanceCost()
+            } else if reduceFrameRate(for: frontInput) {
                 checkMultiCamPerformanceCost()
 
             } else if reduceResolution(for: backInput) {
@@ -994,7 +890,7 @@ extension CameraSessionManager {
         DDLogInfo("CameraModel/reduceFrameRate/current: [\(activeMaxFrameRate)]")
         activeMaxFrameRate -= 5
 
-        if activeMaxFrameRate >= 15 {
+        if activeMaxFrameRate >= 24 {
             configure(input.device) { camera in
                 input.videoMinFrameDurationOverride = CMTimeMake(value: 1, timescale: Int32(activeMaxFrameRate))
             }

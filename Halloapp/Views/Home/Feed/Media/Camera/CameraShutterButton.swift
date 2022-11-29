@@ -26,6 +26,8 @@ extension CameraShutterButton {
 
 class CameraShutterButton: UIControl {
 
+    enum State { case normal, recording }
+
     override var intrinsicContentSize: CGSize {
         CGSize(width: 75, height: 75)
     }
@@ -174,12 +176,27 @@ class CameraShutterButton: UIControl {
     private func longPressed(_ gesture: UILongPressGestureRecognizer) {
         switch gesture.state {
         case .began:
-            animateButtonColor(to: .systemRed)
             onLongPress?(false)
         case .ended, .failed, .cancelled:
             onLongPress?(true)
         default:
             break
+        }
+    }
+
+    func setState(_ state: State, animated: Bool = false) {
+        let color: UIColor
+        switch state {
+        case .normal:
+            color = Self.primaryWhite
+        case .recording:
+            color = .systemRed
+        }
+
+        if animated {
+            animateButtonColor(to: color)
+        } else {
+            circleLayer.fillColor = color.cgColor
         }
     }
 

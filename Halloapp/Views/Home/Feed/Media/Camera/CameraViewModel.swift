@@ -21,7 +21,7 @@ extension CameraViewModel {
         case pushedNextLayout, pushedToggleLayout, completedNextLayout
         case tappedFocus(CameraPosition, CGPoint), pinchedZoom(CameraPosition, CGFloat)
         case toggleFlash, flipCamera
-        case tappedShutter
+        case tappedShutter, beganShutterLongPress, endedShutterLongPress
     }
 
     struct ViewfinderState: Equatable {
@@ -47,6 +47,7 @@ class CameraViewModel: ObservableObject {
 
     let actions = PassthroughSubject<Action, Never>()
     let photos = PassthroughSubject<[CaptureResult], Never>()
+    let videos = PassthroughSubject<URL, Never>()
 
     @Published private(set) var cameraModel: CameraSessionManager?
     @Published private(set) var activePreset: CameraPreset?
@@ -54,6 +55,8 @@ class CameraViewModel: ObservableObject {
     @Published private(set) var orientation = UIDeviceOrientation.portrait
     @Published private(set) var isFlashEnabled = false
     @Published private(set) var error: CameraSessionError?
+    @Published private(set) var isRecordingVideo = false
+    @Published private(set) var videoDuration: Double?
 
     private(set) var isCurrentlyChangingPreset = false
     private var orientationObserver: Task<Void, Never>?
@@ -147,7 +150,32 @@ class CameraViewModel: ObservableObject {
 
                 case .tappedShutter:
                     self.takePhotoIfPossible()
+
+                case .beganShutterLongPress:
+                    Task { await self.recordVideoIfPossible() }
+
+                case .endedShutterLongPress:
+                    self.stopRecordingVideo()
                 }
+            }
+            .store(in: &cancellables)
+
+        $isRecordingVideo
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isRecording in
+                guard
+                    let self, let options = self.activePreset?.options,
+                    let state = self.viewfinderState
+                else {
+                    return
+                }
+
+                let allowsChanging = options.contains(.allowsChangingLayout) && !isRecording
+                let allowsToggling = options.contains(.allowsTogglingLayout) && !isRecording
+
+                self.viewfinderState = .init(layout: state.layout,
+                               allowsChangingLayout: allowsChanging,
+                               allowsTogglingLayout: allowsToggling)
             }
             .store(in: &cancellables)
     }
@@ -157,8 +185,8 @@ class CameraViewModel: ObservableObject {
             return nil
         }
 
-        let allowsChangingLayout = preset.options.contains(.allowsLayoutToggle)
-        let allowsTogglingLayout = preset.options.contains(.allowsSplitToggle)
+        let allowsChangingLayout = preset.options.contains(.allowsChangingLayout)
+        let allowsTogglingLayout = preset.options.contains(.allowsTogglingLayout)
         let layout = layout ?? preset.initialLayout
 
         return ViewfinderState(layout: layout,
@@ -177,7 +205,7 @@ class CameraViewModel: ObservableObject {
 
         let isMulticam = sessionManager.isUsingMultipleCameras
         let takeDelayedPhoto = !isMulticam && activePreset.options.contains(.takeDelayedSecondPhoto)
-        let request = CaptureRequest(layout: layout,
+        let request = PhotoCaptureRequest(layout: layout,
                                 orientation: orientation,
                      takeDelayedSecondPhoto: takeDelayedPhoto)
 
@@ -187,7 +215,7 @@ class CameraViewModel: ObservableObject {
     }
 
     @MainActor
-    private func handlePhotoResults(for request: CaptureRequest) async {
+    private func handlePhotoResults(for request: PhotoCaptureRequest) async {
         let deliverResultsOnArrival = !sessionManager.isUsingMultipleCameras
         var results = [CaptureResult]()
 
@@ -207,6 +235,46 @@ class CameraViewModel: ObservableObject {
         if !results.isEmpty {
             photos.send(results)
         }
+    }
+
+    private func recordVideoIfPossible() async {
+        guard
+            activePreset?.options.contains(.video) ?? false,
+            !isRecordingVideo,
+            let layout = viewfinderState?.layout,
+            let request = VideoCaptureRequest(layout: layout, orientation: orientation)
+        else {
+            return
+        }
+
+        if await sessionManager.startRecording(with: request) {
+            isRecordingVideo = true
+            await handleVideoResults(for: request)
+        }
+    }
+
+    @MainActor
+    private func handleVideoResults(for request: VideoCaptureRequest) async {
+        let durations = request.duration
+
+        do {
+            for try await duration in durations {
+                videoDuration = duration
+            }
+        } catch {
+            DDLogError("CameraViewModel/handleVideoResults/error \(String(describing: error))")
+            stopRecordingVideo()
+        }
+
+        if let url = request.result {
+            videos.send(url)
+        }
+    }
+
+    private func stopRecordingVideo() {
+        sessionManager.stopRecording()
+        isRecordingVideo = false
+        videoDuration = nil
     }
 }
 
@@ -232,10 +300,6 @@ extension CameraViewModel: CameraSessionManagerDelegate {
     }
 
     func sessionManagerDidStop(_ sessionManager: CameraSessionManager) {
-
-    }
-
-    func sessionManager(_ sessionManager: CameraSessionManager, didRecordVideoTo url: URL, error: Error?) {
 
     }
 }

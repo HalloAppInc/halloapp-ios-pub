@@ -9,7 +9,15 @@
 import UIKit
 import AVFoundation
 
-class CaptureRequest {
+protocol CaptureRequest {
+    var identifier: UUID { get }
+    var layout: ViewfinderLayout { get }
+    var orientation: UIDeviceOrientation { get }
+
+    var isFulfilled: Bool { get }
+}
+
+class PhotoCaptureRequest: CaptureRequest {
 
     typealias ProgressStream = AsyncThrowingStream<CaptureResult, Error>
 

@@ -413,11 +413,29 @@ class NewCameraViewController: UIViewController, CameraPresetConfigurable {
             }
             .store(in: &cancellables)
 
+        viewModel.videos
+            .sink { [weak self] url in
+                guard let self else {
+                    return
+                }
+
+                self.delegate?.cameraViewController(self, didRecordVideoTo: url)
+            }
+            .store(in: &cancellables)
+
         viewModel.$error
             .sink { [weak self] error in
                 if let error {
                     self?.presentAlert(for: error)
                 }
+            }
+            .store(in: &cancellables)
+
+        viewModel.$isRecordingVideo
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isRecording in
+                let state: CameraShutterButton.State = isRecording ? .recording : .normal
+                self?.shutterButton.setState(state, animated: animatePresetChange)
             }
             .store(in: &cancellables)
     }
@@ -436,7 +454,8 @@ class NewCameraViewController: UIViewController, CameraPresetConfigurable {
     }
 
     private func handleShutterLongPress(_ ended: Bool) {
-        // TODO:
+        let action: CameraViewModel.Action = ended ? .endedShutterLongPress : .beganShutterLongPress
+        viewModel.actions.send(action)
     }
     
     @objc

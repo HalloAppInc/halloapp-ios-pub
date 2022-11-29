@@ -148,7 +148,11 @@ extension CameraPostViewController: CameraViewControllerDelegate {
     }
 
     func cameraViewController(_ viewController: NewCameraViewController, didRecordVideoTo url: URL) {
+        let media = PendingMedia(type: .video)
+        media.originalVideoURL = url
+        media.fileURL = url
 
+        showPostComposer(with: [media])
     }
 
     func cameraViewController(_ viewController: NewCameraViewController, didCapture results: [CaptureResult], with preset: CameraPreset) {

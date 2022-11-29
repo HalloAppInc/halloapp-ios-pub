@@ -27,8 +27,8 @@ extension CameraPreset {
         static let galleryAccess = Options(rawValue: 1 << 3)
         static let cropToViewfinder = Options(rawValue: 1 << 4)
         static let mergeMulticamImages = Options(rawValue: 1 << 5)
-        static let allowsLayoutToggle = Options(rawValue: 1 << 6)
-        static let allowsSplitToggle = Options(rawValue: 1 << 7)
+        static let allowsChangingLayout = Options(rawValue: 1 << 6)
+        static let allowsTogglingLayout = Options(rawValue: 1 << 7)
         static let takeDelayedSecondPhoto = Options(rawValue: 1 << 8)
     }
 }
@@ -100,7 +100,7 @@ extension CameraPreset {
 
         if supportsMulticam {
             layout = .splitPortrait(leading: .back)
-            options.insert([.allowsSplitToggle])
+            options.insert([.allowsTogglingLayout])
         } else {
             layout = .fullPortrait(.back)
             options.insert([.takeDelayedSecondPhoto])
@@ -128,7 +128,7 @@ extension CameraPreset {
         ]
 
         if supportsMulticam {
-            options.insert([.allowsSplitToggle, .allowsLayoutToggle, .mergeMulticamImages])
+            options.insert([.allowsTogglingLayout, .allowsChangingLayout, .mergeMulticamImages])
         }
 
         return CameraPreset(name: "Photo",
