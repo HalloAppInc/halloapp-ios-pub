@@ -25,6 +25,7 @@ public enum Web_FeedType: SwiftProtobuf.Enum {
   case home // = 0
   case group // = 1
   case postComments // = 2
+  case moments // = 3
   case UNRECOGNIZED(Int)
 
   public init() {
@@ -36,6 +37,7 @@ public enum Web_FeedType: SwiftProtobuf.Enum {
     case 0: self = .home
     case 1: self = .group
     case 2: self = .postComments
+    case 3: self = .moments
     default: self = .UNRECOGNIZED(rawValue)
     }
   }
@@ -45,6 +47,7 @@ public enum Web_FeedType: SwiftProtobuf.Enum {
     case .home: return 0
     case .group: return 1
     case .postComments: return 2
+    case .moments: return 3
     case .UNRECOGNIZED(let i): return i
     }
   }
@@ -59,6 +62,7 @@ extension Web_FeedType: CaseIterable {
     .home,
     .group,
     .postComments,
+    .moments,
   ]
 }
 
@@ -135,6 +139,14 @@ public struct Web_WebContainer {
     set {payload = .receiptUpdate(newValue)}
   }
 
+  public var momentStatus: Web_MomentStatus {
+    get {
+      if case .momentStatus(let v)? = payload {return v}
+      return Web_MomentStatus()
+    }
+    set {payload = .momentStatus(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Payload: Equatable {
@@ -146,6 +158,7 @@ public struct Web_WebContainer {
     case privacyListRequest(Web_PrivacyListRequest)
     case privacyListResponse(Web_PrivacyListResponse)
     case receiptUpdate(Web_ReceiptUpdate)
+    case momentStatus(Web_MomentStatus)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Web_WebContainer.OneOf_Payload, rhs: Web_WebContainer.OneOf_Payload) -> Bool {
@@ -185,6 +198,10 @@ public struct Web_WebContainer {
         guard case .receiptUpdate(let l) = lhs, case .receiptUpdate(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
+      case (.momentStatus, .momentStatus): return {
+        guard case .momentStatus(let l) = lhs, case .momentStatus(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
       default: return false
       }
     }
@@ -211,11 +228,21 @@ public struct Web_ConnectionInfo {
   /// Clears the value of `user`. Subsequent reads from it will return its default value.
   public mutating func clearUser() {self._user = nil}
 
+  public var momentStatus: Web_MomentStatus {
+    get {return _momentStatus ?? Web_MomentStatus()}
+    set {_momentStatus = newValue}
+  }
+  /// Returns true if `momentStatus` has been explicitly set.
+  public var hasMomentStatus: Bool {return self._momentStatus != nil}
+  /// Clears the value of `momentStatus`. Subsequent reads from it will return its default value.
+  public mutating func clearMomentStatus() {self._momentStatus = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
   fileprivate var _user: Web_UserDisplayInfo? = nil
+  fileprivate var _momentStatus: Web_MomentStatus? = nil
 }
 
 public struct Web_ReceiptInfo {
@@ -784,6 +811,20 @@ public struct Web_ReceiptUpdate {
   fileprivate var _receipt: Web_ReceiptInfo? = nil
 }
 
+public struct Web_MomentStatus {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var isLocked: Bool = false
+
+  public var expiryTimestamp: Int64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 #if swift(>=5.5) && canImport(_Concurrency)
 extension Web_FeedType: @unchecked Sendable {}
 extension Web_WebContainer: @unchecked Sendable {}
@@ -809,6 +850,7 @@ extension Web_GroupResponse: @unchecked Sendable {}
 extension Web_PrivacyListRequest: @unchecked Sendable {}
 extension Web_PrivacyListResponse: @unchecked Sendable {}
 extension Web_ReceiptUpdate: @unchecked Sendable {}
+extension Web_MomentStatus: @unchecked Sendable {}
 #endif  // swift(>=5.5) && canImport(_Concurrency)
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
@@ -820,6 +862,7 @@ extension Web_FeedType: SwiftProtobuf._ProtoNameProviding {
     0: .same(proto: "HOME"),
     1: .same(proto: "GROUP"),
     2: .same(proto: "POST_COMMENTS"),
+    3: .same(proto: "MOMENTS"),
   ]
 }
 
@@ -834,6 +877,7 @@ extension Web_WebContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     6: .standard(proto: "privacy_list_request"),
     7: .standard(proto: "privacy_list_response"),
     8: .standard(proto: "receipt_update"),
+    9: .standard(proto: "moment_status"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -946,6 +990,19 @@ extension Web_WebContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
           self.payload = .receiptUpdate(v)
         }
       }()
+      case 9: try {
+        var v: Web_MomentStatus?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .momentStatus(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .momentStatus(v)
+        }
+      }()
       default: break
       }
     }
@@ -989,6 +1046,10 @@ extension Web_WebContainer: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       guard case .receiptUpdate(let v)? = self.payload else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
     }()
+    case .momentStatus?: try {
+      guard case .momentStatus(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
+    }()
     case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -1006,6 +1067,7 @@ extension Web_ConnectionInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "version"),
     2: .same(proto: "user"),
+    3: .standard(proto: "moment_status"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1016,6 +1078,7 @@ extension Web_ConnectionInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.version) }()
       case 2: try { try decoder.decodeSingularMessageField(value: &self._user) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._momentStatus) }()
       default: break
       }
     }
@@ -1032,12 +1095,16 @@ extension Web_ConnectionInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     try { if let v = self._user {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     } }()
+    try { if let v = self._momentStatus {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Web_ConnectionInfo, rhs: Web_ConnectionInfo) -> Bool {
     if lhs.version != rhs.version {return false}
     if lhs._user != rhs._user {return false}
+    if lhs._momentStatus != rhs._momentStatus {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -1771,6 +1838,44 @@ extension Web_ReceiptUpdate: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if lhs.id != rhs.id {return false}
     if lhs.contentID != rhs.contentID {return false}
     if lhs._receipt != rhs._receipt {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Web_MomentStatus: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".MomentStatus"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "is_locked"),
+    2: .standard(proto: "expiry_timestamp"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.isLocked) }()
+      case 2: try { try decoder.decodeSingularInt64Field(value: &self.expiryTimestamp) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.isLocked != false {
+      try visitor.visitSingularBoolField(value: self.isLocked, fieldNumber: 1)
+    }
+    if self.expiryTimestamp != 0 {
+      try visitor.visitSingularInt64Field(value: self.expiryTimestamp, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Web_MomentStatus, rhs: Web_MomentStatus) -> Bool {
+    if lhs.isLocked != rhs.isLocked {return false}
+    if lhs.expiryTimestamp != rhs.expiryTimestamp {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

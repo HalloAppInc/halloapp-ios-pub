@@ -1387,6 +1387,8 @@ final class ProtoService: ProtoServiceCore {
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .silentChatStanza(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
+        case .relationshipAction(_):
+            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .webStanza(let webStanza):
             guard let webClientManager = MainAppContext.shared.webClientManager else {
                 DDLogError("proto/didReceive/\(msg.id)/webStanza/error [no-web-client-manager]")

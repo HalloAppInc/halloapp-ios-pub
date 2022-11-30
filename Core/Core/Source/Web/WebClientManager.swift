@@ -226,6 +226,8 @@ public final class WebClientManager {
             DDLogError("WebClientManager/handleIncoming/privacyListResponse/error [invalid-payload]")
         case .groupResponse:
             DDLogError("WebClientManager/handleIncoming/groupResponse/error [invalid-payload]")
+        case .momentStatus:
+            DDLogError("WebClientManager/handleIncoming/momentStatus/error [invalid-payload]")
         case .groupRequest(let request):
             DispatchQueue.main.async {
                 let response = self.groupResponse(for: request)
@@ -621,7 +623,7 @@ public final class WebClientManager {
         case .postComments:
             DDLogInfo("WebClientManager/handleIncoming/feedRequest/comment/\(request.contentID)")
             response = commentFeed(id: request.contentID, cursor: cursor, limit: Int(request.limit))
-        case .UNRECOGNIZED:
+        case .moments, .UNRECOGNIZED:
             DDLogInfo("WebClientManager/handleIncoming/feedRequest/unsupported [\(request.type.rawValue)]")
             return nil
         }

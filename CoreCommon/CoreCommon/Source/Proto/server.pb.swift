@@ -105,6 +105,54 @@ extension Server_CallType: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+public enum Server_FriendStatus: SwiftProtobuf.Enum {
+  public typealias RawValue = Int
+  case none // = 0
+  case outgoing // = 1
+  case incoming // = 2
+  case friends // = 3
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .none
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .none
+    case 1: self = .outgoing
+    case 2: self = .incoming
+    case 3: self = .friends
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .none: return 0
+    case .outgoing: return 1
+    case .incoming: return 2
+    case .friends: return 3
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+}
+
+#if swift(>=4.2)
+
+extension Server_FriendStatus: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_FriendStatus] = [
+    .none,
+    .outgoing,
+    .incoming,
+    .friends,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 public struct Server_UploadAvatar {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -4305,6 +4353,22 @@ public struct Server_Iq {
     set {payload = .publicFeedResponse(newValue)}
   }
 
+  public var relationshipAction: Server_RelationshipAction {
+    get {
+      if case .relationshipAction(let v)? = payload {return v}
+      return Server_RelationshipAction()
+    }
+    set {payload = .relationshipAction(newValue)}
+  }
+
+  public var relationshipList: Server_RelationshipList {
+    get {
+      if case .relationshipList(let v)? = payload {return v}
+      return Server_RelationshipList()
+    }
+    set {payload = .relationshipList(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Payload: Equatable {
@@ -4353,6 +4417,8 @@ public struct Server_Iq {
     case reportUserContent(Server_ReportUserContent)
     case publicFeedRequest(Server_PublicFeedRequest)
     case publicFeedResponse(Server_PublicFeedResponse)
+    case relationshipAction(Server_RelationshipAction)
+    case relationshipList(Server_RelationshipList)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Iq.OneOf_Payload, rhs: Server_Iq.OneOf_Payload) -> Bool {
@@ -4530,6 +4596,14 @@ public struct Server_Iq {
       }()
       case (.publicFeedResponse, .publicFeedResponse): return {
         guard case .publicFeedResponse(let l) = lhs, case .publicFeedResponse(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.relationshipAction, .relationshipAction): return {
+        guard case .relationshipAction(let l) = lhs, case .relationshipAction(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.relationshipList, .relationshipList): return {
+        guard case .relationshipList(let l) = lhs, case .relationshipList(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -5001,6 +5075,14 @@ public struct Server_Msg {
     set {_uniqueStorage()._payload = .momentNotification(newValue)}
   }
 
+  public var relationshipAction: Server_RelationshipAction {
+    get {
+      if case .relationshipAction(let v)? = _storage._payload {return v}
+      return Server_RelationshipAction()
+    }
+    set {_uniqueStorage()._payload = .relationshipAction(newValue)}
+  }
+
   public var retryCount: Int32 {
     get {return _storage._retryCount}
     set {_uniqueStorage()._retryCount = newValue}
@@ -5067,6 +5149,7 @@ public struct Server_Msg {
     case savedReceipt(Server_SavedReceipt)
     case groupChatStanza(Server_GroupChatStanza)
     case momentNotification(Server_MomentNotification)
+    case relationshipAction(Server_RelationshipAction)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Msg.OneOf_Payload, rhs: Server_Msg.OneOf_Payload) -> Bool {
@@ -5260,6 +5343,10 @@ public struct Server_Msg {
       }()
       case (.momentNotification, .momentNotification): return {
         guard case .momentNotification(let l) = lhs, case .momentNotification(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.relationshipAction, .relationshipAction): return {
+        guard case .relationshipAction(let l) = lhs, case .relationshipAction(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -7122,6 +7209,8 @@ public struct Server_OtpResponse {
 
   public var retryAfterSecs: Int64 = 0
 
+  public var shouldVerifyNumber: Bool = false
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum Result: SwiftProtobuf.Enum {
@@ -7789,9 +7878,167 @@ extension Server_MarketingAlert.TypeEnum: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+public struct Server_UserInfo {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var uid: Int64 = 0
+
+  public var username: String = String()
+
+  public var name: String = String()
+
+  public var avatarID: String = String()
+
+  public var status: Server_FriendStatus = .none
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Server_RelationshipAction {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var action: Server_RelationshipAction.Action = .add
+
+  public var uid: Int64 = 0
+
+  public var status: Server_FriendStatus = .none
+
+  public var userInfo: Server_UserInfo {
+    get {return _userInfo ?? Server_UserInfo()}
+    set {_userInfo = newValue}
+  }
+  /// Returns true if `userInfo` has been explicitly set.
+  public var hasUserInfo: Bool {return self._userInfo != nil}
+  /// Clears the value of `userInfo`. Subsequent reads from it will return its default value.
+  public mutating func clearUserInfo() {self._userInfo = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Action: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case add // = 0
+    case remove // = 1
+    case block // = 2
+    case unblock // = 3
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .add
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .add
+      case 1: self = .remove
+      case 2: self = .block
+      case 3: self = .unblock
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .add: return 0
+      case .remove: return 1
+      case .block: return 2
+      case .unblock: return 3
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+
+  fileprivate var _userInfo: Server_UserInfo? = nil
+}
+
+#if swift(>=4.2)
+
+extension Server_RelationshipAction.Action: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_RelationshipAction.Action] = [
+    .add,
+    .remove,
+    .block,
+    .unblock,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public struct Server_RelationshipList {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var type: Server_RelationshipList.TypeEnum = .normal
+
+  public var users: [Server_UserInfo] = []
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum TypeEnum: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case normal // = 0
+    case incoming // = 1
+    case outgoing // = 2
+    case blocked // = 3
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .normal
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .normal
+      case 1: self = .incoming
+      case 2: self = .outgoing
+      case 3: self = .blocked
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .normal: return 0
+      case .incoming: return 1
+      case .outgoing: return 2
+      case .blocked: return 3
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_RelationshipList.TypeEnum: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_RelationshipList.TypeEnum] = [
+    .normal,
+    .incoming,
+    .outgoing,
+    .blocked,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 #if swift(>=5.5) && canImport(_Concurrency)
 extension Server_PublicFeedContentType: @unchecked Sendable {}
 extension Server_CallType: @unchecked Sendable {}
+extension Server_FriendStatus: @unchecked Sendable {}
 extension Server_UploadAvatar: @unchecked Sendable {}
 extension Server_Avatar: @unchecked Sendable {}
 extension Server_Avatars: @unchecked Sendable {}
@@ -7995,6 +8242,11 @@ extension Server_WakeUp: @unchecked Sendable {}
 extension Server_WakeUp.AlertType: @unchecked Sendable {}
 extension Server_MarketingAlert: @unchecked Sendable {}
 extension Server_MarketingAlert.TypeEnum: @unchecked Sendable {}
+extension Server_UserInfo: @unchecked Sendable {}
+extension Server_RelationshipAction: @unchecked Sendable {}
+extension Server_RelationshipAction.Action: @unchecked Sendable {}
+extension Server_RelationshipList: @unchecked Sendable {}
+extension Server_RelationshipList.TypeEnum: @unchecked Sendable {}
 #endif  // swift(>=5.5) && canImport(_Concurrency)
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
@@ -8013,6 +8265,15 @@ extension Server_CallType: SwiftProtobuf._ProtoNameProviding {
     0: .same(proto: "UNKNOWN_TYPE"),
     1: .same(proto: "AUDIO"),
     2: .same(proto: "VIDEO"),
+  ]
+}
+
+extension Server_FriendStatus: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "NONE"),
+    1: .same(proto: "OUTGOING"),
+    2: .same(proto: "INCOMING"),
+    3: .same(proto: "FRIENDS"),
   ]
 }
 
@@ -13177,6 +13438,8 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
     46: .standard(proto: "report_user_content"),
     47: .standard(proto: "public_feed_request"),
     48: .standard(proto: "public_feed_response"),
+    49: .standard(proto: "relationship_action"),
+    50: .standard(proto: "relationship_list"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -13746,6 +14009,32 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
           self.payload = .publicFeedResponse(v)
         }
       }()
+      case 49: try {
+        var v: Server_RelationshipAction?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .relationshipAction(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .relationshipAction(v)
+        }
+      }()
+      case 50: try {
+        var v: Server_RelationshipList?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .relationshipList(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .relationshipList(v)
+        }
+      }()
       default: break
       }
     }
@@ -13935,6 +14224,14 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
       guard case .publicFeedResponse(let v)? = self.payload else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 48)
     }()
+    case .relationshipAction?: try {
+      guard case .relationshipAction(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 49)
+    }()
+    case .relationshipList?: try {
+      guard case .relationshipList(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 50)
+    }()
     case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -14012,6 +14309,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     51: .standard(proto: "saved_receipt"),
     52: .standard(proto: "group_chat_stanza"),
     53: .standard(proto: "moment_notification"),
+    54: .standard(proto: "relationship_action"),
     21: .standard(proto: "retry_count"),
     25: .standard(proto: "rerequest_count"),
   ]
@@ -14672,6 +14970,19 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
             _storage._payload = .momentNotification(v)
           }
         }()
+        case 54: try {
+          var v: Server_RelationshipAction?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .relationshipAction(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .relationshipAction(v)
+          }
+        }()
         default: break
         }
       }
@@ -14896,6 +15207,10 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       case .momentNotification?: try {
         guard case .momentNotification(let v)? = _storage._payload else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 53)
+      }()
+      case .relationshipAction?: try {
+        guard case .relationshipAction(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 54)
       }()
       default: break
       }
@@ -17082,6 +17397,7 @@ extension Server_OtpResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     2: .same(proto: "result"),
     3: .same(proto: "reason"),
     4: .standard(proto: "retry_after_secs"),
+    5: .standard(proto: "should_verify_number"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -17094,6 +17410,7 @@ extension Server_OtpResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       case 2: try { try decoder.decodeSingularEnumField(value: &self.result) }()
       case 3: try { try decoder.decodeSingularEnumField(value: &self.reason) }()
       case 4: try { try decoder.decodeSingularInt64Field(value: &self.retryAfterSecs) }()
+      case 5: try { try decoder.decodeSingularBoolField(value: &self.shouldVerifyNumber) }()
       default: break
       }
     }
@@ -17112,6 +17429,9 @@ extension Server_OtpResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     if self.retryAfterSecs != 0 {
       try visitor.visitSingularInt64Field(value: self.retryAfterSecs, fieldNumber: 4)
     }
+    if self.shouldVerifyNumber != false {
+      try visitor.visitSingularBoolField(value: self.shouldVerifyNumber, fieldNumber: 5)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -17120,6 +17440,7 @@ extension Server_OtpResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     if lhs.result != rhs.result {return false}
     if lhs.reason != rhs.reason {return false}
     if lhs.retryAfterSecs != rhs.retryAfterSecs {return false}
+    if lhs.shouldVerifyNumber != rhs.shouldVerifyNumber {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -17543,5 +17864,171 @@ extension Server_MarketingAlert.TypeEnum: SwiftProtobuf._ProtoNameProviding {
     0: .same(proto: "UNKNOWN"),
     1: .same(proto: "INVITE_FRIENDS"),
     2: .same(proto: "SHARE_POST"),
+  ]
+}
+
+extension Server_UserInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".UserInfo"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "uid"),
+    2: .same(proto: "username"),
+    3: .same(proto: "name"),
+    4: .standard(proto: "avatar_id"),
+    5: .same(proto: "status"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularInt64Field(value: &self.uid) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.username) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.avatarID) }()
+      case 5: try { try decoder.decodeSingularEnumField(value: &self.status) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.uid != 0 {
+      try visitor.visitSingularInt64Field(value: self.uid, fieldNumber: 1)
+    }
+    if !self.username.isEmpty {
+      try visitor.visitSingularStringField(value: self.username, fieldNumber: 2)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 3)
+    }
+    if !self.avatarID.isEmpty {
+      try visitor.visitSingularStringField(value: self.avatarID, fieldNumber: 4)
+    }
+    if self.status != .none {
+      try visitor.visitSingularEnumField(value: self.status, fieldNumber: 5)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_UserInfo, rhs: Server_UserInfo) -> Bool {
+    if lhs.uid != rhs.uid {return false}
+    if lhs.username != rhs.username {return false}
+    if lhs.name != rhs.name {return false}
+    if lhs.avatarID != rhs.avatarID {return false}
+    if lhs.status != rhs.status {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_RelationshipAction: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".RelationshipAction"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "action"),
+    2: .same(proto: "uid"),
+    3: .same(proto: "status"),
+    4: .standard(proto: "user_info"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.action) }()
+      case 2: try { try decoder.decodeSingularInt64Field(value: &self.uid) }()
+      case 3: try { try decoder.decodeSingularEnumField(value: &self.status) }()
+      case 4: try { try decoder.decodeSingularMessageField(value: &self._userInfo) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.action != .add {
+      try visitor.visitSingularEnumField(value: self.action, fieldNumber: 1)
+    }
+    if self.uid != 0 {
+      try visitor.visitSingularInt64Field(value: self.uid, fieldNumber: 2)
+    }
+    if self.status != .none {
+      try visitor.visitSingularEnumField(value: self.status, fieldNumber: 3)
+    }
+    try { if let v = self._userInfo {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_RelationshipAction, rhs: Server_RelationshipAction) -> Bool {
+    if lhs.action != rhs.action {return false}
+    if lhs.uid != rhs.uid {return false}
+    if lhs.status != rhs.status {return false}
+    if lhs._userInfo != rhs._userInfo {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_RelationshipAction.Action: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "ADD"),
+    1: .same(proto: "REMOVE"),
+    2: .same(proto: "BLOCK"),
+    3: .same(proto: "UNBLOCK"),
+  ]
+}
+
+extension Server_RelationshipList: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".RelationshipList"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "type"),
+    2: .same(proto: "users"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.type) }()
+      case 2: try { try decoder.decodeRepeatedMessageField(value: &self.users) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.type != .normal {
+      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 1)
+    }
+    if !self.users.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.users, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_RelationshipList, rhs: Server_RelationshipList) -> Bool {
+    if lhs.type != rhs.type {return false}
+    if lhs.users != rhs.users {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_RelationshipList.TypeEnum: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "NORMAL"),
+    1: .same(proto: "INCOMING"),
+    2: .same(proto: "OUTGOING"),
+    3: .same(proto: "BLOCKED"),
   ]
 }
