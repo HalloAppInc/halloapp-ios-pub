@@ -28,8 +28,7 @@ class SnapchatShareProvider: PostShareProvider {
 
     static var canShare: Bool {
         // Disable until we get prod API keys
-        return false
-        // return URL(string: "snapchat://").flatMap { UIApplication.shared.canOpenURL($0) } ?? false
+        return URL(string: "snapchat://").flatMap { UIApplication.shared.canOpenURL($0) } ?? false
     }
 
     static func share(text: String?, image: UIImage?, completion: ShareProviderCompletion?) {
