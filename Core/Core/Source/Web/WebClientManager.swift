@@ -62,6 +62,8 @@ public final class WebClientManager {
     private var keysToRemove = Set<Data>()
     private var isRemovingKeys = false
 
+    private var cachedMomentStatus: Web_MomentStatus?
+
     public func connect(staticKey: Data) {
         webQueue.async {
             switch self.state.value {
@@ -106,6 +108,7 @@ public final class WebClientManager {
             if let webStaticKey = self.webStaticKey, shouldRemoveOldKey {
                 self.keysToRemove.insert(webStaticKey)
             }
+            self.cachedMomentStatus = nil
             self.webStaticKey = nil
             self.state.value = .disconnected
             self.delegate?.webClientManager(self, didUpdateWebStaticKey: nil)
@@ -179,6 +182,49 @@ public final class WebClientManager {
         }
     }
 
+    private func fetchMomentStatus() -> Web_MomentStatus {
+        let userID = AppContext.shared.userData.userId
+
+        let request = FeedPost.fetchRequest()
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(format: "userID == %@", userID),
+            NSPredicate(format: "isMoment == YES"),
+            NSPredicate(format: "statusValue != %d", FeedPost.Status.retracted.rawValue),
+            NSPredicate(format: "timestamp > %@", CoreFeedData.momentCutoffDate as NSDate),
+        ])
+        request.fetchLimit = 1
+
+        var status = Web_MomentStatus()
+        AppContext.shared.mainDataStore.performOnBackgroundContextAndWait { context in
+            if let moment = try? context.fetch(request).first {
+                status.isLocked = false
+                status.expiryTimestamp = Int64(moment.timestamp.addingTimeInterval(24*60*60).timeIntervalSince1970)
+            } else {
+                status.isLocked = true
+            }
+        }
+
+        cachedMomentStatus = status
+        return status
+    }
+
+    private func updateMomentStatusIfNecessary() {
+        let status = fetchMomentStatus()
+        if let cachedMomentStatus = cachedMomentStatus, cachedMomentStatus == status {
+            DDLogInfo("WebClientManager/updateMomentStatusIfNecessary/skipping [unchanged]")
+            return
+        }
+        var webContainer = Web_WebContainer()
+        webContainer.payload = .momentStatus(status)
+        do {
+            DDLogInfo("WebClientManager/updateMomentStatusIfNecessary/sending [status=\(status)]")
+            let responseData = try webContainer.serializedData()
+            self.send(responseData)
+        } catch {
+            DDLogError("WebClientManager/updateMomentStatusIfNecessary/error [serialization]")
+        }
+    }
+
     private func makeConnectionPayload() -> Data {
         let userID = AppContext.shared.userData.userId
 
@@ -194,6 +240,7 @@ public final class WebClientManager {
         var info = Web_ConnectionInfo()
         info.version = AppContext.userAgent
         info.user = userInfo
+        info.momentStatus = fetchMomentStatus()
 
         do {
             return try info.serializedData()
@@ -306,6 +353,18 @@ public final class WebClientManager {
                 return
             }
 
+            let shouldCheckMomentStatus = updatedIDs.contains {
+                guard let post = AppContext.shared.mainDataStore.viewContext.object(with: $0) as? FeedPost else {
+                    return false
+                }
+                return post.isMoment && post.userID == AppContext.shared.userData.userId
+            }
+            if shouldCheckMomentStatus {
+                self.webQueue.async {
+                    self.updateMomentStatusIfNecessary()
+                }
+            }
+
             self.updatedManagedObjectIDs.formUnion(updatedIDs)
 
             let currentTime = Date()
@@ -340,6 +399,7 @@ public final class WebClientManager {
             DDLogError("WebClientManager/sendUpdateBatch/error [no-updates]")
             return
         }
+
         var webContainer = Web_WebContainer()
         webContainer.payload = .feedUpdate(updates)
         do {
@@ -623,12 +683,39 @@ public final class WebClientManager {
         case .postComments:
             DDLogInfo("WebClientManager/handleIncoming/feedRequest/comment/\(request.contentID)")
             response = commentFeed(id: request.contentID, cursor: cursor, limit: Int(request.limit))
-        case .moments, .UNRECOGNIZED:
+        case .moments:
+            DDLogInfo("WebClientManager/handleIncoming/feedRequest/group/\(request.contentID)")
+            response = momentFeed(cursor: cursor, limit: Int(request.limit))
+        case .UNRECOGNIZED:
             DDLogInfo("WebClientManager/handleIncoming/feedRequest/unsupported [\(request.type.rawValue)]")
             return nil
         }
         response.id = request.id
         return response
+    }
+
+    private func momentFeed(cursor: String? = nil, limit: Int) -> Web_FeedResponse {
+        let dataSource = FeedDataSource(fetchRequest: FeedDataSource.momentFeedRequest(since: CoreFeedData.momentCutoffDate))
+        dataSource.setup()
+        let allMoments: [FeedPost] = dataSource.displayItems.flatMap {
+            switch $0 {
+            case .moment(let post):
+                return [post]
+            case .momentStack(let stackItems):
+                return stackItems.compactMap { $0.moment }
+            case .event, .groupWelcome, .welcome, .post, .shareCarousel, .inviteCarousel:
+                return []
+            }
+        }
+        switch paginate(posts: allMoments, cursor: cursor, limit: limit) {
+        case .success(let page):
+            return feedResponse(with: page.items, type: .home, nextCursor: page.nextCursor)
+        case .failure(.invalidCursor):
+            var response = Web_FeedResponse()
+            response.error = .invalidCursor
+            response.type = .home
+            return response
+        }
     }
 
     private func homeFeed(cursor: String? = nil, limit: Int) -> Web_FeedResponse {

@@ -408,6 +408,13 @@ public extension FeedDataSource {
         return fetchRequest
     }
 
+    static func momentFeedRequest(since cutoffDate: Date) -> NSFetchRequest<FeedPost> {
+        let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "timestamp > %@ && isMoment == YES", cutoffDate as NSDate)
+        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
+        return fetchRequest
+    }
+
     static func homeFeedRequest() -> NSFetchRequest<FeedPost> {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "(groupID == nil || statusValue != %d) && (expiration >= now() || expiration == nil) && fromExternalShare == NO",
