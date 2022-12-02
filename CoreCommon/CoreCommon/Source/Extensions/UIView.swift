@@ -8,7 +8,7 @@
 
 import UIKit
 
-extension UIView {
+public extension UIView {
 
    func roundCorners(_ corners: UIRectCorner, radius: CGFloat) {
         let path = UIBezierPath(roundedRect: bounds, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
@@ -52,9 +52,9 @@ extension UIView {
         }
         visit(self)
     }
-    
+
     // MARK: Constraint helpers
-    
+
     enum ConstraintAnchor {
         case top
         case bottom
@@ -63,7 +63,7 @@ extension UIView {
         case centerX
         case centerY
     }
-    
+
     enum ConstraintDimension {
         case height
         case width
@@ -126,7 +126,7 @@ extension UIView {
         constraint.isActive = true
         return constraint
     }
-    
+
     @discardableResult
     func constrain(_ anchors: [ConstraintAnchor] = [.top, .bottom, .leading, .trailing], to otherView: UIView, priority: UILayoutPriority = .required) -> [NSLayoutConstraint] {
         return anchors.map { constrain(anchor: $0, to: otherView, priority: priority) }

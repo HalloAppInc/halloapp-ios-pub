@@ -102,10 +102,6 @@ extension UIFont {
         }
     }
 
-    class func scaledSystemFont(ofSize fontSize: CGFloat, weight: UIFont.Weight = .regular, scalingTextStyle: UIFont.TextStyle = .body) -> UIFont {
-        return UIFontMetrics(forTextStyle: scalingTextStyle).scaledFont(for: UIFont.systemFont(ofSize: fontSize, weight: weight))
-    }
-
     var withItalicsIfAvailable: UIFont {
         guard let italicDescriptor = fontDescriptor.withSymbolicTraits(.traitItalic) else {
             return self

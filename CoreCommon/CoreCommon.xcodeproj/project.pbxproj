@@ -73,6 +73,7 @@
 		32CE965E27CFEE4400B4A2C1 /* OneTimePreKey+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CE965327CFEE4400B4A2C1 /* OneTimePreKey+CoreDataClass.swift */; };
 		32CE966027CFF6DB00B4A2C1 /* ProtoServiceCoreCommon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CE965F27CFF6DB00B4A2C1 /* ProtoServiceCoreCommon.swift */; };
 		32CE966227CFF74900B4A2C1 /* CoreServiceCommon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32CE966127CFF74800B4A2C1 /* CoreServiceCommon.swift */; };
+		6861322B292C4276000238DA /* UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6861322A292C4276000238DA /* UIView.swift */; };
 		68C04BED2891BB1900DA5AD9 /* web.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68C04BEC2891BB1900DA5AD9 /* web.pb.swift */; };
 		A199CBFE28AEB32D00E74089 /* AvatarStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A199CBFA28AEB2A300E74089 /* AvatarStore.swift */; };
 		A199CBFF28AEB33000E74089 /* GroupAvatar+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = A199CBF928AEB2A300E74089 /* GroupAvatar+CoreDataProperties.swift */; };
@@ -145,6 +146,7 @@
 		32CE965327CFEE4400B4A2C1 /* OneTimePreKey+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "OneTimePreKey+CoreDataClass.swift"; path = "CoreCommon/Source/Keys/CoreData Stack/OneTimePreKey+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		32CE965F27CFF6DB00B4A2C1 /* ProtoServiceCoreCommon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtoServiceCoreCommon.swift; sourceTree = "<group>"; };
 		32CE966127CFF74800B4A2C1 /* CoreServiceCommon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreServiceCommon.swift; sourceTree = "<group>"; };
+		6861322A292C4276000238DA /* UIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIView.swift; sourceTree = "<group>"; };
 		68C04BEC2891BB1900DA5AD9 /* web.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = web.pb.swift; sourceTree = "<group>"; };
 		A199CBF428AEB2A300E74089 /* Avatars.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Avatars.xcdatamodel; sourceTree = "<group>"; };
 		A199CBF628AEB2A300E74089 /* Avatar+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Avatar+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -278,6 +280,7 @@
 				32CE95F527CFECC400B4A2C1 /* UIImage.swift */,
 				32CE95FB27CFECC400B4A2C1 /* UserDefaults.swift */,
 				F4B361602862821200764454 /* NSManagedObject.swift */,
+				6861322A292C4276000238DA /* UIView.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -543,6 +546,7 @@
 				321C83F327CFEC0B00DDD03A /* NoiseRegistrationService.swift in Sources */,
 				32CE960A27CFECCB00B4A2C1 /* UserData.xcdatamodeld in Sources */,
 				32CE962027CFED0000B4A2C1 /* CountableEvent.swift in Sources */,
+				6861322B292C4276000238DA /* UIView.swift in Sources */,
 				32CE963327CFED0600B4A2C1 /* ProtoRequest.swift in Sources */,
 				32CE964427CFED6F00B4A2C1 /* Contacts.xcdatamodeld in Sources */,
 				32CE964327CFED6F00B4A2C1 /* ContactStore.swift in Sources */,

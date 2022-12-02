@@ -10,14 +10,14 @@ import Combine
 import Foundation
 import UIKit
 
-class BlurView: UIVisualEffectView {
+public class BlurView: UIVisualEffectView {
 
     private var animator = UIViewPropertyAnimator(duration: 1, curve: .easeInOut, animations: nil)
 
     private let visualEffect: UIVisualEffect
     private let customIntensity: CGFloat
 
-    init(effect: UIVisualEffect, intensity: CGFloat) {
+    public init(effect: UIVisualEffect, intensity: CGFloat) {
         visualEffect = effect
         customIntensity = intensity
         super.init(effect: nil)
@@ -25,7 +25,7 @@ class BlurView: UIVisualEffectView {
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
-    override func draw(_ rect: CGRect) {
+    public override func draw(_ rect: CGRect) {
         super.draw(rect)
         animateToIntensity()
     }

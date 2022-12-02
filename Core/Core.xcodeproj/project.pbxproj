@@ -40,6 +40,9 @@
 		6832F50D24FEE9DF00A9C202 /* ProtoCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */; };
 		68567EE026C493C800A3800F /* MessageDecryption+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68567EDF26C493C800A3800F /* MessageDecryption+CoreDataClass.swift */; };
 		68567EE226C4940100A3800F /* MessageDecryption+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68567EE126C4940100A3800F /* MessageDecryption+CoreDataProperties.swift */; };
+		6861322329284922000238DA /* MessageDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6861322229284922000238DA /* MessageDocumentView.swift */; };
+		68613225292C3FC0000238DA /* UIFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68613224292C3FC0000238DA /* UIFont.swift */; };
+		68613227292C4103000238DA /* BlurView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68613226292C4103000238DA /* BlurView.swift */; };
 		6861957828C7E64B00B4AFDB /* FileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6861957728C7E64B00B4AFDB /* FileUtils.swift */; };
 		68803A8C27E51A8600EBFA61 /* FeedActivity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68803A8B27E51A8600EBFA61 /* FeedActivity+CoreDataClass.swift */; };
 		68803A8E27E51A9600EBFA61 /* FeedActivity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68803A8D27E51A9600EBFA61 /* FeedActivity+CoreDataProperties.swift */; };
@@ -199,6 +202,9 @@
 		6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoCommonRequests.swift; sourceTree = "<group>"; };
 		68567EDF26C493C800A3800F /* MessageDecryption+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MessageDecryption+CoreDataClass.swift"; sourceTree = "<group>"; };
 		68567EE126C4940100A3800F /* MessageDecryption+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MessageDecryption+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		6861322229284922000238DA /* MessageDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageDocumentView.swift; sourceTree = "<group>"; };
+		68613224292C3FC0000238DA /* UIFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIFont.swift; sourceTree = "<group>"; };
+		68613226292C4103000238DA /* BlurView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurView.swift; sourceTree = "<group>"; };
 		6861957728C7E64B00B4AFDB /* FileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtils.swift; sourceTree = "<group>"; };
 		68803A8B27E51A8600EBFA61 /* FeedActivity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedActivity+CoreDataClass.swift"; sourceTree = "<group>"; };
 		68803A8D27E51A9600EBFA61 /* FeedActivity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedActivity+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -579,6 +585,8 @@
 				6A3E533D2824777500E98640 /* XMPPChatMessage.swift */,
 				6A32A12028248A020083DE85 /* CoreChatData.swift */,
 				EB9EBED82891EE830064688B /* XMPPReaction.swift */,
+				6861322229284922000238DA /* MessageDocumentView.swift */,
+				68613226292C4103000238DA /* BlurView.swift */,
 			);
 			path = Chat;
 			sourceTree = "<group>";
@@ -705,6 +713,7 @@
 				68A64E8124D22E5500F40F1F /* NSRange.swift */,
 				F86919E126397F0C00B01306 /* UIImageView.swift */,
 				6A4E228E291333290047AC09 /* DateFormatter.swift */,
+				68613224292C3FC0000238DA /* UIFont.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -951,6 +960,7 @@
 				6A4E228D291332F70047AC09 /* Date.swift in Sources */,
 				689FB94127EA9B6F005CD6D8 /* CommonMedia+CoreDataProperties.swift in Sources */,
 				688D8A2024ED9B3300258BB9 /* Proto+Mentions.swift in Sources */,
+				68613225292C3FC0000238DA /* UIFont.swift in Sources */,
 				6A958D7D270764E6007C89C6 /* SenderStateBundle+CoreDataClass.swift in Sources */,
 				5B59A3BD2757A40400729FFC /* ChunkedMediaParameters.swift in Sources */,
 				7605EA1F24F475A800CAD9AB /* Privacy.swift in Sources */,
@@ -999,6 +1009,7 @@
 				68803A9227E52F3B00EBFA61 /* ValueTransformers.swift in Sources */,
 				6A958D7F270764E6007C89C6 /* GroupMessageKey+CoreDataClass.swift in Sources */,
 				5BD9BA5427FDD34A00F53096 /* BitSet.swift in Sources */,
+				6861322329284922000238DA /* MessageDocumentView.swift in Sources */,
 				F4FDEC9A28A43DC500B151CB /* VideoUtils.swift in Sources */,
 				68D64BFC25EEE220000AB07C /* Whisper.swift in Sources */,
 				681811D325E9AB6D00F9126C /* MessageCrypter.swift in Sources */,
@@ -1026,6 +1037,7 @@
 				68DB8E6E264AF67E0082AEC2 /* SharedServerMessage+CoreDataProperties.swift in Sources */,
 				321A701727050582005603B8 /* SharedFeedLinkPreview+CoreDataClass.swift in Sources */,
 				249028AB24C5E0600019C4D5 /* SharedDataStore.swift in Sources */,
+				68613227292C4103000238DA /* BlurView.swift in Sources */,
 				6A6BBAFF276925CE0063E8BC /* NotificationSettings.swift in Sources */,
 				249028A224C5DFDE0019C4D5 /* Media+CoreDataProperties.swift in Sources */,
 				68803A8C27E51A8600EBFA61 /* FeedActivity+CoreDataClass.swift in Sources */,

@@ -37,6 +37,10 @@ private extension Localizations {
         NSLocalizedString("share.composer.uploading.fail.message", value: "Please try again later.", comment: "Alert dialog message shown when uploading fails.")
     }
 
+    static var filesInChatsOnly: String {
+        NSLocalizedString("files.in.chats.only", value: "Files may only be sent directly to contacts, not included in posts.", comment: "Alert dialog when users try to share files to group or home feed")
+    }
+
     static var edit: String {
         NSLocalizedString("share.composer.button.edit", value: "Edit", comment: "Title on edit button")
     }
@@ -72,6 +76,7 @@ class ShareComposerViewController: UIViewController {
     private var destinations: [ShareDestination]
     private var completion: ([ShareDestination]) -> Void
     private var media: [PendingMedia] = []
+    private var files: [FileSharingData] = []
     private var text: String = ""
     private var textView: UITextView!
     private var linkPreviewView: PostComposerLinkPreviewView!
@@ -96,6 +101,10 @@ class ShareComposerViewController: UIViewController {
     var mentionInput: MentionInput {
         MentionInput(text: textView.text, mentions: mentions, selectedRange: textView.selectedRange)
     }
+    private lazy var documentView: MessageDocumentView = {
+        let view = MessageDocumentView()
+        return view
+    }()
 
     private lazy var destinationRowLabel: UIView = {
         let labelText = Localizations.shareWith.uppercased() + ":"
@@ -161,6 +170,7 @@ class ShareComposerViewController: UIViewController {
 
             self.text = ShareDataLoader.shared.text
             self.media = ShareDataLoader.shared.media
+            self.files = ShareDataLoader.shared.files
 
             self.loadingView.stopAnimating()
             self.setupUI()
@@ -215,6 +225,13 @@ class ShareComposerViewController: UIViewController {
         view.addSubview(destinationRowLabel)
 
         textViewHeightConstraint = textView.heightAnchor.constraint(equalToConstant: computeTextViewHeight())
+
+        if let file = files.first {
+            documentView.isHidden = false
+            documentView.setDocument(url: file.localURL, name: file.name)
+        } else {
+            documentView.isHidden = true
+        }
 
         if media.count > 0 {
             contentView.spacing = 10
@@ -275,6 +292,7 @@ class ShareComposerViewController: UIViewController {
 
             textView.textContainerInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
             linkPreviewView = makeLinkPreviewView()
+            contentView.addArrangedSubview(documentView)
             contentView.addArrangedSubview(textView)
             contentView.addArrangedSubview(linkPreviewView)
 
@@ -642,7 +660,15 @@ class ShareComposerViewController: UIViewController {
     // MARK: Actions
 
     @objc func shareAction() {
-        guard media.count > 0 || !(textView?.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true) else { return }
+        guard media.count > 0 || files.count > 0 || !(textView?.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true) else { return }
+
+        guard files.isEmpty || !destinations.contains(where: { !$0.supportsFileSharing }) else {
+            let alert = UIAlertController(title: Localizations.uploadingFailedTitle, message: Localizations.filesInChatsOnly, preferredStyle: .alert)
+            alert.addAction(.init(title: Localizations.buttonOK, style: .default))
+            present(alert, animated: true)
+            return
+        }
+
         shareButton.isEnabled = false
 
         if let linkViewImage = linkViewImage {
@@ -672,7 +698,7 @@ class ShareComposerViewController: UIViewController {
             mentionRanges: mentionInput.mentions).trimmed()
 
         if ServerProperties.enableNewMediaUploader {
-            upload(text: text, mentionText: mentionText, media: media, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
+            upload(text: text, mentionText: mentionText, media: media, files: files, linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
         } else {
             showUploadingAlert()
             let queue = DispatchQueue(label: "com.halloapp.share.prepare", qos: .userInitiated)
@@ -697,11 +723,15 @@ class ShareComposerViewController: UIViewController {
     }
 
     private func showUploadingAlert() {
-        let bytesCount = Int64(media
+        let mediaBytes = Int64(media
             .compactMap { try? $0.fileURL?.resourceValues(forKeys: [.fileSizeKey]).fileSize }
             .reduce(0) { $0 + $1 })
 
-        progressUploadMonitor = ProgressUploadMonitor(mediaCount: media.count, bytesCount: bytesCount) { [weak self] in
+        let fileBytes = Int64(files
+            .compactMap { try? $0.localURL.resourceValues(forKeys: [.fileSizeKey]).fileSize }
+            .reduce(0) { $0 + $1 })
+
+        progressUploadMonitor = ProgressUploadMonitor(mediaCount: media.count + files.count, bytesCount: mediaBytes + fileBytes) { [weak self] in
             self?.shareButton.isEnabled = true
         }
 
@@ -745,7 +775,7 @@ class ShareComposerViewController: UIViewController {
 
     // MARK: New Upload Flow
 
-    private func upload(text: String, mentionText: MentionText, media: [PendingMedia], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?) {
+    private func upload(text: String, mentionText: MentionText, media: [PendingMedia], files: [FileSharingData], linkPreviewData: LinkPreviewData?, linkPreviewMedia: PendingMedia?) {
         let taskCompletion = AppContext.shared.startBackgroundTask(withName: "share-extension-media-processing")
         let expectedCompletionCount = destinations.count
 
@@ -842,7 +872,7 @@ class ShareComposerViewController: UIViewController {
                     AppContext.shared.coreChatData.sendMessage(chatMessageRecipient: .groupChat(toGroupId: groupListSyncItem.id, fromUserId: AppContext.shared.userData.userId),
                                                                mentionText: mentionText,
                                                                media: media,
-                                                               files: [],
+                                                               files: files,
                                                                linkPreviewData: linkPreviewData,
                                                                linkPreviewMedia: linkPreviewMedia,
                                                                didCreateMessage: showProcessingAlertIfNeeded,
@@ -857,7 +887,7 @@ class ShareComposerViewController: UIViewController {
                 AppContext.shared.coreChatData.sendMessage(chatMessageRecipient: .oneToOneChat(toUserId: chatListSyncItem.userId, fromUserId: AppContext.shared.userData.userId),
                                                            mentionText: mentionText,
                                                            media: media,
-                                                           files: [],
+                                                           files: files,
                                                            linkPreviewData: linkPreviewData,
                                                            linkPreviewMedia: linkPreviewMedia,
                                                            didCreateMessage: showProcessingAlertIfNeeded,

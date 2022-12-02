@@ -46,6 +46,15 @@ enum ShareDestination: Equatable, Hashable {
             hasher.combine(chat.userId)
         }
     }
+
+    var supportsFileSharing: Bool {
+        switch self {
+        case .chat:
+            return true
+        case .feed, .group:
+            return false
+        }
+    }
 }
 
 extension Localizations {

@@ -7,6 +7,7 @@
 //
 
 import Combine
+import Core
 import UIKit
 
 final class FeedPermissionAlert: UIView {

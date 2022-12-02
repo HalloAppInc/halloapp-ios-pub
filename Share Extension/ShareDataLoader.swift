@@ -27,6 +27,7 @@ class ShareDataLoader {
 
     var ready = CurrentValueSubject<Bool, Never>(false)
     var media: [PendingMedia] = []
+    var files: [FileSharingData] = []
     var text: String = ""
 
     private init() {}
@@ -244,6 +245,14 @@ class ShareDataLoader {
                 mediaItem.order = order
                 mediaItem.originalVideoURL = url
                 mediaItem.fileURL = url
+            } else if url.isFileURL {
+                let fileData = FileSharingData(
+                    name: url.lastPathComponent,
+                    size: (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0,
+                    localURL: url)
+                // NB: We only support sharing one file at a time!
+                self.files = [fileData]
+                completion(nil)
             } else {
                 self.text = self.text + (self.text.isEmpty ? "" : "\n") + url.absoluteString
                 completion(nil)

@@ -98,7 +98,7 @@ public struct ServerProperties {
         static let postReactions = false
         static let chatReactions = false
         static let commentReactions = false
-        static let enableNewMediaUploader = false
+        static let enableNewMediaUploader = true
         static let enableChatLocationSharing = false
         static let closeFriendRecommendations = false
         static let enableGroupChat = false
