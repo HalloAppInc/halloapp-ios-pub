@@ -253,23 +253,23 @@
 /* Generic error when trying to use camera */
 "camera.error" = "Camerafout";
 
-/* No comment provided by engineer. */
-"camera.init.error.1" = "Kan de camera aan de achterkant niet initialiseren";
+/* Error shown when the back camera isn't available. */
+"camera.init.error.1" = "Kan de camera aan de achterkant niet gebruiken.";
 
-/* No comment provided by engineer. */
-"camera.init.error.2" = "Kan de camera aan de voorkant niet initialiseren";
+/* Error shown when the front camera isn't available. */
+"camera.init.error.2" = "Kan de camera aan de voorkant niet gebruiken.";
 
-/* No comment provided by engineer. */
-"camera.init.error.3" = "Kan de microfoon niet initialiseren";
+/* Error shown when the microphone isn't available. */
+"camera.init.error.3" = "Kan de microfoon niet gebruiken.";
 
-/* No comment provided by engineer. */
-"camera.init.error.4" = "Geen toegang tot camera aan de achterkant";
+/* Error shown when photo output setup failed. */
+"camera.init.error.4" = "Foto nemen is niet beschikbaar. Probeer het later opnieuw.";
 
-/* No comment provided by engineer. */
-"camera.init.error.5" = "Geen toegang tot camera aan de voorkant";
+/* Error shown when video recording setup failed. */
+"camera.init.error.5" = "Video-opname is niet beschikbaar. Probeer het later opnieuw.";
 
-/* No comment provided by engineer. */
-"camera.init.error.6" = "Geen toegang tot microfoon";
+/* Error shown when audio recording setup failed. */
+"camera.init.error.6" = "Audio-opname is niet beschikbaar. Probeer het later opnieuw.";
 
 /* No comment provided by engineer. */
 "camera.init.error.7" = "Kan geen foto's maken";
@@ -281,7 +281,7 @@
 "camera.init.error.9" = "Kan geen audio opnemen";
 
 /* Title for a popup alerting about camera initialization error. */
-"camera.init.error.title" = "Initialisatiefout";
+"camera.init.error.title" = "Instellingsfout";
 
 /* Text shown on the camera screen when composing a new moment. */
 "camera.moment.subtitle" = "Momenten verdwijnen na 24 uur";
@@ -1283,7 +1283,7 @@
 "media.mic.access.request.body" = "Om video's met geluid op te nemen, heeft HalloApp toegang nodig tot de microfoon. Om toegang te geven, tik op Instellingen en zet Microfoon aan.";
 
 /* Alert asking to enable Microphone permission after attempting to use in-app camera. */
-"media.mic.access.request.title" = "Wil je video's met geluid opnemen?";
+"media.mic.access.request.title" = "Microfoontoegang";
 
 /* Error text displayed in post composer when some of the media selected couldn't be sent. */
 "media.prepare.failed.n.count" = "media.prepare.failed.n.count";

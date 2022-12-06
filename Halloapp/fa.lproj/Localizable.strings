@@ -253,22 +253,22 @@
 /* Generic error when trying to use camera */
 "camera.error" = "خطا در دوربین";
 
-/* No comment provided by engineer. */
+/* Error shown when the back camera isn't available. */
 "camera.init.error.1" = "عدم فعالیت دوربین پشت";
 
-/* No comment provided by engineer. */
+/* Error shown when the front camera isn't available. */
 "camera.init.error.2" = "عدم فعالیت دوربین جلو";
 
-/* No comment provided by engineer. */
+/* Error shown when the microphone isn't available. */
 "camera.init.error.3" = "عدم فعالیت میکروفون";
 
-/* No comment provided by engineer. */
+/* Error shown when photo output setup failed. */
 "camera.init.error.4" = "عدم دسترسی به دوربین پشت";
 
-/* No comment provided by engineer. */
+/* Error shown when video recording setup failed. */
 "camera.init.error.5" = "عدم دسترسی به دوربین جلو";
 
-/* No comment provided by engineer. */
+/* Error shown when audio recording setup failed. */
 "camera.init.error.6" = "عدم دسترسی به صدا";
 
 /* No comment provided by engineer. */
@@ -2180,6 +2180,9 @@
 
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "دیده شد توسط";
+
+/* Toast displayed while preparing video for external share */
+"toast.exporting" = "در حال استخراج...";
 
 /* Text on the bottom sheet's button that dismisses the sheet. */
 "try.moments" = "لحظه‌ها را امتحان کنید";

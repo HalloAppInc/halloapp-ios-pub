@@ -118,6 +118,9 @@
 /* Description of the new Favorites functionality. */
 "feed.privacy.list.set.favorites.description" = "Je kunt nu een lijst van je favoriete contacten maken en je HalloApp-posts alleen met hen delen.";
 
+/* Alert dialog when users try to share files to group or home feed */
+"files.in.chats.only" = "Bestanden kunnen alleen rechtstreeks naar contacten worden verzonden, niet toegevoegd aan posts.";
+
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Zoeken";
 

@@ -216,6 +216,9 @@
 /* Row in Settings screen */
 "title.privacy" = "حریم خصوصی";
 
+/* Toast displayed while preparing video for external share */
+"toast.exporting" = "در حال استخراج...";
+
 /* How many bytes from total have been uploaded */
 "uploading.bytes.progress" = "@%1$ از @$2%";
 

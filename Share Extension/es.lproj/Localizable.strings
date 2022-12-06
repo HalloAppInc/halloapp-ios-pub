@@ -118,6 +118,9 @@
 /* Description of the new Favorites functionality. */
 "feed.privacy.list.set.favorites.description" = "Ahora puedes crear una lista de tus contactos favoritos y compartir tus publicaciones de HalloApp solo con ellos.";
 
+/* Alert dialog when users try to share files to group or home feed */
+"files.in.chats.only" = "Los archivos sólo pueden enviarse directamente a los contactos, no se incluyen en los mensajes.";
+
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Búsqueda";
 

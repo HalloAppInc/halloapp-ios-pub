@@ -253,22 +253,22 @@
 /* Generic error when trying to use camera */
 "camera.error" = "Kesalahan kamera";
 
-/* No comment provided by engineer. */
+/* Error shown when the back camera isn't available. */
 "camera.init.error.1" = "Tidak dapat memulai kamera belakang";
 
-/* No comment provided by engineer. */
+/* Error shown when the front camera isn't available. */
 "camera.init.error.2" = "Tidak dapat memulai kamera depan";
 
-/* No comment provided by engineer. */
+/* Error shown when the microphone isn't available. */
 "camera.init.error.3" = "Tidak dapat memulai mikrofon";
 
-/* No comment provided by engineer. */
+/* Error shown when photo output setup failed. */
 "camera.init.error.4" = "Tidak dapat mengakses kamera belakang";
 
-/* No comment provided by engineer. */
+/* Error shown when video recording setup failed. */
 "camera.init.error.5" = "Tidak dapat mengakses kamera depan";
 
-/* No comment provided by engineer. */
+/* Error shown when audio recording setup failed. */
 "camera.init.error.6" = "Tidak dapat mengakses audio";
 
 /* No comment provided by engineer. */
@@ -449,7 +449,7 @@
 "chat.list.you.reacted.video" = "Anda menanggapi %1@ di video";
 
 /* Message text shown in a message that have audio media but no text */
-"chat.message.audio" = "Catatan suara";
+"chat.message.audio" = "Pesan suara";
 
 /* Message text shown for quoted audio posts */
 "chat.message.audiopost" = "Postingan audio";
@@ -2180,6 +2180,9 @@
 
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "Dilihat oleh";
+
+/* Toast displayed while preparing video for external share */
+"toast.exporting" = "Memindahkan...";
 
 /* Text on the bottom sheet's button that dismisses the sheet. */
 "try.moments" = "Coba Momen";

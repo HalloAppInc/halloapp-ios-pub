@@ -211,22 +211,22 @@
 /* Generic error when trying to use camera */
 "camera.error" = "Erreur de la caméra";
 
-/* No comment provided by engineer. */
+/* Error shown when the back camera isn't available. */
 "camera.init.error.1" = "Impossible d'initialiser la caméra arrière";
 
-/* No comment provided by engineer. */
+/* Error shown when the front camera isn't available. */
 "camera.init.error.2" = "Impossible d'initialiser la caméra avant";
 
-/* No comment provided by engineer. */
+/* Error shown when the microphone isn't available. */
 "camera.init.error.3" = "Impossible d'initialiser le microphone";
 
-/* No comment provided by engineer. */
+/* Error shown when photo output setup failed. */
 "camera.init.error.4" = "Impossible d'accéder à la caméra arrière";
 
-/* No comment provided by engineer. */
+/* Error shown when video recording setup failed. */
 "camera.init.error.5" = "Impossible d'accéder à la caméra avant";
 
-/* No comment provided by engineer. */
+/* Error shown when audio recording setup failed. */
 "camera.init.error.6" = "Impossible d'accéder à l'audio";
 
 /* No comment provided by engineer. */

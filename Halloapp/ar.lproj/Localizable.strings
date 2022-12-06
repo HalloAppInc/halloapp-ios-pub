@@ -253,23 +253,23 @@
 /* Generic error when trying to use camera */
 "camera.error" = "خطأ في الكاميرا";
 
-/* No comment provided by engineer. */
-"camera.init.error.1" = "يتعذر تشغيل الكاميرا الخلفية";
+/* Error shown when the back camera isn't available. */
+"camera.init.error.1" = "يتعذر تشغيل الكاميرا الخلفية.";
 
-/* No comment provided by engineer. */
-"camera.init.error.2" = "يتعذر تشغيل الكاميرا الأمامية";
+/* Error shown when the front camera isn't available. */
+"camera.init.error.2" = "يتعذر تشغيل الكاميرا الأمامية.";
 
-/* No comment provided by engineer. */
-"camera.init.error.3" = "يتعذر تشغيل الميكروفون";
+/* Error shown when the microphone isn't available. */
+"camera.init.error.3" = "يتعذر تشغيل الميكروفون.";
 
-/* No comment provided by engineer. */
-"camera.init.error.4" = "يتعذر الوصول إلى الكاميرا الخلفية";
+/* Error shown when photo output setup failed. */
+"camera.init.error.4" = "التقاط الصور غير متاح. يُرجى إعادة المحاولة لاحقًا.";
 
-/* No comment provided by engineer. */
-"camera.init.error.5" = "يتعذر الوصول إلى الكاميرا الأمامية";
+/* Error shown when video recording setup failed. */
+"camera.init.error.5" = "تسجيل الفيديو غير متاح. يُرجى إعادة المحاولة لاحقًا.";
 
-/* No comment provided by engineer. */
-"camera.init.error.6" = "يتعذر الوصول إلى الميكروفون";
+/* Error shown when audio recording setup failed. */
+"camera.init.error.6" = "تسجيل الصوت غير متاح. يُرجى إعادة المحاولة لاحقًا.";
 
 /* No comment provided by engineer. */
 "camera.init.error.7" = "يتعذر التقاط صور";
@@ -281,7 +281,7 @@
 "camera.init.error.9" = "يتعذر تسجيل الصوت";
 
 /* Title for a popup alerting about camera initialization error. */
-"camera.init.error.title" = "خطأ في التشغيل";
+"camera.init.error.title" = "خطأ في الإعداد";
 
 /* Text shown on the camera screen when composing a new moment. */
 "camera.moment.subtitle" = "تظهر اللحظات لمدة 24 ساعة";
@@ -704,7 +704,7 @@
 "externalShare.og.title3" = "منشور %@ على هالوآب";
 
 /* Always 'Posted from HalloApp', but we are applying additional formatting to HalloApp */
-"externalshare.postedFrom" = "تمت المشاركة من هالوآب";
+"externalshare.postedFrom" = "تم النشر من %@";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "الكاميرا";
@@ -1283,7 +1283,7 @@
 "media.mic.access.request.body" = "لتسجيل الفيديوهات مع تضمين الصوت، يحتاج هالوآب إلى إذن الوصول إلى الميكروفون. لتمكين الوصول، انقر على \"الإعدادات\" وشغِّل الميكروفون.";
 
 /* Alert asking to enable Microphone permission after attempting to use in-app camera. */
-"media.mic.access.request.title" = "هل تريد تضمين الصوت مع الفيديوهات؟";
+"media.mic.access.request.title" = "الوصول إلى الميكروفون";
 
 /* Error text displayed in post composer when some of the media selected couldn't be sent. */
 "media.prepare.failed.n.count" = "media.prepare.failed.n.count";
@@ -2180,6 +2180,9 @@
 
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "شاهَدَه";
+
+/* Toast displayed while preparing video for external share */
+"toast.exporting" = "جارٍ التصدير...";
 
 /* Text on the bottom sheet's button that dismisses the sheet. */
 "try.moments" = "جرِّب اللحظات";

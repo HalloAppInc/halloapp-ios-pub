@@ -118,6 +118,9 @@
 /* Description of the new Favorites functionality. */
 "feed.privacy.list.set.favorites.description" = "يمكنك الآن إنشاء قائمة بجهات اتصالك المفضلة، ومشاركة منشوراتك على هالوآب معها.";
 
+/* Alert dialog when users try to share files to group or home feed */
+"files.in.chats.only" = "يمكن فقط إرسال الملفات مباشرةً إلى جهات الاتصال، وليس تضمينها في المنشورات.";
+
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "بحث";
 
@@ -215,6 +218,9 @@
 
 /* Row in Settings screen */
 "title.privacy" = "الخصوصية";
+
+/* Toast displayed while preparing video for external share */
+"toast.exporting" = "جارٍ التصدير...";
 
 /* How many bytes from total have been uploaded */
 "uploading.bytes.progress" = "%1$@ من %2$@";

@@ -253,23 +253,23 @@
 /* Generic error when trying to use camera */
 "camera.error" = "Kamerafehler";
 
-/* No comment provided by engineer. */
-"camera.init.error.1" = "Die Rückkamera kann nicht initialisiert werden";
+/* Error shown when the back camera isn't available. */
+"camera.init.error.1" = "Die Rückkamera kann nicht verwendet werden.";
 
-/* No comment provided by engineer. */
-"camera.init.error.2" = "Die Frontkamera kann nicht initialisiert werden";
+/* Error shown when the front camera isn't available. */
+"camera.init.error.2" = "Die Frontkamera kann nicht verwendet werden.";
 
-/* No comment provided by engineer. */
-"camera.init.error.3" = "Das Mikrofon kann nicht initialisiert werden";
+/* Error shown when the microphone isn't available. */
+"camera.init.error.3" = "Das Mikrofon kann nicht verwendet werden.";
 
-/* No comment provided by engineer. */
-"camera.init.error.4" = "Auf die Rückkamera kann nicht zugegriffen werden";
+/* Error shown when photo output setup failed. */
+"camera.init.error.4" = "Die Fotoaufnahme ist nicht verfügbar. Bitte versuche es später noch einmal.";
 
-/* No comment provided by engineer. */
-"camera.init.error.5" = "Auf die Frontkamera kann nicht zugegriffen werden";
+/* Error shown when video recording setup failed. */
+"camera.init.error.5" = "Die Videoaufzeichnung ist nicht verfügbar. Bitte versuche es später noch einmal.";
 
-/* No comment provided by engineer. */
-"camera.init.error.6" = "Auf das Mikrofon kann nicht zugegriffen werden";
+/* Error shown when audio recording setup failed. */
+"camera.init.error.6" = "Die Audioaufnahme ist nicht verfügbar. Bitte versuche es später noch einmal.";
 
 /* No comment provided by engineer. */
 "camera.init.error.7" = "Fotos können nicht aufgenommen werden";
@@ -281,7 +281,7 @@
 "camera.init.error.9" = "Audioaufnahme nicht möglich";
 
 /* Title for a popup alerting about camera initialization error. */
-"camera.init.error.title" = "Initialisierungsfehler";
+"camera.init.error.title" = "Setup-Fehler";
 
 /* Text shown on the camera screen when composing a new moment. */
 "camera.moment.subtitle" = "Momente werden für 24 Stunden angezeigt";
@@ -1283,7 +1283,7 @@
 "media.mic.access.request.body" = "Um Videos mit Ton aufzunehmen, benötigt HalloApp den Zugriff auf das Mikrofon. Um den Zugriff zu erlauben, tippe auf Einstellungen und aktiviere das Mikrofon.";
 
 /* Alert asking to enable Microphone permission after attempting to use in-app camera. */
-"media.mic.access.request.title" = "Möchtest du Videos mit Ton aufnehmen?";
+"media.mic.access.request.title" = "Mikrofonzugriff";
 
 /* Error text displayed in post composer when some of the media selected couldn't be sent. */
 "media.prepare.failed.n.count" = "media.prepare.failed.n.count";
@@ -1753,7 +1753,7 @@
 "registration.code.resend.by.voice" = "Ruf mich an";
 
 /* An explainer during registration for why we need contact permissions. */
-"registration.contact.permissions.mesage" = "HalloApp verschickt nie Nachrichten in deinem Namen und verwendet nur das Telefonnummernfeld deiner Kontakte, um dich mit deinen Freunden und deiner Familie zu verbinden.";
+"registration.contact.permissions.mesage" = "HalloApp verschickt nie Nachrichten in deinem Namen und verwendet nur deine Telefonkontakte, um dich mit deinen Freunden und deiner Familie zu verbinden.";
 
 /* Text explaining why we need contact permissions */
 "registration.contacts.content" = "Um den Kontakt zu deinen Freunden und deiner Familie herzustellen, benötigen wir deine Erlaubnis, um auf deine Kontakte zugreifen zu können.";

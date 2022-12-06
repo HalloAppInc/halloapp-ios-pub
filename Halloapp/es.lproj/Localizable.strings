@@ -253,22 +253,22 @@
 /* Generic error when trying to use camera */
 "camera.error" = "Error en la cámara";
 
-/* No comment provided by engineer. */
+/* Error shown when the back camera isn't available. */
 "camera.init.error.1" = "No se puede iniciar la cámara trasera";
 
-/* No comment provided by engineer. */
+/* Error shown when the front camera isn't available. */
 "camera.init.error.2" = "No se puede iniciar la cámara frontal";
 
-/* No comment provided by engineer. */
+/* Error shown when the microphone isn't available. */
 "camera.init.error.3" = "No se puede iniciar el micrófono";
 
-/* No comment provided by engineer. */
+/* Error shown when photo output setup failed. */
 "camera.init.error.4" = "Sin acceso a la cámara trasera";
 
-/* No comment provided by engineer. */
+/* Error shown when video recording setup failed. */
 "camera.init.error.5" = "Sin acceso a la cámara frontal";
 
-/* No comment provided by engineer. */
+/* Error shown when audio recording setup failed. */
 "camera.init.error.6" = "Sin acceso al audio";
 
 /* No comment provided by engineer. */
@@ -1404,6 +1404,12 @@
 /* Your Post screen: label for the row that opens the privacy screen */
 "mypost.row.manage.privacy" = "Configurar privacidad";
 
+/* Explains that the listed contacts will be able to see posts that are shared with all contacts */
+"n.contacts.privacy.disclaimer" = "n.contacts.privacy.disclaimer";
+
+/* Number of contacts that are already on HalloApp. */
+"n.fellow.contacts" = "n.fellow.contacts";
+
 /* Indicates how many invites are remaining */
 "n.invites.count" = "n.invites.count";
 
@@ -1475,6 +1481,9 @@
 
 /* New moment screenshot notification text to be shown to the user. */
 "notification.moment.screenshot" = "%@ tomó una captura de pantalla de tu momento";
+
+/* New post notification text when post is multiple documents without caption. */
+"notification.n.documents" = "notification.n.documents";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
