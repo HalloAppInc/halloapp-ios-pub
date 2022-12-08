@@ -106,9 +106,6 @@ class MessageCellViewMedia: MessageCellViewBase {
             ])
         }
         configureCell()
-
-        // hide empty space above media on incomming messages
-        nameRow.isHidden = true
     }
 }
 

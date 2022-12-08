@@ -448,6 +448,7 @@ class MessageCellViewBase: UICollectionViewCell {
         if let chatMessage = chatMessage, chatMessage.chatMessageRecipient.chatType == .groupChat {
             nameLabel.text =  MainAppContext.shared.contactStore.fullName(for: chatMessage.fromUserId, in: MainAppContext.shared.contactStore.viewContext)
             nameLabel.textColor = userColorAssignment
+            nameRow.isHidden = false
         }
         if let chatMessage = chatMessage {
             // track changes to reactions for chatMessage
