@@ -81,13 +81,10 @@ class HomeViewController: UITabBarController {
         tabBarViewControllers = [
             feedNavController,
             groupsNavController,
+            cameraNavController,
             chatsNavController,
             activityNavController,
         ]
-
-        if ServerProperties.isInternalUser {
-            tabBarViewControllers.insert(cameraNavController, at: TabBarSelection.camera.index)
-        }
 
         setViewControllers(tabBarViewControllers, animated: false)
 
@@ -494,8 +491,6 @@ class HomeViewController: UITabBarController {
         case activity
 
         var index: Int {
-            let isInternal = ServerProperties.isInternalUser
-
             switch self {
             case .home:
                 return 0
@@ -504,9 +499,9 @@ class HomeViewController: UITabBarController {
             case .camera:
                 return 2
             case .chat:
-                return isInternal ? 3 : 2
+                return 3
             case .activity:
-                return isInternal ? 4 : 3
+                return 4
             }
         }
     }

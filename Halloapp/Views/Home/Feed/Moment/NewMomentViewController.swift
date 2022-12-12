@@ -158,7 +158,7 @@ final class NewMomentViewController: UIViewController {
     private func completeCompose() {
         guard case let .unlock(post) = context, let feedData = MainAppContext.shared.feedData else {
             delegate?.newMomentViewControllerDidPost(self)
-            return dismiss(animated: true)
+            return showSnapshotAndDismiss()
         }
 
         DDLogInfo("NewMomentViewController/completeCompose/creating unlock cancellable")
@@ -170,6 +170,15 @@ final class NewMomentViewController: UIViewController {
                 DDLogInfo("NewMomentViewController/completeCompose/received valid moment for unlock")
                 self?.prepareForUnlockTransition(post: post, unlockingPost: moment)
             }
+    }
+
+    private func showSnapshotAndDismiss() {
+        if let snapshot = presentedViewController?.view.snapshotView(afterScreenUpdates: false) {
+            view.addSubview(snapshot)
+            presentedViewController?.view.isHidden = true
+        }
+
+        presentingViewController?.dismiss(animated: true)
     }
 
     private func prepareForUnlockTransition(post: FeedPost, unlockingPost: FeedPost) {
