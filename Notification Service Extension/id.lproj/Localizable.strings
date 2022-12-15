@@ -2,7 +2,7 @@
 "alert.no.internet.title" = "Tidak Ada Sambungan Internet";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Silakan periksa jika Anda terhubung ke internet, lalu coba lagi.";
+"alert.no.internet.try.again" = "Pastikan Anda memiliki sambungan internet, lalu coba lagi.";
 
 /* Company name */
 "app.name.halloapp" = "HalloApp";
@@ -101,7 +101,7 @@
 "feed.privacy.list.dismiss.edit.favorites" = "Nanti";
 
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
-"feed.privacy.list.notOwn.only.description" = "Hanya orang di daftar Favorit %@ dapat meilihat postingan ini.";
+"feed.privacy.list.notOwn.only.description" = "Hanya orang di daftar Favorit %@ dapat melihat postingan ini.";
 
 /* Header for the favorites list when editing contacts to share with. */
 "feed.privacy.list.only.details" = "Yang akan melihat postingan ini";
@@ -128,7 +128,7 @@
 "link.learnMore" = "Pelajari lebih lanjut";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "Perbarui app Anda.";
+"link.update.your.app" = "Perbarui aplikasi.";
 
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "Buang";
@@ -173,10 +173,10 @@
 "notification.moment.5" = "%1$@, %2$@, %3$@, dan lainnya membagikan momen baru";
 
 /* New moment screenshot notification text to be shown to the user. */
-"notification.moment.screenshot" = "%@ mengambil jepretan layar momen Anda";
+"notification.moment.screenshot" = "%@ mengambil tangkapan layar momen Anda";
 
 /* New post notification text when post is multiple documents without caption. */
-"notification.n.documents" = "notifikasi.n.multidokumen";
+"notification.n.documents" = "notification.n.documents";
 
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
@@ -200,7 +200,7 @@
 "notification.new.post" = "Postingan Baru";
 
 /* New post notification text when post is one document without caption. */
-"notification.one.document" = "fail";
+"notification.one.document" = "📄 fail";
 
 /* New post notification text when post is one photo without caption. */
 "notification.one.photo" = "📷 foto";
@@ -209,7 +209,7 @@
 "notification.one.video" = "📹 video";
 
 /* Push notification for a reaction to post */
-"notification.post.reaction" = "Bereaksi %@ untuk postingan";
+"notification.post.reaction" = "Menanggapi %@ di postingan";
 
 /* New moment unlock notification text to be shown to the user. */
 "notification.unlocked.moment.1" = "%@ membagikan momen baru untuk melihat momen Anda";
@@ -239,7 +239,7 @@
 "notification.voicepost" = "🎤 Postingan audio";
 
 /* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "Bergabunglah dengan jaringan hubungan nyata saya di HalloApp. Unduh gratis di halloapp.com/dl";
+"settings.share.text" = "Bergabunglah dengan jejaring hubungan karib saya di HalloApp. Unduh gratis di halloapp.com/dl";
 
 /* Button to edit favorites list */
 "title.edit.favorites" = "Edit daftar Favorit Anda";
@@ -248,5 +248,5 @@
 "title.privacy" = "Privasi";
 
 /* Toast displayed while preparing video for external share */
-"toast.exporting" = "Memindahkan...";
+"toast.exporting" = "Mengekspor...";
 

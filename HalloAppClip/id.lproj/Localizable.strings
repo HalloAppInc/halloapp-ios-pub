@@ -14,13 +14,13 @@
 "home.update.notice.button.exit" = "Keluar";
 
 /* Text shown to users who have old versions of the app */
-"home.update.notice.text" = "Silakan perbarui ke versi HalloApp terbaru";
+"home.update.notice.text" = "Silakan perbarui ke versi HalloApp terkini";
 
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Versi ini telah usang";
 
 /* Disclaimer text about receiving SMS verification code */
-"registration.code.disclaimer" = "Anda akan menerima kode verifikasi.\nDapat dikenakan biaya operator.";
+"registration.code.disclaimer" = "Anda akan menerima kode verifikasi.\nTarif operator mungkin berlaku.";
 
 /* Error message to display when user enters incorrect verification code */
 "registration.code.incorrect" = "Kode yang Anda masukkan salah";
@@ -29,7 +29,7 @@
 "registration.code.instructions" = "Masukkan kode yang kami kirim ke %@";
 
 /* Error message to display when we cannot send a verification code */
-"registration.code.request.error" = "Tidak dapat mengirim kode. Silakan coba lagi nanti.";
+"registration.code.request.error" = "Tidak dapat mengirim kode. Coba lagi nanti.";
 
 /* Button label to resend verification code */
 "registration.code.resend" = "Kirim Ulang SMS";
@@ -56,13 +56,13 @@
 "registration.install.app.to.join.group" = "Instal HalloApp untuk membuka %@";
 
 /* Title for popup that appears when user tries to register invalid number */
-"registration.invalidphone" = "Ups!";
+"registration.invalidphone" = "Duh!";
 
 /* Popup that appears when user tries to register a number with invalid country code */
-"registration.invalidphone.invalidCountryCode" = "Nomor telepon yang Anda masukkan memiliki kode negara yang tidak valid. Silakan periksa ulang.";
+"registration.invalidphone.invalidCountryCode" = "Kode negara nomor telepon yang Anda masukkan tidak valid. Silakan periksa ulang.";
 
 /* Popup that appears when user tries to register a number with invalid length */
-"registration.invalidphone.invalidLength" = "Nomor telepon yang Anda masukkan memiliki panjang yang tidak valid. Silakan periksa ulang.";
+"registration.invalidphone.invalidLength" = "Jumlah digit angka nomor telepon yang Anda masukkan tidak valid. Silakan periksa ulang.";
 
 /* Popup that appears when user tries to register a landline number */
 "registration.invalidphone.lineTypeFixed" = "Nomor telepon yang Anda masukkan bukan nomor ponsel. Silakan periksa ulang.";
@@ -77,7 +77,7 @@
 "registration.invalidphone.only" = "Nomor telepon yang Anda masukkan tidak valid. Silakan periksa ulang.";
 
 /* Popup that appears when user tries to register uninvited number */
-"registration.invite.only" = "Jika Anda menggunakan Tautan Undangan Grup untuk mendaftar, silakan klik lagi tautan tersebut untuk menyelesaikan pendaftaran dan bergabung dengan grup.";
+"registration.invite.only" = "Jika menggunakan Tautan Undangan Grup untuk mendaftar, klik lagi tautan untuk menyelesaikannya dan bergabung dengan grup.";
 
 /* Placeholder text for name entry */
 "registration.nameEntry.placeholder" = "Nama Anda";
@@ -92,7 +92,7 @@
 "registration.privacy.title" = "Privasi Anda adalah prioritas kami";
 
 /* Title for popup that appears when user tries to register uninvited number */
-"registration.shucks" = "Ups!";
+"registration.shucks" = "Duh!";
 
 /* Shown above name and phone inputs */
 "registration.welcome" = "Selamat Datang!";

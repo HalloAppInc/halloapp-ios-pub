@@ -2,7 +2,7 @@
 "alert.no.internet.title" = "Tidak Ada Sambungan Internet";
 
 /* Message to tell the user to try again when they have internet connectivity again */
-"alert.no.internet.try.again" = "Silakan periksa jika Anda terhubung ke internet, lalu coba lagi.";
+"alert.no.internet.try.again" = "Pastikan Anda memiliki sambungan internet, lalu coba lagi.";
 
 /* Company name */
 "app.name.halloapp" = "HalloApp";
@@ -101,7 +101,7 @@
 "feed.privacy.list.dismiss.edit.favorites" = "Nanti";
 
 /* Description of the alert shown to user indicating the author's post is only shown to the author's favorites audience */
-"feed.privacy.list.notOwn.only.description" = "Hanya orang di daftar Favorit %@ dapat meilihat postingan ini.";
+"feed.privacy.list.notOwn.only.description" = "Hanya orang di daftar Favorit %@ dapat melihat postingan ini.";
 
 /* Header for the favorites list when editing contacts to share with. */
 "feed.privacy.list.only.details" = "Yang akan melihat postingan ini";
@@ -118,6 +118,9 @@
 /* Description of the new Favorites functionality. */
 "feed.privacy.list.set.favorites.description" = "Sekarang Anda dapat membuat daftar kontak favorit dan membagikan postingan HalloApp Anda dengan mereka.";
 
+/* Alert dialog when users try to share files to group or home feed */
+"files.in.chats.only" = "Fail hanya bisa dikirim ke kontak langsung, tidak di postingan.";
+
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Cari";
 
@@ -125,7 +128,7 @@
 "link.learnMore" = "Pelajari lebih lanjut";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
-"link.update.your.app" = "Perbarui app Anda.";
+"link.update.your.app" = "Perbarui aplikasi.";
 
 /* Button title. Refers to discarding photo/video edits in media composer. */
 "media.button.discard" = "Buang";
@@ -137,7 +140,7 @@
 "media.button.undo" = "Urungkan";
 
 /* Confirmation prompt in media composer. */
-"media.discard.confirmation" = "Apakah Anda ingin menghapus perubahan Anda?";
+"media.discard.confirmation" = "Anda ingin membuang hasil pengeditan?";
 
 /* Accessibility label for a button in media editor. Refers to media editing action. */
 "media.voiceover.button.annotate" = "Berikan Anotasi";
@@ -158,7 +161,7 @@
 "media.voiceover.button.rotate" = "Putar";
 
 /* String to auto-fill if a user tried to share to a friend. */
-"settings.share.text" = "Bergabunglah dengan jaringan hubungan nyata saya di HalloApp. Unduh gratis di halloapp.com/dl";
+"settings.share.text" = "Bergabunglah dengan jejaring hubungan karib saya di HalloApp. Unduh gratis di halloapp.com/dl";
 
 /* Title on edit button */
 "share.composer.button.edit" = "Edit";
@@ -176,7 +179,7 @@
 "share.composer.processing.media" = "Memproses Media...";
 
 /* Alert dialog message shown when uploading fails. */
-"share.composer.uploading.fail.message" = "Silakan coba lagi nanti.";
+"share.composer.uploading.fail.message" = "Coba lagi nanti.";
 
 /* Alert dialog title shown when uploading fails. */
 "share.composer.uploading.fail.title" = "Gagal mengunggah";
@@ -217,7 +220,7 @@
 "title.privacy" = "Privasi";
 
 /* Toast displayed while preparing video for external share */
-"toast.exporting" = "Memindahkan…";
+"toast.exporting" = "Mengekspor…";
 
 /* How many bytes from total have been uploaded */
 "uploading.bytes.progress" = "%1$@ dari %2$@";

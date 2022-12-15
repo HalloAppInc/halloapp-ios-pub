@@ -198,7 +198,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>Kontak ini akan dapat melihat postingan Anda dengan semua kontak HalloApp.</string>
+			<string>Kontak ini akan bisa melihat postingan yang Anda bagi ke semua kontak HalloApp.</string>
 		</dict>
 	</dict>
 	<key>n.fellow.contacts</key>
@@ -298,7 +298,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>%d fail</string>
+			<string>📄 %d fail</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>
@@ -356,7 +356,7 @@
 			<key>other</key>
 			<string>%d Kontak</string>
 			<key>zero</key>
-			<string>Tidak Anda</string>
+			<string>Tidak ada</string>
 		</dict>
 	</dict>
 </dict>
