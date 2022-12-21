@@ -1454,26 +1454,12 @@ extension ChatViewControllerNew: ContentInputDelegate {
     
     private func presentCameraViewController() {
         let vc = NewCameraViewController(presets: [.photo], initialPresetIndex: 0)
+        vc.delegate = self
         let nc = UINavigationController(rootViewController: vc)
         nc.modalPresentationStyle = .fullScreen
         nc.overrideUserInterfaceStyle = .dark
 
         present(nc, animated: true)
-    }
-
-    private func didTake(photo: UIImage) {
-        let media = PendingMedia(type: .image)
-        media.image = photo
-
-        presentComposerViewController(media: [media])
-    }
-
-    private func didTake(video url: URL) {
-        let media = PendingMedia(type: .video)
-        media.originalVideoURL = url
-        media.fileURL = url
-
-        presentComposerViewController(media: [media])
     }
 
     private func presentComposerViewController(media: [PendingMedia]) {
@@ -1566,6 +1552,44 @@ extension ChatViewControllerNew: ContentInputDelegate {
 
     func inputView(_ inputView: ContentInputView, didPaste image: PendingMedia) {
         presentComposerViewController(media: [image])
+    }
+}
+
+// MARK: - CameraViewControllerDelegate methods
+
+extension ChatViewControllerNew: CameraViewControllerDelegate {
+
+    func cameraViewController(_ viewController: NewCameraViewController, didSelect media: [PendingMedia]) {
+        viewController.dismiss(animated: true) { [weak self] in
+            self?.presentComposerViewController(media: media)
+        }
+    }
+
+    func cameraViewControllerDidReleaseShutter(_ viewController: NewCameraViewController) {
+
+    }
+
+    func cameraViewController(_ viewController: NewCameraViewController, didCapture results: [CaptureResult], with preset: CameraPreset) {
+        guard let image = results.first?.image else {
+            return
+        }
+
+        let media = PendingMedia(type: .image)
+        media.image = image
+
+        viewController.dismiss(animated: true) { [weak self] in
+            self?.presentComposerViewController(media: [media])
+        }
+    }
+
+    func cameraViewController(_ viewController: NewCameraViewController, didRecordVideoTo url: URL) {
+        let media = PendingMedia(type: .video)
+        media.originalVideoURL = url
+        media.fileURL = url
+
+        viewController.dismiss(animated: true) { [weak self] in
+            self?.presentComposerViewController(media: [media])
+        }
     }
 }
 
