@@ -336,6 +336,49 @@ open class CoreFeedData: NSObject {
         }
     }
 
+    public func beginMediaUploadAndSend(comment: FeedPostComment, didBeginUpload: ((Result<FeedPostCommentID, Error>) -> Void)? = nil) {
+        let mediaToUpload = comment.allAssociatedMedia.filter { [.none, .readyToUpload, .processedForUpload, .uploading, .uploadError].contains($0.status) }
+        if mediaToUpload.isEmpty {
+            send(comment: comment)
+        } else {
+            var uploadedMediaCount = 0
+            var failedMediaCount = 0
+            let totalMediaCount = mediaToUpload.count
+            let commentID = comment.id
+            // commentMediaStatusChangedPublisher should trigger comment upload once all media has been uploaded
+            mediaToUpload.forEach { media in
+                // Don't repeat in-progress requests
+                guard media.status != .uploading else {
+                    uploadedMediaCount += 1
+                    if uploadedMediaCount + failedMediaCount == totalMediaCount {
+                        if failedMediaCount == 0 {
+                            didBeginUpload?(.success(commentID))
+                        } else {
+                            didBeginUpload?(.failure(PostError.mediaUploadFailed))
+                        }
+                    }
+                    return
+                }
+                commonMediaUploader.upload(mediaID: media.id) { result in
+                    switch result {
+                    case .success:
+                        uploadedMediaCount += 1
+                    case .failure:
+                        failedMediaCount += 1
+                    }
+
+                    if uploadedMediaCount + failedMediaCount == totalMediaCount {
+                        if failedMediaCount == 0 {
+                            didBeginUpload?(.success(commentID))
+                        } else {
+                            didBeginUpload?(.failure(PostError.mediaUploadFailed))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private func uploadPostIfMediaReady(postID: FeedPostID) {
         let endBackgroundTask = AppContext.shared.startBackgroundTask(withName: "uploadPostIfmediaReady-\(postID)")
         mainDataStore.performSeriallyOnBackgroundContext { [weak self] context in

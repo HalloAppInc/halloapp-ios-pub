@@ -2930,14 +2930,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
 
             self.save(managedObjectContext)
-
-            if let linkPreview = linkPreview {
-                // upload link preview media followed by comment media and send over the wire
-                self.uploadMediaAndSend(feedLinkPreview: linkPreview)
-            } else {
-                // upload comment media if any and send data over the wire.
-                self.uploadMediaAndSend(feedComment: feedComment)
-            }
+            self.coreFeedData.beginMediaUploadAndSend(comment: feedComment)
         }
     }
 
