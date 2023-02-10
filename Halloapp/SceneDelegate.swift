@@ -562,7 +562,7 @@ extension SceneDelegate: CallViewDelegate {
 
 private extension SceneDelegate {
     private func presentAppUpdateWarning() {
-        let alert = UIAlertController(title: Localizations.appUpdateNoticeTitle, message: Localizations.appUpdateNoticeText, preferredStyle: UIAlertController.Style.alert)
+        let alert = UIAlertController(title: Localizations.appUpdateWarningNoticeTitle, message: Localizations.appUpdateWarningNoticeText, preferredStyle: UIAlertController.Style.alert)
         let updateAction = UIAlertAction(title: Localizations.buttonUpdate, style: .default, handler: { action in
             DDLogInfo("SceneDelegate/updateNotice/update clicked")
             guard let customAppURL = AppContext.appStoreURL,
