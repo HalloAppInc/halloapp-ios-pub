@@ -1395,7 +1395,6 @@ public class CoreChatData {
 
 
             var lastMsgMediaType: CommonThread.LastMediaType = .none
-            var lastMsgTextFallback: String?
             // Process chat content
             switch chatMessageProtocol.content {
             case .album(let mentionText, let media):
@@ -1419,10 +1418,9 @@ public class CoreChatData {
             case .location(let chatLocation):
                 chatMessage.location = CommonLocation(chatLocation: chatLocation, context: context)
                 lastMsgMediaType = .location
-            case .files(let files):
+            case .files:
                 chatMessage.rawText = ""
                 lastMsgMediaType = .document
-                lastMsgTextFallback = files.first?.name
             case .unsupported(let data):
                 chatMessage.rawData = data
                 chatMessage.incomingStatus = .unsupported
@@ -2450,9 +2448,6 @@ extension CoreChatData {
            diff < 3 {
             return
         }
-
-        let isCreateEvent = xmppGroup.action == .create
-
 
         let event = GroupEvent(context: managedObjectContext)
         event.senderUserID = xmppGroup.sender

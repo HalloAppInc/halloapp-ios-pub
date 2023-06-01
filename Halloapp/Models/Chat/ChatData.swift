@@ -4433,7 +4433,6 @@ extension ChatData {
                 attributedBody.append(body)
             }
         case .voiceNote(_):
-            let mediaStr =  "🎤"
             attributedBody.append(NSAttributedString(string: "🎤"))
         case .location(_):
             attributedBody.append(NSAttributedString(string: "📍"))

@@ -90,7 +90,7 @@ class VideoMerger {
             kCVPixelBufferPixelFormatTypeKey as String: UInt(mediaSubType),
             kCVPixelBufferWidthKey as String: Int(1024),
             kCVPixelBufferHeightKey as String: Int(768),
-            kCVPixelBufferIOSurfacePropertiesKey as String: [:],
+            kCVPixelBufferIOSurfacePropertiesKey as String: [String: Any](),
         ]
 
         var colorSpace: CGColorSpace? = CGColorSpaceCreateDeviceRGB()

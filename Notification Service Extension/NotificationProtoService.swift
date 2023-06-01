@@ -243,7 +243,7 @@ final class NotificationProtoService: ProtoServiceCore {
 
             // Handle rerequesting payload properly.
             switch groupFeedRerequest.contentType {
-            case .message, .messageReaction:
+            case .message:
                 hasAckBeenDelegated = true
                 AppContext.shared.coreChatData.handleRerequest(for: contentID, in: groupID, from: fromUserID, ack: ack)
             case .messageReaction:

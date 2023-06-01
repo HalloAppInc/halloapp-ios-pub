@@ -6,7 +6,6 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import Core
 import CoreCommon
 import Foundation
 

@@ -16,7 +16,6 @@ class MomentComposerPresentTransition: NSObject, UIViewControllerAnimatedTransit
     }
 
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
-        let from = transitionContext.viewController(forKey: .from)
         let to = transitionContext.viewController(forKey: .to)
         let composer = ((to as? UINavigationController)?.topViewController ?? to) as? MomentComposerViewController
         let presenter = composer?.delegate

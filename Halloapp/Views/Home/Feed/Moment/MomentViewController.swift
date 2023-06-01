@@ -932,12 +932,12 @@ extension MomentViewController: ContentInputDelegate {
         Analytics.log(event: .sendChatMessage, properties: chatProperties)
 
         Task { @MainActor [weak self] in
-            guard let message = await MainAppContext.shared.chatData.sendMomentReply(chatMessageRecipient: .oneToOneChat(toUserId: post.userId, fromUserId: MainAppContext.shared.userData.userId), postID: post.id, text: text, media: content.media, files: content.files) else {
+            guard let self, let message = await MainAppContext.shared.chatData.sendMomentReply(chatMessageRecipient: .oneToOneChat(toUserId: self.post.userId, fromUserId: MainAppContext.shared.userData.userId), postID: self.post.id, text: text, media: content.media, files: content.files) else {
                 self?.finalizeToast(success: false)
                 return
             }
 
-            self?.beginObserving(message: message)
+            self.beginObserving(message: message)
         }
     }
 

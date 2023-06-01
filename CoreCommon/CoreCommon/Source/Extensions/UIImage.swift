@@ -224,8 +224,10 @@ extension UIImage {
         guard let cgImage = cgImage else { return false }
         guard let destination = CGImageDestinationCreateWithURL(url as CFURL, "public.jpeg" as CFString, 1, nil) else { return false }
         let orientation = CGImagePropertyOrientation(imageOrientation)
-        let options = [kCGImagePropertyOrientation: orientation.rawValue,
-                       kCGImageDestinationLossyCompressionQuality: 0.8] as CFDictionary
+        let options = [
+            kCGImagePropertyOrientation: orientation.rawValue,
+            kCGImageDestinationLossyCompressionQuality: 0.8
+        ] as [CFString : Any] as CFDictionary
 
         CGImageDestinationAddImage(destination, cgImage, options)
 
@@ -301,10 +303,12 @@ extension UIImage {
 
     public static func thumbnail(contentsOf url: URL, maxPixelSize: CGFloat) -> UIImage? {
         let sourceOptions = [kCGImageSourceShouldCache: false] as CFDictionary
-        let thumbnailOptions =  [kCGImageSourceCreateThumbnailFromImageAlways: true,
-                                  kCGImageSourceShouldCacheImmediately: true,
-                                  kCGImageSourceCreateThumbnailWithTransform: true,
-                                  kCGImageSourceThumbnailMaxPixelSize: maxPixelSize] as CFDictionary
+        let thumbnailOptions =  [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixelSize
+        ] as [CFString : Any] as CFDictionary
 
         guard let source = CGImageSourceCreateWithURL(url as CFURL, sourceOptions) else { return nil }
         guard let thumbnail = CGImageSourceCreateThumbnailAtIndex(source, 0, thumbnailOptions) else { return nil }

@@ -143,7 +143,7 @@ public final class Keychain {
             kSecAttrService: service.rawValue,
             kSecReturnAttributes: true,
             kSecReturnData: true,
-        ] as CFDictionary
+        ] as [CFString : Any] as CFDictionary
 
         var result: AnyObject?
         let status = SecItemCopyMatching(query, &result)
@@ -171,7 +171,7 @@ public final class Keychain {
                 kSecAttrSynchronizable: kFalse,
                 kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
                 kSecValueData: data,
-            ] as CFDictionary
+            ] as [CFString : Any] as CFDictionary
             let status = SecItemAdd(keychainItem, nil)
             return status == errSecSuccess
         } else {
@@ -180,13 +180,13 @@ public final class Keychain {
                 kSecClass: kSecClassGenericPassword,
                 kSecAttrAccount: userID,
                 kSecAttrService: service.rawValue,
-            ] as CFDictionary
+            ] as [CFString : Any] as CFDictionary
 
             let update = [
                 kSecValueData: data,
                 kSecAttrSynchronizable: kFalse,
                 kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
-            ] as CFDictionary
+            ] as [CFString : Any] as CFDictionary
 
             let status = SecItemUpdate(query, update)
             return status == errSecSuccess
@@ -198,7 +198,7 @@ public final class Keychain {
             kSecClass: kSecClassGenericPassword,
             kSecAttrAccount: userID,
             kSecAttrService: service.rawValue,
-        ] as CFDictionary
+        ] as [CFString : Any] as CFDictionary
         let status = SecItemDelete(keychainItem)
         return status == errSecSuccess
     }

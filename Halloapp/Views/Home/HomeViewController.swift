@@ -525,7 +525,7 @@ extension HomeViewController: UITabBarControllerDelegate {
         }
 
         if viewController is CameraTabPlaceholderViewController {
-            var start = CGPoint(x: tabBar.frame.midX, y: tabBar.frame.midY - 20)
+            let start = CGPoint(x: tabBar.frame.midX, y: tabBar.frame.midY - 20)
             let vc = CameraPostViewController(startPoint: start)
             vc.delegate = self
 

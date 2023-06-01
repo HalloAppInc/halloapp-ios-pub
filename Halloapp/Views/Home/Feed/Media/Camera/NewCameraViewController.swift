@@ -802,8 +802,7 @@ extension NewCameraViewController {
 #if targetEnvironment(simulator)
             DDLogInfo("setupAndStartSession/Ignoring invalid session as we are running on a simulator")
             return
-#endif
-
+#else
         let title = error.title
         let description = error.description
         let alert = UIAlertController(title: title, message: description, preferredStyle: .alert)
@@ -827,6 +826,7 @@ extension NewCameraViewController {
         }
 
         present(alert, animated: true)
+#endif
     }
 }
 

@@ -130,7 +130,7 @@ public final class VideoUtils {
             AVVideoCompressionPropertiesKey: [
                 AVVideoAverageBitRateKey: ServerProperties.targetVideoBitRate,
                 AVVideoProfileLevelKey: AVVideoProfileLevelH264BaselineAutoLevel
-            ]
+            ] as [String : Any]
         ]
         let audioOutputConfiguration: [String: Any] =  [
             AVFormatIDKey: kAudioFormatMPEG4AAC,
