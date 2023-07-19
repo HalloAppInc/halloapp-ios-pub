@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -1359,7 +1359,7 @@
 			repositoryURL = "https://github.com/scinfu/SwiftSoup";
 			requirement = {
 				kind = exactVersion;
-				version = 2.4.3;
+				version = 2.6.1;
 			};
 		};
 		F46F6CAF28EFC4DF002D0A10 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
@@ -1367,7 +1367,7 @@
 			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
 			requirement = {
 				kind = exactVersion;
-				version = 7.30.0;
+				version = 8.9.1;
 			};
 		};
 		F4A46448290B08CF00280BBF /* XCRemoteSwiftPackageReference "Amplitude-iOS" */ = {
@@ -1375,7 +1375,7 @@
 			repositoryURL = "https://github.com/amplitude/Amplitude-iOS.git";
 			requirement = {
 				kind = exactVersion;
-				version = 8.14.0;
+				version = 8.17.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

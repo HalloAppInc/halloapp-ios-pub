@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/Alamofire/Alamofire.git",
         "state": {
           "branch": null,
-          "revision": "8dd85aee02e39dd280c75eef88ffdb86eed4b07b",
-          "version": "5.6.2"
+          "revision": "bc268c28fb170f494de9e9927c371b8342979ece",
+          "version": "5.7.1"
         }
       },
       {
@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/amplitude/Amplitude-iOS.git",
         "state": {
           "branch": null,
-          "revision": "483ec5c74b50f0d483013fc910fe890ec34e54d2",
-          "version": "8.14.0"
+          "revision": "94160a550835e6f0a1df9fa76ab3902ac4648a9c",
+          "version": "8.17.1"
         }
       },
       {
@@ -51,8 +51,8 @@
         "repositoryURL": "https://github.com/CocoaLumberjack/CocoaLumberjack",
         "state": {
           "branch": null,
-          "revision": "80ada1f753b0d53d9b57c465936a7c4169375002",
-          "version": "3.7.4"
+          "revision": "0188d31089b5881a269e01777be74c7316924346",
+          "version": "3.8.0"
         }
       },
       {
@@ -87,8 +87,8 @@
         "repositoryURL": "https://github.com/marmelroy/PhoneNumberKit.git",
         "state": {
           "branch": null,
-          "revision": "2964493a52e64812833662a7bd19def82f35973c",
-          "version": "3.4.10"
+          "revision": "9bc965a326df8d5115f0b7bb77f09c542b8ec417",
+          "version": "3.6.6"
         }
       },
       {
@@ -105,8 +105,8 @@
         "repositoryURL": "https://github.com/getsentry/sentry-cocoa",
         "state": {
           "branch": null,
-          "revision": "3e56a8dd14f4adc4b7de7ce6517f91543bf2046c",
-          "version": "7.30.0"
+          "revision": "e46936ed191c0112cd3276e1c10c0bb7f865268e",
+          "version": "8.9.1"
         }
       },
       {
@@ -123,8 +123,8 @@
         "repositoryURL": "https://github.com/apple/swift-protobuf.git",
         "state": {
           "branch": null,
-          "revision": "88c7d15e1242fdb6ecbafbc7926426a19be1e98a",
-          "version": "1.20.2"
+          "revision": "f25867a208f459d3c5a06935dceb9083b11cd539",
+          "version": "1.22.0"
         }
       },
       {
@@ -141,8 +141,8 @@
         "repositoryURL": "https://github.com/scinfu/SwiftSoup",
         "state": {
           "branch": null,
-          "revision": "6778575285177365cbad3e5b8a72f2a20583cfec",
-          "version": "2.4.3"
+          "revision": "8b6cf29eead8841a1fa7822481cb3af4ddaadba6",
+          "version": "2.6.1"
         }
       },
       {
@@ -150,8 +150,8 @@
         "repositoryURL": "https://github.com/stasel/WebRTC",
         "state": {
           "branch": null,
-          "revision": "6dd54fc242d3261317b5e6eb17bf178b1359609b",
-          "version": "106.0.0"
+          "revision": "938564aac1e2e810ffb4931d93cf67e00c5ad679",
+          "version": "114.0.0"
         }
       },
       {

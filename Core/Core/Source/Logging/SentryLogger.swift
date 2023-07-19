@@ -53,7 +53,7 @@ public final class SentryLogger: DDAbstractLogger {
         crumb.timestamp = logMessage.timestamp
         crumb.type = Self.type
         crumb.message = logFormatter?.format(message: logMessage) ?? logMessage.message
-        SentrySDK.addBreadcrumb(crumb: crumb)
+        SentrySDK.addBreadcrumb(crumb)
     }
 }
 
