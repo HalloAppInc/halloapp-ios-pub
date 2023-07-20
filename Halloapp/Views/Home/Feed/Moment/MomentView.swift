@@ -462,36 +462,7 @@ class MomentView: UIView {
             return .prompt
         }
 
-        if feedPost.userID == MainAppContext.shared.userData.userId {
-            return .unlocked
-        }
-
-        let hasUploadedMoment: Bool
-        let state: State
-
-        switch MainAppContext.shared.feedData.validMoment.value {
-        case .some(let moment) where moment.status == .sent:
-            hasUploadedMoment = true
-        default:
-            hasUploadedMoment = false
-        }
-
-        switch (configuration, feedPost.status) {
-        case (.stacked, .seenSending) where hasUploadedMoment:
-            fallthrough
-        case (.stacked, .seen) where hasUploadedMoment:
-            state = .unlocked
-
-        case (.fullscreen, _) where hasUploadedMoment:
-            state = .unlocked
-        case (.fullscreen, _):
-            state = .indeterminate
-
-        case (.stacked, _):
-            state = .locked
-        }
-
-        return state
+        return .unlocked
     }
 
     private func setupMedia() {

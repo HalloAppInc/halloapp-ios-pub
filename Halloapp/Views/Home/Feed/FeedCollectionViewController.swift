@@ -927,7 +927,7 @@ extension FeedCollectionViewController {
         cell.stackedView.actionCallback = { [weak self] momentView, action in
             switch action {
             case .open(moment: let moment):
-                self?.presentAppropriateMomentViewController(for: moment, using: momentView)
+                self?.presentMomentViewController(moment: moment, unlockingMoment: nil, momentView: momentView)
             case .camera:
                 self?.createNewMoment()
             case .view(profile: let userID):
