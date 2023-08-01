@@ -454,6 +454,8 @@ private extension VerificationCodeValidationError {
         case .invalidCountryCode, .invalidLength, .lineTypeVoip, .lineTypeFixed, .lineTypeOther:
             // TODO: show better error responses to the user.
             return .invalidPhoneNumber
+        case .wrongHashcashSolution:
+            return .malformedResponse
         }
     }
 }

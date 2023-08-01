@@ -273,6 +273,12 @@ final class ProtoService: ProtoServiceCore {
                     retracts.append(.post(serverPost.id))
                 case .UNRECOGNIZED(let action):
                     DDLogError("ProtoService/handleHomeFeedItems/error unrecognized post action \(action)")
+                case .publicUpdatePublish:
+                    DDLogError("ProtoService/handleHomeFeedItems/unhandled post public update publish")
+                case .expire:
+                    DDLogError("ProtoService/handleHomeFeedItems/unhandled post expire")
+                case .publicUpdateRetract:
+                    DDLogError("ProtoService/handleHomeFeedItems/unhandled post public update retract")
                 }
             case .comment(let serverComment):
                 switch pbFeedItem.action {
@@ -284,6 +290,12 @@ final class ProtoService: ProtoServiceCore {
                     retracts.append(.comment(serverComment.id))
                 case .UNRECOGNIZED(let action):
                     DDLogError("ProtoService/handleHomeFeedItems/error unrecognized comment action \(action)")
+                case .publicUpdatePublish:
+                    DDLogError("ProtoService/handleHomeFeedItems/unhandled comment public update publish")
+                case .expire:
+                    DDLogError("ProtoService/handleHomeFeedItems/unhandled comment expire")
+                case .publicUpdateRetract:
+                    DDLogError("ProtoService/handleHomeFeedItems/unhandled comment public update retract")
                 }
             case .none:
                 DDLogError("ProtoService/handleHomeFeedItems/error missing item")
@@ -1387,8 +1399,6 @@ final class ProtoService: ProtoServiceCore {
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .silentChatStanza(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
-        case .relationshipAction(_):
-            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .webStanza(let webStanza):
             guard let webClientManager = MainAppContext.shared.webClientManager else {
                 DDLogError("proto/didReceive/\(msg.id)/webStanza/error [no-web-client-manager]")
@@ -1405,6 +1415,13 @@ final class ProtoService: ProtoServiceCore {
 
         case .momentNotification(let notification):
             feedDelegate?.halloService(self, didReceiveDailyMomentNotification: notification.timestamp)
+        case .profileUpdate(_):
+            // TODO handle profile updates
+            DDLogError("proto/didReceive/\(msg.id)/unhandled profile update")
+        case .publicFeedUpdate(_):
+            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
+        case .aiImage(_):
+            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         }
     }
 

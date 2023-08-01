@@ -763,6 +763,8 @@ public struct CommentData {
                 return .voiceNote(media)
             case .reaction(let reaction):
                 return .reaction(reaction.emoji)
+            case .sticker, .videoReaction:
+                return .unsupported(payload)
             case .none:
                 return .unsupported(payload)
             }
@@ -911,6 +913,8 @@ extension Server_FeedItem {
         case .share:
             return .share
         case .UNRECOGNIZED(_):
+            return .none
+        case .publicUpdatePublish, .publicUpdateRetract, .expire:
             return .none
         }
     }
