@@ -267,6 +267,19 @@ struct DeveloperMenuView: View {
                 } label: {
                     Text(MenuTitles.resetMomentsFTUX)
                 }
+
+                Button {
+                    let sharedAlbumViewController = SharedAlbumViewController()
+                    if #available(iOS 14, *) {
+                        sharedAlbumViewController.navigationItem.leftBarButtonItem = UIBarButtonItem(systemItem: .close, primaryAction: UIAction(handler: { _ in
+                            sharedAlbumViewController.dismiss(animated: true)
+                        }))
+                    }
+                    UIViewController.currentViewController?.present(UINavigationController(rootViewController: sharedAlbumViewController), animated: true)
+                } label: {
+                    Text("Show Photo Suggestions")
+                }
+
                 // Log Out
                 Button(action: {
                     self.userData.logout(using: self.userData.viewContext)
