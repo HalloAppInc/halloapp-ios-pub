@@ -258,34 +258,37 @@ struct DeveloperMenuView: View {
                         }
                     }
                 }
-                Button {
-                    AppContext.shared.userDefaults.set(false, forKey: "shown.moment.explainer")
-                    AppContext.shared.userDefaults.set(false, forKey: "shown.moment.unlock.explainer")
-                    AppContext.shared.userDefaults.set(false, forKey: "shown.replace.moment.disclaimer")
-                    AppContext.shared.userDefaults.set(false, forKey: "shown.moment.stack.indicator")
-                    dismiss?()
-                } label: {
-                    Text(MenuTitles.resetMomentsFTUX)
-                }
 
-                Button {
-                    let sharedAlbumViewController = SharedAlbumViewController()
-                    if #available(iOS 14, *) {
-                        sharedAlbumViewController.navigationItem.leftBarButtonItem = UIBarButtonItem(systemItem: .close, primaryAction: UIAction(handler: { _ in
-                            sharedAlbumViewController.dismiss(animated: true)
-                        }))
+                Group {
+                    Button {
+                        AppContext.shared.userDefaults.set(false, forKey: "shown.moment.explainer")
+                        AppContext.shared.userDefaults.set(false, forKey: "shown.moment.unlock.explainer")
+                        AppContext.shared.userDefaults.set(false, forKey: "shown.replace.moment.disclaimer")
+                        AppContext.shared.userDefaults.set(false, forKey: "shown.moment.stack.indicator")
+                        dismiss?()
+                    } label: {
+                        Text(MenuTitles.resetMomentsFTUX)
                     }
-                    UIViewController.currentViewController?.present(UINavigationController(rootViewController: sharedAlbumViewController), animated: true)
-                } label: {
-                    Text("Show Photo Suggestions")
-                }
-
-                // Log Out
-                Button(action: {
-                    self.userData.logout(using: self.userData.viewContext)
-                    self.dismiss?()
-                }) {
-                    Text(MenuTitles.logOut)
+                    
+                    Button {
+                        let sharedAlbumViewController = SharedAlbumViewController()
+                        if #available(iOS 14, *) {
+                            sharedAlbumViewController.navigationItem.leftBarButtonItem = UIBarButtonItem(systemItem: .close, primaryAction: UIAction(handler: { _ in
+                                sharedAlbumViewController.dismiss(animated: true)
+                            }))
+                        }
+                        UIViewController.currentViewController?.present(UINavigationController(rootViewController: sharedAlbumViewController), animated: true)
+                    } label: {
+                        Text("Show Photo Suggestions")
+                    }
+                    
+                    // Log Out
+                    Button(action: {
+                        self.userData.logout(using: self.userData.viewContext)
+                        self.dismiss?()
+                    }) {
+                        Text(MenuTitles.logOut)
+                    }
                 }
             }
             .foregroundColor(.blue)

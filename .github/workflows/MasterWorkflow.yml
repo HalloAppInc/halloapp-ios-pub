@@ -8,14 +8,14 @@ on:
 
 # Environment
 env:
-  DEVELOPER_DIR: /Applications/Xcode_14.0.1.app/Contents/Developer
+  DEVELOPER_DIR: /Applications/Xcode_14.3.app/Contents/Developer
         
 # Jobs to run. Each job is a seperate container and may/may not have dependency jobs (like finishing building before testing)
 jobs:
   # Compile the project. This job sets up the repository and subsequently builds the project.
   compile:
     name: Compile Project
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
       - name: Checkout
         uses: actions/checkout@master
@@ -46,7 +46,7 @@ jobs:
         run: xcodebuild clean build-for-testing
             -workspace "Halloapp.xcworkspace"
             -scheme "Halloapp"
-            -destination 'platform=iOS Simulator,name=iPhone 12 Pro'
+            -destination 'platform=iOS Simulator,name=iPhone 14 Pro'
             -clonedSourcePackagesDirPath SourcePackages
             
       - name: Cache build
@@ -57,11 +57,11 @@ jobs:
 
   unit-test:
       name: Run Unit Tests
-      runs-on: macos-12
+      runs-on: macos-13
       needs: compile
       strategy:
           matrix:
-              destination: ['platform=iOS Simulator,name=iPhone 12 Pro'] # If you want to build for more devices, change this field to include whatever devices you want
+              destination: ['platform=iOS Simulator,name=iPhone 14 Pro'] # If you want to build for more devices, change this field to include whatever devices you want
       steps:
         - name: Checkout
           uses: actions/checkout@master
@@ -91,7 +91,7 @@ jobs:
 
   export-localizations:
       name: Export Localizations
-      runs-on: macos-12
+      runs-on: macos-13
       needs: compile
       steps:
         - name: Checkout
