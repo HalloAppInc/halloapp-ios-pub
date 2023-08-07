@@ -98,17 +98,33 @@ class DateTests: XCTestCase {
         
         // Test time timestamp
         let underSixHoursDateLowerBound = Date(timeInterval: -Date.minutes(1), since: referenceDate)
-        XCTAssertEqual(underSixHoursDateLowerBound.feedTimestamp(referenceDate), "4:34 PM")
-        
+        if #available(iOS 17, *) {
+            XCTAssertEqual(underSixHoursDateLowerBound.feedTimestamp(referenceDate), "4:34\u{202F}PM")
+        } else {
+            XCTAssertEqual(underSixHoursDateLowerBound.feedTimestamp(referenceDate), "4:34 PM")
+        }
+
         let underSixHoursDateUpperBound = Date(timeInterval: -Date.hours(5) - Date.minutes(59), since: referenceDate)
-        XCTAssertEqual(underSixHoursDateUpperBound.feedTimestamp(referenceDate), "10:36 AM")
+        if #available(iOS 17, *) {
+            XCTAssertEqual(underSixHoursDateUpperBound.feedTimestamp(referenceDate), "10:36\u{202F}AM")
+        } else {
+            XCTAssertEqual(underSixHoursDateUpperBound.feedTimestamp(referenceDate), "10:36 AM")
+        }
         
         // Test day/time timestamp
         let underOneWeekDateLowerBound = Date(timeInterval: -Date.days(1), since: referenceDate)
-        XCTAssertEqual(underOneWeekDateLowerBound.feedTimestamp(referenceDate), "Tue 4:35 PM")
+        if #available(iOS 17, *) {
+            XCTAssertEqual(underOneWeekDateLowerBound.feedTimestamp(referenceDate), "Tue 4:35\u{202F}PM")
+        } else {
+            XCTAssertEqual(underOneWeekDateLowerBound.feedTimestamp(referenceDate), "Tue 4:35 PM")
+        }
         
         let underOneWeekDateUpperBound = Date(timeInterval: -Date.days(5) + 1, since: referenceDate)
-        XCTAssertEqual(underOneWeekDateUpperBound.feedTimestamp(referenceDate), "Fri 4:35 PM")
+        if #available(iOS 17, *) {
+            XCTAssertEqual(underOneWeekDateUpperBound.feedTimestamp(referenceDate), "Fri 4:35\u{202F}PM")
+        } else {
+            XCTAssertEqual(underOneWeekDateUpperBound.feedTimestamp(referenceDate), "Fri 4:35 PM")
+        }
         
         // Test days ago timestamp
         let daysAgoDateLowerBound = Date(timeInterval: -Date.days(5), since: referenceDate)
@@ -149,10 +165,18 @@ class DateTests: XCTestCase {
         
         // Test today timestamp
         let todayDateLowerBound = Date(timeInterval: -60, since: referenceDateToday)
-        XCTAssertEqual(todayDateLowerBound.chatListTimestamp(referenceDateToday), "4:34 PM")
+        if #available(iOS 17, *) {
+            XCTAssertEqual(todayDateLowerBound.chatListTimestamp(referenceDateToday), "4:34\u{202F}PM")
+        } else {
+            XCTAssertEqual(todayDateLowerBound.chatListTimestamp(referenceDateToday), "4:34 PM")
+        }
         
         let todayDateUpperBound = Calendar(identifier: .gregorian).startOfDay(for: referenceDateToday)
-        XCTAssertEqual(todayDateUpperBound.chatListTimestamp(referenceDateToday), "12:00 AM")
+        if #available(iOS 17, *) {
+            XCTAssertEqual(todayDateUpperBound.chatListTimestamp(referenceDateToday), "12:00\u{202F}AM")
+        } else {
+            XCTAssertEqual(todayDateUpperBound.chatListTimestamp(referenceDateToday), "12:00 AM")
+        }
         
         // Test yesterday timestamp
         let yesterdayDateLowerBound = Date(timeInterval: -Date.days(1), since: todayDateLowerBound)
@@ -224,42 +248,85 @@ class DateTests: XCTestCase {
         
         // Test today timestamp
         let todayDateLowerBound = Date(timeInterval: -60, since: referenceDateToday)
-        XCTAssertEqual(todayDateLowerBound.chatTimestamp(referenceDateToday), "4:34 PM") // PROBLEM
+        if #available(iOS 17, *) {
+            XCTAssertEqual(todayDateLowerBound.chatTimestamp(referenceDateToday), "4:34\u{202F}PM") // PROBLEM
+        } else {
+            XCTAssertEqual(todayDateLowerBound.chatTimestamp(referenceDateToday), "4:34 PM") // PROBLEM
+        }
         
         let todayDateUpperBound = Calendar(identifier: .gregorian).startOfDay(for: referenceDateToday)
-        XCTAssertEqual(todayDateUpperBound.chatTimestamp(referenceDateToday), "12:00 AM") // PROBLEM
+        if #available(iOS 17, *) {
+            XCTAssertEqual(todayDateUpperBound.chatTimestamp(referenceDateToday), "12:00\u{202F}AM") // PROBLEM
+        } else {
+            XCTAssertEqual(todayDateUpperBound.chatTimestamp(referenceDateToday), "12:00 AM") // PROBLEM
+        }
         
         // Test day/time timestamp
         let underOneWeekDateLowerBound = Date(timeInterval: -Date.days(1), since: referenceDate)
-        XCTAssertEqual(underOneWeekDateLowerBound.chatTimestamp(referenceDate), "Tue 4:35 PM")
+        if #available(iOS 17, *) {
+            XCTAssertEqual(underOneWeekDateLowerBound.chatTimestamp(referenceDate), "Tue 4:35\u{202F}PM")
+        } else {
+            XCTAssertEqual(underOneWeekDateLowerBound.chatTimestamp(referenceDate), "Tue 4:35 PM")
+        }
         
         let underOneWeekDateUpperBound = Date(timeInterval: -Date.weeks(1) + 1, since: referenceDate)
-        XCTAssertEqual(underOneWeekDateUpperBound.chatTimestamp(referenceDate), "Wed 4:35 PM")
+        if #available(iOS 17, *) {
+            XCTAssertEqual(underOneWeekDateUpperBound.chatTimestamp(referenceDate), "Wed 4:35\u{202F}PM")
+        } else {
+            XCTAssertEqual(underOneWeekDateUpperBound.chatTimestamp(referenceDate), "Wed 4:35 PM")
+        }
         
         // Test day month timestamp
         let dateMonthLowerBound = Date(timeInterval: -Date.weeks(1), since: referenceDate)
-        XCTAssertEqual(dateMonthLowerBound.chatTimestamp(referenceDate), "Jun 16 at 4:35 PM")
+        if #available(iOS 17, *) {
+            XCTAssertEqual(dateMonthLowerBound.chatTimestamp(referenceDate), "Jun 16 at 4:35\u{202F}PM")
+        } else {
+            XCTAssertEqual(dateMonthLowerBound.chatTimestamp(referenceDate), "Jun 16 at 4:35 PM")
+        }
         
         let dateMonthUpperBound = Date(timeInterval: -Date.weeks(26) + 1, since: referenceDate)
-        XCTAssertEqual(dateMonthUpperBound.chatTimestamp(referenceDate), "Dec 23 at 4:35 PM")
+        if #available(iOS 17, *) {
+            XCTAssertEqual(dateMonthUpperBound.chatTimestamp(referenceDate), "Dec 23 at 4:35\u{202F}PM")
+        } else {
+            XCTAssertEqual(dateMonthUpperBound.chatTimestamp(referenceDate), "Dec 23 at 4:35 PM")
+        }
         
         // Test date timestamp
         let dateStampLowerBound = Date(timeInterval: -Date.weeks(26), since: referenceDate)
-        XCTAssertEqual(dateStampLowerBound.chatTimestamp(referenceDate), "Dec 23, 2020 at 4:35 PM")
+        if #available(iOS 17, *) {
+            XCTAssertEqual(dateStampLowerBound.chatTimestamp(referenceDate), "Dec 23, 2020 at 4:35\u{202F}PM")
+        } else {
+            XCTAssertEqual(dateStampLowerBound.chatTimestamp(referenceDate), "Dec 23, 2020 at 4:35 PM")
+        }
     }
     
     func testLastSeenTimestamp() {
         let todayTimestamp = Date()
-        
-        XCTAssertEqual(todayTimestamp.lastSeenTimestamp(referenceDate), "Last seen today at 4:35 PM")
+        if #available(iOS 17, *) {
+            XCTAssertEqual(todayTimestamp.lastSeenTimestamp(referenceDate), "Last seen today at 4:35\u{202F}PM")
+        } else {
+            XCTAssertEqual(todayTimestamp.lastSeenTimestamp(referenceDate), "Last seen today at 4:35 PM")
+        }
         
         let yesterdayTimestamp = Date(timeIntervalSinceNow: -Date.days(1))
-        XCTAssertEqual(yesterdayTimestamp.lastSeenTimestamp(referenceDate), "Last seen yesterday at 4:35 PM")
+        if #available(iOS 17, *) {
+            XCTAssertEqual(yesterdayTimestamp.lastSeenTimestamp(referenceDate), "Last seen yesterday at 4:35\u{202F}PM")
+        } else {
+            XCTAssertEqual(yesterdayTimestamp.lastSeenTimestamp(referenceDate), "Last seen yesterday at 4:35 PM")
+        }
         
         let lastWeekTimestamp = Date(timeInterval: -Date.days(5) + 1, since: referenceDate)
-        XCTAssertEqual(lastWeekTimestamp.lastSeenTimestamp(referenceDate), "Last seen Wed at 4:35 PM")
+        if #available(iOS 17, *) {
+            XCTAssertEqual(lastWeekTimestamp.lastSeenTimestamp(referenceDate), "Last seen Wed at 4:35\u{202F}PM")
+        } else {
+            XCTAssertEqual(lastWeekTimestamp.lastSeenTimestamp(referenceDate), "Last seen Wed at 4:35 PM")
+        }
         
         let weeksAgoTimestamp = Date(timeInterval: -Date.weeks(4), since: referenceDate)
-        XCTAssertEqual(weeksAgoTimestamp.lastSeenTimestamp(referenceDate), "Last seen 6/23/21 at 4:35 PM")
+        if #available(iOS 17, *) {
+            XCTAssertEqual(weeksAgoTimestamp.lastSeenTimestamp(referenceDate), "Last seen 6/23/21 at 4:35\u{202F}PM")
+        } else {
+            XCTAssertEqual(weeksAgoTimestamp.lastSeenTimestamp(referenceDate), "Last seen 6/23/21 at 4:35 PM")
+        }
     }
 }
