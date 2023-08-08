@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/amplitude/analytics-connector-ios.git",
         "state": {
           "branch": null,
-          "revision": "d3d682a26ca6f4947ece2c2e627971bb41b940fa",
-          "version": "1.0.1"
+          "revision": "d2f3ec4b022211a67d5d4509135d84359f7f8b8d",
+          "version": "1.0.2"
         }
       },
       {
@@ -114,8 +114,8 @@
         "repositoryURL": "https://github.com/apple/swift-log.git",
         "state": {
           "branch": null,
-          "revision": "6fe203dc33195667ce1759bf0182975e4653ba1c",
-          "version": "1.4.4"
+          "revision": "32e8d724467f8fe623624570367e3d50c5638e46",
+          "version": "1.5.2"
         }
       },
       {
