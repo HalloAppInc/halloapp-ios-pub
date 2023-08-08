@@ -252,7 +252,7 @@ open class AppContext: AppContextCommon {
         SentrySDK.start { options in
             options.dsn = "https://ed03b5bdacbe4571927f8f2c93a45790@sentry.halloapp.net/6126729"
             options.enableAppHangTracking = true
-            options.enableAutoPerformanceTracking = true
+            options.enableAutoPerformanceTracing = true
             options.enableUserInteractionTracing = true
             options.maxBreadcrumbs = 500
 
