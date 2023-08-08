@@ -1118,10 +1118,16 @@
 "home.update.notice.button.exit" = "Afsluiten";
 
 /* Text shown to users who have old versions of the app */
-"home.update.notice.text" = "Download de nieuwste versie van HalloApp alsjeblieft";
+"home.update.notice.text" = "Werk bij naar de nieuwste versie van HalloApp alsjeblieft";
 
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Deze versie is verouderd";
+
+/* Text shown to users who have old versions of the app */
+"home.update.warning.notice.text" = "Werk bij naar de nieuwste versie van HalloApp alsjeblieft";
+
+/* Title of update notice shown to users who have old versions of the app */
+"home.update.warning.notice.title" = "Deze versie verloopt binnenkort";
 
 /* Text shown to users on video call failure. */
 "home.video.calls.fail.text" = "Binnenkort beschikbaar...";
@@ -2002,7 +2008,7 @@
 "settings.account.export.error" = "Er is een fout opgetreden bij het ophalen van je gegevens.";
 
 /* Explanation about what the data export function is. English language version taken from WhatsApp. */
-"settings.account.export.explanation" = "Maak een rapport aan van je HalloApp-accountinformatie en -instellingen, dat je kunt openen of overzetten naar een andere app. Dit rapport bevat geen chatberichten.";
+"settings.account.export.explanation" = "Maak een rapport aan van je HalloApp-accountinformatie en -instellingen, dat je kunt openen of overzetten naar een andere app. Dit rapport bevat geen berichten of posts.";
 
 /* String indicating device is awaiting a server response. Only visible in iOS 13. */
 "settings.account.export.loading" = "Gegevens Worden Geladen...";
@@ -2070,6 +2076,12 @@
 /* Text placed on the blurred overlay of someone else's moment. */
 "shared.moment" = "Moment van %@";
 
+/* Count of photos in album */
+"sharedalbums.albumsuggestioncell.countformat" = "+%d";
+
+/* title of album suggestion without location */
+"sharedalbums.albumsuggestioncell.titleformat.nolocation" = "%d foto's gemaakt";
+
 /* Title for sharing to instagram stories */
 "shareprovider.instagramstories.title" = "Instagram Verhalen";
 
@@ -2126,6 +2138,9 @@
 
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
 "thread.list.preview.new.user.default" = "%@ gebruikt HalloApp🎉";
+
+/* Tab for shared albums in main interface */
+"title.albums" = "Albums";
 
 /* Camera screen title */
 "title.camera" = "Camera";

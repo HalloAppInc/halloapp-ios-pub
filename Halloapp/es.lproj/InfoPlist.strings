@@ -5,10 +5,10 @@
 "NSCameraUsageDescription" = "Permite tomar fotos y videos directamente desde HalloApp.";
 
 /* Privacy - Contacts Usage Description */
-"NSContactsUsageDescription" = "Permite que HalloApp acceda a tus contactos para poder compartir y ver publicaciones de tus amigos y familiares.";
+"NSContactsUsageDescription" = "Para compartir y ver las publicaciones de tus amigos y familiares, permite que HalloApp cargue tus contactos en sus servidores.";
 
 /* Privacy - Location When In Use Usage Description */
-"NSLocationWhenInUseUsageDescription" = "Esto te permite buscar y compartir ubicaciones cerca de ti.";
+"NSLocationWhenInUseUsageDescription" = "Esto te permite enviar tu ubicación actual o lugares cercanos en comentarios y chats.";
 
 /* Privacy - Microphone Usage Description */
 "NSMicrophoneUsageDescription" = "Esto permite que hagas llamadas, envíes audios y mensajes, y grabes videos con sonidos.";

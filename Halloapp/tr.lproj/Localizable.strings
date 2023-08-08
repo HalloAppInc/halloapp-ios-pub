@@ -40,14 +40,50 @@
 /* First tab in the main app interface. */
 "activityCenter.promo.favorites" = "Yakınlar listesi özelliğini keşfet!";
 
+/* Title of a button that allows a location to be added. */
+"add.location.title" = "Konum ekle";
+
+/* Menu option for adding generic file */
+"add.media.option.document" = "Belge";
+
 /* Text label for action button to add the contact to the address book */
 "add.to.contact.book" = "Kişilerime ekle";
+
+/* Text for the action of adding a contact to the user's favorites list (title case). */
+"add.to.favorites.title" = "Yakınlara ekle";
+
+/* Confirmation when a user was successfully added to favorites. */
+"added.user.to.favorites" = "%@ yakınlara eklendi";
 
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "İnternet Bağlantısı Yok";
 
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Lütfen internet bağlantını kontrol et ve yeniden dene.";
+
+/* Title of the activity tab when contacts permissions aren't given. */
+"allow.contacts.for.activity" = "Arkadaşlarının güncellemelerini almak için kişi erişimine izin ver.";
+
+/* Title of the chats tab when contacts permissions aren't given. */
+"allow.contacts.for.chat" = "Sohbeti başlatmak için kişi erişimine izin ver";
+
+/* Message used in the app to explain the need for contacts permission. */
+"allow.contacts.permission.message" = "HalloApp, yalnızca ailen ve arkadaşlarınla iletişim kurabilmen için kişilerine erişmek ister. Senin adına kimseye mesaj atmaz. ";
+
+/* Displayed in the sticky header that's on the feed when the user has not given contacts access. */
+"allow.contacts.permission.posts.prompt" = "Ailen ve arkadaşlarınla iletişim kurmak ve gönderilerine erişmek için HalloApp'in kişilerine erişmesine izin ver.";
+
+/* Title of the container that explains the need for contacts permission. */
+"allow.contacts.permission.title.numbered" = "1. Kişi erişimine izin ver";
+
+/* Title of a button that opens the settings app. */
+"allow.in.settings.title" = "Ayarlardan izin ver";
+
+/* Message used in the app to explain the need for notifications permission. */
+"allow.notifications.permission.message" = "Mesaj, çağrı ve güncellemeleri kaçırmamak için HalloApp bildirimlerini aç ";
+
+/* Title of the container that explains the need for notifications permission. */
+"allow.notifications.permission.title.numbered" = "2. Bildirimleri aç";
 
 /* Title of view where users can invite friends and family. */
 "app.ios.invite.friends" = "Aile ve arkadaşlarını davet et";
@@ -217,23 +253,23 @@
 /* Generic error when trying to use camera */
 "camera.error" = "Kamera hatası";
 
-/* No comment provided by engineer. */
+/* Error shown when the back camera isn't available. */
 "camera.init.error.1" = "Arka kamera açılamıyor";
 
-/* No comment provided by engineer. */
+/* Error shown when the front camera isn't available. */
 "camera.init.error.2" = "Ön kamera açılamıyor";
 
-/* No comment provided by engineer. */
+/* Error shown when the microphone isn't available. */
 "camera.init.error.3" = "Mikrofon çalıştırılamıyor";
 
-/* No comment provided by engineer. */
-"camera.init.error.4" = "Arka kameraya erişilemiyor";
+/* Error shown when photo output setup failed. */
+"camera.init.error.4" = "Fotoğraf çekilemiyor. Lütfen daha sonra tekrar dene.";
 
-/* No comment provided by engineer. */
-"camera.init.error.5" = "Ön kameraya erişilemiyor";
+/* Error shown when video recording setup failed. */
+"camera.init.error.5" = "Video kaydedilemiyor. Lütfen daha sonra tekrar dene.";
 
-/* No comment provided by engineer. */
-"camera.init.error.6" = "Ses girişine erişilemiyor";
+/* Error shown when audio recording setup failed. */
+"camera.init.error.6" = "Ses girişine erişilemiyor. Lütfen daha sonra tekrar dene.";
 
 /* No comment provided by engineer. */
 "camera.init.error.7" = "Fotoğraf çekilemiyor";
@@ -248,7 +284,7 @@
 "camera.init.error.title" = "Başlatma hatası";
 
 /* Text shown on the camera screen when composing a new moment. */
-"camera.moment.subtitle" = "Anlıklar yalnızca 1 kez görüntülenebilir ve 24 saat içinde kaybolur";
+"camera.moment.subtitle" = "Anlıklar  24 saat içinde kaybolur";
 
 /* Text shown on the camera screen when composing a new moment to unlock someone else's moment. */
 "camera.moment.unlock.subtitle" = "%@ kişisinin anlığını görebilmek için kendinkini paylaş";
@@ -421,6 +457,9 @@
 /* Message text shown for the message that was deleted */
 "chat.message.deleted" = "Bu mesaj silindi";
 
+/* Message text shown in a message that has document but no text */
+"chat.message.document" = "Dosya";
+
 /* Message text shown in a message that have photo media but no text */
 "chat.message.photo" = "Fotoğraf";
 
@@ -460,11 +499,23 @@
 /* When user replies privately to a post, it sends a quoted message to the author of the post via chat. This label is displyed in the chat bubble to indicate a post reply when the post has expired. */
 "chat.quoted.post.expired.label" = "Gönderinin süresi doldu";
 
+/* Section title showing all the users to whom a particular message has been delivered to in a group chat */
+"chat.status.delivered.to" = "İletildi";
+
+/* Section title showing all the users who have played a particular audio message in group chat */
+"chat.status.played.by" = "Oynatıldı";
+
+/* Section title showing all the users who have read a particular message in group chat */
+"chat.status.read.by" = "Okundu";
+
 /* Label shown when user is typing */
 "chat.typing.capitalized" = "yazıyor...";
 
 /* Text shown in the chat interface informing the user that the contact is unblocked */
 "chat.unblocked.contact.label" = "Bu kişinin engelini kaldırdın";
+
+/* Text shown in a notification when user reacted to a message. The user's name is shown above this message in the notification. */
+"chat.user.reacted.message" = "Mesajına %2@ attı";
 
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Bu sohbeti silerek sohbet geçmişini ve içeriğini cihazından temizleyeceksin.";
@@ -623,10 +674,10 @@
 "Delete" = "Sil";
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
-"describing.moments" = "Anlık paylaşarak arkadaşlarının anlık kilidini aç. Anlıklar geçicidir; görüldükten sonra kaybolurlar. ";
+"describing.moments" = "Kendi anlıklarını paylaşarak arkadaşlarının anlıklarını gör. Anlıklar 24 saat sonra kaybolurlar.";
 
 /* Send to button and screen title */
-"destination.send.to" = "Gönderildi";
+"destination.send.to" = "Gönderildi:";
 
 /* Title that indicates that someone downloaded media from a post. */
 "downloaded.title" = "İndirildi";
@@ -652,6 +703,9 @@
 /* Title for posts that are externally shared, 'John Smith's HalloApp Post' */
 "externalShare.og.title3" = "%@ kişisinin HalloApp Gönderisi";
 
+/* Always 'Posted from HalloApp', but we are applying additional formatting to HalloApp */
+"externalshare.postedFrom" = "%@ tarafından gönderildi";
+
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Kamera";
 
@@ -665,7 +719,7 @@
 "fab.accessibility.voice" = "Ses";
 
 /* Label for floating moment button on home feed. */
-"fab.moment.button" = "Anlık";
+"fab.moment.button" = "Yeni Anlık";
 
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Gönderi";
@@ -832,6 +886,9 @@
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Yorum yap";
 
+/* Button under someone's post. Noun. */
+"feedpost.button.comments" = "Yorumlar";
+
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.reply" = "Özelden yanıtla";
 
@@ -849,6 +906,9 @@
 
 /* Title of group background screen */
 "group.bg.title" = "Arka plan";
+
+/* When a user is no longer a member of a chat group, this message is displyed at the bottom of the chat, preventing them from sending messages. */
+"group.chat.contact.is.not.member" = "Bu grubun artık üyesi olmadığınızdan mesaj gönderemezsiniz";
 
 /* Label shown above group description input box */
 "group.description.label" = "Grup açıklaması";
@@ -906,6 +966,90 @@
 
 /* Label shown above group members list */
 "group.members.label" = "Üyeler";
+
+/* Notification that a user changed a groups avatar */
+"group.notification.changeAvatar" = "<$sender$>, <$groupname$> grubunun simgesini değiştirdi";
+
+/* Notification that you changed a groups avatar */
+"group.notification.changeAvatar.you" = "<$groupname$> grubunun simgesini değiştirdin";
+
+/* Notification that a user changed a groups description */
+"group.notification.changeDescription" = "<$sender$>, <$groupname$> grubunun açıklamasını değiştirdi";
+
+/* Notification that you changed a groups description */
+"group.notification.changeDescription.you" = "<$sender$>, <$groupname$> grubunun açıklamasını değiştirdin";
+
+/* Notification that a user changed a group's expiration */
+"group.notification.changeExpiry" = "<$sender$>, <$groupname$> grubunun açıklamasını değiştirdi";
+
+/* Notification that you changed a group's expiration */
+"group.notification.changeExpiry.you" = "<$sender$>, <$groupname$> grubunun son kullanma tarihini %1@ olarak değiştirdi";
+
+/* Notification that a user changed a groups name */
+"group.notification.changeName" = "<$sender$> bir grubun adını <$groupname$> olarak değiştirdi";
+
+/* Notification that you changed a groups name */
+"group.notification.changeName.you" = "Bir grubun adını <$groupname$> olarak değiştirdin";
+
+/* Notification that a user created a group */
+"group.notification.created" = "<$sender$>, <$groupname$> grubunu kurdu";
+
+/* Notification that you created a group */
+"group.notification.created.you" = "<$groupname$> grubunu kurdun";
+
+/* Notification that a user joined a group */
+"group.notification.join" = "<$sender$>, grup davet ilişimini kullanarak <$groupname$> grubuna katıldı";
+
+/* Notification that you joined a group */
+"group.notification.join.you" = "grup davet ilişimini kullanarak <$groupname$> grubuna katıldın";
+
+/* Notification that a user added a group member */
+"group.notification.memberaction.add" = "<$sender$>, <$member$> kişisini <$groupname$> grubuna ekledi";
+
+/* Notification that a user added a group member */
+"group.notification.memberaction.add.you.member" = "<$sender$> seni <$groupname$> grubuna ekledi";
+
+/* Notification that you added a group member */
+"group.notification.memberaction.add.you.sender" = " <$member$> kişisini <$groupname$> grubuna ekledin";
+
+/* Notification that a user demmoted a group member */
+"group.notification.memberaction.demote" = "<$sender$>, <$member$> kişisini <$groupname$> grubu yöneticiliğinden çıkardı";
+
+/* Notification that a user demmoted you */
+"group.notification.memberaction.demote.you.member" = "<$sender$> seni <$groupname$> grubu yöneticiliğinden çıkardı";
+
+/* Notification that you demmoted a group member */
+"group.notification.memberaction.demote.you.sender" = "<$member$> kişisini <$groupname$> grubu yöneticiliğinden çıkardın";
+
+/* Notification that a user left a group */
+"group.notification.memberaction.leave" = "<$sender$>, <$groupname$> grubundan ayrıldı";
+
+/* Notification that you left a group */
+"group.notification.memberaction.leave.you" = "<$groupname$> grubundan ayrıldın";
+
+/* Notification that a user promoted a group member */
+"group.notification.memberaction.promote" = "<$sender$>, <$member$> kişisini <$groupname$> grubunun yöneticisi yaptı";
+
+/* Notification that you promoted a group member */
+"group.notification.memberaction.promote.you.member" = "<$sender$> seni <$groupname$> grubunun yöneticisi yaptı";
+
+/* Notification that you promoted a group member */
+"group.notification.memberaction.promote.you.sender" = "<$member$> kişisini <$groupname$> grubunun yöneticisi yaptın";
+
+/* Notification that a user removed a group member */
+"group.notification.memberaction.remove" = "<$sender$>, <$member$> kişisini <$groupname$> grubundan çıkardı";
+
+/* Notification that a user added a group member */
+"group.notification.memberaction.remove.you.member" = "<$sender$> seni <$groupname$> grubundan çıkardı";
+
+/* Notification that you removed a group member */
+"group.notification.memberaction.remove.you.sender" = "<$member$> kişisini <$groupname$> grubundan çıkardın";
+
+/* Notification that a user changed a groups background */
+"group.notification.setBackground" = "<$sender$>, <$groupname$> grubunun fon rengini değiştirdi";
+
+/* Notification that you changed a groups background */
+"group.notification.setBackground.you" = "<$groupname$> grubunun fon rengini değiştirdin";
 
 /* Text for alert box when the user clicks on an invalid group invite link */
 "group.preview.get.info.error.invalid.link" = "Bu grup ilişimi geçersiz";
@@ -978,6 +1122,12 @@
 
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Bu sürüm güncel değil";
+
+/* Text shown to users who have old versions of the app */
+"home.update.warning.notice.text" = "Lütfen HalloApp'in en son sürümünü yükle";
+
+/* Title of update notice shown to users who have old versions of the app */
+"home.update.warning.notice.title" = "Bu sürüm yakında iptal edilecek";
 
 /* Text shown to users on video call failure. */
 "home.video.calls.fail.text" = "Yakında...";
@@ -1063,6 +1213,12 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Uygulamanı güncelle.";
 
+/* Title to indicate that a fetch operation is in progress. */
+"locating.title" = "Konum bulunuyor";
+
+/* Displayed when a location fetch fails. */
+"location.fetch.error" = "Konum bulunamadı";
+
 /* General message of the alert for failures in location sharing features. */
 "locationSharing.alert.error" = "Bir şeyler ters gitti. Lütfen daha sonra tekrar dene.";
 
@@ -1133,7 +1289,7 @@
 "media.mic.access.request.body" = "Videoları sesli kaydedebilmek için HalloApp'in mikrofona erişmesi gerekir. Erişimi etkinleştirmek için Ayarlar'a git ve Mikrofon'u aç.";
 
 /* Alert asking to enable Microphone permission after attempting to use in-app camera. */
-"media.mic.access.request.title" = "Videoları sesli mi kaydetmek istiyorsun?";
+"media.mic.access.request.title" = "Mikrofon erişimi";
 
 /* Error text displayed in post composer when some of the media selected couldn't be sent. */
 "media.prepare.failed.n.count" = "media.prepare.failed.n.count";
@@ -1184,6 +1340,13 @@
 /* Call to action to forward a message which contains more than once media item */
 "message.forward.all" = "Tümünü ilet";
 
+/* label on a chat message to indicate the chat message has been forwarded */
+"message.forwarded" = "İletilen";
+
+/* Message action which shows receipt info when tapped. Verb.
+   Title of the view that displays receipt info for a message. */
+"message.info" = "Bilgi";
+
 /* Message action. Verb. */
 "message.reply" = "Yanıtla";
 
@@ -1193,6 +1356,9 @@
 /* Disclaimer to tell the user that their moments go to all of their contacts on HalloApp. */
 "moment.contacts.disclaimer" = "Anlıkların yalnızca HalloApp kişilerinle paylaşılacak";
 
+/* The format of a moment's location string. The first argument could be a point of interest or the name of a neighborhood, whereas the second could be a city or state name. E.g., "Brooklyn Bridge, New York". */
+"moment.location.format" = "%1$@, %2$@";
+
 /* Text displayed the first time the user acts to post a second moment in the same day. */
 "moment.replacement.disclaimer" = "Bu anlık, öncekinin yerine geçecek.";
 
@@ -1200,7 +1366,7 @@
 "moment.replacement.title" = "Uyarılar";
 
 /* Text on a locked moment that explains the need to post your own in order to view it. */
-"moment.unlock.disclaimer" = "Anlıklarını görmek için, anlık paylaş";
+"moment.unlock.disclaimer" = "Anlıkları görebilmek için sen de anlık paylaş";
 
 /* For indicating that there was an error while uploading the post. */
 "moment.uploading.failure" = "Hata";
@@ -1215,7 +1381,7 @@
 "moments.swipe.for.more" = "Daha fazlası için kaydır";
 
 /* Message displayed to say when moments will disappear. */
-"mymoment.disappear.time.label" = "Anlığın, kişilerinle paylaşıldı. Anlıklar yalnızca 1 kez görüntülenebilir ve 24 saat içinde kaybolur. ";
+"mymoment.disappear.time.label" = "Anlığın, kişilerinle paylaşıldı. Anlıklar 24 saat içinde kaybolur.";
 
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Mesaj";
@@ -1289,6 +1455,12 @@
 /* Content for unknown contact notification. */
 "notification.contact.unknown.content" = "Kişilerinden biri şu an HalloApp'te";
 
+/* Body of the daily moment notification. */
+"notification.daily.moment.body" = "Anlık paylaşmak için 2 dk var";
+
+/* Title of the daily moment notification. */
+"notification.daily.moment.title" = "Günlük anlık";
+
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@, HalloApp'e katılma davetini kabul etti 🎉";
 
@@ -1316,6 +1488,9 @@
 /* New moment screenshot notification text to be shown to the user. */
 "notification.moment.screenshot" = "%@, anlığının ekran görüntüsünü aldı";
 
+/* New post notification text when post is multiple documents without caption. */
+"notification.n.documents" = "bildirimler.n.dosyalar";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
 
@@ -1337,11 +1512,17 @@
 /* Title for the new feed post notification. */
 "notification.new.post" = "Yeni gönderi";
 
+/* New post notification text when post is one document without caption. */
+"notification.one.document" = "📄 dosya";
+
 /* New post notification text when post is one photo without caption. */
 "notification.one.photo" = "📷 Fotoğraf";
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 Video";
+
+/* Push notification for a reaction to post */
+"notification.post.reaction" = "Bir gönderiye %@ bıraktı";
 
 /* New moment unlock notification text to be shown to the user. */
 "notification.unlocked.moment.1" = "%@, senin anlığını görebilmek için bir anlık paylaştı";
@@ -1391,6 +1572,9 @@
 /* Text for new user popup pointing at new post button */
 "nux.new.post.button" = "HalloApp'te ailen ve arkadaşlarınla bir gönderi paylaşmak için dokun.";
 
+/* Preset text for the composer when the user is creating their first post. */
+"onboarding.post.text" = "Selam! Ben HalloApp kullanıyorum!";
+
 /* Title of the button that opens the camera. */
 "open.camera" = "Kamerayı aç";
 
@@ -1399,6 +1583,9 @@
 
 /* Menu option to open a location in (Apple) Maps. */
 "openInMapsApp.maps" = "Haritalarda aç";
+
+/* Title that suggests something is optional. */
+"optional.title" = "Seçmeli";
 
 /* button to launch photo and video library */
 "photo.and.video.library" = "Fotoğraf & Video Galerisi";
@@ -1460,8 +1647,14 @@
 /* Header when selecting destinations to forward a message, this header appears above the feeds section */
 "post.privacy.header.feeds" = "Yayınlar";
 
+/* Header when selecting destinations to forward a message, this header appears above the frequently contacted section */
+"post.privacy.header.frequentlyContacted" = "Sık iletişim kurulan";
+
 /* Header when selecting a group to share with */
 "post.privacy.header.groups" = "Yalnızca bir grupla paylaş";
+
+/* Header when selecting destinations to forward a message, this header appears above the recent section */
+"post.privacy.header.recent" = "En son iletişim kurulanlar";
 
 /* Controller title for changing destination and privacy */
 "post.privacy.title" = "Şununla paylaş:";
@@ -1652,6 +1845,48 @@
 /* Message shown to the user once they have successfully registered. */
 "registration.you.are.in" = "Giriş yaptın!";
 
+/* Text for the action of removing a contact from the user's favorites list (title case). */
+"remove.from.favorites.title" = "Yakınlardan çıkar";
+
+/* Confirmation when a user was successfully removed from favorites. */
+"removed.user.from.favorites" = "%@ yakınlardan çıkarıldı";
+
+/* Title of the button that both reports and blocks a user. */
+"report.and.block" = "Bildir ve engelle";
+
+/* Title of the button to report a post. */
+"report.post" = "Gönderiyi bildir";
+
+/* Title of the button that both reports a post and removes it. */
+"report.post.and.remove" = "Gönderiyi bildir ve sil";
+
+/* Message that's displayed when reporting a post failed. */
+"report.post.failure" = "Gönderi bildirilemedi";
+
+/* Message confirming if the user wants to report someone's post. */
+"report.post.message" = "%@ kişisinin gönderisini bildirmek istediğine emin misin?";
+
+/* Message that's displayed after successfully reporting a post. */
+"report.post.success" = "Gönderi bildirildi";
+
+/* Title of the report button. */
+"report.title" = "Bildir";
+
+/* Title of a button that reports a user. */
+"report.user" = "Kullancıyı bildir";
+
+/* Message that's displayed when reporting a user failed. */
+"report.user.failure" = "%@ adlı kullanıcı bildirilemedi";
+
+/* Message confirming if the user wants to report someone. */
+"report.user.message" = "%@ kişisini bildirmek istediğine emin misin?";
+
+/* Message that's displayed after successfully reporting a user. */
+"report.user.success" = "%@ kişisi bildirildi";
+
+/* Title of the dialog that appears when reporting a user. */
+"report.user.title" = "%@ kişisini bildir";
+
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "%@ ile bağlantınızın güvenliğini doğrulamak için yukarıdaki numaraların, onun cihazında gösterilenlerle eşleşip eşleşmediğini kontrol et veya telefonundaki QR kodunu tarat.";
 
@@ -1829,6 +2064,9 @@
 /* String to auto-fill if a user tried to share to a friend. */
 "settings.share.text" = "HalloApp'teki gerçek ilişki ağıma katıl. halloapp.com/dl adresinden ücretsiz indir.";
 
+/* Title for inline external share prompt */
+"share.carousel.title" = "Daha çok arkadaşla paylaş:";
+
 /* Show more groups in the share group selection */
 "share.destination.more" = "Daha fazla ... göster";
 
@@ -1838,8 +2076,26 @@
 /* Text placed on the blurred overlay of someone else's moment. */
 "shared.moment" = "%@ kişisinin anlığı";
 
+/* Title for sharing to instagram stories */
+"shareprovider.instagramstories.title" = "Instagram Hikâyeleri";
+
+/* Name of system messages app */
+"shareprovider.messages.title" = "Mesajlar";
+
+/* Title for button launching system share dialog */
+"shareprovider.system.title" = "... yoluyla paylaş";
+
+/* Name of Twitter app */
+"shareprovider.twitter.title" = "Twitter";
+
+/* Whatsapp messages share destination */
+"shareprovider.whatsapp.title" = "WhatsApp";
+
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "Aramaya dönmek için dokun";
+
+/* Action text that shows up next to your selected reaction. */
+"tap.to.remove.reaction" = "Silmek için dokun";
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "Okuma listesine ekle";
@@ -1910,6 +2166,9 @@
 /* Row in Settings screen */
 "title.privacy" = "Gizlilik";
 
+/* Title for the screen with information about who reacted to your content. */
+"title.reactions" = "Tepkiler";
+
 /* Title of screen where user can add members during group creation flow */
 "title.select.group.members.create.title" = "Üye ekle";
 
@@ -1922,8 +2181,14 @@
 /* Row in Settings screen */
 "title.storage" = "Depolama";
 
+/* Title for the screen with information about who saw your moment. */
+"title.your.moment" = "Görenler";
+
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "... tarafından görüldü";
+
+/* Toast displayed while preparing video for external share */
+"toast.exporting" = "Dışa aktarılıyor";
 
 /* Text on the bottom sheet's button that dismisses the sheet. */
 "try.moments" = "Anlık'ı dene";
@@ -1940,11 +2205,20 @@
 /* Informational label that's shown in the banner for an unknown contact when they message the user for the first time */
 "unknown.contact.not.in.contact.book" = "Gönderici, kişi listende değil";
 
+/* Body for alert appearing after clicking an external share link that failed to load */
+"urlrouter.externalShare.failed.message" = "Bu gönderi silinmiş, süresi dolmuş vb. olabilir";
+
+/* Title for alert appearing after clicking an external share link that failed to load */
+"urlrouter.externalShare.failed.title" = "Bu gönderi artık geçerli değil.";
+
 /* Button to confirm blocking user via profile page */
 "user.block" = "Engelle";
 
 /* Message asking if the user is sure they want to block this user */
 "user.block.message" = "%@ kişisini HalloApp'te engellemek istediğine emin misin? Bunu daha sonra değiştirebilirsin.";
+
+/* Label shown in group chat when a user is typing */
+"user.chat.typing" = "%@ yazıyor...";
 
 /* Option when user taps more on profile page */
 "user.option.block" = "HalloApp'te engelle";
@@ -1966,6 +2240,9 @@
 
 /* No comment provided by engineer. */
 "VIDEO" = "VİDEO";
+
+/* Title of a button that navigates to a user's profile. */
+"view.profile" = "Profili görüntüle";
 
 /* Text that indicates a view action. */
 "view.title" = "Gör";
@@ -2011,4 +2288,7 @@
 
 /* Notification that post is uploading */
 "your.post.externalshare.uploading" = "İlişim yaratılıyor...";
+
+/* Text that appears on the splash screen prior to registration. */
+"your.private.social.network" = "Özel sosyal ağına hoş geldin!";
 

@@ -14,5 +14,5 @@
 "NSMicrophoneUsageDescription" = "So kannst du Anrufe tätigen, Audiobeiträge und Nachrichten senden und Videos mit Ton aufnehmen.";
 
 /* Privacy - Photo Library Usage Description */
-"NSPhotoLibraryUsageDescription" = "So kannst du Fotos und Videos aus deiner Galerie senden und die aufgenommenen speichern.";
+"NSPhotoLibraryUsageDescription" = "So kannst du deine Fotos und Videos versenden und die aufgenommenen speichern.";
 

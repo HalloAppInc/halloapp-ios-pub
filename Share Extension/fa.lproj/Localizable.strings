@@ -222,9 +222,3 @@
 /* Toast displayed while preparing video for external share */
 "toast.exporting" = "در حال استخراج...";
 
-/* How many bytes from total have been uploaded */
-"uploading.bytes.progress" = "@%1$ از @$2%";
-
-/* Message how many items are currently being upload */
-"uploading.n.items" = "uploading.n.items";
-

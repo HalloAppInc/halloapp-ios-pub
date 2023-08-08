@@ -15,7 +15,7 @@
 			<key>one</key>
 			<string>... yazıyor</string>
 			<key>other</key>
-			<string>... ve .... yazıyorlar...</string>
+			<string>yazıyorlar...</string>
 		</dict>
 	</dict>
 	<key>composer.privacy.value.n.selected</key>
@@ -45,9 +45,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d person was added</string>
+			<string>%d kişi eklendi</string>
 			<key>other</key>
-			<string>%d people were added</string>
+			<string>%d kişi eklendi</string>
 		</dict>
 	</dict>
 	<key>feed.collapsed.n.users.joined</key>
@@ -61,9 +61,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d person joined</string>
+			<string>%d kişi katıldı</string>
 			<key>other</key>
-			<string>%d people joined</string>
+			<string>%d kişi katıldı</string>
 		</dict>
 	</dict>
 	<key>feed.collapsed.n.users.left</key>
@@ -77,9 +77,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d person left</string>
+			<string>%d kişi ayrıldı</string>
 			<key>other</key>
-			<string>%d people left</string>
+			<string>%d kişi ayrıldı</string>
 		</dict>
 	</dict>
 	<key>feed.collapsed.n.users.removed</key>
@@ -93,9 +93,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d person was removed</string>
+			<string>%d kişi kaldırıldı</string>
 			<key>other</key>
-			<string>%d people were removed</string>
+			<string>%d kişi kaldırıldı</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.contacts.excluded</key>
@@ -337,9 +337,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>📄 %d file</string>
+			<string>📄%d dosya</string>
 			<key>other</key>
-			<string>📄 %d files</string>
+			<string>📄%d dosya</string>
 		</dict>
 	</dict>
 	<key>notification.n.photos</key>

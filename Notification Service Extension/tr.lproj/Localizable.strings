@@ -142,6 +142,12 @@
 /* Content for unknown contact notification. */
 "notification.contact.unknown.content" = "Kişilerinden biri şimdi HalloApp'te";
 
+/* Body of the daily moment notification. */
+"notification.daily.moment.body" = "Anlık paylaşmak için 2 dk var";
+
+/* Title of the daily moment notification. */
+"notification.daily.moment.title" = "Günlük anlık";
+
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@, HalloApp davetini kabul etti 🎉";
 
@@ -169,6 +175,9 @@
 /* New moment screenshot notification text to be shown to the user. */
 "notification.moment.screenshot" = "%@, anlığının ekran görüntüsünü aldı";
 
+/* New post notification text when post is multiple documents without caption. */
+"notification.n.documents" = "bildirimler.n.dosyalar";
+
 /* New post notification text when post is multiple photos without caption. */
 "notification.n.photos" = "notification.n.photos";
 
@@ -190,11 +199,17 @@
 /* Title for the new feed post notification. */
 "notification.new.post" = "Yeni gönderi";
 
+/* New post notification text when post is one document without caption. */
+"notification.one.document" = "📄 dosya";
+
 /* New post notification text when post is one photo without caption. */
 "notification.one.photo" = "📷 fotoğraf";
 
 /* New post notification text when post is one video without caption. */
 "notification.one.video" = "📹 video";
+
+/* Push notification for a reaction to post */
+"notification.post.reaction" = "Bir gönderiye %@ bıraktı";
 
 /* New moment unlock notification text to be shown to the user. */
 "notification.unlocked.moment.1" = "%@, senin anlığını görebilmek için bir anlık paylaştı";
@@ -231,4 +246,7 @@
 
 /* Row in Settings screen */
 "title.privacy" = "Gizlilik";
+
+/* Toast displayed while preparing video for external share */
+"toast.exporting" = "Dışa aktarılıyor";
 

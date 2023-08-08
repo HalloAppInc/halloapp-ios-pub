@@ -386,7 +386,7 @@
 "chat.group.take.or.choose.photo" = "Foto aufnehmen oder auswählen";
 
 /* Label for inviting friends */
-"chat.invite.friends" = "Freunde einladen";
+"chat.invite.friends" = "Einladen";
 
 /* Text shown when user removed a reaction from an audio */
 "chat.list.user.deleted.reaction.audio" = "%1$@ hat %2$@ von einer Audio-Nachricht entfernt";
@@ -1123,6 +1123,12 @@
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Diese Version ist veraltet";
 
+/* Text shown to users who have old versions of the app */
+"home.update.warning.notice.text" = "Bitte installiere die neueste HalloApp-Version";
+
+/* Title of update notice shown to users who have old versions of the app */
+"home.update.warning.notice.title" = "Diese Version läuft bald aus";
+
 /* Text shown to users on video call failure. */
 "home.video.calls.fail.text" = "Demnächst verfügbar ...";
 
@@ -1139,7 +1145,7 @@
 "invite.already.halloapp.user" = "Nutzt bereits HalloApp";
 
 /* Title for button that launches system SMS app to send invite. As short as possible! */
-"invite.app.sms" = "Nachricht";
+"invite.app.sms" = "Nachrichten";
 
 /* Title for button that launches WhatsApp to send invite. Should match WhatsApp localization. */
 "invite.app.whatsapp" = "WhatsApp";
@@ -1181,7 +1187,7 @@
 "invite.text.specific.5" = "Ich lade dich ein, dich auch bei HalloApp anzumelden. Eine private und sichere App, um Bilder zu teilen, zu chatten und deine Freunde anzurufen. Hol dir die App auf https://halloapp.com/get";
 
 /* Title for the screen that allows to select contact to invite. */
-"invite.title" = "Freunde einladen";
+"invite.title" = "Einladen";
 
 /* Title of cell at the top of the invite screen */
 "invite.via.link" = "Per Link einladen";
@@ -1199,7 +1205,7 @@
 "learn.more" = "Mehr erfahren.";
 
 /* Link text to open invite flow */
-"link.invite.friend" = "Freunde einladen";
+"link.invite.friend" = "Einladen";
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Mehr erfahren";
@@ -1741,7 +1747,7 @@
 "registration.code.incorrect" = "Der eingegebene Code ist nicht korrekt.";
 
 /* Instructions for filling in SMS verification code. Parameter is formatted phone number */
-"registration.code.instructions" = "Gebe den Code ein, den wir an %@ gesendet haben";
+"registration.code.instructions" = "Bitte den Code eingeben, den wir an %@ gesendet haben";
 
 /* Error message to display when we cannot send a verification code */
 "registration.code.request.error" = "Der Code konnte nicht gesendet werden. Bitte versuche es später noch einmal.";

@@ -118,6 +118,9 @@
 /* Description of the new Favorites functionality. */
 "feed.privacy.list.set.favorites.description" = "Şimdi Yakınlar listeni oluşturabilir ve HalloApp gönderilerini listedekilerle paylaşabilirsin.";
 
+/* Alert dialog when users try to share files to group or home feed */
+"files.in.chats.only" = "Dosyalar kişilere yalnızca doğrudan iletilebilir; gönderilere eklenemez.";
+
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Ara";
 
@@ -216,9 +219,6 @@
 /* Row in Settings screen */
 "title.privacy" = "Gizlilik";
 
-/* How many bytes from total have been uploaded */
-"uploading.bytes.progress" = "%2$@'nin %1$@ ";
-
-/* Message how many items are currently being upload */
-"uploading.n.items" = "n.tane öge yükleniyor";
+/* Toast displayed while preparing video for external share */
+"toast.exporting" = "Dışa aktarılıyor";
 

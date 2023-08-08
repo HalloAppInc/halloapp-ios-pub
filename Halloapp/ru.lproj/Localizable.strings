@@ -253,22 +253,22 @@
 /* Generic error when trying to use camera */
 "camera.error" = "Ошибка камеры";
 
-/* No comment provided by engineer. */
+/* Error shown when the back camera isn't available. */
 "camera.init.error.1" = "Не удается инициализировать заднюю камеру";
 
-/* No comment provided by engineer. */
+/* Error shown when the front camera isn't available. */
 "camera.init.error.2" = "Не удается инициализировать переднюю камеру";
 
-/* No comment provided by engineer. */
+/* Error shown when the microphone isn't available. */
 "camera.init.error.3" = "Не удается инициализировать микрофон";
 
-/* No comment provided by engineer. */
+/* Error shown when photo output setup failed. */
 "camera.init.error.4" = "Не удается получить доступ к задней камере";
 
-/* No comment provided by engineer. */
+/* Error shown when video recording setup failed. */
 "camera.init.error.5" = "Не удается получить доступ к передней камере";
 
-/* No comment provided by engineer. */
+/* Error shown when audio recording setup failed. */
 "camera.init.error.6" = "Не удается получить доступ к аудио";
 
 /* No comment provided by engineer. */
@@ -1122,6 +1122,12 @@
 
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Эта версия устарела";
+
+/* Text shown to users who have old versions of the app */
+"home.update.warning.notice.text" = "Пожалуйста, обновите HalloApp до последней версии";
+
+/* Title of update notice shown to users who have old versions of the app */
+"home.update.warning.notice.title" = "Срок действия этой версии скоро истечет";
 
 /* Text shown to users on video call failure. */
 "home.video.calls.fail.text" = "Вскоре...";

@@ -253,23 +253,23 @@
 /* Generic error when trying to use camera */
 "camera.error" = "Erro de câmera";
 
-/* No comment provided by engineer. */
-"camera.init.error.1" = "Erro ao inicializar a câmera traseira";
+/* Error shown when the back camera isn't available. */
+"camera.init.error.1" = "Não foi possível usar a câmera traseira.";
 
-/* No comment provided by engineer. */
-"camera.init.error.2" = "Erro ao inicializar a câmera frontal";
+/* Error shown when the front camera isn't available. */
+"camera.init.error.2" = "Não foi possível usar a câmera frontal.";
 
-/* No comment provided by engineer. */
-"camera.init.error.3" = "Erro ao inicializar o microfone";
+/* Error shown when the microphone isn't available. */
+"camera.init.error.3" = "Não foi possível usar o microfone.";
 
-/* No comment provided by engineer. */
-"camera.init.error.4" = "Erro a acessar a câmera traseira";
+/* Error shown when photo output setup failed. */
+"camera.init.error.4" = "A captura de fotos não está disponível. Por favor, tente novamente mais tarde.";
 
-/* No comment provided by engineer. */
-"camera.init.error.5" = "Erro a acessar a câmera frontal";
+/* Error shown when video recording setup failed. */
+"camera.init.error.5" = "A gravação de vídeo não está disponível. Por favor, tente novamente mais tarde.";
 
-/* No comment provided by engineer. */
-"camera.init.error.6" = "Erro a acessar o áudio";
+/* Error shown when audio recording setup failed. */
+"camera.init.error.6" = "A gravação de áudio não está disponível. Por favor, tente novamente mais tarde.";
 
 /* No comment provided by engineer. */
 "camera.init.error.7" = "Erro ao tirar fotos";
@@ -281,7 +281,7 @@
 "camera.init.error.9" = "Não é possível gravar áudio";
 
 /* Title for a popup alerting about camera initialization error. */
-"camera.init.error.title" = "Erro de inicialização";
+"camera.init.error.title" = "Erro de configuração";
 
 /* Text shown on the camera screen when composing a new moment. */
 "camera.moment.subtitle" = "Os momentos desaparecem após 24 horas";
@@ -704,7 +704,7 @@
 "externalShare.og.title3" = "Postagem no HalloApp de %@";
 
 /* Always 'Posted from HalloApp', but we are applying additional formatting to HalloApp */
-"externalshare.postedFrom" = "Postado de";
+"externalshare.postedFrom" = "Postado de %@";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Câmera";
@@ -1123,6 +1123,12 @@
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Esta versão está desatualizada";
 
+/* Text shown to users who have old versions of the app */
+"home.update.warning.notice.text" = "Por favor, atualize para a versão mais recente do HalloApp";
+
+/* Title of update notice shown to users who have old versions of the app */
+"home.update.warning.notice.title" = "Esta versão irá expirar em breve";
+
 /* Text shown to users on video call failure. */
 "home.video.calls.fail.text" = "Em breve...";
 
@@ -1283,7 +1289,7 @@
 "media.mic.access.request.body" = "Para gravar vídeos com som, o HalloApp precisa de acesso ao microfone. Para habilitar o acesso, clique em \"Configurações\" e ligue o Microfone.";
 
 /* Alert asking to enable Microphone permission after attempting to use in-app camera. */
-"media.mic.access.request.title" = "Quer vídeos com som?";
+"media.mic.access.request.title" = "Acesso ao microfone";
 
 /* Error text displayed in post composer when some of the media selected couldn't be sent. */
 "media.prepare.failed.n.count" = "preparação.mídia.falhou.n.contagem";
@@ -2180,6 +2186,9 @@
 
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "Visto por";
+
+/* Toast displayed while preparing video for external share */
+"toast.exporting" = "Exportando…";
 
 /* Text on the bottom sheet's button that dismisses the sheet. */
 "try.moments" = "Experimente Momentos";

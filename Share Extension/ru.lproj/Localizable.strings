@@ -118,6 +118,9 @@
 /* Description of the new Favorites functionality. */
 "feed.privacy.list.set.favorites.description" = "Теперь вы можете создать список своих любимых контактов и делиться своими сообщениями HalloApp только с ними.";
 
+/* Alert dialog when users try to share files to group or home feed */
+"files.in.chats.only" = "Файлы могут быть отправлены только вашим контактам, а не тех кто просто включен в сообщения.";
+
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Поиск";
 
@@ -218,10 +221,4 @@
 
 /* Toast displayed while preparing video for external share */
 "toast.exporting" = "Экспорт…";
-
-/* How many bytes from total have been uploaded */
-"uploading.bytes.progress" = "%1$@ of %2$@";
-
-/* Message how many items are currently being upload */
-"uploading.n.items" = "uploading.n.items";
 

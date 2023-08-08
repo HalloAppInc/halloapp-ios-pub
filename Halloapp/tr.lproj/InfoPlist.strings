@@ -2,17 +2,17 @@
 "CFBundleName" = "HalloApp";
 
 /* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Bu, doğrudan HalloApp içinden fotoğraf ve video çekmeni sağlar.";
+"NSCameraUsageDescription" = "Bu, HalloApp'te görüntülü konuşma yapmanı, fotoğraf ve video çekmeni sağlar.";
 
 /* Privacy - Contacts Usage Description */
-"NSContactsUsageDescription" = "Ailen ve arkadaşlarının gönderilerini görebilmek ve paylaşabilmek için HalloApp'in kişilerine erişmesine izin ver.";
+"NSContactsUsageDescription" = "Ailen ve arkadaşlarının gönderilerini görmek ve paylaşmak için HalloApp'in kişilerini, kendi sunucularına yüklemesine izin ver. ";
 
 /* Privacy - Location When In Use Usage Description */
-"NSLocationWhenInUseUsageDescription" = "Bu, yakınınızdaki konumlara göz atmanı ve paylaşmanı sağlar.";
+"NSLocationWhenInUseUsageDescription" = "Bu, mevcut konumunu veya yakındaki yerleri yorumlarda ve sohbetlerde göndermeni sağlar.";
 
 /* Privacy - Microphone Usage Description */
 "NSMicrophoneUsageDescription" = "Bu, arama yapmanızı, sesli gönderiler ve mesajlar göndermenizi ve sesli videolar kaydetmenizi sağlar.";
 
 /* Privacy - Photo Library Usage Description */
-"NSPhotoLibraryUsageDescription" = "Burası, galerindeki fotoğraf ve videolarını arkadaşlarınla paylaşmanı, çektiklerini galerinde saklamanı sağlar.";
+"NSPhotoLibraryUsageDescription" = "Bu, galerinden fotoğraf ve video göndermeni ve çektiklerini kaydetmeni sağlar.";
 

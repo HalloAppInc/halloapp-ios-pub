@@ -118,6 +118,9 @@
 /* Description of the new Favorites functionality. */
 "feed.privacy.list.set.favorites.description" = "Agora você pode criar uma lista de seus contatos favoritos e compartilhar suas postagens do HalloApp com eles.";
 
+/* Alert dialog when users try to share files to group or home feed */
+"files.in.chats.only" = "Os arquivos só podem ser enviados diretamente para os contatos, não incluídos nas postagens.";
+
 /* Generic label for search, mostly used as placeholder text for searchbar */
 "label.search" = "Pesquisar";
 
@@ -216,9 +219,6 @@
 /* Row in Settings screen */
 "title.privacy" = "Privacidade";
 
-/* How many bytes from total have been uploaded */
-"uploading.bytes.progress" = "%1$@ de %2$@";
-
-/* Message how many items are currently being upload */
-"uploading.n.items" = "carregando.n.itens";
+/* Toast displayed while preparing video for external share */
+"toast.exporting" = "Exportando…";
 

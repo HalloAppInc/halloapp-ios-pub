@@ -1123,6 +1123,12 @@
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Versi ini telah usang";
 
+/* Text shown to users who have old versions of the app */
+"home.update.warning.notice.text" = "Silakan perbarui ke versi HalloApp terkini";
+
+/* Title of update notice shown to users who have old versions of the app */
+"home.update.warning.notice.title" = "Versi ini akan segera kedaluwarsa";
+
 /* Text shown to users on video call failure. */
 "home.video.calls.fail.text" = "Segera hadir...";
 

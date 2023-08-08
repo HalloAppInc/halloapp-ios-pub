@@ -254,22 +254,22 @@
 "camera.error" = "Error en la cámara";
 
 /* Error shown when the back camera isn't available. */
-"camera.init.error.1" = "No se puede iniciar la cámara trasera";
+"camera.init.error.1" = "No se puede utilizar la cámara trasera.";
 
 /* Error shown when the front camera isn't available. */
-"camera.init.error.2" = "No se puede iniciar la cámara frontal";
+"camera.init.error.2" = "No se puede utilizar la cámara frontal.";
 
 /* Error shown when the microphone isn't available. */
-"camera.init.error.3" = "No se puede iniciar el micrófono";
+"camera.init.error.3" = "No se puede utilizar el micrófono.";
 
 /* Error shown when photo output setup failed. */
-"camera.init.error.4" = "Sin acceso a la cámara trasera";
+"camera.init.error.4" = "La captura de fotos no está disponible. Inténtalo más tarde.";
 
 /* Error shown when video recording setup failed. */
-"camera.init.error.5" = "Sin acceso a la cámara frontal";
+"camera.init.error.5" = "La grabación de vídeo no está disponible. Inténtalo más tarde.";
 
 /* Error shown when audio recording setup failed. */
-"camera.init.error.6" = "Sin acceso al audio";
+"camera.init.error.6" = "La grabación de audio no está disponible. Inténtalo más tarde.";
 
 /* No comment provided by engineer. */
 "camera.init.error.7" = "No se puede tomar fotos";
@@ -281,7 +281,7 @@
 "camera.init.error.9" = "No se puedo grabar audio";
 
 /* Title for a popup alerting about camera initialization error. */
-"camera.init.error.title" = "Error al inicializar";
+"camera.init.error.title" = "Error de configuración";
 
 /* Text shown on the camera screen when composing a new moment. */
 "camera.moment.subtitle" = "Los momentos desaparecen después de 24 horas y solo pueden ser vistos una vez";
@@ -389,7 +389,7 @@
 "chat.invite.friends" = "Invitar amigos";
 
 /* Text shown when user removed a reaction from an audio */
-"chat.list.user.deleted.reaction.audio" = "%1$@ eliminó un %2$@ de un audio";
+"chat.list.user.deleted.reaction.audio" = "%1$@ eliminó %2$@ de un audio";
 
 /* Text shown when user removed a reaction from an image */
 "chat.list.user.deleted.reaction.image" = "%1$@ eliminó un %2$@ de una imagen";
@@ -419,7 +419,7 @@
 "chat.list.user.reacted.video" = "%1$@ reaccionó %2$@ a un video";
 
 /* Text shown when you removed a reaction from an audio */
-"chat.list.you.deleted.reaction.audio" = "Eliminaste un %1@ de un audio";
+"chat.list.you.deleted.reaction.audio" = "Eliminaste %1@ de un audio";
 
 /* Text shown when you removed a reaction from an image */
 "chat.list.you.deleted.reaction.image" = "Eliminaste un %1@ de una imagen";
@@ -575,7 +575,7 @@
 "composer.delete.recording.title" = "¿Eliminar grabación de voz?";
 
 /* Warning message shown to the user before discarding a audio post */
-"composer.deletevoicenote.message" = "La grabación de voz no se guardará si eliminas esta publicación.";
+"composer.deletevoicenote.message" = "La grabación de voz no se guardará si descartas esta publicación.";
 
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "¿Eliminar publicación?";
@@ -674,7 +674,7 @@
 "Delete" = "Eliminar";
 
 /* Body of the bottom sheet that is presented only once to explain the moments feature. */
-"describing.moments" = "Desbloquea los momentos de tus amigos compartiendo los tuyos. Los momentos son casuales, desaparecen después de verlos una vez.";
+"describing.moments" = "Mira los momentos de tus amigos compartiendo los tuyos. Los momentos son casuales, desaparecen a las 24 horas.";
 
 /* Send to button and screen title */
 "destination.send.to" = "Enviar a";
@@ -704,7 +704,7 @@
 "externalShare.og.title3" = "%@ Publicación de HalloApp";
 
 /* Always 'Posted from HalloApp', but we are applying additional formatting to HalloApp */
-"externalshare.postedFrom" = "Publicado desde";
+"externalshare.postedFrom" = "Publicado desde %@";
 
 /* VoiceOver label for camera button in floating compose post menu in Home view. */
 "fab.accessibility.camera" = "Cámara";
@@ -719,7 +719,7 @@
 "fab.accessibility.voice" = "Mensaje de voz";
 
 /* Label for floating moment button on home feed. */
-"fab.moment.button" = "Momento";
+"fab.moment.button" = "Nuevo momento";
 
 /* Label for floating compose post menu on Group screen. */
 "fab.post.button" = "Publicación";
@@ -1123,6 +1123,12 @@
 /* Title of update notice shown to users who have old versions of the app */
 "home.update.notice.title" = "Esta versión está desactualizada";
 
+/* Text shown to users who have old versions of the app */
+"home.update.warning.notice.text" = "Actualiza a la última versión de HalloApp";
+
+/* Title of update notice shown to users who have old versions of the app */
+"home.update.warning.notice.title" = "Esta versión caducará pronto";
+
 /* Text shown to users on video call failure. */
 "home.video.calls.fail.text" = "Próximamente...";
 
@@ -1211,7 +1217,7 @@
 "locating.title" = "Localizando";
 
 /* Displayed when a location fetch fails. */
-"location.fetch.error" = "Error al obtener la ubicación";
+"location.fetch.error" = "Imposible encontrar ubicación";
 
 /* General message of the alert for failures in location sharing features. */
 "locationSharing.alert.error" = "Algo salió mal. Por favor, inténtalo más tarde.";
@@ -1283,7 +1289,7 @@
 "media.mic.access.request.body" = "Para grabar videos con sonido, HalloApp necesita acceso al micrófono. Para permitir este acceso, ve a Configuración y enciende el micrófono.";
 
 /* Alert asking to enable Microphone permission after attempting to use in-app camera. */
-"media.mic.access.request.title" = "¿Quieres videos con sonido?";
+"media.mic.access.request.title" = "Acceso al micrófono";
 
 /* Error text displayed in post composer when some of the media selected couldn't be sent. */
 "media.prepare.failed.n.count" = "media.prepare.failed.n.count";
@@ -1375,7 +1381,7 @@
 "moments.swipe.for.more" = "desliza para más";
 
 /* Message displayed to say when moments will disappear. */
-"mymoment.disappear.time.label" = "Tu momento fue compartido con tu lista de contactos. Los momentos desaparecen después de 24 horas y solo pueden verse una vez.";
+"mymoment.disappear.time.label" = "Tu momento fue compartido con tu lista de contactos. Los momentos desaparecen después de 24 horas.";
 
 /* One of the contact actions in My Post screen. Verb. */
 "mypost.action.message" = "Enviar un mensaje";
@@ -2068,7 +2074,16 @@
 "share.moment.prompt" = "Comparte un momento";
 
 /* Text placed on the blurred overlay of someone else's moment. */
-"shared.moment" = "momento de %@";
+"shared.moment" = "Momento de %@";
+
+/* Count of photos in album */
+"sharedalbums.albumsuggestioncell.countformat" = "+%d";
+
+/* title of album suggestion with location */
+"sharedalbums.albumsuggestioncell.titleformat.location" = "%1$d fotos tomadas en @%2$@";
+
+/* title of album suggestion without location */
+"sharedalbums.albumsuggestioncell.titleformat.nolocation" = "%d fotos tomadas";
 
 /* Title for sharing to instagram stories */
 "shareprovider.instagramstories.title" = "Instagram Stories";
@@ -2084,6 +2099,9 @@
 
 /* Whatsapp messages share destination */
 "shareprovider.whatsapp.title" = "WhatsApp";
+
+/* No comment provided by engineer. */
+"Show Photo Suggestions" = "Sugerencias de fotos";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "toca para devolver la llamada";
@@ -2126,6 +2144,9 @@
 
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
 "thread.list.preview.new.user.default" = "¡%@ está en HalloApp! 🎉";
+
+/* Tab for shared albums in main interface */
+"title.albums" = "Álbumes";
 
 /* Camera screen title */
 "title.camera" = "Cámara";
