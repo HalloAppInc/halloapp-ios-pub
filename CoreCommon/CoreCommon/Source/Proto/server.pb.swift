@@ -5219,6 +5219,54 @@ public struct Server_Iq {
     set {payload = .registerResponse(newValue)}
   }
 
+  public var halloappSearchRequest: Server_HalloappSearchRequest {
+    get {
+      if case .halloappSearchRequest(let v)? = payload {return v}
+      return Server_HalloappSearchRequest()
+    }
+    set {payload = .halloappSearchRequest(newValue)}
+  }
+
+  public var halloappSearchResponse: Server_HalloappSearchResponse {
+    get {
+      if case .halloappSearchResponse(let v)? = payload {return v}
+      return Server_HalloappSearchResponse()
+    }
+    set {payload = .halloappSearchResponse(newValue)}
+  }
+
+  public var friendshipRequest: Server_FriendshipRequest {
+    get {
+      if case .friendshipRequest(let v)? = payload {return v}
+      return Server_FriendshipRequest()
+    }
+    set {payload = .friendshipRequest(newValue)}
+  }
+
+  public var friendshipResponse: Server_FriendshipResponse {
+    get {
+      if case .friendshipResponse(let v)? = payload {return v}
+      return Server_FriendshipResponse()
+    }
+    set {payload = .friendshipResponse(newValue)}
+  }
+
+  public var friendListRequest: Server_FriendListRequest {
+    get {
+      if case .friendListRequest(let v)? = payload {return v}
+      return Server_FriendListRequest()
+    }
+    set {payload = .friendListRequest(newValue)}
+  }
+
+  public var friendListResponse: Server_FriendListResponse {
+    get {
+      if case .friendListResponse(let v)? = payload {return v}
+      return Server_FriendListResponse()
+    }
+    set {payload = .friendListResponse(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Payload: Equatable {
@@ -5294,6 +5342,12 @@ public struct Server_Iq {
     case geoTagResponse(Server_GeoTagResponse)
     case registerRequest(Server_RegisterRequest)
     case registerResponse(Server_RegisterResponse)
+    case halloappSearchRequest(Server_HalloappSearchRequest)
+    case halloappSearchResponse(Server_HalloappSearchResponse)
+    case friendshipRequest(Server_FriendshipRequest)
+    case friendshipResponse(Server_FriendshipResponse)
+    case friendListRequest(Server_FriendListRequest)
+    case friendListResponse(Server_FriendListResponse)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Iq.OneOf_Payload, rhs: Server_Iq.OneOf_Payload) -> Bool {
@@ -5579,6 +5633,30 @@ public struct Server_Iq {
       }()
       case (.registerResponse, .registerResponse): return {
         guard case .registerResponse(let l) = lhs, case .registerResponse(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.halloappSearchRequest, .halloappSearchRequest): return {
+        guard case .halloappSearchRequest(let l) = lhs, case .halloappSearchRequest(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.halloappSearchResponse, .halloappSearchResponse): return {
+        guard case .halloappSearchResponse(let l) = lhs, case .halloappSearchResponse(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.friendshipRequest, .friendshipRequest): return {
+        guard case .friendshipRequest(let l) = lhs, case .friendshipRequest(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.friendshipResponse, .friendshipResponse): return {
+        guard case .friendshipResponse(let l) = lhs, case .friendshipResponse(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.friendListRequest, .friendListRequest): return {
+        guard case .friendListRequest(let l) = lhs, case .friendListRequest(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.friendListResponse, .friendListResponse): return {
+        guard case .friendListResponse(let l) = lhs, case .friendListResponse(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -6074,6 +6152,14 @@ public struct Server_Msg {
     set {_uniqueStorage()._payload = .aiImage(newValue)}
   }
 
+  public var halloappProfileUpdate: Server_HalloappProfileUpdate {
+    get {
+      if case .halloappProfileUpdate(let v)? = _storage._payload {return v}
+      return Server_HalloappProfileUpdate()
+    }
+    set {_uniqueStorage()._payload = .halloappProfileUpdate(newValue)}
+  }
+
   public var retryCount: Int32 {
     get {return _storage._retryCount}
     set {_uniqueStorage()._retryCount = newValue}
@@ -6143,6 +6229,7 @@ public struct Server_Msg {
     case profileUpdate(Server_ProfileUpdate)
     case publicFeedUpdate(Server_PublicFeedUpdate)
     case aiImage(Server_AiImage)
+    case halloappProfileUpdate(Server_HalloappProfileUpdate)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Msg.OneOf_Payload, rhs: Server_Msg.OneOf_Payload) -> Bool {
@@ -6348,6 +6435,10 @@ public struct Server_Msg {
       }()
       case (.aiImage, .aiImage): return {
         guard case .aiImage(let l) = lhs, case .aiImage(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.halloappProfileUpdate, .halloappProfileUpdate): return {
+        guard case .halloappProfileUpdate(let l) = lhs, case .halloappProfileUpdate(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -17108,6 +17199,12 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
     73: .standard(proto: "geo_tag_response"),
     74: .standard(proto: "register_request"),
     75: .standard(proto: "register_response"),
+    76: .standard(proto: "halloapp_search_request"),
+    77: .standard(proto: "halloapp_search_response"),
+    78: .standard(proto: "friendship_request"),
+    79: .standard(proto: "friendship_response"),
+    80: .standard(proto: "friend_list_request"),
+    81: .standard(proto: "friend_list_response"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -18028,6 +18125,84 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
           self.payload = .registerResponse(v)
         }
       }()
+      case 76: try {
+        var v: Server_HalloappSearchRequest?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .halloappSearchRequest(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .halloappSearchRequest(v)
+        }
+      }()
+      case 77: try {
+        var v: Server_HalloappSearchResponse?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .halloappSearchResponse(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .halloappSearchResponse(v)
+        }
+      }()
+      case 78: try {
+        var v: Server_FriendshipRequest?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .friendshipRequest(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .friendshipRequest(v)
+        }
+      }()
+      case 79: try {
+        var v: Server_FriendshipResponse?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .friendshipResponse(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .friendshipResponse(v)
+        }
+      }()
+      case 80: try {
+        var v: Server_FriendListRequest?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .friendListRequest(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .friendListRequest(v)
+        }
+      }()
+      case 81: try {
+        var v: Server_FriendListResponse?
+        var hadOneofValue = false
+        if let current = self.payload {
+          hadOneofValue = true
+          if case .friendListResponse(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.payload = .friendListResponse(v)
+        }
+      }()
       default: break
       }
     }
@@ -18325,6 +18500,30 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
       guard case .registerResponse(let v)? = self.payload else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 75)
     }()
+    case .halloappSearchRequest?: try {
+      guard case .halloappSearchRequest(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 76)
+    }()
+    case .halloappSearchResponse?: try {
+      guard case .halloappSearchResponse(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 77)
+    }()
+    case .friendshipRequest?: try {
+      guard case .friendshipRequest(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 78)
+    }()
+    case .friendshipResponse?: try {
+      guard case .friendshipResponse(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 79)
+    }()
+    case .friendListRequest?: try {
+      guard case .friendListRequest(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 80)
+    }()
+    case .friendListResponse?: try {
+      guard case .friendListResponse(let v)? = self.payload else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 81)
+    }()
     case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -18405,6 +18604,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     54: .standard(proto: "profile_update"),
     55: .standard(proto: "public_feed_update"),
     56: .standard(proto: "ai_image"),
+    57: .standard(proto: "halloapp_profile_update"),
     21: .standard(proto: "retry_count"),
     25: .standard(proto: "rerequest_count"),
   ]
@@ -19104,6 +19304,19 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
             _storage._payload = .aiImage(v)
           }
         }()
+        case 57: try {
+          var v: Server_HalloappProfileUpdate?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .halloappProfileUpdate(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .halloappProfileUpdate(v)
+          }
+        }()
         default: break
         }
       }
@@ -19340,6 +19553,10 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       case .aiImage?: try {
         guard case .aiImage(let v)? = _storage._payload else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 56)
+      }()
+      case .halloappProfileUpdate?: try {
+        guard case .halloappProfileUpdate(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 57)
       }()
       default: break
       }
