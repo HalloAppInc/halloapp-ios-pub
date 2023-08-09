@@ -93,6 +93,93 @@ public final class ProtoJoinGroupWithLinkRequest: ProtoRequest<Server_GroupInvit
     }
 }
 
+public final class ProtoUsernameRequest: ProtoRequest<Server_UsernameResponse> {
+
+    public init(username: String, action: Server_UsernameRequest.Action, completion: @escaping Completion) {
+        var request = Server_UsernameRequest()
+        request.username = username
+        request.action = action
+
+        let iqType: Server_Iq.TypeEnum
+        switch action {
+        case .set:
+            iqType = .set
+        case .isAvailable, .UNRECOGNIZED(_):
+            iqType = .get
+        }
+
+        let transform: (Server_Iq) -> Result<Server_UsernameResponse, RequestError> = { iq in
+            .success(iq.usernameResponse)
+        }
+
+        super.init(iqPacket: .iqPacket(type: iqType, payload: .usernameRequest(request)),
+                   transform: transform,
+                   completion: completion)
+    }
+}
+
+public final class ProtoFriendshipRequest: ProtoRequest<Server_HalloappUserProfile> {
+
+    public init(userID: UserID, action: Server_FriendshipRequest.Action, completion: @escaping Completion) {
+        var request = Server_FriendshipRequest()
+        request.uid = Int64(userID) ?? .zero
+        request.action = action
+
+        let transform: (Server_Iq) -> Result<Server_HalloappUserProfile, RequestError> = { iq in
+            if iq.relationshipResponse.result == .ok, iq.relationshipResponse.hasProfile {
+                return .success(iq.friendshipResponse.profile)
+            } else {
+                return .failure(.serverError("Failed to update relationship"))
+            }
+        }
+
+        super.init(iqPacket: .iqPacket(type: .set, payload: .friendshipRequest(request)),
+                   transform: transform,
+                   completion: completion)
+    }
+}
+
+public final class ProtoFriendListRequest: ProtoRequest<(profiles: [Server_FriendProfile], cursor: String)> {
+
+    public init(action: Server_FriendListRequest.Action, cursor: String, completion: @escaping Completion) {
+        var request = Server_FriendListRequest()
+        request.action = action
+        request.cursor = cursor
+
+        let transform: (Server_Iq) -> Result<(profiles: [Server_FriendProfile], cursor: String), RequestError> = { iq in
+            if iq.friendListResponse.result == .ok {
+                return .success((iq.friendListResponse.friendProfiles, iq.friendListResponse.cursor))
+            } else {
+                return .failure(.serverError("Failed to fetch friend list"))
+            }
+        }
+
+        super.init(iqPacket: .iqPacket(type: .get, payload: .friendListRequest(request)),
+                   transform: transform,
+                   completion: completion)
+    }
+}
+
+public final class ProtoUserSearchRequest: ProtoRequest<[Server_HalloappUserProfile]> {
+
+    public init(string: String, completion: @escaping Completion) {
+        var request = Server_HalloappSearchRequest()
+        request.usernameString = string
+
+        let transform: (Server_Iq) -> Result<[Server_HalloappUserProfile], RequestError> = { iq in
+            if iq.halloappSearchResponse.result == .ok {
+                return .success(iq.halloappSearchResponse.searchResult)
+            } else {
+                return .failure(.serverError("Failed to fetch search results"))
+            }
+        }
+
+        super.init(iqPacket: .iqPacket(type: .get, payload: .halloappSearchRequest(request)),
+                   transform: transform,
+                   completion: completion)
+    }
+}
+
 private extension DiscreteEvent {
     var eventData: Server_EventData {
         var eventData = Server_EventData()

@@ -2862,4 +2862,36 @@ extension ProtoServiceCore: CoreService {
         let receipt = HalloReceipt(itemId: itemID, userId: fromUserID, type: type, timestamp: nil, thread: thread)
         sendReceipt(receipt, to: toUserID, completion: completion)
     }
+
+    // MARK: Usernames
+
+    public func updateUsername(username: String, completion: @escaping ServiceRequestCompletion<Server_UsernameResponse>) {
+        enqueue(request: ProtoUsernameRequest(username: username, action: .set, completion: completion))
+    }
+
+    public func checkUsernameAvailability(username: String, completion: @escaping ServiceRequestCompletion<Server_UsernameResponse>) {
+        enqueue(request: ProtoUsernameRequest(username: username, action: .isAvailable, completion: completion))
+    }
+
+    // MARK: Friendship
+
+    public func modifyFriendship(userID: UserID,
+                                 action: Server_FriendshipRequest.Action,
+                                 completion: @escaping ServiceRequestCompletion<Server_HalloappUserProfile>) {
+
+        enqueue(request: ProtoFriendshipRequest(userID: userID, action: action, completion: completion))
+    }
+
+    public func friendList(action: Server_FriendListRequest.Action,
+                           cursor: String,
+                           completion: @escaping ServiceRequestCompletion<(profiles: [Server_FriendProfile], cursor: String)>) {
+
+        enqueue(request: ProtoFriendListRequest(action: action, cursor: cursor, completion: completion))
+    }
+
+    // MARK: Search
+
+    public func searchUsernames(string: String, completion: @escaping ServiceRequestCompletion<[Server_HalloappUserProfile]>) {
+        enqueue(request: ProtoUserSearchRequest(string: string, completion: completion))
+    }
 }

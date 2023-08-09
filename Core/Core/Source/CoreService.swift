@@ -56,6 +56,16 @@ public protocol CoreService: CoreServiceCommon {
     // MARK: Groups
     func getGroupInfo(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>)
 
+    // MARK: Usernames
+    func updateUsername(username: String, completion: @escaping ServiceRequestCompletion<Server_UsernameResponse>)
+    func checkUsernameAvailability(username: String, completion: @escaping ServiceRequestCompletion<Server_UsernameResponse>)
+
+    // MARK: UserProfiles
+    func modifyFriendship(userID: UserID, action: Server_FriendshipRequest.Action, completion: @escaping ServiceRequestCompletion<Server_HalloappUserProfile>)
+    func friendList(action: Server_FriendListRequest.Action,
+                    cursor: String,
+                    completion: @escaping ServiceRequestCompletion<(profiles: [Server_FriendProfile], cursor: String)>)
+
     // MARK: ContentMissing - Handle rerequests
     func sendContentMissing(id contentID: String, type contentType: Server_ContentMissing.ContentType, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>)
 
