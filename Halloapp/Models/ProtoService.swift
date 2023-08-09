@@ -1415,12 +1415,14 @@ final class ProtoService: ProtoServiceCore {
 
         case .momentNotification(let notification):
             feedDelegate?.halloService(self, didReceiveDailyMomentNotification: notification.timestamp)
-        case .profileUpdate(_):
+        case .halloappProfileUpdate(_):
             // TODO handle profile updates
             DDLogError("proto/didReceive/\(msg.id)/unhandled profile update")
         case .publicFeedUpdate(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .aiImage(_):
+            DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
+        case .profileUpdate(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         }
     }
