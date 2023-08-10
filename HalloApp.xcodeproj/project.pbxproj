@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -486,6 +486,7 @@
 		F4F157DA276AA39F002FDB9E /* DeleteAccountPhoneNumberTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F157D9276AA39E002FDB9E /* DeleteAccountPhoneNumberTextField.swift */; };
 		F4F157DC276AA5B7002FDB9E /* DeleteAccountTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F157DB276AA5B7002FDB9E /* DeleteAccountTextView.swift */; };
 		F4F547D42A69FB3400A67901 /* AlbumSuggestionLoadIndicatorCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F547D32A69FB3400A67901 /* AlbumSuggestionLoadIndicatorCollectionViewCell.swift */; };
+		F4FA225E2A8C192100654455 /* AppleGeocoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FA225D2A8C192100654455 /* AppleGeocoder.swift */; };
 		F4FF3ADC27FCD25F00CD4998 /* ExternalSharePost.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF3ADB27FCD25F00CD4998 /* ExternalSharePost.swift */; };
 		F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */; };
 		F80A0085288EB50700EAE39C /* TextComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F80A0084288EB50700EAE39C /* TextComposerView.swift */; };
@@ -1303,6 +1304,7 @@
 		F4F157D9276AA39E002FDB9E /* DeleteAccountPhoneNumberTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountPhoneNumberTextField.swift; sourceTree = "<group>"; };
 		F4F157DB276AA5B7002FDB9E /* DeleteAccountTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountTextView.swift; sourceTree = "<group>"; };
 		F4F547D32A69FB3400A67901 /* AlbumSuggestionLoadIndicatorCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumSuggestionLoadIndicatorCollectionViewCell.swift; sourceTree = "<group>"; };
+		F4FA225D2A8C192100654455 /* AppleGeocoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleGeocoder.swift; sourceTree = "<group>"; };
 		F4FF3ADB27FCD25F00CD4998 /* ExternalSharePost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalSharePost.swift; sourceTree = "<group>"; };
 		F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerViewController.swift; sourceTree = "<group>"; };
 		F80A0084288EB50700EAE39C /* TextComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextComposerView.swift; sourceTree = "<group>"; };
@@ -2575,6 +2577,7 @@
 			isa = PBXGroup;
 			children = (
 				F4BF3DDA2A5E2018005663FD /* PhotoSuggestions.swift */,
+				F4FA225D2A8C192100654455 /* AppleGeocoder.swift */,
 			);
 			path = Location;
 			sourceTree = "<group>";
@@ -3469,6 +3472,7 @@
 				EECB00B0286E2396003996B3 /* LocationSharingViewController.swift in Sources */,
 				68CD603425E463FA0056D13E /* ConnectionBanner.swift in Sources */,
 				68B47B02260DBAD000D675FC /* InviteContactsManager.swift in Sources */,
+				F4FA225E2A8C192100654455 /* AppleGeocoder.swift in Sources */,
 				68A64E9024D33DEF00F40F1F /* Mentions.swift in Sources */,
 				F881ED76261B1F6F0013599F /* Upload+CoreDataClass.swift in Sources */,
 				323F9A75280F23E600C8AB69 /* PostLinkPreviewViewExtension.swift in Sources */,

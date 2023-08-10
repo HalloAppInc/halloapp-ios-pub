@@ -11,24 +11,37 @@ import Photos
 
 class PhotoSuggestions: NSObject {
 
+    enum PhotoSuggestionsError: Error {
+        case noPhotoLocations
+        case noPhotos
+    }
+
     private struct Constants {
+        // dbscan macroclustering
         static let maxTimeIntervalForClustering: TimeInterval = 12 * 60 * 60 // 12 hours
         static let minClusterableAssetCount = 3
         static let maxDistance: Double = 2
         static let timeNormalizationFactor: TimeInterval = 3 * 60 * 60 // 3 hours
         static let distanceNormalizationFactor: CLLocationDistance = 1000
 
-        // mean shift
-        static let meanShiftDistanceNormalizationFactor: CLLocationDistance = 100
+        // mean shift location clustering
+        static let maxMacroclusters = 20
+        static let meanShiftDistanceNormalizationFactor: CLLocationDistance = 75
         static let convergenceThreshold: CLLocationDistance = 10
     }
 
     func generateSuggestions() async throws -> [PhotoCluster] {
         var visitedAssetIdentifiers: Set<String> = []
-        var clusters: [PhotoCluster] = []
+        var macroClusters: [[PHAsset]] = []
 
         let recentAssets = Self.queryAssets(start: Date().advanced(by: -30 * 24 * 60 * 60), limit: 1000)
 
+        // Sanity checks on photos
+        if recentAssets.count == 0 {
+            throw PhotoSuggestionsError.noPhotos
+        }
+
+        // DBSCAN to create macroclusters
         for recentAssetIndex in 0..<recentAssets.count {
             let asset = recentAssets[recentAssetIndex]
 
@@ -42,8 +55,7 @@ class PhotoSuggestions: NSObject {
                 continue
             }
 
-            let cluster = PhotoCluster(asset: asset)
-            clusters.append(cluster)
+            var cluster = [asset]
             visitedAssetIdentifiers.insert(asset.localIdentifier)
 
             while let clusterableAsset = clusterableAssets.popFirst() {
@@ -51,7 +63,7 @@ class PhotoSuggestions: NSObject {
                     continue
                 }
 
-                cluster.add(clusterableAsset)
+                cluster.append(clusterableAsset)
                 visitedAssetIdentifiers.insert(clusterableAsset.localIdentifier)
 
                 let clusterableAssetNeighbors = Self.clusterableAssets(for: clusterableAsset, in: recentAssets)
@@ -59,162 +71,114 @@ class PhotoSuggestions: NSObject {
                     clusterableAssets.formUnion(clusterableAssetNeighbors)
                 }
             }
+
+            macroClusters.append(cluster)
         }
 
-        let locatedClusters = Array(clusters.prefix(20))
+        // Parallelize clustering and geocoding each macrocluster
+        return try await withThrowingTaskGroup(of: Array<PhotoCluster>.self) { taskGroup in
+            for assets in macroClusters.prefix(Constants.maxMacroclusters) {
+                taskGroup.addTask {
+                    var assetsWithLocation: [PHAsset] = []
+                    var assetLocations: [CLLocation] = []
+                    var unclusteredAssets: [PHAsset] = []
 
+                    for asset in assets {
+                        if let location = asset.location {
+                            assetsWithLocation.append(asset)
+                            assetLocations.append(location)
+                        } else {
+                            unclusteredAssets.append(asset)
+                        }
+                    }
 
+                    // If we don't have any assets with location, just use the macrocluster
+                    guard !assetsWithLocation.isEmpty else {
+                        return [PhotoCluster(assets: unclusteredAssets)]
+                    }
 
-        if #available(iOS 14.0, *) {
-            return try await withThrowingTaskGroup(of: Array<PhotoCluster>.self) { taskGroup in
-                locatedClusters.forEach { cluster in
-                    taskGroup.addTask {
-
-                        var clusterMapItems = Set<MKMapItem>()
-                        var locatedAssets: [MKMapItem: Set<PHAsset>] = [:]
-
-                        let orderedAssets = Array(cluster.assets.filter { $0.location != nil })
-
-                        let normalizedAssetLocations = Self.meanShiftCluster(locations: orderedAssets.compactMap(\.location))
-
-                        var clusters: [[(PHAsset, CLLocation)]] = []
-
-                        for clusterAsset in zip(orderedAssets, normalizedAssetLocations) {
-                            var didCluster = false
-                            for i in 0..<clusters.count {
-                                var clusteredAssets = clusters[i]
-                                if clusteredAssets.contains(where: { $0.1.distance(from: clusterAsset.1) <= Constants.convergenceThreshold }) {
-                                    clusteredAssets.append(clusterAsset)
-                                    clusters[i] = clusteredAssets
-                                    didCluster = true
-                                    break
-                                }
-                            }
-                            if !didCluster {
-                                clusters.append([clusterAsset])
+                    // Group into clusters by mean shifting locations to send to geocoder
+                    var clusteredAssetsWithNormalizedLocation: [[(asset: PHAsset, normalizedLocation: CLLocation)]] = []
+                    for (asset, normalizedLocation) in zip(assetsWithLocation, Self.meanShiftCluster(locations: assetLocations)) {
+                        let idx = clusteredAssetsWithNormalizedLocation.firstIndex { cluster in
+                            cluster.contains {
+                                $0.normalizedLocation.distance(from: normalizedLocation) <= Constants.convergenceThreshold
                             }
                         }
+                        if let idx {
+                            clusteredAssetsWithNormalizedLocation[idx].append((asset, normalizedLocation))
+                        } else {
+                            clusteredAssetsWithNormalizedLocation.append([(asset, normalizedLocation)])
+                        }
+                    }
 
-                        var locatedClusters: [MKMapItem: [PHAsset]] = [:]
-
-                        var unmatchedAssets: [PHAsset] = []
-
-                        for cluster in clusters {
-                            let clusterCenterCoordinate = cluster
-                                .map(\.1.coordinate)
-                                .enumerated()
-                                .reduce(CLLocationCoordinate2D(latitude: 0, longitude: 0)) { avgCoordinate, i in
-                                    let (idx, coordinate) = i
-                                    return .init(latitude: avgCoordinate.latitude + (coordinate.latitude - avgCoordinate.latitude) / CLLocationDegrees(idx + 1),
-                                                 longitude: avgCoordinate.longitude + (coordinate.longitude - avgCoordinate.longitude) / CLLocationDegrees(idx + 1))
-                                }
-                            let clusterCenterLocation = CLLocation(latitude: clusterCenterCoordinate.latitude, longitude: clusterCenterCoordinate.longitude)
-
-                            guard cluster.count >= Constants.minClusterableAssetCount else {
-                                unmatchedAssets.append(contentsOf: cluster.map(\.0))
-                                continue
-                            }
-
-                            let existingMapItem = clusterMapItems.min { mapItemA, mapItemB in
-                                let locationA = CLLocation(latitude: mapItemA.placemark.coordinate.latitude, longitude: mapItemA.placemark.coordinate.longitude)
-                                let locationB = CLLocation(latitude: mapItemB.placemark.coordinate.latitude, longitude: mapItemB.placemark.coordinate.longitude)
-                                return locationA.distance(from: clusterCenterLocation) < locationB.distance(from: clusterCenterLocation)
-                            }
-
-                            if let existingMapItem, let region = existingMapItem.placemark.region as? CLCircularRegion {
-                                let regionLocation = CLLocation(latitude: region.center.latitude, longitude: region.center.longitude)
-
-                                if clusterCenterLocation.distance(from: regionLocation) < region.radius * 2 {
-                                //if region.contains(clusterCenterLocation) {
-
-                                    var a = locatedClusters[existingMapItem, default: []]
-                                    a.append(contentsOf: cluster.map(\.0))
-                                    locatedClusters[existingMapItem] = a
-                                    continue
-                                }
-                            }
-
-                            let request = MKLocalPointsOfInterestRequest(center: clusterCenterLocation.coordinate, radius: 200)
-                            request.pointOfInterestFilter = MKPointOfInterestFilter(excluding: [.atm, .parking, .evCharger, .restroom])
-                            let localSearch = MKLocalSearch(request: request)
-                            let response: MKLocalSearch.Response
-
-                            do {
-                                response = try await localSearch.start()
-                            } catch {
-                                print(error)
-                                continue
-                            }
-
-                            clusterMapItems.formUnion(response.mapItems)
-
-                            let newMapItem = response.mapItems.min { mapItemA, mapItemB in
-                                let locationA = CLLocation(latitude: mapItemA.placemark.coordinate.latitude, longitude: mapItemA.placemark.coordinate.longitude)
-                                let locationB = CLLocation(latitude: mapItemB.placemark.coordinate.latitude, longitude: mapItemB.placemark.coordinate.longitude)
-                                return locationA.distance(from: clusterCenterLocation) < locationB.distance(from: clusterCenterLocation)
-                            }
-
-                            if let newMapItem, let region = newMapItem.placemark.region as? CLCircularRegion {
-                                let regionLocation = CLLocation(latitude: region.center.latitude, longitude: region.center.longitude)
-
-                                if clusterCenterLocation.distance(from: regionLocation) < region.radius * 2 {
-                                //if region.contains(clusterCenterLocation) {
-                                    var a = locatedClusters[newMapItem, default: []]
-                                    a.append(contentsOf: cluster.map(\.0))
-                                    locatedClusters[newMapItem] = a
-                                    continue
-                                }
-                            }
-
-                            unmatchedAssets.append(contentsOf: cluster.map(\.0))
+                    // Geocode clusters
+                    var locatedClusters: [PhotoClusterLocation: [PHAsset]] = [:]
+                    for cluster in clusteredAssetsWithNormalizedLocation {
+                        guard cluster.count >= Constants.minClusterableAssetCount else {
+                            unclusteredAssets.append(contentsOf: cluster.map(\.asset))
+                            continue
                         }
 
-                        // group in unmatched assets
+                        let clusterLocation = Self.averageLocation(cluster.map(\.normalizedLocation))
 
-                        unmatchedAssets.forEach { asset in
-                            guard let assetLocation = asset.location else {
-                                return
+                        let reverseGeocodeLocation = try? await AppleGeocoder.shared.reverseGeocode(location: clusterLocation)
+
+                        if let reverseGeocodeLocation {
+                            locatedClusters[reverseGeocodeLocation] = cluster.map(\.asset)
+                        } else {
+                            unclusteredAssets.append(contentsOf: cluster.map(\.asset))
+                        }
+                    }
+
+                    // Unable to find a location, just return the macrocluster
+                    guard !locatedClusters.isEmpty else {
+                        return [PhotoCluster(assets: unclusteredAssets)]
+                    }
+
+                    // Group in unclustered assets
+                    let locationsByAssetCreationDate = locatedClusters.reduce(into: [:]) { partialResult, element in
+                        element.value.compactMap(\.creationDate).forEach {
+                            partialResult[$0] = element.key
+                        }
+                    }
+
+                    for asset in unclusteredAssets {
+                        let closestLocation: PhotoClusterLocation?
+
+                        if let location = asset.location {
+                            // if the asset has a location, group into the closest located cluster
+                            closestLocation = locatedClusters.keys.min {
+                                location.distance(from: $0.location) < location.distance(from: $1.location)
                             }
-
-                            let closestMapItem = locatedClusters.keys.min { mapItemA, mapItemB in
-                                let locationA = CLLocation(latitude: mapItemA.placemark.coordinate.latitude, longitude: mapItemA.placemark.coordinate.longitude)
-                                let locationB = CLLocation(latitude: mapItemB.placemark.coordinate.latitude, longitude: mapItemB.placemark.coordinate.longitude)
-                                return locationA.distance(from: assetLocation) < locationB.distance(from: assetLocation)
-                            }
-
-                            if let closestMapItem {
-                                let distance = assetLocation.distance(from: CLLocation(latitude: closestMapItem.placemark.coordinate.latitude,
-                                                                                       longitude: closestMapItem.placemark.coordinate.longitude))
-
-                                if distance < 500 {
-                                    var a = locatedClusters[closestMapItem, default: []]
-                                    a.append(asset)
-                                    locatedClusters[closestMapItem] = a
-                                }
-                            }
+                        } else if let creationDate = asset.creationDate {
+                            // asset only has a time, group into cluster containing the closest asset by time
+                            closestLocation = locationsByAssetCreationDate.min {
+                                abs($0.key.timeIntervalSince(creationDate)) <= abs($1.key.timeIntervalSince(creationDate))
+                            }?.value
+                        } else {
+                            closestLocation = nil
                         }
 
-
-
-
-                        return locatedClusters.map { (mapItem, assets) in
-                            let cluster = PhotoCluster(assets: assets)
-                            cluster.locationName = mapItem.name
-                            return cluster
+                        if let closestLocation {
+                            locatedClusters[closestLocation]?.append(asset)
                         }
+                    }
 
+                    return locatedClusters.map { (location, assets) in
+                        let photoCluster = PhotoCluster(assets: assets)
+                        photoCluster.locationName = location.name
+                        return photoCluster
                     }
                 }
-                var clusters: [PhotoCluster] = []
-                for try await subcluster in taskGroup {
-                    clusters.append(contentsOf: subcluster)
-                }
-                return clusters
-                //try await taskGroup.waitForAll()
             }
-        }
 
-        return locatedClusters
+            var clusters: [PhotoCluster] = []
+            for try await subcluster in taskGroup {
+                clusters.append(contentsOf: subcluster)
+            }
+            return clusters
+        }
     }
 
     private class func clusterableAssets(for asset: PHAsset, in fetchResult: PHFetchResult<PHAsset>) -> [PHAsset] {
@@ -229,21 +193,26 @@ class PhotoSuggestions: NSObject {
     }
 
     private class func shouldCluster(_ assetA: PHAsset, _ assetB: PHAsset) -> Bool {
-        guard let creationDateA = assetA.creationDate,
-              let creationDateB = assetB.creationDate,
-              let locationA = assetA.location,
-              let locationB = assetB.location else {
+        guard let creationDateA = assetA.creationDate, let creationDateB = assetB.creationDate else {
             return false
         }
 
         let normalizedTimeDistance = abs(creationDateA.timeIntervalSince(creationDateB)) / Constants.timeNormalizationFactor
-        let normalizedLocationDistance = locationA.distance(from: locationB) / Constants.distanceNormalizationFactor
 
-        return sqrt(normalizedTimeDistance * normalizedTimeDistance + normalizedLocationDistance * normalizedLocationDistance) <= Constants.maxDistance
+        if let locationA = assetA.location, let locationB = assetB.location {
+            let normalizedLocationDistance = locationA.distance(from: locationB) / Constants.distanceNormalizationFactor
+            return sqrt(normalizedTimeDistance * normalizedTimeDistance + normalizedLocationDistance * normalizedLocationDistance) <= Constants.maxDistance
+        } else {
+            return normalizedTimeDistance <= Constants.maxDistance
+        }
     }
 
     private class func queryAssets(start: Date? = nil, end: Date? = nil, limit: Int? = nil) -> PHFetchResult<PHAsset> {
-        var subpredicates: [NSPredicate] = []
+        var subpredicates: [NSPredicate] = [
+            NSPredicate(format: "mediaSubtype != %ld", PHAssetMediaSubtype.photoScreenshot.rawValue),
+            NSPredicate(format: "mediaSubtype != %ld", PHAssetMediaSubtype.photoAnimated.rawValue),
+            NSPredicate(format: "mediaSubtype != %ld", PHAssetMediaSubtype.videoScreenRecording.rawValue),
+        ]
         if let start {
             subpredicates.append(NSPredicate(format: "creationDate >= %@", start as NSDate))
         }
@@ -262,26 +231,9 @@ class PhotoSuggestions: NSObject {
         return PHAsset.fetchAssets(with: options)
     }
 
-    private class func averageDistance(mapItem: MKMapItem, assets: any Sequence<PHAsset>) -> CLLocationDistance {
-        let assetLocations = assets.compactMap(\.location)
-        guard !assetLocations.isEmpty else {
-            return .greatestFiniteMagnitude
-        }
-
-        let mapItemLocation = CLLocation(latitude: mapItem.placemark.coordinate.latitude, longitude: mapItem.placemark.coordinate.longitude)
-
-        var averageDistance: CLLocationDistance = 0
-        for (idx, assetLocation) in assetLocations.enumerated() {
-            averageDistance = averageDistance + (mapItemLocation.distance(from: assetLocation) - averageDistance) / CLLocationDistance(idx + 1)
-        }
-
-        return averageDistance
-    }
-
     private class func meanShiftCluster(locations: [CLLocation]) -> [CLLocation] {
         var shiftedLocations = locations
         while true {
-
             var updatedLocations: [CLLocation] = []
             for shiftedLocation in shiftedLocations {
                 var numeratorSum = CLLocation(latitude: 0, longitude: 0)
@@ -299,8 +251,6 @@ class PhotoSuggestions: NSObject {
                 // Compute the mean shift vector
                 let meanShiftVector = CLLocation(latitude: numeratorSum.coordinate.latitude / denominatorSum,
                                                  longitude: numeratorSum.coordinate.longitude / denominatorSum)
-                let updatedLocation = CLLocation(latitude: shiftedLocation.coordinate.latitude + meanShiftVector.coordinate.latitude,
-                                              longitude: shiftedLocation.coordinate.longitude + meanShiftVector.coordinate.longitude)
                 updatedLocations.append(meanShiftVector)
             }
             // Check for convergence
@@ -320,6 +270,18 @@ class PhotoSuggestions: NSObject {
         }
 
         return shiftedLocations
+    }
+
+    private class func averageLocation(_ locations: [CLLocation]) -> CLLocation {
+        let coordinate = locations
+            .map(\.coordinate)
+            .enumerated()
+            .reduce(CLLocationCoordinate2D(latitude: 0, longitude: 0)) { avgCoordinate, i in
+                let (idx, coordinate) = i
+                return .init(latitude: avgCoordinate.latitude + (coordinate.latitude - avgCoordinate.latitude) / CLLocationDegrees(idx + 1),
+                             longitude: avgCoordinate.longitude + (coordinate.longitude - avgCoordinate.longitude) / CLLocationDegrees(idx + 1))
+            }
+        return CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
     }
 }
 
@@ -406,5 +368,31 @@ extension MKCoordinateRegion {
         let topLeft = MKMapPoint(.init(latitude: center.latitude + span.latitudeDelta / 2, longitude: center.longitude - span.longitudeDelta / 2))
         let bottomRight = MKMapPoint(.init(latitude: center.latitude - span.latitudeDelta / 2, longitude: center.longitude + span.longitudeDelta / 2))
         return MKMapRect(origin: topLeft, size: MKMapSize(width: fabs(bottomRight.x - topLeft.x), height: fabs(bottomRight.y - topLeft.y)))
+    }
+}
+
+extension PHAssetMediaSubtype {
+    static let photoAnimated = PHAssetMediaSubtype(rawValue: 1 << 6)
+    static let videoScreenRecording = PHAssetMediaSubtype(rawValue: 1 << 15)
+}
+
+struct PhotoClusterLocation: Hashable {
+    var location: CLLocation
+    var name: String
+
+    init?(placemark: CLPlacemark) {
+        guard let name = placemark.name, let location = placemark.location else {
+            return nil
+        }
+        self.name = name
+        self.location = location
+    }
+
+    init?(mapItem: MKMapItem) {
+        guard let name = mapItem.name, let location = mapItem.placemark.location else {
+            return nil
+        }
+        self.name = name
+        self.location = location
     }
 }
