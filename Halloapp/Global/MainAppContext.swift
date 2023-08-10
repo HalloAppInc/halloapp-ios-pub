@@ -131,7 +131,8 @@ class MainAppContext: AppContext {
 
     required init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
         super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
-        
+
+        service.userProfileDelegate = userProfileData
         feedData = FeedData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData, coreFeedData: coreFeedData, mediaUploader: mediaUploader)
         chatData = ChatData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData, coreChatData: coreChatData)
         syncManager = SyncManager(contactStore: contactStore, service: service, userData: userData)

@@ -35,7 +35,7 @@ public typealias GroupID = String
 public typealias AvatarInfo = (userID: UserID, avatarID: AvatarID)
 
 /// Core aspects of the service available in extensions
-public protocol CoreServiceCommon {
+public protocol CoreServiceCommon: AnyObject {
 
     // MARK: App expiration
     var isAppVersionKnownExpired: CurrentValueSubject<Bool, Never> { get }

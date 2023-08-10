@@ -23,6 +23,7 @@ protocol HalloService: CoreService {
     var chatDelegate: HalloChatDelegate? { get set }
     var feedDelegate: HalloFeedDelegate? { get set }
     var callDelegate: HalloCallDelegate? { get set }
+    var userProfileDelegate: HalloUserProfileDelegate? { get set }
     var readyToHandleCallMessages: Bool { get set }
 
     // MARK: Feed requests
@@ -151,4 +152,8 @@ protocol HalloCallDelegate: AnyObject {
     func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveHoldCall holdCall: Server_HoldCall)
     func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveMuteCall muteCall: Server_MuteCall)
     func halloService(_ halloService: HalloService, from peerUserID: UserID, didReceiveCallSdp callSdp: Server_CallSdp)
+}
+
+protocol HalloUserProfileDelegate: AnyObject {
+    func halloService(_ halloService: HalloService, didReceiveProfileUpdate profileUpdate: Server_HalloappProfileUpdate, ack: (() -> Void)?)
 }

@@ -276,6 +276,7 @@
 		A13C928C28D8D3A40096CE00 /* AllowContactsPermissionCollectionViewHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C928B28D8D3A40096CE00 /* AllowContactsPermissionCollectionViewHeader.swift */; };
 		A13C928E28D915A00096CE00 /* InAppPermissionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C928D28D915A00096CE00 /* InAppPermissionsViewController.swift */; };
 		A13C929028D9255C0096CE00 /* PermissionExplainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C928F28D9255C0096CE00 /* PermissionExplainerView.swift */; };
+		A1513DE52A82E56A000CA8F4 /* UserProfileData+HalloUserProfileDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1513DE42A82E56A000CA8F4 /* UserProfileData+HalloUserProfileDelegate.swift */; };
 		A152424129106C47003120C7 /* CameraPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = A152424029106C47003120C7 /* CameraPreset.swift */; };
 		A1562B1728D0EA630082F1E5 /* ViewfinderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1562B1628D0EA630082F1E5 /* ViewfinderView.swift */; };
 		A1562B1928D0EED40082F1E5 /* PhotoCaptureRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1562B1828D0EED40082F1E5 /* PhotoCaptureRequest.swift */; };
@@ -1095,6 +1096,7 @@
 		A13C928B28D8D3A40096CE00 /* AllowContactsPermissionCollectionViewHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllowContactsPermissionCollectionViewHeader.swift; sourceTree = "<group>"; };
 		A13C928D28D915A00096CE00 /* InAppPermissionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppPermissionsViewController.swift; sourceTree = "<group>"; };
 		A13C928F28D9255C0096CE00 /* PermissionExplainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionExplainerView.swift; sourceTree = "<group>"; };
+		A1513DE42A82E56A000CA8F4 /* UserProfileData+HalloUserProfileDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserProfileData+HalloUserProfileDelegate.swift"; sourceTree = "<group>"; };
 		A152424029106C47003120C7 /* CameraPreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreset.swift; sourceTree = "<group>"; };
 		A1562B1628D0EA630082F1E5 /* ViewfinderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewfinderView.swift; sourceTree = "<group>"; };
 		A1562B1828D0EED40082F1E5 /* PhotoCaptureRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoCaptureRequest.swift; sourceTree = "<group>"; };
@@ -1888,6 +1890,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		A1513DE32A82E555000CA8F4 /* UserProfile */ = {
+			isa = PBXGroup;
+			children = (
+				A1513DE42A82E56A000CA8F4 /* UserProfileData+HalloUserProfileDelegate.swift */,
+			);
+			path = UserProfile;
+			sourceTree = "<group>";
+		};
 		A1562B1528D0EA350082F1E5 /* Camera */ = {
 			isa = PBXGroup;
 			children = (
@@ -2086,6 +2096,7 @@
 		EA3861EB23342C3800705943 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				A1513DE32A82E555000CA8F4 /* UserProfile */,
 				68AFAED4284EB961003F4789 /* Web */,
 				6ABBB204272D90EC007A595D /* Calls */,
 				F881ED66261780080013599F /* Upload */,
@@ -3373,6 +3384,7 @@
 				A11BA85428C0236D0077F86A /* RegistrationSplashScreenViewController.swift in Sources */,
 				F893C86F25E5213000068F00 /* VideoView.swift in Sources */,
 				A1FE82E527DEDB5900024641 /* HorizontalMetionPickerView.swift in Sources */,
+				A1513DE52A82E56A000CA8F4 /* UserProfileData+HalloUserProfileDelegate.swift in Sources */,
 				761BD0FA24B3C6B800B567F6 /* InviteRequests.swift in Sources */,
 				EE969F642847EE49006F491A /* HAMenu.swift in Sources */,
 				F4D88F6B27D9873F00D706DA /* Toast.swift in Sources */,

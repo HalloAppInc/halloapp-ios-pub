@@ -120,6 +120,11 @@ open class AppContext: AppContextCommon {
         coreChatDataImpl
     }
 
+    private(set) var userProfileDataImpl: UserProfileData!
+    open var userProfileData: UserProfileData {
+        userProfileDataImpl
+    }
+
     open private(set) lazy var mediaUploader = CommonMediaUploader(service: coreService, mainDataStore: mainDataStore, mediaHashStore: mediaHashStore, userDefaults: userDefaults)
 
     // MARK: Event monitoring
@@ -311,6 +316,7 @@ open class AppContext: AppContextCommon {
                                         chatData: coreChatData,
                                         contactStore: contactStore,
                                         commonMediaUploader: mediaUploader)
+        userProfileDataImpl = UserProfileData(dataStore: mainDataStore, service: coreService, avatarStore: avatarStore, userData: userData)
 
         DispatchQueue.global(qos: .background).async {
             self.migrateLogFilesIfNeeded()

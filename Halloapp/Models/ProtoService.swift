@@ -93,6 +93,7 @@ final class ProtoService: ProtoServiceCore {
     weak var chatDelegate: HalloChatDelegate?
     weak var feedDelegate: HalloFeedDelegate?
     weak var callDelegate: HalloCallDelegate?
+    weak var userProfileDelegate: HalloUserProfileDelegate?
 
     let didGetNewChatMessage = PassthroughSubject<IncomingChatMessage, Never>()
     let didGetAck = PassthroughSubject<AckInfo, Never>()
@@ -1415,9 +1416,9 @@ final class ProtoService: ProtoServiceCore {
 
         case .momentNotification(let notification):
             feedDelegate?.halloService(self, didReceiveDailyMomentNotification: notification.timestamp)
-        case .halloappProfileUpdate(_):
-            // TODO handle profile updates
-            DDLogError("proto/didReceive/\(msg.id)/unhandled profile update")
+        case .halloappProfileUpdate(let profileUpdate):
+            hasAckBeenDelegated = true
+            userProfileDelegate?.halloService(self, didReceiveProfileUpdate: profileUpdate, ack: ack)
         case .publicFeedUpdate(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .aiImage(_):
