@@ -2076,6 +2076,15 @@
 /* Text placed on the blurred overlay of someone else's moment. */
 "shared.moment" = "Momento de %@";
 
+/* Count of photos in album */
+"sharedalbums.albumsuggestioncell.countformat" = "+%d";
+
+/* title of album suggestion with location */
+"sharedalbums.albumsuggestioncell.titleformat.location" = "%1$d fotos tiradas @%2$@";
+
+/* title of album suggestion without location */
+"sharedalbums.albumsuggestioncell.titleformat.nolocation" = "%d fotos tiradas";
+
 /* Title for sharing to instagram stories */
 "shareprovider.instagramstories.title" = "Stories do Instagram";
 
@@ -2090,6 +2099,9 @@
 
 /* Whatsapp messages share destination */
 "shareprovider.whatsapp.title" = "WhatsApp";
+
+/* No comment provided by engineer. */
+"Show Photo Suggestions" = "Mostrar Sugestões de Fotos";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "toque para retornar à chamada";
@@ -2132,6 +2144,9 @@
 
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
 "thread.list.preview.new.user.default" = "%@ está no HalloApp! 🎉";
+
+/* Tab for shared albums in main interface */
+"title.albums" = "Álbuns";
 
 /* Camera screen title */
 "title.camera" = "Câmera";

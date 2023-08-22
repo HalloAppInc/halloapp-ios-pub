@@ -2079,6 +2079,9 @@
 /* Count of photos in album */
 "sharedalbums.albumsuggestioncell.countformat" = "+%d";
 
+/* title of album suggestion with location */
+"sharedalbums.albumsuggestioncell.titleformat.location" = "%1$d foto's gemaakt @%2$@";
+
 /* title of album suggestion without location */
 "sharedalbums.albumsuggestioncell.titleformat.nolocation" = "%d foto's gemaakt";
 
@@ -2096,6 +2099,9 @@
 
 /* Whatsapp messages share destination */
 "shareprovider.whatsapp.title" = "WhatsApp";
+
+/* No comment provided by engineer. */
+"Show Photo Suggestions" = "Fotosuggesties Weergeven";
 
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "tik om terug te gaan naar oproep";
