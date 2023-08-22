@@ -28,6 +28,7 @@ private enum MenuTitles {
     static var manageWebClient: String { "Manage web client" }
     static var enableChatForwarding: String { "Enable Chat Forwarding" }
     static var showDecryptionResults: String { "Show decryption results  ✅ ❌" }
+    static var showMLImageRank: String { "Show ML image rank" }
     static var forceCompactShare: String { "Force Compact Share UI" }
     static var forcePickerShare: String { "Force Destination Picker Share UI" }
     static var resetMomentsFTUX: String { "Reset Moments FTUX" }
@@ -41,12 +42,17 @@ struct DeveloperSetting {
         get { AppContext.shared.userDefaults.bool(forKey: "showDecryptionResults", defaultValue: true) }
         set { AppContext.shared.userDefaults.set(newValue, forKey: "showDecryptionResults") }
     }
+    static var showMLImageRank: Bool {
+        get { AppContext.shared.userDefaults.bool(forKey: "showMLImageRank", defaultValue: false) }
+        set { AppContext.shared.userDefaults.set(newValue, forKey: "showMLImageRank") }
+    }
 }
 
 struct DeveloperMenuView: View {
 
     @State var useTestServer = MainAppContext.shared.coreService.useTestServer
     @State var showDecryptionResults = DeveloperSetting.showDecryptionResults
+    @State var showMLImageRank = DeveloperSetting.showMLImageRank
     @State var forceCompactShare = AppContext.shared.userDefaults.bool(forKey: "forceCompactShare")
     @State var forcePickerShare = AppContext.shared.userDefaults.bool(forKey: "forcePickerShare")
     @State var isShowingWebClientManager = false
@@ -220,6 +226,11 @@ struct DeveloperMenuView: View {
                     Toggle(MenuTitles.showDecryptionResults, isOn: $showDecryptionResults)
                         .onReceive(Just(self.showDecryptionResults)) { value in
                             DeveloperSetting.showDecryptionResults = value
+                        }
+                    
+                    Toggle(MenuTitles.showMLImageRank, isOn: $showMLImageRank)
+                        .onReceive(Just(self.showMLImageRank)) { value in
+                            DeveloperSetting.showMLImageRank = value
                         }
 
                     Toggle(MenuTitles.forceCompactShare, isOn: $forceCompactShare)

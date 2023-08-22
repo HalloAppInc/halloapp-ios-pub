@@ -72,6 +72,10 @@ fileprivate struct LayoutConstants {
     static let pageControlSpacingBottom: CGFloat = 12
 }
 
+fileprivate var showMLImageRank: Bool {
+    return DeveloperSetting.showMLImageRank
+}
+
 class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, MediaListAnimatorDelegate {
 
     let configuration: MediaCarouselViewConfiguration
@@ -232,6 +236,8 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     }()
 
     private var dataSource: UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>?
+    
+    private var mlMediaOrdering = [String]()
 
     init(media: [FeedMedia], initialIndex: Int? = nil, configuration: MediaCarouselViewConfiguration = MediaCarouselViewConfiguration.default) {
         self.media = media
@@ -299,7 +305,15 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
                         if let viewProvider = self?.configuration.supplementaryViewsProvider {
                             return viewProvider(indexPath.row)
                         }
-
+                        if showMLImageRank {
+                            cell.mlRankLabel.text = {
+                                if let self, let id = feedMedia.id, let i = self.mlMediaOrdering.firstIndex(of: id) {
+                                    return "\(i + 1) / \(self.mlMediaOrdering.count)"
+                                } else {
+                                    return nil
+                                }
+                            }()
+                        }
                         return []
                     }
                 }
@@ -332,6 +346,13 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
         let zoomRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(zoomAction))
         collectionView.addGestureRecognizer(zoomRecognizer)
+        
+        if showMLImageRank {
+            Task {
+                self.mlMediaOrdering = await ImageRanker.shared.rankMedia(media)
+                collectionView.reloadData()
+            }
+        }
     }
     
     private func setupCollectionView() {
@@ -638,7 +659,14 @@ fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
         progressView.heightAnchor.constraint(equalTo: progressView.widthAnchor, multiplier: 1).isActive = true
         return progressView
     }()
-
+    
+    fileprivate lazy var mlRankLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.backgroundColor = .black
+        label.textColor = .white
+        return label
+    }()
 
     private var supplementaryConstrains = [NSLayoutConstraint]()
     private var supplementaryItems = [MediaCarouselSupplementaryItem]()
@@ -699,6 +727,9 @@ fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
         mediaStatusCancellable?.cancel()
         mediaStatusCancellable = nil
         removeSupplementaryViews()
+        if showMLImageRank {
+            mlRankLabel.text = nil
+        }
     }
 
     func apply(configuration: MediaCarouselViewConfiguration) {
@@ -708,6 +739,11 @@ fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
 
     func configure(with media: FeedMedia, supplementaryViewsProvider viewsProvider: () -> [MediaCarouselSupplementaryItem]) {
         addSupplementaryViews(viewsProvider())
+
+        if showMLImageRank && mlRankLabel.superview == nil {
+            contentView.addSubview(mlRankLabel)
+            mlRankLabel.constrain([.bottom, .centerX], to: contentView)
+        }
 
         updateMediaStatusUI(with: media)
         if mediaStatusCancellable == nil {
