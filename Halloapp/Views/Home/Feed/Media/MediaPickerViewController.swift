@@ -1225,7 +1225,13 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         setNeedsLayout()
 
         if let highlightedMedia {
-            contentView.alpha = selected || highlightedMedia.compactMap(\.asset?.localIdentifier).contains(asset?.localIdentifier) ? 1.0 : 0.5
+            let highlighted: Bool
+            if let asset, highlightedMedia.compactMap(\.asset?.localIdentifier).contains(asset.localIdentifier) {
+                highlighted = true
+            } else {
+                highlighted = false
+            }
+            contentView.alpha = selected || highlighted ? 1.0 : 0.5
         }
     }
 
