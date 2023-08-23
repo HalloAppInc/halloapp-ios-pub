@@ -18,6 +18,7 @@ public enum RequestError: Error {
     case serverError(String)
     case audienceHashMismatch
     case retryDelay(TimeInterval)
+    case invalidUser
 }
 
 extension RequestError {
@@ -26,14 +27,14 @@ extension RequestError {
         switch self {
         case .timeout, .canceled, .aborted, .malformedResponse:
             return false
-        case .notConnected, .malformedRequest, .serverError, .retryDelay, .audienceHashMismatch:
+        case .notConnected, .malformedRequest, .serverError, .retryDelay, .audienceHashMismatch, .invalidUser:
             return true
         }
     }
 
     public var canAck: Bool {
         switch self {
-        case .aborted, .canceled:
+        case .aborted, .canceled, .invalidUser:
             return true
         case .timeout, .malformedRequest, .malformedResponse, .retryDelay, .serverError, .notConnected, .audienceHashMismatch:
             return false

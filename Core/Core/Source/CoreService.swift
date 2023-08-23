@@ -66,6 +66,10 @@ public protocol CoreService: CoreServiceCommon {
                     cursor: String,
                     completion: @escaping ServiceRequestCompletion<(profiles: [Server_FriendProfile], cursor: String)>)
 
+    // MARK: UserProfile lookup
+    func userProfile(userID: UserID, completion: @escaping ServiceRequestCompletion<Server_HalloappUserProfile>)
+    func userProfile(username: String, completion: @escaping ServiceRequestCompletion<Server_HalloappUserProfile>)
+
     // MARK: ContentMissing - Handle rerequests
     func sendContentMissing(id contentID: String, type contentType: Server_ContentMissing.ContentType, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>)
 

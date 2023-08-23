@@ -2889,6 +2889,16 @@ extension ProtoServiceCore: CoreService {
         enqueue(request: ProtoFriendListRequest(action: action, cursor: cursor, completion: completion))
     }
 
+    // MARK: Profile lookup
+
+    public func userProfile(userID: UserID, completion: @escaping ServiceRequestCompletion<Server_HalloappUserProfile>) {
+        enqueue(request: ProtoProfileRequest(userID: userID, completion: completion))
+    }
+
+    public func userProfile(username: String, completion: @escaping ServiceRequestCompletion<Server_HalloappUserProfile>) {
+        enqueue(request: ProtoProfileRequest(username: username, completion: completion))
+    }
+
     // MARK: Search
 
     public func searchUsernames(string: String, completion: @escaping ServiceRequestCompletion<[Server_HalloappUserProfile]>) {

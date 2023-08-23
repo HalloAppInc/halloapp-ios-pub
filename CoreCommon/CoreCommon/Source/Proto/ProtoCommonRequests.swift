@@ -180,6 +180,46 @@ public final class ProtoUserSearchRequest: ProtoRequest<[Server_HalloappUserProf
     }
 }
 
+public final class ProtoProfileRequest: ProtoRequest<Server_HalloappUserProfile> {
+
+    public convenience init(userID: UserID, completion: @escaping Completion) {
+        self.init(userID: userID, username: nil, completion: completion)
+    }
+
+    public convenience init(username: String, completion: @escaping Completion) {
+        self.init(userID: nil, username: username, completion: completion)
+    }
+
+    private init(userID: UserID? = nil, username: String? = nil, completion: @escaping Completion) {
+        var request = Server_HalloappProfileRequest()
+
+        if let userID {
+            request.uid = Int64(userID) ?? .zero
+        }
+
+        if let username {
+            request.username = username
+        }
+
+        let transform: (Server_Iq) -> Result<Server_HalloappUserProfile, RequestError> = { iq in
+            if iq.hallaoppProfileResult.result == .ok {
+                return .success(iq.hallaoppProfileResult.profile)
+            } else {
+                switch iq.hallaoppProfileResult.reason {
+                case .noUser:
+                    return .failure(.invalidUser)
+                case .unknownReason, .UNRECOGNIZED:
+                    return .failure(.serverError("Failed to fetch user"))
+                }
+            }
+        }
+
+        super.init(iqPacket: .iqPacket(type: .get, payload: .halloappProfileRequest(request)),
+                   transform: transform,
+                   completion: completion)
+    }
+}
+
 private extension DiscreteEvent {
     var eventData: Server_EventData {
         var eventData = Server_EventData()
