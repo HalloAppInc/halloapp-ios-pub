@@ -6,6 +6,8 @@
 //  Copyright © 2023 HalloApp, Inc. All rights reserved.
 //
 
+import Core
+import CoreCommon
 import UIKit
 import Photos
 
@@ -49,6 +51,8 @@ class AlbumPreviewViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.fabPostButton, style: .plain, target: self, action: #selector(createPost))
+
         collectionView.register(PhotoCollectionViewCell.self, forCellWithReuseIdentifier: PhotoCollectionViewCell.reuseIdentifier)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
@@ -64,6 +68,24 @@ class AlbumPreviewViewController: UIViewController {
         snapshot.appendSections([.main])
         snapshot.appendItems(photoCluster.assets.sorted { $0.creationDate ?? .distantPast < $1.creationDate ?? .distantPast })
         dataSource.apply(snapshot, animatingDifferences: false)
+    }
+
+    @objc private func createPost() {
+        Task {
+            let scoreSortedAssets = await ImageRanker.shared.rankMedia(Array(photoCluster.assets))
+            let pendingMedia = scoreSortedAssets.compactMap { PendingMedia(asset: $0) }
+            let state = NewPostState(pendingMedia: Array(pendingMedia.prefix(10)), mediaSource: .library, highlightedMedia: pendingMedia)
+
+            let newPostViewController = NewPostViewController(state: state, destination: .feed(.all), showDestinationPicker: true) { didPost, _ in
+                // Reset back to all
+                MainAppContext.shared.privacySettings.activeType = .all
+                self.dismiss(animated: true)
+            }
+            await MainActor.run() {
+                newPostViewController.modalPresentationStyle = .fullScreen
+                present(newPostViewController, animated: true)
+            }
+        }
     }
 }
 

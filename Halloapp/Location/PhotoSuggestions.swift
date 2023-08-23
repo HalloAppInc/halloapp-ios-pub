@@ -6,6 +6,7 @@
 //  Copyright © 2023 HalloApp, Inc. All rights reserved.
 //
 
+import CocoaLumberjackSwift
 import MapKit
 import Photos
 
@@ -30,7 +31,18 @@ class PhotoSuggestions: NSObject {
         static let convergenceThreshold: CLLocationDistance = 10
     }
 
+    private var cachedSuggestions: [PhotoCluster]?
+
+    override init() {
+        super.init()
+        PHPhotoLibrary.shared().register(self)
+    }
+
     func generateSuggestions() async throws -> [PhotoCluster] {
+        if let cachedSuggestions {
+            return cachedSuggestions
+        }
+
         var visitedAssetIdentifiers: Set<String> = []
         var macroClusters: [[PHAsset]] = []
 
@@ -76,7 +88,7 @@ class PhotoSuggestions: NSObject {
         }
 
         // Parallelize clustering and geocoding each macrocluster
-        return try await withThrowingTaskGroup(of: Array<PhotoCluster>.self) { taskGroup in
+        let clusters = try await withThrowingTaskGroup(of: Array<PhotoCluster>.self) { taskGroup in
             for assets in macroClusters.prefix(Constants.maxMacroclusters) {
                 taskGroup.addTask {
                     var assetsWithLocation: [PHAsset] = []
@@ -113,7 +125,7 @@ class PhotoSuggestions: NSObject {
                     }
 
                     // Geocode clusters
-                    var locatedClusters: [PhotoClusterLocation: [PHAsset]] = [:]
+                    var locatedClusters: [(location: PhotoClusterLocation?, assets: [PHAsset])] = []
                     for cluster in clusteredAssetsWithNormalizedLocation {
                         guard cluster.count >= Constants.minClusterableAssetCount else {
                             unclusteredAssets.append(contentsOf: cluster.map(\.asset))
@@ -122,12 +134,12 @@ class PhotoSuggestions: NSObject {
 
                         let clusterLocation = Self.averageLocation(cluster.map(\.normalizedLocation))
 
-                        let reverseGeocodeLocation = try? await AppleGeocoder.shared.reverseGeocode(location: clusterLocation)
-
-                        if let reverseGeocodeLocation {
-                            locatedClusters[reverseGeocodeLocation] = cluster.map(\.asset)
-                        } else {
-                            unclusteredAssets.append(contentsOf: cluster.map(\.asset))
+                        do {
+                            let reverseGeocodeLocation = try await AppleGeocoder.shared.reverseGeocode(location: clusterLocation)
+                            locatedClusters.append((reverseGeocodeLocation, cluster.map(\.asset)))
+                        } catch {
+                            DDLogError("PhotoSuggestions/error geocoding cluster: \(error)")
+                            locatedClusters.append((nil, cluster.map(\.asset)))
                         }
                     }
 
@@ -136,38 +148,27 @@ class PhotoSuggestions: NSObject {
                         return [PhotoCluster(assets: unclusteredAssets)]
                     }
 
-                    // Group in unclustered assets
-                    let locationsByAssetCreationDate = locatedClusters.reduce(into: [:]) { partialResult, element in
-                        element.value.compactMap(\.creationDate).forEach {
-                            partialResult[$0] = element.key
-                        }
-                    }
-
-                    for asset in unclusteredAssets {
-                        let closestLocation: PhotoClusterLocation?
-
-                        if let location = asset.location {
-                            // if the asset has a location, group into the closest located cluster
-                            closestLocation = locatedClusters.keys.min {
-                                location.distance(from: $0.location) < location.distance(from: $1.location)
+                    for unclusteredAsset in unclusteredAssets {
+                        var minDistanceClusterIndex: Int?
+                        var minDistance: Double = .greatestFiniteMagnitude
+                        for (index, locatedCluster) in locatedClusters.enumerated() {
+                            for asset in locatedCluster.assets {
+                                let distance = Self.distance(unclusteredAsset, asset)
+                                if distance < minDistance {
+                                    minDistanceClusterIndex = index
+                                    minDistance = distance
+                                }
                             }
-                        } else if let creationDate = asset.creationDate {
-                            // asset only has a time, group into cluster containing the closest asset by time
-                            closestLocation = locationsByAssetCreationDate.min {
-                                abs($0.key.timeIntervalSince(creationDate)) <= abs($1.key.timeIntervalSince(creationDate))
-                            }?.value
-                        } else {
-                            closestLocation = nil
                         }
 
-                        if let closestLocation {
-                            locatedClusters[closestLocation]?.append(asset)
+                        if let minDistanceClusterIndex, minDistance <= Constants.maxDistance {
+                            locatedClusters[minDistanceClusterIndex].assets.append(unclusteredAsset)
                         }
                     }
 
                     return locatedClusters.map { (location, assets) in
                         let photoCluster = PhotoCluster(assets: assets)
-                        photoCluster.locationName = location.name
+                        photoCluster.locationName = location?.name
                         return photoCluster
                     }
                 }
@@ -179,40 +180,39 @@ class PhotoSuggestions: NSObject {
             }
             return clusters
         }
+
+        cachedSuggestions = clusters
+
+        return clusters
     }
 
-    private class func clusterableAssets(for asset: PHAsset, in fetchResult: PHFetchResult<PHAsset>) -> [PHAsset] {
-        var clusterableAssets: [PHAsset] = []
-        fetchResult.enumerateObjects { nearbyAsset, _, _ in
-            if nearbyAsset != asset, shouldCluster(asset, nearbyAsset) {
-                clusterableAssets.append(nearbyAsset)
-            }
+    private class func clusterableAssets(for asset: PHAsset, in assets: [PHAsset]) -> [PHAsset] {
+        return assets.filter { nearbyAsset in
+            return nearbyAsset != asset && shouldCluster(asset, nearbyAsset)
         }
-
-        return clusterableAssets
     }
 
-    private class func shouldCluster(_ assetA: PHAsset, _ assetB: PHAsset) -> Bool {
+    private class func distance(_ assetA: PHAsset, _ assetB: PHAsset) -> Double {
         guard let creationDateA = assetA.creationDate, let creationDateB = assetB.creationDate else {
-            return false
+            return .greatestFiniteMagnitude
         }
 
         let normalizedTimeDistance = abs(creationDateA.timeIntervalSince(creationDateB)) / Constants.timeNormalizationFactor
 
         if let locationA = assetA.location, let locationB = assetB.location {
             let normalizedLocationDistance = locationA.distance(from: locationB) / Constants.distanceNormalizationFactor
-            return sqrt(normalizedTimeDistance * normalizedTimeDistance + normalizedLocationDistance * normalizedLocationDistance) <= Constants.maxDistance
+            return sqrt(normalizedTimeDistance * normalizedTimeDistance + normalizedLocationDistance * normalizedLocationDistance)
         } else {
-            return normalizedTimeDistance <= Constants.maxDistance
+            return normalizedTimeDistance
         }
     }
 
-    private class func queryAssets(start: Date? = nil, end: Date? = nil, limit: Int? = nil) -> PHFetchResult<PHAsset> {
-        var subpredicates: [NSPredicate] = [
-            NSPredicate(format: "mediaSubtype != %ld", PHAssetMediaSubtype.photoScreenshot.rawValue),
-            NSPredicate(format: "mediaSubtype != %ld", PHAssetMediaSubtype.photoAnimated.rawValue),
-            NSPredicate(format: "mediaSubtype != %ld", PHAssetMediaSubtype.videoScreenRecording.rawValue),
-        ]
+    private class func shouldCluster(_ assetA: PHAsset, _ assetB: PHAsset) -> Bool {
+        return distance(assetA, assetB) <= Constants.maxDistance
+    }
+
+    private class func queryAssets(start: Date? = nil, end: Date? = nil, limit: Int? = nil) -> [PHAsset] {
+        var subpredicates: [NSPredicate] = []
         if let start {
             subpredicates.append(NSPredicate(format: "creationDate >= %@", start as NSDate))
         }
@@ -228,7 +228,15 @@ class PhotoSuggestions: NSObject {
             options.fetchLimit = limit
         }
 
-        return PHAsset.fetchAssets(with: options)
+        let assets = PHAsset.fetchAssets(with: options)
+
+        var filteredAssets: [PHAsset] = []
+        assets.enumerateObjects { asset, _, _ in
+            if Self.isValidAsset(asset) {
+                filteredAssets.append(asset)
+            }
+        }
+        return filteredAssets
     }
 
     private class func meanShiftCluster(locations: [CLLocation]) -> [CLLocation] {
@@ -282,6 +290,18 @@ class PhotoSuggestions: NSObject {
                              longitude: avgCoordinate.longitude + (coordinate.longitude - avgCoordinate.longitude) / CLLocationDegrees(idx + 1))
             }
         return CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+    }
+
+    private class func isValidAsset(_ asset: PHAsset) -> Bool {
+        // PHAsset fetches do not accurately query mediaSubtypes, filter after the fetch
+        return asset.mediaSubtypes.isDisjoint(with: [.photoScreenshot, .photoAnimated, .videoScreenRecording])
+    }
+}
+
+extension PhotoSuggestions: PHPhotoLibraryChangeObserver {
+    
+    func photoLibraryDidChange(_ changeInstance: PHChange) {
+        cachedSuggestions = nil
     }
 }
 

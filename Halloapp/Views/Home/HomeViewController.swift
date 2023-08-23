@@ -267,14 +267,26 @@ class HomeViewController: UITabBarController {
     }
 
     private func cameraNavigationController() -> UIViewController {
-        let controller = CameraTabPlaceholderViewController()
+        if DeveloperSetting.showPhotoSuggestions {
+            let controller = SharedAlbumViewController()
+            controller.title = Localizations.titleAlbums
 
-        controller.title = Localizations.fabAccessibilityCamera
-        controller.tabBarItem.image = UIImage(named: "TabBarCamera")?.withTintColor(.tabBar, renderingMode: .alwaysOriginal)
-        controller.tabBarItem.selectedImage = UIImage(named: "TabBarCameraActive")?.withRenderingMode(.alwaysTemplate)
-        controller.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
+            let navigationController = UINavigationController(rootViewController: controller)
+            navigationController.tabBarItem.image = UIImage(named: "TabBarAlbums")?.withTintColor(.tabBar, renderingMode: .alwaysOriginal)
+            navigationController.tabBarItem.selectedImage = UIImage(named: "TabBarAlbumsActive")
+            navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
+            return navigationController
+        } else {
 
-        return controller
+            let controller = CameraTabPlaceholderViewController()
+
+            controller.title = Localizations.fabAccessibilityCamera
+            controller.tabBarItem.image = UIImage(named: "TabBarCamera")?.withTintColor(.tabBar, renderingMode: .alwaysOriginal)
+            controller.tabBarItem.selectedImage = UIImage(named: "TabBarCameraActive")?.withRenderingMode(.alwaysTemplate)
+            controller.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
+
+            return controller
+        }
     }
 
     private func chatsNavigationController() -> UINavigationController {

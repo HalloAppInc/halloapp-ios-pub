@@ -43,6 +43,8 @@ class MainAppContext: AppContext {
     lazy var nux: NUX = { NUX(userDefaults: userDefaults) }()
     private lazy var mergeSharedDataQueue = { DispatchQueue(label: "com.halloapp.mergeSharedData", qos: .default) }()
 
+    lazy var photoSuggestions = PhotoSuggestions()
+
     static let MediaUploadDataLastCleanUpTime = "MediaUploadDataLastCleanUpTime"
 
     let didTapNotification = PassthroughSubject<NotificationMetadata, Never>()

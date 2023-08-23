@@ -69,6 +69,11 @@ class AppleGeocoder {
             response = try await localSearch.start()
         } catch {
             DDLogError("AppleGeocoder/reverseGeocodingFailed error: \(error)")
+            let nsError = error as NSError
+            // MapKit throws an error if there are no mapItems found - ignore the error, and return the placemark if available.
+            if nsError.domain == MKErrorDomain, nsError.code == MKError.Code.placemarkNotFound.rawValue {
+                return placemark.flatMap { PhotoClusterLocation(placemark: $0) }
+            }
             throw error
         }
 

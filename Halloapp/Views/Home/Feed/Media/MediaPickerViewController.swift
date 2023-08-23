@@ -159,6 +159,7 @@ class MediaPickerViewController: UIViewController {
     private var preview: MediaPickerPreview?
     private var updatingSnapshot = false
     private var nextInProgress = false
+    private var highlightedMedia: [PendingMedia]?
 
     private lazy var collectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: view.frame, collectionViewLayout: makeLayout())
@@ -361,10 +362,14 @@ class MediaPickerViewController: UIViewController {
     }()
 
     private var isAnyCallOngoingCancellable: AnyCancellable?
-    
-    init(config: MediaPickerConfig, selected: [PendingMedia] = [] , didFinish: @escaping MediaPickerViewControllerCallback) {
+
+    init(config: MediaPickerConfig,
+         selected: [PendingMedia] = [],
+         highlightedMedia: [PendingMedia]? = nil,
+         didFinish: @escaping MediaPickerViewControllerCallback) {
         self.config = config
         self.selected.append(contentsOf: selected)
+        self.highlightedMedia = highlightedMedia
         self.didFinish = didFinish
 
         let modeRawValue = MainAppContext.shared.userDefaults.integer(forKey: UserDefaultsKey.MediaPickerMode)
@@ -523,7 +528,11 @@ class MediaPickerViewController: UIViewController {
             DispatchQueue.main.async {
                 self.assets = assets
                 self.collectionView.reloadData()
-                self.scrollToBottom()
+                if self.selected.isEmpty {
+                    self.scrollToBottom()
+                } else {
+                    self.scrollToFirstSelectedItem()
+                }
                 self.updateNavigation()
                 self.albumsButton.setTitle((album ?? recent)?.localizedTitle ?? "", for: .normal)
                 self.showLimitedAccessBubbleIfNecessary()
@@ -559,7 +568,7 @@ class MediaPickerViewController: UIViewController {
         
         for cell in collectionView.visibleCells {
             guard let cell = cell as? AssetViewCell else { continue }
-            cell.prepare(config: self.config, mode: self.mode, selection: self.selected)
+            cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedMedia: highlightedMedia)
         }
 
         config.destination = destination
@@ -611,7 +620,7 @@ class MediaPickerViewController: UIViewController {
                 
                 for cell in collectionView.visibleCells {
                     guard let cell = cell as? AssetViewCell else { continue }
-                    cell.prepare(config: self.config, mode: self.mode, selection: self.selected)
+                    cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedMedia: highlightedMedia)
                 }
                 
                 transitionState = .inprogress
@@ -884,6 +893,25 @@ class MediaPickerViewController: UIViewController {
         guard let count = assets?.count, count > 0 else { return }
         collectionView.scrollToItem(at: IndexPath(row: count - 1, section: 0), at: .bottom, animated: animated)
     }
+
+    private func scrollToFirstSelectedItem(animated: Bool = false) {
+        guard let assets, !selected.isEmpty else {
+            return
+        }
+
+        let selectedAssetIdentifiers = Set(selected.compactMap(\.asset?.localIdentifier))
+        var initialAssetIndex: Int?
+        for idx in 0..<assets.count {
+            if selectedAssetIdentifiers.contains(assets[idx].localIdentifier) {
+                initialAssetIndex = idx
+                break
+            }
+        }
+
+        if let initialAssetIndex {
+            collectionView.scrollToItem(at: IndexPath(item: initialAssetIndex, section: 0), at: .top, animated: false)
+        }
+    }
 }
 
 // MARK: UICollectionViewDelegate
@@ -930,7 +958,7 @@ extension MediaPickerViewController: UICollectionViewDelegate {
                 cell.image.transform = CGAffineTransform.identity
             })
         }, completion: { _ in
-            cell.prepare(config: self.config, mode: self.mode, selection: self.selected)
+            cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedMedia: self.highlightedMedia)
         })
     }
 
@@ -952,7 +980,7 @@ extension MediaPickerViewController: UICollectionViewDelegate {
         }, completion: { _ in
             for cell in collectionView.visibleCells {
                 guard let cell = cell as? AssetViewCell else { continue }
-                cell.prepare(config: self.config, mode: self.mode, selection: self.selected)
+                cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedMedia: self.highlightedMedia)
             }
         })
     }
@@ -1005,7 +1033,7 @@ extension MediaPickerViewController: UICollectionViewDataSource {
                 guard let self = self else { return }
                 guard cell.asset?.localIdentifier == asset.localIdentifier else { return }
                 cell.image.image = image
-                cell.prepare(config: self.config, mode: self.mode, selection: self.selected)
+                cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedMedia: highlightedMedia)
             }
         }
 
@@ -1152,7 +1180,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         return (spacing, column * spacing / columnCount, spacing - ((column + 1) * spacing / columnCount))
     }
     
-    func prepare(config: MediaPickerConfig, mode: MediaPickerMode, selection: [PendingMedia]) {
+    func prepare(config: MediaPickerConfig, mode: MediaPickerMode, selection: [PendingMedia], highlightedMedia: [PendingMedia]?) {
         let (spacingBottom, spacingLead, spacingTrail) = calculateSpacing(mode: mode)
         
         NSLayoutConstraint.deactivate(activeConstraints)
@@ -1174,10 +1202,13 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         
         NSLayoutConstraint.activate(activeConstraints)
 
+        let selected: Bool
 
         if let asset = asset, selection.contains(where: { $0.asset == asset }) {
+            selected = true
             image.layer.cornerRadius = 20
         } else {
+            selected = false
             image.layer.cornerRadius = 0
         }
 
@@ -1192,6 +1223,10 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         prepareIndicator(config: config, selection: selection)
 
         setNeedsLayout()
+
+        if let highlightedMedia {
+            contentView.alpha = selected || highlightedMedia.compactMap(\.asset?.localIdentifier).contains(asset?.localIdentifier) ? 1.0 : 0.5
+        }
     }
 
     func prepareIndicator(config: MediaPickerConfig, selection: [PendingMedia]) {

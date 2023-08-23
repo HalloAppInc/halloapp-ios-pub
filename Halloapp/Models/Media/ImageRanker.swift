@@ -9,11 +9,14 @@
 import CocoaLumberjackSwift
 import CoreML
 import Foundation
+import Photos
 
 final class ImageRanker {
     
     static let shared = ImageRanker()
-    
+
+    private let cachingImageManager = PHCachingImageManager()
+
     /// Returns media IDs in decreasing order of aesthetic preference (excluding IDs for media items that could not be scored)
     public func rankMedia(_ media: [FeedMedia]) async -> [String]  {
         let scores = try? await withThrowingTaskGroup(
@@ -57,7 +60,52 @@ final class ImageRanker {
         
         return scores ?? []
     }
-    
+
+    public func rankMedia(_ assets: [PHAsset]) async -> [PHAsset]  {
+        let sortedAssets = try? await withThrowingTaskGroup(
+            of: (asset: PHAsset, score: CGFloat).self,
+            returning: [PHAsset].self,
+            body: { taskGroup in
+                for asset in assets {
+                    taskGroup.addTask {
+                        if let cachedScore = self.cachedScores[asset.localIdentifier] {
+                            return (asset, cachedScore)
+                        }
+                        let image = await withCheckedContinuation { continuation in
+                            let options = PHImageRequestOptions()
+                            options.deliveryMode = .fastFormat
+
+                            var didReturnImage = false
+
+                            self.cachingImageManager.requestImage(for: asset, targetSize: CGSize(width: 224, height: 224), contentMode: .default, options: options) { image, _ in
+                                guard !didReturnImage else {
+                                    return
+                                }
+                                didReturnImage = true
+                                continuation.resume(returning: image)
+                            }
+                        }
+                        if let image {
+                            let score = self.computeScore(for: image)
+                            self.cachedScores[asset.localIdentifier] = score
+                            return (asset, score)
+                        } else {
+                            return (asset, 0)
+                        }
+                    }
+                }
+                var scores = [(PHAsset, CGFloat)]()
+                for try await result in taskGroup {
+                    scores.append(result)
+                }
+                let sortedScores = scores.sorted { $0.1 > $1.1 }
+                DDLogInfo("Sorted scores: \(sortedScores)")
+                return sortedScores.map { $0.0 }
+            })
+
+        return sortedAssets ?? []
+    }
+
     private var cachedScores = [String: CGFloat]()
     
     private func preprocess(image: UIImage) -> MLMultiArray? {

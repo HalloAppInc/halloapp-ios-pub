@@ -34,6 +34,7 @@ private enum MenuTitles {
     static var resetMomentsFTUX: String { "Reset Moments FTUX" }
     static var disableMultiCamMoments: String { "Disable multi-cam moments" }
     static var disableQueueSerialization: String { "Disable Queue Serialization" }
+    static var showPhotoSuggestions: String { "Show photo suggestions (restart app)" }
     static var logOut: String { "Log Out" }
 }
 
@@ -45,6 +46,10 @@ struct DeveloperSetting {
     static var showMLImageRank: Bool {
         get { AppContext.shared.userDefaults.bool(forKey: "showMLImageRank", defaultValue: false) }
         set { AppContext.shared.userDefaults.set(newValue, forKey: "showMLImageRank") }
+    }
+    static var showPhotoSuggestions: Bool {
+        get { AppContext.shared.userDefaults.bool(forKey: "showPhotoSuggestions", defaultValue: false) }
+        set { AppContext.shared.userDefaults.set(newValue, forKey: "showPhotoSuggestions") }
     }
 }
 
@@ -58,6 +63,7 @@ struct DeveloperMenuView: View {
     @State var isShowingWebClientManager = false
     @State var disableMultiCamMoments = MainAppContext.shared.userDefaults.bool(forKey: "moments.force.single.cam.session")
     @State var disableQueueSerialization = MainAppContext.shared.userDefaults.bool(forKey: "disableQueueSerialization")
+    @State var showPhotoSuggestions = DeveloperSetting.showPhotoSuggestions
 
     // TODO: Temporarily turn off and potentially remove
 //    @ObservedObject var videoSettings = VideoSettings.shared
@@ -281,17 +287,10 @@ struct DeveloperMenuView: View {
                         Text(MenuTitles.resetMomentsFTUX)
                     }
                     
-                    Button {
-                        let sharedAlbumViewController = SharedAlbumViewController()
-                        if #available(iOS 14, *) {
-                            sharedAlbumViewController.navigationItem.leftBarButtonItem = UIBarButtonItem(systemItem: .close, primaryAction: UIAction(handler: { _ in
-                                sharedAlbumViewController.dismiss(animated: true)
-                            }))
+                    Toggle(MenuTitles.showPhotoSuggestions, isOn: $showPhotoSuggestions)
+                        .onReceive(Just(showPhotoSuggestions)) { value in
+                            DeveloperSetting.showPhotoSuggestions = value
                         }
-                        UIViewController.currentViewController?.present(UINavigationController(rootViewController: sharedAlbumViewController), animated: true)
-                    } label: {
-                        Text("Show Photo Suggestions")
-                    }
                     
                     // Log Out
                     Button(action: {

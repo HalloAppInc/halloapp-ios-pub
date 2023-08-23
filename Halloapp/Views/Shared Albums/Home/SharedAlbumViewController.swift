@@ -6,6 +6,7 @@
 //  Copyright © 2023 HalloApp, Inc. All rights reserved.
 //
 
+import Core
 import UIKit
 
 class SharedAlbumViewController: UIViewController {
@@ -73,7 +74,7 @@ class SharedAlbumViewController: UIViewController {
         dataSource.apply(snapshot, animatingDifferences: false)
 
         Task {
-            guard let suggestions = try? await PhotoSuggestions().generateSuggestions().sorted(by: { $0.end > $1.end }) else {
+            guard let suggestions = try? await MainAppContext.shared.photoSuggestions.generateSuggestions().sorted(by: { $0.end > $1.end }) else {
                 return
             }
             var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
@@ -87,9 +88,29 @@ class SharedAlbumViewController: UIViewController {
 extension SharedAlbumViewController: UICollectionViewDelegate {
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard let item = dataSource.itemIdentifier(for: indexPath), case .suggestion(let photoCluster) = item else{
+        guard let item = dataSource.itemIdentifier(for: indexPath), case .suggestion(let photoCluster) = item else {
             return
         }
-        navigationController?.pushViewController(AlbumPreviewViewController(photoCluster: photoCluster), animated: true)
+
+        Task {
+            let scoreSortedAssets = await ImageRanker.shared.rankMedia(Array(photoCluster.assets))
+            let pendingMedia = scoreSortedAssets.compactMap { PendingMedia(asset: $0) }
+            let state = NewPostState(pendingMedia: Array(pendingMedia.prefix(10)),
+                                     mediaSource: .library,
+                                     pendingInput: MentionInput(text: photoCluster.locationName ?? "", mentions: MentionRangeMap(), selectedRange: NSRange()),
+                                     highlightedMedia: pendingMedia)
+
+            let newPostViewController = NewPostViewController(state: state,
+                                                              destination: .feed(.all),
+                                                              showDestinationPicker: true) { didPost, _ in
+                // Reset back to all
+                MainAppContext.shared.privacySettings.activeType = .all
+                self.dismiss(animated: true)
+            }
+            await MainActor.run() {
+                newPostViewController.modalPresentationStyle = .fullScreen
+                present(newPostViewController, animated: true)
+            }
+        }
     }
 }
