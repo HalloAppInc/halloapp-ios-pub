@@ -149,6 +149,50 @@ extension Server_FollowStatus: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+public enum Server_AlbumAccess: SwiftProtobuf.Enum {
+  public typealias RawValue = Int
+
+  /// uids have to be explicitly added
+  case inviteOnly // = 0
+
+  /// all HalloApp contacts and anyone with a link to the album
+  case everyone // = 1
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .inviteOnly
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .inviteOnly
+    case 1: self = .everyone
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .inviteOnly: return 0
+    case .everyone: return 1
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+}
+
+#if swift(>=4.2)
+
+extension Server_AlbumAccess: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_AlbumAccess] = [
+    .inviteOnly,
+    .everyone,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 public enum Server_FriendshipStatus: SwiftProtobuf.Enum {
   public typealias RawValue = Int
   case noneStatus // = 0
@@ -4651,620 +4695,669 @@ public struct Server_Iq {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var id: String = String()
+  public var id: String {
+    get {return _storage._id}
+    set {_uniqueStorage()._id = newValue}
+  }
 
-  public var type: Server_Iq.TypeEnum = .get
+  public var type: Server_Iq.TypeEnum {
+    get {return _storage._type}
+    set {_uniqueStorage()._type = newValue}
+  }
 
-  public var payload: Server_Iq.OneOf_Payload? = nil
+  public var payload: OneOf_Payload? {
+    get {return _storage._payload}
+    set {_uniqueStorage()._payload = newValue}
+  }
 
   public var uploadMedia: Server_UploadMedia {
     get {
-      if case .uploadMedia(let v)? = payload {return v}
+      if case .uploadMedia(let v)? = _storage._payload {return v}
       return Server_UploadMedia()
     }
-    set {payload = .uploadMedia(newValue)}
+    set {_uniqueStorage()._payload = .uploadMedia(newValue)}
   }
 
   public var contactList: Server_ContactList {
     get {
-      if case .contactList(let v)? = payload {return v}
+      if case .contactList(let v)? = _storage._payload {return v}
       return Server_ContactList()
     }
-    set {payload = .contactList(newValue)}
+    set {_uniqueStorage()._payload = .contactList(newValue)}
   }
 
   public var uploadAvatar: Server_UploadAvatar {
     get {
-      if case .uploadAvatar(let v)? = payload {return v}
+      if case .uploadAvatar(let v)? = _storage._payload {return v}
       return Server_UploadAvatar()
     }
-    set {payload = .uploadAvatar(newValue)}
+    set {_uniqueStorage()._payload = .uploadAvatar(newValue)}
   }
 
   public var avatar: Server_Avatar {
     get {
-      if case .avatar(let v)? = payload {return v}
+      if case .avatar(let v)? = _storage._payload {return v}
       return Server_Avatar()
     }
-    set {payload = .avatar(newValue)}
+    set {_uniqueStorage()._payload = .avatar(newValue)}
   }
 
   public var avatars: Server_Avatars {
     get {
-      if case .avatars(let v)? = payload {return v}
+      if case .avatars(let v)? = _storage._payload {return v}
       return Server_Avatars()
     }
-    set {payload = .avatars(newValue)}
+    set {_uniqueStorage()._payload = .avatars(newValue)}
   }
 
   public var clientMode: Server_ClientMode {
     get {
-      if case .clientMode(let v)? = payload {return v}
+      if case .clientMode(let v)? = _storage._payload {return v}
       return Server_ClientMode()
     }
-    set {payload = .clientMode(newValue)}
+    set {_uniqueStorage()._payload = .clientMode(newValue)}
   }
 
   public var clientVersion: Server_ClientVersion {
     get {
-      if case .clientVersion(let v)? = payload {return v}
+      if case .clientVersion(let v)? = _storage._payload {return v}
       return Server_ClientVersion()
     }
-    set {payload = .clientVersion(newValue)}
+    set {_uniqueStorage()._payload = .clientVersion(newValue)}
   }
 
   public var pushRegister: Server_PushRegister {
     get {
-      if case .pushRegister(let v)? = payload {return v}
+      if case .pushRegister(let v)? = _storage._payload {return v}
       return Server_PushRegister()
     }
-    set {payload = .pushRegister(newValue)}
+    set {_uniqueStorage()._payload = .pushRegister(newValue)}
   }
 
   public var whisperKeys: Server_WhisperKeys {
     get {
-      if case .whisperKeys(let v)? = payload {return v}
+      if case .whisperKeys(let v)? = _storage._payload {return v}
       return Server_WhisperKeys()
     }
-    set {payload = .whisperKeys(newValue)}
+    set {_uniqueStorage()._payload = .whisperKeys(newValue)}
   }
 
   public var ping: Server_Ping {
     get {
-      if case .ping(let v)? = payload {return v}
+      if case .ping(let v)? = _storage._payload {return v}
       return Server_Ping()
     }
-    set {payload = .ping(newValue)}
+    set {_uniqueStorage()._payload = .ping(newValue)}
   }
 
   public var feedItem: Server_FeedItem {
     get {
-      if case .feedItem(let v)? = payload {return v}
+      if case .feedItem(let v)? = _storage._payload {return v}
       return Server_FeedItem()
     }
-    set {payload = .feedItem(newValue)}
+    set {_uniqueStorage()._payload = .feedItem(newValue)}
   }
 
   public var privacyList: Server_PrivacyList {
     get {
-      if case .privacyList(let v)? = payload {return v}
+      if case .privacyList(let v)? = _storage._payload {return v}
       return Server_PrivacyList()
     }
-    set {payload = .privacyList(newValue)}
+    set {_uniqueStorage()._payload = .privacyList(newValue)}
   }
 
   public var privacyLists: Server_PrivacyLists {
     get {
-      if case .privacyLists(let v)? = payload {return v}
+      if case .privacyLists(let v)? = _storage._payload {return v}
       return Server_PrivacyLists()
     }
-    set {payload = .privacyLists(newValue)}
+    set {_uniqueStorage()._payload = .privacyLists(newValue)}
   }
 
   public var groupStanza: Server_GroupStanza {
     get {
-      if case .groupStanza(let v)? = payload {return v}
+      if case .groupStanza(let v)? = _storage._payload {return v}
       return Server_GroupStanza()
     }
-    set {payload = .groupStanza(newValue)}
+    set {_uniqueStorage()._payload = .groupStanza(newValue)}
   }
 
   public var groupsStanza: Server_GroupsStanza {
     get {
-      if case .groupsStanza(let v)? = payload {return v}
+      if case .groupsStanza(let v)? = _storage._payload {return v}
       return Server_GroupsStanza()
     }
-    set {payload = .groupsStanza(newValue)}
+    set {_uniqueStorage()._payload = .groupsStanza(newValue)}
   }
 
   public var clientLog: Server_ClientLog {
     get {
-      if case .clientLog(let v)? = payload {return v}
+      if case .clientLog(let v)? = _storage._payload {return v}
       return Server_ClientLog()
     }
-    set {payload = .clientLog(newValue)}
+    set {_uniqueStorage()._payload = .clientLog(newValue)}
   }
 
   public var name: Server_Name {
     get {
-      if case .name(let v)? = payload {return v}
+      if case .name(let v)? = _storage._payload {return v}
       return Server_Name()
     }
-    set {payload = .name(newValue)}
+    set {_uniqueStorage()._payload = .name(newValue)}
   }
 
   public var errorStanza: Server_ErrorStanza {
     get {
-      if case .errorStanza(let v)? = payload {return v}
+      if case .errorStanza(let v)? = _storage._payload {return v}
       return Server_ErrorStanza()
     }
-    set {payload = .errorStanza(newValue)}
+    set {_uniqueStorage()._payload = .errorStanza(newValue)}
   }
 
   public var props: Server_Props {
     get {
-      if case .props(let v)? = payload {return v}
+      if case .props(let v)? = _storage._payload {return v}
       return Server_Props()
     }
-    set {payload = .props(newValue)}
+    set {_uniqueStorage()._payload = .props(newValue)}
   }
 
   public var invitesRequest: Server_InvitesRequest {
     get {
-      if case .invitesRequest(let v)? = payload {return v}
+      if case .invitesRequest(let v)? = _storage._payload {return v}
       return Server_InvitesRequest()
     }
-    set {payload = .invitesRequest(newValue)}
+    set {_uniqueStorage()._payload = .invitesRequest(newValue)}
   }
 
   public var invitesResponse: Server_InvitesResponse {
     get {
-      if case .invitesResponse(let v)? = payload {return v}
+      if case .invitesResponse(let v)? = _storage._payload {return v}
       return Server_InvitesResponse()
     }
-    set {payload = .invitesResponse(newValue)}
+    set {_uniqueStorage()._payload = .invitesResponse(newValue)}
   }
 
   public var notificationPrefs: Server_NotificationPrefs {
     get {
-      if case .notificationPrefs(let v)? = payload {return v}
+      if case .notificationPrefs(let v)? = _storage._payload {return v}
       return Server_NotificationPrefs()
     }
-    set {payload = .notificationPrefs(newValue)}
+    set {_uniqueStorage()._payload = .notificationPrefs(newValue)}
   }
 
   public var groupFeedItem: Server_GroupFeedItem {
     get {
-      if case .groupFeedItem(let v)? = payload {return v}
+      if case .groupFeedItem(let v)? = _storage._payload {return v}
       return Server_GroupFeedItem()
     }
-    set {payload = .groupFeedItem(newValue)}
+    set {_uniqueStorage()._payload = .groupFeedItem(newValue)}
   }
 
   public var groupAvatar: Server_UploadGroupAvatar {
     get {
-      if case .groupAvatar(let v)? = payload {return v}
+      if case .groupAvatar(let v)? = _storage._payload {return v}
       return Server_UploadGroupAvatar()
     }
-    set {payload = .groupAvatar(newValue)}
+    set {_uniqueStorage()._payload = .groupAvatar(newValue)}
   }
 
   public var deleteAccount: Server_DeleteAccount {
     get {
-      if case .deleteAccount(let v)? = payload {return v}
+      if case .deleteAccount(let v)? = _storage._payload {return v}
       return Server_DeleteAccount()
     }
-    set {payload = .deleteAccount(newValue)}
+    set {_uniqueStorage()._payload = .deleteAccount(newValue)}
   }
 
   public var groupInviteLink: Server_GroupInviteLink {
     get {
-      if case .groupInviteLink(let v)? = payload {return v}
+      if case .groupInviteLink(let v)? = _storage._payload {return v}
       return Server_GroupInviteLink()
     }
-    set {payload = .groupInviteLink(newValue)}
+    set {_uniqueStorage()._payload = .groupInviteLink(newValue)}
   }
 
   public var historyResend: Server_HistoryResend {
     get {
-      if case .historyResend(let v)? = payload {return v}
+      if case .historyResend(let v)? = _storage._payload {return v}
       return Server_HistoryResend()
     }
-    set {payload = .historyResend(newValue)}
+    set {_uniqueStorage()._payload = .historyResend(newValue)}
   }
 
   public var exportData: Server_ExportData {
     get {
-      if case .exportData(let v)? = payload {return v}
+      if case .exportData(let v)? = _storage._payload {return v}
       return Server_ExportData()
     }
-    set {payload = .exportData(newValue)}
+    set {_uniqueStorage()._payload = .exportData(newValue)}
   }
 
   public var contactSyncError: Server_ContactSyncError {
     get {
-      if case .contactSyncError(let v)? = payload {return v}
+      if case .contactSyncError(let v)? = _storage._payload {return v}
       return Server_ContactSyncError()
     }
-    set {payload = .contactSyncError(newValue)}
+    set {_uniqueStorage()._payload = .contactSyncError(newValue)}
   }
 
   /// only for sms_app gateway use
   public var clientOtpRequest: Server_ClientOtpRequest {
     get {
-      if case .clientOtpRequest(let v)? = payload {return v}
+      if case .clientOtpRequest(let v)? = _storage._payload {return v}
       return Server_ClientOtpRequest()
     }
-    set {payload = .clientOtpRequest(newValue)}
+    set {_uniqueStorage()._payload = .clientOtpRequest(newValue)}
   }
 
   /// only for sms_app gateway use
   public var clientOtpResponse: Server_ClientOtpResponse {
     get {
-      if case .clientOtpResponse(let v)? = payload {return v}
+      if case .clientOtpResponse(let v)? = _storage._payload {return v}
       return Server_ClientOtpResponse()
     }
-    set {payload = .clientOtpResponse(newValue)}
+    set {_uniqueStorage()._payload = .clientOtpResponse(newValue)}
   }
 
   public var whisperKeysCollection: Server_WhisperKeysCollection {
     get {
-      if case .whisperKeysCollection(let v)? = payload {return v}
+      if case .whisperKeysCollection(let v)? = _storage._payload {return v}
       return Server_WhisperKeysCollection()
     }
-    set {payload = .whisperKeysCollection(newValue)}
+    set {_uniqueStorage()._payload = .whisperKeysCollection(newValue)}
   }
 
   public var getCallServers: Server_GetCallServers {
     get {
-      if case .getCallServers(let v)? = payload {return v}
+      if case .getCallServers(let v)? = _storage._payload {return v}
       return Server_GetCallServers()
     }
-    set {payload = .getCallServers(newValue)}
+    set {_uniqueStorage()._payload = .getCallServers(newValue)}
   }
 
   public var getCallServersResult: Server_GetCallServersResult {
     get {
-      if case .getCallServersResult(let v)? = payload {return v}
+      if case .getCallServersResult(let v)? = _storage._payload {return v}
       return Server_GetCallServersResult()
     }
-    set {payload = .getCallServersResult(newValue)}
+    set {_uniqueStorage()._payload = .getCallServersResult(newValue)}
   }
 
   public var startCall: Server_StartCall {
     get {
-      if case .startCall(let v)? = payload {return v}
+      if case .startCall(let v)? = _storage._payload {return v}
       return Server_StartCall()
     }
-    set {payload = .startCall(newValue)}
+    set {_uniqueStorage()._payload = .startCall(newValue)}
   }
 
   public var startCallResult: Server_StartCallResult {
     get {
-      if case .startCallResult(let v)? = payload {return v}
+      if case .startCallResult(let v)? = _storage._payload {return v}
       return Server_StartCallResult()
     }
-    set {payload = .startCallResult(newValue)}
+    set {_uniqueStorage()._payload = .startCallResult(newValue)}
   }
 
   public var truncWhisperKeysCollection: Server_TruncWhisperKeysCollection {
     get {
-      if case .truncWhisperKeysCollection(let v)? = payload {return v}
+      if case .truncWhisperKeysCollection(let v)? = _storage._payload {return v}
       return Server_TruncWhisperKeysCollection()
     }
-    set {payload = .truncWhisperKeysCollection(newValue)}
+    set {_uniqueStorage()._payload = .truncWhisperKeysCollection(newValue)}
   }
 
   public var externalSharePost: Server_ExternalSharePost {
     get {
-      if case .externalSharePost(let v)? = payload {return v}
+      if case .externalSharePost(let v)? = _storage._payload {return v}
       return Server_ExternalSharePost()
     }
-    set {payload = .externalSharePost(newValue)}
+    set {_uniqueStorage()._payload = .externalSharePost(newValue)}
   }
 
   public var externalSharePostContainer: Server_ExternalSharePostContainer {
     get {
-      if case .externalSharePostContainer(let v)? = payload {return v}
+      if case .externalSharePostContainer(let v)? = _storage._payload {return v}
       return Server_ExternalSharePostContainer()
     }
-    set {payload = .externalSharePostContainer(newValue)}
+    set {_uniqueStorage()._payload = .externalSharePostContainer(newValue)}
   }
 
   public var webClientInfo: Server_WebClientInfo {
     get {
-      if case .webClientInfo(let v)? = payload {return v}
+      if case .webClientInfo(let v)? = _storage._payload {return v}
       return Server_WebClientInfo()
     }
-    set {payload = .webClientInfo(newValue)}
+    set {_uniqueStorage()._payload = .webClientInfo(newValue)}
   }
 
   public var reportUserContent: Server_ReportUserContent {
     get {
-      if case .reportUserContent(let v)? = payload {return v}
+      if case .reportUserContent(let v)? = _storage._payload {return v}
       return Server_ReportUserContent()
     }
-    set {payload = .reportUserContent(newValue)}
+    set {_uniqueStorage()._payload = .reportUserContent(newValue)}
   }
 
   public var publicFeedRequest: Server_PublicFeedRequest {
     get {
-      if case .publicFeedRequest(let v)? = payload {return v}
+      if case .publicFeedRequest(let v)? = _storage._payload {return v}
       return Server_PublicFeedRequest()
     }
-    set {payload = .publicFeedRequest(newValue)}
+    set {_uniqueStorage()._payload = .publicFeedRequest(newValue)}
   }
 
   public var publicFeedResponse: Server_PublicFeedResponse {
     get {
-      if case .publicFeedResponse(let v)? = payload {return v}
+      if case .publicFeedResponse(let v)? = _storage._payload {return v}
       return Server_PublicFeedResponse()
     }
-    set {payload = .publicFeedResponse(newValue)}
+    set {_uniqueStorage()._payload = .publicFeedResponse(newValue)}
   }
 
   public var relationshipRequest: Server_RelationshipRequest {
     get {
-      if case .relationshipRequest(let v)? = payload {return v}
+      if case .relationshipRequest(let v)? = _storage._payload {return v}
       return Server_RelationshipRequest()
     }
-    set {payload = .relationshipRequest(newValue)}
+    set {_uniqueStorage()._payload = .relationshipRequest(newValue)}
   }
 
   public var relationshipResponse: Server_RelationshipResponse {
     get {
-      if case .relationshipResponse(let v)? = payload {return v}
+      if case .relationshipResponse(let v)? = _storage._payload {return v}
       return Server_RelationshipResponse()
     }
-    set {payload = .relationshipResponse(newValue)}
+    set {_uniqueStorage()._payload = .relationshipResponse(newValue)}
   }
 
   public var relationshipList: Server_RelationshipList {
     get {
-      if case .relationshipList(let v)? = payload {return v}
+      if case .relationshipList(let v)? = _storage._payload {return v}
       return Server_RelationshipList()
     }
-    set {payload = .relationshipList(newValue)}
+    set {_uniqueStorage()._payload = .relationshipList(newValue)}
   }
 
   public var usernameRequest: Server_UsernameRequest {
     get {
-      if case .usernameRequest(let v)? = payload {return v}
+      if case .usernameRequest(let v)? = _storage._payload {return v}
       return Server_UsernameRequest()
     }
-    set {payload = .usernameRequest(newValue)}
+    set {_uniqueStorage()._payload = .usernameRequest(newValue)}
   }
 
   public var usernameResponse: Server_UsernameResponse {
     get {
-      if case .usernameResponse(let v)? = payload {return v}
+      if case .usernameResponse(let v)? = _storage._payload {return v}
       return Server_UsernameResponse()
     }
-    set {payload = .usernameResponse(newValue)}
+    set {_uniqueStorage()._payload = .usernameResponse(newValue)}
   }
 
   public var searchRequest: Server_SearchRequest {
     get {
-      if case .searchRequest(let v)? = payload {return v}
+      if case .searchRequest(let v)? = _storage._payload {return v}
       return Server_SearchRequest()
     }
-    set {payload = .searchRequest(newValue)}
+    set {_uniqueStorage()._payload = .searchRequest(newValue)}
   }
 
   public var searchResponse: Server_SearchResponse {
     get {
-      if case .searchResponse(let v)? = payload {return v}
+      if case .searchResponse(let v)? = _storage._payload {return v}
       return Server_SearchResponse()
     }
-    set {payload = .searchResponse(newValue)}
+    set {_uniqueStorage()._payload = .searchResponse(newValue)}
   }
 
   public var followSuggestionsRequest: Server_FollowSuggestionsRequest {
     get {
-      if case .followSuggestionsRequest(let v)? = payload {return v}
+      if case .followSuggestionsRequest(let v)? = _storage._payload {return v}
       return Server_FollowSuggestionsRequest()
     }
-    set {payload = .followSuggestionsRequest(newValue)}
+    set {_uniqueStorage()._payload = .followSuggestionsRequest(newValue)}
   }
 
   public var followSuggestionsResponse: Server_FollowSuggestionsResponse {
     get {
-      if case .followSuggestionsResponse(let v)? = payload {return v}
+      if case .followSuggestionsResponse(let v)? = _storage._payload {return v}
       return Server_FollowSuggestionsResponse()
     }
-    set {payload = .followSuggestionsResponse(newValue)}
+    set {_uniqueStorage()._payload = .followSuggestionsResponse(newValue)}
   }
 
   public var setLinkRequest: Server_SetLinkRequest {
     get {
-      if case .setLinkRequest(let v)? = payload {return v}
+      if case .setLinkRequest(let v)? = _storage._payload {return v}
       return Server_SetLinkRequest()
     }
-    set {payload = .setLinkRequest(newValue)}
+    set {_uniqueStorage()._payload = .setLinkRequest(newValue)}
   }
 
   public var setLinkResult: Server_SetLinkResult {
     get {
-      if case .setLinkResult(let v)? = payload {return v}
+      if case .setLinkResult(let v)? = _storage._payload {return v}
       return Server_SetLinkResult()
     }
-    set {payload = .setLinkResult(newValue)}
+    set {_uniqueStorage()._payload = .setLinkResult(newValue)}
   }
 
   public var setBioRequest: Server_SetBioRequest {
     get {
-      if case .setBioRequest(let v)? = payload {return v}
+      if case .setBioRequest(let v)? = _storage._payload {return v}
       return Server_SetBioRequest()
     }
-    set {payload = .setBioRequest(newValue)}
+    set {_uniqueStorage()._payload = .setBioRequest(newValue)}
   }
 
   public var setBioResult: Server_SetBioResult {
     get {
-      if case .setBioResult(let v)? = payload {return v}
+      if case .setBioResult(let v)? = _storage._payload {return v}
       return Server_SetBioResult()
     }
-    set {payload = .setBioResult(newValue)}
+    set {_uniqueStorage()._payload = .setBioResult(newValue)}
   }
 
   public var userProfileRequest: Server_UserProfileRequest {
     get {
-      if case .userProfileRequest(let v)? = payload {return v}
+      if case .userProfileRequest(let v)? = _storage._payload {return v}
       return Server_UserProfileRequest()
     }
-    set {payload = .userProfileRequest(newValue)}
+    set {_uniqueStorage()._payload = .userProfileRequest(newValue)}
   }
 
   public var userProfileResult: Server_UserProfileResult {
     get {
-      if case .userProfileResult(let v)? = payload {return v}
+      if case .userProfileResult(let v)? = _storage._payload {return v}
       return Server_UserProfileResult()
     }
-    set {payload = .userProfileResult(newValue)}
+    set {_uniqueStorage()._payload = .userProfileResult(newValue)}
   }
 
   public var postMetricsRequest: Server_PostMetricsRequest {
     get {
-      if case .postMetricsRequest(let v)? = payload {return v}
+      if case .postMetricsRequest(let v)? = _storage._payload {return v}
       return Server_PostMetricsRequest()
     }
-    set {payload = .postMetricsRequest(newValue)}
+    set {_uniqueStorage()._payload = .postMetricsRequest(newValue)}
   }
 
   public var postMetricsResult: Server_PostMetricsResult {
     get {
-      if case .postMetricsResult(let v)? = payload {return v}
+      if case .postMetricsResult(let v)? = _storage._payload {return v}
       return Server_PostMetricsResult()
     }
-    set {payload = .postMetricsResult(newValue)}
+    set {_uniqueStorage()._payload = .postMetricsResult(newValue)}
   }
 
   public var aiImageRequest: Server_AiImageRequest {
     get {
-      if case .aiImageRequest(let v)? = payload {return v}
+      if case .aiImageRequest(let v)? = _storage._payload {return v}
       return Server_AiImageRequest()
     }
-    set {payload = .aiImageRequest(newValue)}
+    set {_uniqueStorage()._payload = .aiImageRequest(newValue)}
   }
 
   public var aiImageResult: Server_AiImageResult {
     get {
-      if case .aiImageResult(let v)? = payload {return v}
+      if case .aiImageResult(let v)? = _storage._payload {return v}
       return Server_AiImageResult()
     }
-    set {payload = .aiImageResult(newValue)}
+    set {_uniqueStorage()._payload = .aiImageResult(newValue)}
   }
 
   public var archiveRequest: Server_ArchiveRequest {
     get {
-      if case .archiveRequest(let v)? = payload {return v}
+      if case .archiveRequest(let v)? = _storage._payload {return v}
       return Server_ArchiveRequest()
     }
-    set {payload = .archiveRequest(newValue)}
+    set {_uniqueStorage()._payload = .archiveRequest(newValue)}
   }
 
   public var archiveResult: Server_ArchiveResult {
     get {
-      if case .archiveResult(let v)? = payload {return v}
+      if case .archiveResult(let v)? = _storage._payload {return v}
       return Server_ArchiveResult()
     }
-    set {payload = .archiveResult(newValue)}
+    set {_uniqueStorage()._payload = .archiveResult(newValue)}
   }
 
   public var postSubscriptionRequest: Server_PostSubscriptionRequest {
     get {
-      if case .postSubscriptionRequest(let v)? = payload {return v}
+      if case .postSubscriptionRequest(let v)? = _storage._payload {return v}
       return Server_PostSubscriptionRequest()
     }
-    set {payload = .postSubscriptionRequest(newValue)}
+    set {_uniqueStorage()._payload = .postSubscriptionRequest(newValue)}
   }
 
   public var postSubscriptionResponse: Server_PostSubscriptionResponse {
     get {
-      if case .postSubscriptionResponse(let v)? = payload {return v}
+      if case .postSubscriptionResponse(let v)? = _storage._payload {return v}
       return Server_PostSubscriptionResponse()
     }
-    set {payload = .postSubscriptionResponse(newValue)}
+    set {_uniqueStorage()._payload = .postSubscriptionResponse(newValue)}
   }
 
   public var geoTagRequest: Server_GeoTagRequest {
     get {
-      if case .geoTagRequest(let v)? = payload {return v}
+      if case .geoTagRequest(let v)? = _storage._payload {return v}
       return Server_GeoTagRequest()
     }
-    set {payload = .geoTagRequest(newValue)}
+    set {_uniqueStorage()._payload = .geoTagRequest(newValue)}
   }
 
   public var geoTagResponse: Server_GeoTagResponse {
     get {
-      if case .geoTagResponse(let v)? = payload {return v}
+      if case .geoTagResponse(let v)? = _storage._payload {return v}
       return Server_GeoTagResponse()
     }
-    set {payload = .geoTagResponse(newValue)}
+    set {_uniqueStorage()._payload = .geoTagResponse(newValue)}
   }
 
   public var registerRequest: Server_RegisterRequest {
     get {
-      if case .registerRequest(let v)? = payload {return v}
+      if case .registerRequest(let v)? = _storage._payload {return v}
       return Server_RegisterRequest()
     }
-    set {payload = .registerRequest(newValue)}
+    set {_uniqueStorage()._payload = .registerRequest(newValue)}
   }
 
   public var registerResponse: Server_RegisterResponse {
     get {
-      if case .registerResponse(let v)? = payload {return v}
+      if case .registerResponse(let v)? = _storage._payload {return v}
       return Server_RegisterResponse()
     }
-    set {payload = .registerResponse(newValue)}
+    set {_uniqueStorage()._payload = .registerResponse(newValue)}
   }
 
   public var halloappSearchRequest: Server_HalloappSearchRequest {
     get {
-      if case .halloappSearchRequest(let v)? = payload {return v}
+      if case .halloappSearchRequest(let v)? = _storage._payload {return v}
       return Server_HalloappSearchRequest()
     }
-    set {payload = .halloappSearchRequest(newValue)}
+    set {_uniqueStorage()._payload = .halloappSearchRequest(newValue)}
   }
 
   public var halloappSearchResponse: Server_HalloappSearchResponse {
     get {
-      if case .halloappSearchResponse(let v)? = payload {return v}
+      if case .halloappSearchResponse(let v)? = _storage._payload {return v}
       return Server_HalloappSearchResponse()
     }
-    set {payload = .halloappSearchResponse(newValue)}
+    set {_uniqueStorage()._payload = .halloappSearchResponse(newValue)}
   }
 
   public var friendshipRequest: Server_FriendshipRequest {
     get {
-      if case .friendshipRequest(let v)? = payload {return v}
+      if case .friendshipRequest(let v)? = _storage._payload {return v}
       return Server_FriendshipRequest()
     }
-    set {payload = .friendshipRequest(newValue)}
+    set {_uniqueStorage()._payload = .friendshipRequest(newValue)}
   }
 
   public var friendshipResponse: Server_FriendshipResponse {
     get {
-      if case .friendshipResponse(let v)? = payload {return v}
+      if case .friendshipResponse(let v)? = _storage._payload {return v}
       return Server_FriendshipResponse()
     }
-    set {payload = .friendshipResponse(newValue)}
+    set {_uniqueStorage()._payload = .friendshipResponse(newValue)}
   }
 
   public var friendListRequest: Server_FriendListRequest {
     get {
-      if case .friendListRequest(let v)? = payload {return v}
+      if case .friendListRequest(let v)? = _storage._payload {return v}
       return Server_FriendListRequest()
     }
-    set {payload = .friendListRequest(newValue)}
+    set {_uniqueStorage()._payload = .friendListRequest(newValue)}
   }
 
   public var friendListResponse: Server_FriendListResponse {
     get {
-      if case .friendListResponse(let v)? = payload {return v}
+      if case .friendListResponse(let v)? = _storage._payload {return v}
       return Server_FriendListResponse()
     }
-    set {payload = .friendListResponse(newValue)}
+    set {_uniqueStorage()._payload = .friendListResponse(newValue)}
+  }
+
+  public var album: Server_Album {
+    get {
+      if case .album(let v)? = _storage._payload {return v}
+      return Server_Album()
+    }
+    set {_uniqueStorage()._payload = .album(newValue)}
+  }
+
+  public var albumResult: Server_AlbumResult {
+    get {
+      if case .albumResult(let v)? = _storage._payload {return v}
+      return Server_AlbumResult()
+    }
+    set {_uniqueStorage()._payload = .albumResult(newValue)}
+  }
+
+  public var getAlbums: Server_GetAlbums {
+    get {
+      if case .getAlbums(let v)? = _storage._payload {return v}
+      return Server_GetAlbums()
+    }
+    set {_uniqueStorage()._payload = .getAlbums(newValue)}
+  }
+
+  public var halloappProfileRequest: Server_HalloappProfileRequest {
+    get {
+      if case .halloappProfileRequest(let v)? = _storage._payload {return v}
+      return Server_HalloappProfileRequest()
+    }
+    set {_uniqueStorage()._payload = .halloappProfileRequest(newValue)}
+  }
+
+  public var hallaoppProfileResult: Server_HalloappProfileResult {
+    get {
+      if case .hallaoppProfileResult(let v)? = _storage._payload {return v}
+      return Server_HalloappProfileResult()
+    }
+    set {_uniqueStorage()._payload = .hallaoppProfileResult(newValue)}
   }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -5348,6 +5441,11 @@ public struct Server_Iq {
     case friendshipResponse(Server_FriendshipResponse)
     case friendListRequest(Server_FriendListRequest)
     case friendListResponse(Server_FriendListResponse)
+    case album(Server_Album)
+    case albumResult(Server_AlbumResult)
+    case getAlbums(Server_GetAlbums)
+    case halloappProfileRequest(Server_HalloappProfileRequest)
+    case hallaoppProfileResult(Server_HalloappProfileResult)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Iq.OneOf_Payload, rhs: Server_Iq.OneOf_Payload) -> Bool {
@@ -5659,6 +5757,26 @@ public struct Server_Iq {
         guard case .friendListResponse(let l) = lhs, case .friendListResponse(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
+      case (.album, .album): return {
+        guard case .album(let l) = lhs, case .album(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.albumResult, .albumResult): return {
+        guard case .albumResult(let l) = lhs, case .albumResult(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.getAlbums, .getAlbums): return {
+        guard case .getAlbums(let l) = lhs, case .getAlbums(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.halloappProfileRequest, .halloappProfileRequest): return {
+        guard case .halloappProfileRequest(let l) = lhs, case .halloappProfileRequest(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.hallaoppProfileResult, .hallaoppProfileResult): return {
+        guard case .hallaoppProfileResult(let l) = lhs, case .hallaoppProfileResult(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
       default: return false
       }
     }
@@ -5700,6 +5818,8 @@ public struct Server_Iq {
   }
 
   public init() {}
+
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 #if swift(>=4.2)
@@ -6160,6 +6280,14 @@ public struct Server_Msg {
     set {_uniqueStorage()._payload = .halloappProfileUpdate(newValue)}
   }
 
+  public var album: Server_Album {
+    get {
+      if case .album(let v)? = _storage._payload {return v}
+      return Server_Album()
+    }
+    set {_uniqueStorage()._payload = .album(newValue)}
+  }
+
   public var retryCount: Int32 {
     get {return _storage._retryCount}
     set {_uniqueStorage()._retryCount = newValue}
@@ -6230,6 +6358,7 @@ public struct Server_Msg {
     case publicFeedUpdate(Server_PublicFeedUpdate)
     case aiImage(Server_AiImage)
     case halloappProfileUpdate(Server_HalloappProfileUpdate)
+    case album(Server_Album)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Msg.OneOf_Payload, rhs: Server_Msg.OneOf_Payload) -> Bool {
@@ -6439,6 +6568,10 @@ public struct Server_Msg {
       }()
       case (.halloappProfileUpdate, .halloappProfileUpdate): return {
         guard case .halloappProfileUpdate(let l) = lhs, case .halloappProfileUpdate(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.album, .album): return {
+        guard case .album(let l) = lhs, case .album(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -10676,6 +10809,501 @@ public struct Server_AiImage {
   public init() {}
 }
 
+public struct Server_TimeRange {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var startTimestamp: Int64 = 0
+
+  public var endTimestamp: Int64 = 0
+
+  /// in seconds
+  public var utcOffset: Int64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Server_Album {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var id: String = String()
+
+  public var action: Server_Album.Action = .create
+
+  public var name: String = String()
+
+  public var owner: Int64 = 0
+
+  public var timeRange: Server_TimeRange {
+    get {return _timeRange ?? Server_TimeRange()}
+    set {_timeRange = newValue}
+  }
+  /// Returns true if `timeRange` has been explicitly set.
+  public var hasTimeRange: Bool {return self._timeRange != nil}
+  /// Clears the value of `timeRange`. Subsequent reads from it will return its default value.
+  public mutating func clearTimeRange() {self._timeRange = nil}
+
+  public var location: Server_GpsLocation {
+    get {return _location ?? Server_GpsLocation()}
+    set {_location = newValue}
+  }
+  /// Returns true if `location` has been explicitly set.
+  public var hasLocation: Bool {return self._location != nil}
+  /// Clears the value of `location`. Subsequent reads from it will return its default value.
+  public mutating func clearLocation() {self._location = nil}
+
+  public var canView: Server_AlbumAccess = .inviteOnly
+
+  public var canContribute: Server_AlbumAccess = .inviteOnly
+
+  public var members: [Server_AlbumMember] = []
+
+  public var mediaItems: [Server_MediaItem] = []
+
+  public var cursor: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Action: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case create // = 0
+    case changeName // = 1
+    case changeLocation // = 2
+    case changeTime // = 3
+    case changeViewAccess // = 4
+    case changeContributeAccess // = 5
+    case modifyMembers // = 6
+    case addMedia // = 7
+    case removeMedia // = 8
+    case mediaUpdate // = 9
+    case getInfo // = 10
+    case getMedia // = 11
+
+    /// Gets all the album info and also the initial set of media items
+    case get // = 12
+    case delete // = 13
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .create
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .create
+      case 1: self = .changeName
+      case 2: self = .changeLocation
+      case 3: self = .changeTime
+      case 4: self = .changeViewAccess
+      case 5: self = .changeContributeAccess
+      case 6: self = .modifyMembers
+      case 7: self = .addMedia
+      case 8: self = .removeMedia
+      case 9: self = .mediaUpdate
+      case 10: self = .getInfo
+      case 11: self = .getMedia
+      case 12: self = .get
+      case 13: self = .delete
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .create: return 0
+      case .changeName: return 1
+      case .changeLocation: return 2
+      case .changeTime: return 3
+      case .changeViewAccess: return 4
+      case .changeContributeAccess: return 5
+      case .modifyMembers: return 6
+      case .addMedia: return 7
+      case .removeMedia: return 8
+      case .mediaUpdate: return 9
+      case .getInfo: return 10
+      case .getMedia: return 11
+      case .get: return 12
+      case .delete: return 13
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+
+  fileprivate var _timeRange: Server_TimeRange? = nil
+  fileprivate var _location: Server_GpsLocation? = nil
+}
+
+#if swift(>=4.2)
+
+extension Server_Album.Action: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_Album.Action] = [
+    .create,
+    .changeName,
+    .changeLocation,
+    .changeTime,
+    .changeViewAccess,
+    .changeContributeAccess,
+    .modifyMembers,
+    .addMedia,
+    .removeMedia,
+    .mediaUpdate,
+    .getInfo,
+    .getMedia,
+    .get,
+    .delete,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public struct Server_AlbumResult {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var result: Server_AlbumResult.Result = .ok
+
+  public var reason: Server_AlbumResult.Reason = .unknown
+
+  public var album: Server_Album {
+    get {return _album ?? Server_Album()}
+    set {_album = newValue}
+  }
+  /// Returns true if `album` has been explicitly set.
+  public var hasAlbum: Bool {return self._album != nil}
+  /// Clears the value of `album`. Subsequent reads from it will return its default value.
+  public mutating func clearAlbum() {self._album = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Result: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case ok // = 0
+    case fail // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .ok
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .ok
+      case 1: self = .fail
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .ok: return 0
+      case .fail: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum Reason: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknown // = 0
+    case badAlbumID // = 1
+    case notAllowed // = 2
+    case tooManyMembers // = 3
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknown
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknown
+      case 1: self = .badAlbumID
+      case 2: self = .notAllowed
+      case 3: self = .tooManyMembers
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknown: return 0
+      case .badAlbumID: return 1
+      case .notAllowed: return 2
+      case .tooManyMembers: return 3
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+
+  fileprivate var _album: Server_Album? = nil
+}
+
+#if swift(>=4.2)
+
+extension Server_AlbumResult.Result: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_AlbumResult.Result] = [
+    .ok,
+    .fail,
+  ]
+}
+
+extension Server_AlbumResult.Reason: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_AlbumResult.Reason] = [
+    .unknown,
+    .badAlbumID,
+    .notAllowed,
+    .tooManyMembers,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public struct Server_AlbumMember {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var uid: Int64 = 0
+
+  public var action: Server_AlbumMember.Action = .none
+
+  public var name: String = String()
+
+  public var username: String = String()
+
+  public var avatarID: String = String()
+
+  public var role: Server_AlbumMember.Role = .viewer
+
+  public var pending: Bool = false
+
+  public var removeMedia: Bool = false
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Action: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case none // = 0
+    case acceptInvite // = 1
+    case rejectInvite // = 2
+    case join // = 3
+    case leave // = 4
+    case unInvite // = 5
+    case remove // = 6
+    case invite // = 7
+    case promote // = 8
+    case demote // = 9
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .none
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .none
+      case 1: self = .acceptInvite
+      case 2: self = .rejectInvite
+      case 3: self = .join
+      case 4: self = .leave
+      case 5: self = .unInvite
+      case 6: self = .remove
+      case 7: self = .invite
+      case 8: self = .promote
+      case 9: self = .demote
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .none: return 0
+      case .acceptInvite: return 1
+      case .rejectInvite: return 2
+      case .join: return 3
+      case .leave: return 4
+      case .unInvite: return 5
+      case .remove: return 6
+      case .invite: return 7
+      case .promote: return 8
+      case .demote: return 9
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum Role: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case viewer // = 0
+    case contributor // = 1
+    case admin // = 2
+    case owner // = 3
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .viewer
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .viewer
+      case 1: self = .contributor
+      case 2: self = .admin
+      case 3: self = .owner
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .viewer: return 0
+      case .contributor: return 1
+      case .admin: return 2
+      case .owner: return 3
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_AlbumMember.Action: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_AlbumMember.Action] = [
+    .none,
+    .acceptInvite,
+    .rejectInvite,
+    .join,
+    .leave,
+    .unInvite,
+    .remove,
+    .invite,
+    .promote,
+    .demote,
+  ]
+}
+
+extension Server_AlbumMember.Role: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_AlbumMember.Role] = [
+    .viewer,
+    .contributor,
+    .admin,
+    .owner,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public struct Server_GetAlbums {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var type: Server_GetAlbums.TypeEnum = .all
+
+  /// set by server only
+  public var albumIds: [String] = []
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum TypeEnum: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case all // = 0
+    case member // = 1
+    case invited // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .all
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .all
+      case 1: self = .member
+      case 2: self = .invited
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .all: return 0
+      case .member: return 1
+      case .invited: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_GetAlbums.TypeEnum: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_GetAlbums.TypeEnum] = [
+    .all,
+    .member,
+    .invited,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public struct Server_MediaItem {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var id: String = String()
+
+  public var publisherUid: Int64 = 0
+
+  public var publisherName: String = String()
+
+  public var publisherUsername: String = String()
+
+  public var albumID: String = String()
+
+  public var payload: Data = Data()
+
+  public var deviceCaptureTimestampMs: Int64 = 0
+
+  public var uploadTimestampMs: Int64 = 0
+
+  /// set by the server only
+  public var parentMediaID: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Server_FriendshipRequest {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -10970,6 +11598,121 @@ extension Server_HalloappSearchResponse.Result: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+public struct Server_HalloappProfileRequest {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var uid: Int64 = 0
+
+  public var username: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Server_HalloappProfileResult {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var result: Server_HalloappProfileResult.Result = .ok
+
+  public var reason: Server_HalloappProfileResult.Reason = .unknownReason
+
+  public var profile: Server_HalloappUserProfile {
+    get {return _profile ?? Server_HalloappUserProfile()}
+    set {_profile = newValue}
+  }
+  /// Returns true if `profile` has been explicitly set.
+  public var hasProfile: Bool {return self._profile != nil}
+  /// Clears the value of `profile`. Subsequent reads from it will return its default value.
+  public mutating func clearProfile() {self._profile = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Result: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case ok // = 0
+    case fail // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .ok
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .ok
+      case 1: self = .fail
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .ok: return 0
+      case .fail: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum Reason: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknownReason // = 0
+    case noUser // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknownReason
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknownReason
+      case 1: self = .noUser
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknownReason: return 0
+      case .noUser: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+
+  fileprivate var _profile: Server_HalloappUserProfile? = nil
+}
+
+#if swift(>=4.2)
+
+extension Server_HalloappProfileResult.Result: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_HalloappProfileResult.Result] = [
+    .ok,
+    .fail,
+  ]
+}
+
+extension Server_HalloappProfileResult.Reason: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_HalloappProfileResult.Reason] = [
+    .unknownReason,
+    .noUser,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 public struct Server_FriendListRequest {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -11175,6 +11918,7 @@ extension Server_FriendListResponse.Result: CaseIterable {
 extension Server_PublicFeedContentType: @unchecked Sendable {}
 extension Server_CallType: @unchecked Sendable {}
 extension Server_FollowStatus: @unchecked Sendable {}
+extension Server_AlbumAccess: @unchecked Sendable {}
 extension Server_FriendshipStatus: @unchecked Sendable {}
 extension Server_UploadAvatar: @unchecked Sendable {}
 extension Server_Avatar: @unchecked Sendable {}
@@ -11449,6 +12193,18 @@ extension Server_AiImageResult: @unchecked Sendable {}
 extension Server_AiImageResult.Result: @unchecked Sendable {}
 extension Server_AiImageResult.Reason: @unchecked Sendable {}
 extension Server_AiImage: @unchecked Sendable {}
+extension Server_TimeRange: @unchecked Sendable {}
+extension Server_Album: @unchecked Sendable {}
+extension Server_Album.Action: @unchecked Sendable {}
+extension Server_AlbumResult: @unchecked Sendable {}
+extension Server_AlbumResult.Result: @unchecked Sendable {}
+extension Server_AlbumResult.Reason: @unchecked Sendable {}
+extension Server_AlbumMember: @unchecked Sendable {}
+extension Server_AlbumMember.Action: @unchecked Sendable {}
+extension Server_AlbumMember.Role: @unchecked Sendable {}
+extension Server_GetAlbums: @unchecked Sendable {}
+extension Server_GetAlbums.TypeEnum: @unchecked Sendable {}
+extension Server_MediaItem: @unchecked Sendable {}
 extension Server_FriendshipRequest: @unchecked Sendable {}
 extension Server_FriendshipRequest.Action: @unchecked Sendable {}
 extension Server_FriendshipResponse: @unchecked Sendable {}
@@ -11459,6 +12215,10 @@ extension Server_HalloappProfileUpdate.TypeEnum: @unchecked Sendable {}
 extension Server_HalloappSearchRequest: @unchecked Sendable {}
 extension Server_HalloappSearchResponse: @unchecked Sendable {}
 extension Server_HalloappSearchResponse.Result: @unchecked Sendable {}
+extension Server_HalloappProfileRequest: @unchecked Sendable {}
+extension Server_HalloappProfileResult: @unchecked Sendable {}
+extension Server_HalloappProfileResult.Result: @unchecked Sendable {}
+extension Server_HalloappProfileResult.Reason: @unchecked Sendable {}
 extension Server_FriendListRequest: @unchecked Sendable {}
 extension Server_FriendListRequest.Action: @unchecked Sendable {}
 extension Server_FriendProfile: @unchecked Sendable {}
@@ -11491,6 +12251,13 @@ extension Server_FollowStatus: SwiftProtobuf._ProtoNameProviding {
     0: .same(proto: "NONE"),
     1: .same(proto: "PENDING"),
     2: .same(proto: "FOLLOWING"),
+  ]
+}
+
+extension Server_AlbumAccess: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "INVITE_ONLY"),
+    1: .same(proto: "EVERYONE"),
   ]
 }
 
@@ -17205,1334 +17972,1460 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
     79: .standard(proto: "friendship_response"),
     80: .standard(proto: "friend_list_request"),
     81: .standard(proto: "friend_list_response"),
+    82: .same(proto: "album"),
+    83: .standard(proto: "album_result"),
+    84: .standard(proto: "get_albums"),
+    85: .standard(proto: "halloapp_profile_request"),
+    86: .standard(proto: "hallaopp_profile_result"),
   ]
 
+  fileprivate class _StorageClass {
+    var _id: String = String()
+    var _type: Server_Iq.TypeEnum = .get
+    var _payload: Server_Iq.OneOf_Payload?
+
+    static let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _id = source._id
+      _type = source._type
+      _payload = source._payload
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
-      case 2: try { try decoder.decodeSingularEnumField(value: &self.type) }()
-      case 3: try {
-        var v: Server_UploadMedia?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .uploadMedia(let m) = current {v = m}
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularStringField(value: &_storage._id) }()
+        case 2: try { try decoder.decodeSingularEnumField(value: &_storage._type) }()
+        case 3: try {
+          var v: Server_UploadMedia?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .uploadMedia(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .uploadMedia(v)
+          }
+        }()
+        case 4: try {
+          var v: Server_ContactList?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .contactList(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .contactList(v)
+          }
+        }()
+        case 5: try {
+          var v: Server_UploadAvatar?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .uploadAvatar(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .uploadAvatar(v)
+          }
+        }()
+        case 6: try {
+          var v: Server_Avatar?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .avatar(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .avatar(v)
+          }
+        }()
+        case 7: try {
+          var v: Server_Avatars?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .avatars(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .avatars(v)
+          }
+        }()
+        case 8: try {
+          var v: Server_ClientMode?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .clientMode(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .clientMode(v)
+          }
+        }()
+        case 9: try {
+          var v: Server_ClientVersion?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .clientVersion(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .clientVersion(v)
+          }
+        }()
+        case 10: try {
+          var v: Server_PushRegister?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .pushRegister(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .pushRegister(v)
+          }
+        }()
+        case 11: try {
+          var v: Server_WhisperKeys?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .whisperKeys(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .whisperKeys(v)
+          }
+        }()
+        case 12: try {
+          var v: Server_Ping?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .ping(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .ping(v)
+          }
+        }()
+        case 13: try {
+          var v: Server_FeedItem?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .feedItem(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .feedItem(v)
+          }
+        }()
+        case 14: try {
+          var v: Server_PrivacyList?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .privacyList(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .privacyList(v)
+          }
+        }()
+        case 16: try {
+          var v: Server_PrivacyLists?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .privacyLists(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .privacyLists(v)
+          }
+        }()
+        case 17: try {
+          var v: Server_GroupStanza?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .groupStanza(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .groupStanza(v)
+          }
+        }()
+        case 18: try {
+          var v: Server_GroupsStanza?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .groupsStanza(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .groupsStanza(v)
+          }
+        }()
+        case 19: try {
+          var v: Server_ClientLog?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .clientLog(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .clientLog(v)
+          }
+        }()
+        case 20: try {
+          var v: Server_Name?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .name(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .name(v)
+          }
+        }()
+        case 21: try {
+          var v: Server_ErrorStanza?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .errorStanza(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .errorStanza(v)
+          }
+        }()
+        case 22: try {
+          var v: Server_Props?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .props(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .props(v)
+          }
+        }()
+        case 23: try {
+          var v: Server_InvitesRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .invitesRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .invitesRequest(v)
+          }
+        }()
+        case 24: try {
+          var v: Server_InvitesResponse?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .invitesResponse(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .invitesResponse(v)
+          }
+        }()
+        case 25: try {
+          var v: Server_NotificationPrefs?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .notificationPrefs(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .notificationPrefs(v)
+          }
+        }()
+        case 26: try {
+          var v: Server_GroupFeedItem?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .groupFeedItem(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .groupFeedItem(v)
+          }
+        }()
+        case 27: try {
+          var v: Server_UploadGroupAvatar?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .groupAvatar(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .groupAvatar(v)
+          }
+        }()
+        case 28: try {
+          var v: Server_DeleteAccount?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .deleteAccount(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .deleteAccount(v)
+          }
+        }()
+        case 31: try {
+          var v: Server_GroupInviteLink?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .groupInviteLink(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .groupInviteLink(v)
+          }
+        }()
+        case 32: try {
+          var v: Server_HistoryResend?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .historyResend(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .historyResend(v)
+          }
+        }()
+        case 33: try {
+          var v: Server_ExportData?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .exportData(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .exportData(v)
+          }
+        }()
+        case 34: try {
+          var v: Server_ContactSyncError?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .contactSyncError(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .contactSyncError(v)
+          }
+        }()
+        case 35: try {
+          var v: Server_ClientOtpRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .clientOtpRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .clientOtpRequest(v)
+          }
+        }()
+        case 36: try {
+          var v: Server_ClientOtpResponse?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .clientOtpResponse(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .clientOtpResponse(v)
+          }
+        }()
+        case 37: try {
+          var v: Server_WhisperKeysCollection?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .whisperKeysCollection(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .whisperKeysCollection(v)
+          }
+        }()
+        case 38: try {
+          var v: Server_GetCallServers?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .getCallServers(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .getCallServers(v)
+          }
+        }()
+        case 39: try {
+          var v: Server_GetCallServersResult?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .getCallServersResult(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .getCallServersResult(v)
+          }
+        }()
+        case 40: try {
+          var v: Server_StartCall?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .startCall(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .startCall(v)
+          }
+        }()
+        case 41: try {
+          var v: Server_StartCallResult?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .startCallResult(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .startCallResult(v)
+          }
+        }()
+        case 42: try {
+          var v: Server_TruncWhisperKeysCollection?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .truncWhisperKeysCollection(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .truncWhisperKeysCollection(v)
+          }
+        }()
+        case 43: try {
+          var v: Server_ExternalSharePost?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .externalSharePost(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .externalSharePost(v)
+          }
+        }()
+        case 44: try {
+          var v: Server_ExternalSharePostContainer?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .externalSharePostContainer(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .externalSharePostContainer(v)
+          }
+        }()
+        case 45: try {
+          var v: Server_WebClientInfo?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .webClientInfo(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .webClientInfo(v)
+          }
+        }()
+        case 46: try {
+          var v: Server_ReportUserContent?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .reportUserContent(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .reportUserContent(v)
+          }
+        }()
+        case 47: try {
+          var v: Server_PublicFeedRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .publicFeedRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .publicFeedRequest(v)
+          }
+        }()
+        case 48: try {
+          var v: Server_PublicFeedResponse?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .publicFeedResponse(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .publicFeedResponse(v)
+          }
+        }()
+        case 49: try {
+          var v: Server_RelationshipRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .relationshipRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .relationshipRequest(v)
+          }
+        }()
+        case 50: try {
+          var v: Server_RelationshipResponse?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .relationshipResponse(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .relationshipResponse(v)
+          }
+        }()
+        case 51: try {
+          var v: Server_RelationshipList?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .relationshipList(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .relationshipList(v)
+          }
+        }()
+        case 52: try {
+          var v: Server_UsernameRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .usernameRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .usernameRequest(v)
+          }
+        }()
+        case 53: try {
+          var v: Server_UsernameResponse?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .usernameResponse(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .usernameResponse(v)
+          }
+        }()
+        case 54: try {
+          var v: Server_SearchRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .searchRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .searchRequest(v)
+          }
+        }()
+        case 55: try {
+          var v: Server_SearchResponse?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .searchResponse(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .searchResponse(v)
+          }
+        }()
+        case 56: try {
+          var v: Server_FollowSuggestionsRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .followSuggestionsRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .followSuggestionsRequest(v)
+          }
+        }()
+        case 57: try {
+          var v: Server_FollowSuggestionsResponse?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .followSuggestionsResponse(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .followSuggestionsResponse(v)
+          }
+        }()
+        case 58: try {
+          var v: Server_SetLinkRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .setLinkRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .setLinkRequest(v)
+          }
+        }()
+        case 59: try {
+          var v: Server_SetLinkResult?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .setLinkResult(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .setLinkResult(v)
+          }
+        }()
+        case 60: try {
+          var v: Server_SetBioRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .setBioRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .setBioRequest(v)
+          }
+        }()
+        case 61: try {
+          var v: Server_SetBioResult?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .setBioResult(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .setBioResult(v)
+          }
+        }()
+        case 62: try {
+          var v: Server_UserProfileRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .userProfileRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .userProfileRequest(v)
+          }
+        }()
+        case 63: try {
+          var v: Server_UserProfileResult?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .userProfileResult(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .userProfileResult(v)
+          }
+        }()
+        case 64: try {
+          var v: Server_PostMetricsRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .postMetricsRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .postMetricsRequest(v)
+          }
+        }()
+        case 65: try {
+          var v: Server_PostMetricsResult?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .postMetricsResult(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .postMetricsResult(v)
+          }
+        }()
+        case 66: try {
+          var v: Server_AiImageRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .aiImageRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .aiImageRequest(v)
+          }
+        }()
+        case 67: try {
+          var v: Server_AiImageResult?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .aiImageResult(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .aiImageResult(v)
+          }
+        }()
+        case 68: try {
+          var v: Server_ArchiveRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .archiveRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .archiveRequest(v)
+          }
+        }()
+        case 69: try {
+          var v: Server_ArchiveResult?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .archiveResult(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .archiveResult(v)
+          }
+        }()
+        case 70: try {
+          var v: Server_PostSubscriptionRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .postSubscriptionRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .postSubscriptionRequest(v)
+          }
+        }()
+        case 71: try {
+          var v: Server_PostSubscriptionResponse?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .postSubscriptionResponse(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .postSubscriptionResponse(v)
+          }
+        }()
+        case 72: try {
+          var v: Server_GeoTagRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .geoTagRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .geoTagRequest(v)
+          }
+        }()
+        case 73: try {
+          var v: Server_GeoTagResponse?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .geoTagResponse(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .geoTagResponse(v)
+          }
+        }()
+        case 74: try {
+          var v: Server_RegisterRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .registerRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .registerRequest(v)
+          }
+        }()
+        case 75: try {
+          var v: Server_RegisterResponse?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .registerResponse(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .registerResponse(v)
+          }
+        }()
+        case 76: try {
+          var v: Server_HalloappSearchRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .halloappSearchRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .halloappSearchRequest(v)
+          }
+        }()
+        case 77: try {
+          var v: Server_HalloappSearchResponse?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .halloappSearchResponse(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .halloappSearchResponse(v)
+          }
+        }()
+        case 78: try {
+          var v: Server_FriendshipRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .friendshipRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .friendshipRequest(v)
+          }
+        }()
+        case 79: try {
+          var v: Server_FriendshipResponse?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .friendshipResponse(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .friendshipResponse(v)
+          }
+        }()
+        case 80: try {
+          var v: Server_FriendListRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .friendListRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .friendListRequest(v)
+          }
+        }()
+        case 81: try {
+          var v: Server_FriendListResponse?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .friendListResponse(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .friendListResponse(v)
+          }
+        }()
+        case 82: try {
+          var v: Server_Album?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .album(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .album(v)
+          }
+        }()
+        case 83: try {
+          var v: Server_AlbumResult?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .albumResult(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .albumResult(v)
+          }
+        }()
+        case 84: try {
+          var v: Server_GetAlbums?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .getAlbums(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .getAlbums(v)
+          }
+        }()
+        case 85: try {
+          var v: Server_HalloappProfileRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .halloappProfileRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .halloappProfileRequest(v)
+          }
+        }()
+        case 86: try {
+          var v: Server_HalloappProfileResult?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .hallaoppProfileResult(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .hallaoppProfileResult(v)
+          }
+        }()
+        default: break
         }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .uploadMedia(v)
-        }
-      }()
-      case 4: try {
-        var v: Server_ContactList?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .contactList(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .contactList(v)
-        }
-      }()
-      case 5: try {
-        var v: Server_UploadAvatar?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .uploadAvatar(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .uploadAvatar(v)
-        }
-      }()
-      case 6: try {
-        var v: Server_Avatar?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .avatar(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .avatar(v)
-        }
-      }()
-      case 7: try {
-        var v: Server_Avatars?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .avatars(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .avatars(v)
-        }
-      }()
-      case 8: try {
-        var v: Server_ClientMode?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .clientMode(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .clientMode(v)
-        }
-      }()
-      case 9: try {
-        var v: Server_ClientVersion?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .clientVersion(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .clientVersion(v)
-        }
-      }()
-      case 10: try {
-        var v: Server_PushRegister?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .pushRegister(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .pushRegister(v)
-        }
-      }()
-      case 11: try {
-        var v: Server_WhisperKeys?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .whisperKeys(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .whisperKeys(v)
-        }
-      }()
-      case 12: try {
-        var v: Server_Ping?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .ping(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .ping(v)
-        }
-      }()
-      case 13: try {
-        var v: Server_FeedItem?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .feedItem(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .feedItem(v)
-        }
-      }()
-      case 14: try {
-        var v: Server_PrivacyList?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .privacyList(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .privacyList(v)
-        }
-      }()
-      case 16: try {
-        var v: Server_PrivacyLists?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .privacyLists(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .privacyLists(v)
-        }
-      }()
-      case 17: try {
-        var v: Server_GroupStanza?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .groupStanza(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .groupStanza(v)
-        }
-      }()
-      case 18: try {
-        var v: Server_GroupsStanza?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .groupsStanza(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .groupsStanza(v)
-        }
-      }()
-      case 19: try {
-        var v: Server_ClientLog?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .clientLog(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .clientLog(v)
-        }
-      }()
-      case 20: try {
-        var v: Server_Name?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .name(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .name(v)
-        }
-      }()
-      case 21: try {
-        var v: Server_ErrorStanza?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .errorStanza(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .errorStanza(v)
-        }
-      }()
-      case 22: try {
-        var v: Server_Props?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .props(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .props(v)
-        }
-      }()
-      case 23: try {
-        var v: Server_InvitesRequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .invitesRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .invitesRequest(v)
-        }
-      }()
-      case 24: try {
-        var v: Server_InvitesResponse?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .invitesResponse(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .invitesResponse(v)
-        }
-      }()
-      case 25: try {
-        var v: Server_NotificationPrefs?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .notificationPrefs(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .notificationPrefs(v)
-        }
-      }()
-      case 26: try {
-        var v: Server_GroupFeedItem?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .groupFeedItem(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .groupFeedItem(v)
-        }
-      }()
-      case 27: try {
-        var v: Server_UploadGroupAvatar?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .groupAvatar(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .groupAvatar(v)
-        }
-      }()
-      case 28: try {
-        var v: Server_DeleteAccount?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .deleteAccount(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .deleteAccount(v)
-        }
-      }()
-      case 31: try {
-        var v: Server_GroupInviteLink?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .groupInviteLink(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .groupInviteLink(v)
-        }
-      }()
-      case 32: try {
-        var v: Server_HistoryResend?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .historyResend(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .historyResend(v)
-        }
-      }()
-      case 33: try {
-        var v: Server_ExportData?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .exportData(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .exportData(v)
-        }
-      }()
-      case 34: try {
-        var v: Server_ContactSyncError?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .contactSyncError(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .contactSyncError(v)
-        }
-      }()
-      case 35: try {
-        var v: Server_ClientOtpRequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .clientOtpRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .clientOtpRequest(v)
-        }
-      }()
-      case 36: try {
-        var v: Server_ClientOtpResponse?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .clientOtpResponse(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .clientOtpResponse(v)
-        }
-      }()
-      case 37: try {
-        var v: Server_WhisperKeysCollection?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .whisperKeysCollection(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .whisperKeysCollection(v)
-        }
-      }()
-      case 38: try {
-        var v: Server_GetCallServers?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .getCallServers(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .getCallServers(v)
-        }
-      }()
-      case 39: try {
-        var v: Server_GetCallServersResult?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .getCallServersResult(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .getCallServersResult(v)
-        }
-      }()
-      case 40: try {
-        var v: Server_StartCall?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .startCall(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .startCall(v)
-        }
-      }()
-      case 41: try {
-        var v: Server_StartCallResult?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .startCallResult(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .startCallResult(v)
-        }
-      }()
-      case 42: try {
-        var v: Server_TruncWhisperKeysCollection?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .truncWhisperKeysCollection(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .truncWhisperKeysCollection(v)
-        }
-      }()
-      case 43: try {
-        var v: Server_ExternalSharePost?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .externalSharePost(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .externalSharePost(v)
-        }
-      }()
-      case 44: try {
-        var v: Server_ExternalSharePostContainer?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .externalSharePostContainer(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .externalSharePostContainer(v)
-        }
-      }()
-      case 45: try {
-        var v: Server_WebClientInfo?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .webClientInfo(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .webClientInfo(v)
-        }
-      }()
-      case 46: try {
-        var v: Server_ReportUserContent?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .reportUserContent(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .reportUserContent(v)
-        }
-      }()
-      case 47: try {
-        var v: Server_PublicFeedRequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .publicFeedRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .publicFeedRequest(v)
-        }
-      }()
-      case 48: try {
-        var v: Server_PublicFeedResponse?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .publicFeedResponse(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .publicFeedResponse(v)
-        }
-      }()
-      case 49: try {
-        var v: Server_RelationshipRequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .relationshipRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .relationshipRequest(v)
-        }
-      }()
-      case 50: try {
-        var v: Server_RelationshipResponse?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .relationshipResponse(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .relationshipResponse(v)
-        }
-      }()
-      case 51: try {
-        var v: Server_RelationshipList?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .relationshipList(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .relationshipList(v)
-        }
-      }()
-      case 52: try {
-        var v: Server_UsernameRequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .usernameRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .usernameRequest(v)
-        }
-      }()
-      case 53: try {
-        var v: Server_UsernameResponse?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .usernameResponse(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .usernameResponse(v)
-        }
-      }()
-      case 54: try {
-        var v: Server_SearchRequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .searchRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .searchRequest(v)
-        }
-      }()
-      case 55: try {
-        var v: Server_SearchResponse?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .searchResponse(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .searchResponse(v)
-        }
-      }()
-      case 56: try {
-        var v: Server_FollowSuggestionsRequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .followSuggestionsRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .followSuggestionsRequest(v)
-        }
-      }()
-      case 57: try {
-        var v: Server_FollowSuggestionsResponse?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .followSuggestionsResponse(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .followSuggestionsResponse(v)
-        }
-      }()
-      case 58: try {
-        var v: Server_SetLinkRequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .setLinkRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .setLinkRequest(v)
-        }
-      }()
-      case 59: try {
-        var v: Server_SetLinkResult?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .setLinkResult(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .setLinkResult(v)
-        }
-      }()
-      case 60: try {
-        var v: Server_SetBioRequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .setBioRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .setBioRequest(v)
-        }
-      }()
-      case 61: try {
-        var v: Server_SetBioResult?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .setBioResult(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .setBioResult(v)
-        }
-      }()
-      case 62: try {
-        var v: Server_UserProfileRequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .userProfileRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .userProfileRequest(v)
-        }
-      }()
-      case 63: try {
-        var v: Server_UserProfileResult?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .userProfileResult(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .userProfileResult(v)
-        }
-      }()
-      case 64: try {
-        var v: Server_PostMetricsRequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .postMetricsRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .postMetricsRequest(v)
-        }
-      }()
-      case 65: try {
-        var v: Server_PostMetricsResult?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .postMetricsResult(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .postMetricsResult(v)
-        }
-      }()
-      case 66: try {
-        var v: Server_AiImageRequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .aiImageRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .aiImageRequest(v)
-        }
-      }()
-      case 67: try {
-        var v: Server_AiImageResult?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .aiImageResult(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .aiImageResult(v)
-        }
-      }()
-      case 68: try {
-        var v: Server_ArchiveRequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .archiveRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .archiveRequest(v)
-        }
-      }()
-      case 69: try {
-        var v: Server_ArchiveResult?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .archiveResult(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .archiveResult(v)
-        }
-      }()
-      case 70: try {
-        var v: Server_PostSubscriptionRequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .postSubscriptionRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .postSubscriptionRequest(v)
-        }
-      }()
-      case 71: try {
-        var v: Server_PostSubscriptionResponse?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .postSubscriptionResponse(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .postSubscriptionResponse(v)
-        }
-      }()
-      case 72: try {
-        var v: Server_GeoTagRequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .geoTagRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .geoTagRequest(v)
-        }
-      }()
-      case 73: try {
-        var v: Server_GeoTagResponse?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .geoTagResponse(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .geoTagResponse(v)
-        }
-      }()
-      case 74: try {
-        var v: Server_RegisterRequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .registerRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .registerRequest(v)
-        }
-      }()
-      case 75: try {
-        var v: Server_RegisterResponse?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .registerResponse(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .registerResponse(v)
-        }
-      }()
-      case 76: try {
-        var v: Server_HalloappSearchRequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .halloappSearchRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .halloappSearchRequest(v)
-        }
-      }()
-      case 77: try {
-        var v: Server_HalloappSearchResponse?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .halloappSearchResponse(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .halloappSearchResponse(v)
-        }
-      }()
-      case 78: try {
-        var v: Server_FriendshipRequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .friendshipRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .friendshipRequest(v)
-        }
-      }()
-      case 79: try {
-        var v: Server_FriendshipResponse?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .friendshipResponse(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .friendshipResponse(v)
-        }
-      }()
-      case 80: try {
-        var v: Server_FriendListRequest?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .friendListRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .friendListRequest(v)
-        }
-      }()
-      case 81: try {
-        var v: Server_FriendListResponse?
-        var hadOneofValue = false
-        if let current = self.payload {
-          hadOneofValue = true
-          if case .friendListResponse(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.payload = .friendListResponse(v)
-        }
-      }()
-      default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if !self.id.isEmpty {
-      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
-    }
-    if self.type != .get {
-      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 2)
-    }
-    switch self.payload {
-    case .uploadMedia?: try {
-      guard case .uploadMedia(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    }()
-    case .contactList?: try {
-      guard case .contactList(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
-    }()
-    case .uploadAvatar?: try {
-      guard case .uploadAvatar(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
-    }()
-    case .avatar?: try {
-      guard case .avatar(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
-    }()
-    case .avatars?: try {
-      guard case .avatars(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
-    }()
-    case .clientMode?: try {
-      guard case .clientMode(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
-    }()
-    case .clientVersion?: try {
-      guard case .clientVersion(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
-    }()
-    case .pushRegister?: try {
-      guard case .pushRegister(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
-    }()
-    case .whisperKeys?: try {
-      guard case .whisperKeys(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 11)
-    }()
-    case .ping?: try {
-      guard case .ping(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
-    }()
-    case .feedItem?: try {
-      guard case .feedItem(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
-    }()
-    case .privacyList?: try {
-      guard case .privacyList(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 14)
-    }()
-    case .privacyLists?: try {
-      guard case .privacyLists(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 16)
-    }()
-    case .groupStanza?: try {
-      guard case .groupStanza(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 17)
-    }()
-    case .groupsStanza?: try {
-      guard case .groupsStanza(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 18)
-    }()
-    case .clientLog?: try {
-      guard case .clientLog(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 19)
-    }()
-    case .name?: try {
-      guard case .name(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 20)
-    }()
-    case .errorStanza?: try {
-      guard case .errorStanza(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 21)
-    }()
-    case .props?: try {
-      guard case .props(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 22)
-    }()
-    case .invitesRequest?: try {
-      guard case .invitesRequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 23)
-    }()
-    case .invitesResponse?: try {
-      guard case .invitesResponse(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 24)
-    }()
-    case .notificationPrefs?: try {
-      guard case .notificationPrefs(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 25)
-    }()
-    case .groupFeedItem?: try {
-      guard case .groupFeedItem(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 26)
-    }()
-    case .groupAvatar?: try {
-      guard case .groupAvatar(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 27)
-    }()
-    case .deleteAccount?: try {
-      guard case .deleteAccount(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 28)
-    }()
-    case .groupInviteLink?: try {
-      guard case .groupInviteLink(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 31)
-    }()
-    case .historyResend?: try {
-      guard case .historyResend(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 32)
-    }()
-    case .exportData?: try {
-      guard case .exportData(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 33)
-    }()
-    case .contactSyncError?: try {
-      guard case .contactSyncError(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 34)
-    }()
-    case .clientOtpRequest?: try {
-      guard case .clientOtpRequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 35)
-    }()
-    case .clientOtpResponse?: try {
-      guard case .clientOtpResponse(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 36)
-    }()
-    case .whisperKeysCollection?: try {
-      guard case .whisperKeysCollection(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 37)
-    }()
-    case .getCallServers?: try {
-      guard case .getCallServers(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 38)
-    }()
-    case .getCallServersResult?: try {
-      guard case .getCallServersResult(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 39)
-    }()
-    case .startCall?: try {
-      guard case .startCall(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 40)
-    }()
-    case .startCallResult?: try {
-      guard case .startCallResult(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 41)
-    }()
-    case .truncWhisperKeysCollection?: try {
-      guard case .truncWhisperKeysCollection(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 42)
-    }()
-    case .externalSharePost?: try {
-      guard case .externalSharePost(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 43)
-    }()
-    case .externalSharePostContainer?: try {
-      guard case .externalSharePostContainer(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 44)
-    }()
-    case .webClientInfo?: try {
-      guard case .webClientInfo(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 45)
-    }()
-    case .reportUserContent?: try {
-      guard case .reportUserContent(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 46)
-    }()
-    case .publicFeedRequest?: try {
-      guard case .publicFeedRequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 47)
-    }()
-    case .publicFeedResponse?: try {
-      guard case .publicFeedResponse(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 48)
-    }()
-    case .relationshipRequest?: try {
-      guard case .relationshipRequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 49)
-    }()
-    case .relationshipResponse?: try {
-      guard case .relationshipResponse(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 50)
-    }()
-    case .relationshipList?: try {
-      guard case .relationshipList(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 51)
-    }()
-    case .usernameRequest?: try {
-      guard case .usernameRequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 52)
-    }()
-    case .usernameResponse?: try {
-      guard case .usernameResponse(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 53)
-    }()
-    case .searchRequest?: try {
-      guard case .searchRequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 54)
-    }()
-    case .searchResponse?: try {
-      guard case .searchResponse(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 55)
-    }()
-    case .followSuggestionsRequest?: try {
-      guard case .followSuggestionsRequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 56)
-    }()
-    case .followSuggestionsResponse?: try {
-      guard case .followSuggestionsResponse(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 57)
-    }()
-    case .setLinkRequest?: try {
-      guard case .setLinkRequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 58)
-    }()
-    case .setLinkResult?: try {
-      guard case .setLinkResult(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 59)
-    }()
-    case .setBioRequest?: try {
-      guard case .setBioRequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 60)
-    }()
-    case .setBioResult?: try {
-      guard case .setBioResult(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 61)
-    }()
-    case .userProfileRequest?: try {
-      guard case .userProfileRequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 62)
-    }()
-    case .userProfileResult?: try {
-      guard case .userProfileResult(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 63)
-    }()
-    case .postMetricsRequest?: try {
-      guard case .postMetricsRequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 64)
-    }()
-    case .postMetricsResult?: try {
-      guard case .postMetricsResult(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 65)
-    }()
-    case .aiImageRequest?: try {
-      guard case .aiImageRequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 66)
-    }()
-    case .aiImageResult?: try {
-      guard case .aiImageResult(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 67)
-    }()
-    case .archiveRequest?: try {
-      guard case .archiveRequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 68)
-    }()
-    case .archiveResult?: try {
-      guard case .archiveResult(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 69)
-    }()
-    case .postSubscriptionRequest?: try {
-      guard case .postSubscriptionRequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 70)
-    }()
-    case .postSubscriptionResponse?: try {
-      guard case .postSubscriptionResponse(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 71)
-    }()
-    case .geoTagRequest?: try {
-      guard case .geoTagRequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 72)
-    }()
-    case .geoTagResponse?: try {
-      guard case .geoTagResponse(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 73)
-    }()
-    case .registerRequest?: try {
-      guard case .registerRequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 74)
-    }()
-    case .registerResponse?: try {
-      guard case .registerResponse(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 75)
-    }()
-    case .halloappSearchRequest?: try {
-      guard case .halloappSearchRequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 76)
-    }()
-    case .halloappSearchResponse?: try {
-      guard case .halloappSearchResponse(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 77)
-    }()
-    case .friendshipRequest?: try {
-      guard case .friendshipRequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 78)
-    }()
-    case .friendshipResponse?: try {
-      guard case .friendshipResponse(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 79)
-    }()
-    case .friendListRequest?: try {
-      guard case .friendListRequest(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 80)
-    }()
-    case .friendListResponse?: try {
-      guard case .friendListResponse(let v)? = self.payload else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 81)
-    }()
-    case nil: break
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      if !_storage._id.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._id, fieldNumber: 1)
+      }
+      if _storage._type != .get {
+        try visitor.visitSingularEnumField(value: _storage._type, fieldNumber: 2)
+      }
+      switch _storage._payload {
+      case .uploadMedia?: try {
+        guard case .uploadMedia(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+      }()
+      case .contactList?: try {
+        guard case .contactList(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+      }()
+      case .uploadAvatar?: try {
+        guard case .uploadAvatar(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+      }()
+      case .avatar?: try {
+        guard case .avatar(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+      }()
+      case .avatars?: try {
+        guard case .avatars(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
+      }()
+      case .clientMode?: try {
+        guard case .clientMode(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
+      }()
+      case .clientVersion?: try {
+        guard case .clientVersion(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
+      }()
+      case .pushRegister?: try {
+        guard case .pushRegister(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
+      }()
+      case .whisperKeys?: try {
+        guard case .whisperKeys(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 11)
+      }()
+      case .ping?: try {
+        guard case .ping(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
+      }()
+      case .feedItem?: try {
+        guard case .feedItem(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
+      }()
+      case .privacyList?: try {
+        guard case .privacyList(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 14)
+      }()
+      case .privacyLists?: try {
+        guard case .privacyLists(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 16)
+      }()
+      case .groupStanza?: try {
+        guard case .groupStanza(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 17)
+      }()
+      case .groupsStanza?: try {
+        guard case .groupsStanza(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 18)
+      }()
+      case .clientLog?: try {
+        guard case .clientLog(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 19)
+      }()
+      case .name?: try {
+        guard case .name(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 20)
+      }()
+      case .errorStanza?: try {
+        guard case .errorStanza(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 21)
+      }()
+      case .props?: try {
+        guard case .props(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 22)
+      }()
+      case .invitesRequest?: try {
+        guard case .invitesRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 23)
+      }()
+      case .invitesResponse?: try {
+        guard case .invitesResponse(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 24)
+      }()
+      case .notificationPrefs?: try {
+        guard case .notificationPrefs(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 25)
+      }()
+      case .groupFeedItem?: try {
+        guard case .groupFeedItem(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 26)
+      }()
+      case .groupAvatar?: try {
+        guard case .groupAvatar(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 27)
+      }()
+      case .deleteAccount?: try {
+        guard case .deleteAccount(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 28)
+      }()
+      case .groupInviteLink?: try {
+        guard case .groupInviteLink(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 31)
+      }()
+      case .historyResend?: try {
+        guard case .historyResend(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 32)
+      }()
+      case .exportData?: try {
+        guard case .exportData(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 33)
+      }()
+      case .contactSyncError?: try {
+        guard case .contactSyncError(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 34)
+      }()
+      case .clientOtpRequest?: try {
+        guard case .clientOtpRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 35)
+      }()
+      case .clientOtpResponse?: try {
+        guard case .clientOtpResponse(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 36)
+      }()
+      case .whisperKeysCollection?: try {
+        guard case .whisperKeysCollection(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 37)
+      }()
+      case .getCallServers?: try {
+        guard case .getCallServers(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 38)
+      }()
+      case .getCallServersResult?: try {
+        guard case .getCallServersResult(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 39)
+      }()
+      case .startCall?: try {
+        guard case .startCall(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 40)
+      }()
+      case .startCallResult?: try {
+        guard case .startCallResult(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 41)
+      }()
+      case .truncWhisperKeysCollection?: try {
+        guard case .truncWhisperKeysCollection(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 42)
+      }()
+      case .externalSharePost?: try {
+        guard case .externalSharePost(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 43)
+      }()
+      case .externalSharePostContainer?: try {
+        guard case .externalSharePostContainer(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 44)
+      }()
+      case .webClientInfo?: try {
+        guard case .webClientInfo(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 45)
+      }()
+      case .reportUserContent?: try {
+        guard case .reportUserContent(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 46)
+      }()
+      case .publicFeedRequest?: try {
+        guard case .publicFeedRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 47)
+      }()
+      case .publicFeedResponse?: try {
+        guard case .publicFeedResponse(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 48)
+      }()
+      case .relationshipRequest?: try {
+        guard case .relationshipRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 49)
+      }()
+      case .relationshipResponse?: try {
+        guard case .relationshipResponse(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 50)
+      }()
+      case .relationshipList?: try {
+        guard case .relationshipList(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 51)
+      }()
+      case .usernameRequest?: try {
+        guard case .usernameRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 52)
+      }()
+      case .usernameResponse?: try {
+        guard case .usernameResponse(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 53)
+      }()
+      case .searchRequest?: try {
+        guard case .searchRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 54)
+      }()
+      case .searchResponse?: try {
+        guard case .searchResponse(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 55)
+      }()
+      case .followSuggestionsRequest?: try {
+        guard case .followSuggestionsRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 56)
+      }()
+      case .followSuggestionsResponse?: try {
+        guard case .followSuggestionsResponse(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 57)
+      }()
+      case .setLinkRequest?: try {
+        guard case .setLinkRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 58)
+      }()
+      case .setLinkResult?: try {
+        guard case .setLinkResult(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 59)
+      }()
+      case .setBioRequest?: try {
+        guard case .setBioRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 60)
+      }()
+      case .setBioResult?: try {
+        guard case .setBioResult(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 61)
+      }()
+      case .userProfileRequest?: try {
+        guard case .userProfileRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 62)
+      }()
+      case .userProfileResult?: try {
+        guard case .userProfileResult(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 63)
+      }()
+      case .postMetricsRequest?: try {
+        guard case .postMetricsRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 64)
+      }()
+      case .postMetricsResult?: try {
+        guard case .postMetricsResult(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 65)
+      }()
+      case .aiImageRequest?: try {
+        guard case .aiImageRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 66)
+      }()
+      case .aiImageResult?: try {
+        guard case .aiImageResult(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 67)
+      }()
+      case .archiveRequest?: try {
+        guard case .archiveRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 68)
+      }()
+      case .archiveResult?: try {
+        guard case .archiveResult(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 69)
+      }()
+      case .postSubscriptionRequest?: try {
+        guard case .postSubscriptionRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 70)
+      }()
+      case .postSubscriptionResponse?: try {
+        guard case .postSubscriptionResponse(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 71)
+      }()
+      case .geoTagRequest?: try {
+        guard case .geoTagRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 72)
+      }()
+      case .geoTagResponse?: try {
+        guard case .geoTagResponse(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 73)
+      }()
+      case .registerRequest?: try {
+        guard case .registerRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 74)
+      }()
+      case .registerResponse?: try {
+        guard case .registerResponse(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 75)
+      }()
+      case .halloappSearchRequest?: try {
+        guard case .halloappSearchRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 76)
+      }()
+      case .halloappSearchResponse?: try {
+        guard case .halloappSearchResponse(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 77)
+      }()
+      case .friendshipRequest?: try {
+        guard case .friendshipRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 78)
+      }()
+      case .friendshipResponse?: try {
+        guard case .friendshipResponse(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 79)
+      }()
+      case .friendListRequest?: try {
+        guard case .friendListRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 80)
+      }()
+      case .friendListResponse?: try {
+        guard case .friendListResponse(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 81)
+      }()
+      case .album?: try {
+        guard case .album(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 82)
+      }()
+      case .albumResult?: try {
+        guard case .albumResult(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 83)
+      }()
+      case .getAlbums?: try {
+        guard case .getAlbums(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 84)
+      }()
+      case .halloappProfileRequest?: try {
+        guard case .halloappProfileRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 85)
+      }()
+      case .hallaoppProfileResult?: try {
+        guard case .hallaoppProfileResult(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 86)
+      }()
+      case nil: break
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Server_Iq, rhs: Server_Iq) -> Bool {
-    if lhs.id != rhs.id {return false}
-    if lhs.type != rhs.type {return false}
-    if lhs.payload != rhs.payload {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._id != rhs_storage._id {return false}
+        if _storage._type != rhs_storage._type {return false}
+        if _storage._payload != rhs_storage._payload {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -18605,6 +19498,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     55: .standard(proto: "public_feed_update"),
     56: .standard(proto: "ai_image"),
     57: .standard(proto: "halloapp_profile_update"),
+    58: .same(proto: "album"),
     21: .standard(proto: "retry_count"),
     25: .standard(proto: "rerequest_count"),
   ]
@@ -19317,6 +20211,19 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
             _storage._payload = .halloappProfileUpdate(v)
           }
         }()
+        case 58: try {
+          var v: Server_Album?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .album(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .album(v)
+          }
+        }()
         default: break
         }
       }
@@ -19557,6 +20464,10 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       case .halloappProfileUpdate?: try {
         guard case .halloappProfileUpdate(let v)? = _storage._payload else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 57)
+      }()
+      case .album?: try {
+        guard case .album(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 58)
       }()
       default: break
       }
@@ -23801,6 +24712,453 @@ extension Server_AiImage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
   }
 }
 
+extension Server_TimeRange: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".TimeRange"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "start_timestamp"),
+    2: .standard(proto: "end_timestamp"),
+    3: .standard(proto: "utc_offset"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularInt64Field(value: &self.startTimestamp) }()
+      case 2: try { try decoder.decodeSingularInt64Field(value: &self.endTimestamp) }()
+      case 3: try { try decoder.decodeSingularInt64Field(value: &self.utcOffset) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.startTimestamp != 0 {
+      try visitor.visitSingularInt64Field(value: self.startTimestamp, fieldNumber: 1)
+    }
+    if self.endTimestamp != 0 {
+      try visitor.visitSingularInt64Field(value: self.endTimestamp, fieldNumber: 2)
+    }
+    if self.utcOffset != 0 {
+      try visitor.visitSingularInt64Field(value: self.utcOffset, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_TimeRange, rhs: Server_TimeRange) -> Bool {
+    if lhs.startTimestamp != rhs.startTimestamp {return false}
+    if lhs.endTimestamp != rhs.endTimestamp {return false}
+    if lhs.utcOffset != rhs.utcOffset {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_Album: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Album"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "id"),
+    2: .same(proto: "action"),
+    3: .same(proto: "name"),
+    4: .same(proto: "owner"),
+    5: .standard(proto: "time_range"),
+    6: .same(proto: "location"),
+    7: .standard(proto: "can_view"),
+    8: .standard(proto: "can_contribute"),
+    9: .same(proto: "members"),
+    10: .standard(proto: "media_items"),
+    11: .same(proto: "cursor"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.action) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 4: try { try decoder.decodeSingularInt64Field(value: &self.owner) }()
+      case 5: try { try decoder.decodeSingularMessageField(value: &self._timeRange) }()
+      case 6: try { try decoder.decodeSingularMessageField(value: &self._location) }()
+      case 7: try { try decoder.decodeSingularEnumField(value: &self.canView) }()
+      case 8: try { try decoder.decodeSingularEnumField(value: &self.canContribute) }()
+      case 9: try { try decoder.decodeRepeatedMessageField(value: &self.members) }()
+      case 10: try { try decoder.decodeRepeatedMessageField(value: &self.mediaItems) }()
+      case 11: try { try decoder.decodeSingularStringField(value: &self.cursor) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    }
+    if self.action != .create {
+      try visitor.visitSingularEnumField(value: self.action, fieldNumber: 2)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 3)
+    }
+    if self.owner != 0 {
+      try visitor.visitSingularInt64Field(value: self.owner, fieldNumber: 4)
+    }
+    try { if let v = self._timeRange {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    } }()
+    try { if let v = self._location {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+    } }()
+    if self.canView != .inviteOnly {
+      try visitor.visitSingularEnumField(value: self.canView, fieldNumber: 7)
+    }
+    if self.canContribute != .inviteOnly {
+      try visitor.visitSingularEnumField(value: self.canContribute, fieldNumber: 8)
+    }
+    if !self.members.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.members, fieldNumber: 9)
+    }
+    if !self.mediaItems.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.mediaItems, fieldNumber: 10)
+    }
+    if !self.cursor.isEmpty {
+      try visitor.visitSingularStringField(value: self.cursor, fieldNumber: 11)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_Album, rhs: Server_Album) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs.action != rhs.action {return false}
+    if lhs.name != rhs.name {return false}
+    if lhs.owner != rhs.owner {return false}
+    if lhs._timeRange != rhs._timeRange {return false}
+    if lhs._location != rhs._location {return false}
+    if lhs.canView != rhs.canView {return false}
+    if lhs.canContribute != rhs.canContribute {return false}
+    if lhs.members != rhs.members {return false}
+    if lhs.mediaItems != rhs.mediaItems {return false}
+    if lhs.cursor != rhs.cursor {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_Album.Action: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "CREATE"),
+    1: .same(proto: "CHANGE_NAME"),
+    2: .same(proto: "CHANGE_LOCATION"),
+    3: .same(proto: "CHANGE_TIME"),
+    4: .same(proto: "CHANGE_VIEW_ACCESS"),
+    5: .same(proto: "CHANGE_CONTRIBUTE_ACCESS"),
+    6: .same(proto: "MODIFY_MEMBERS"),
+    7: .same(proto: "ADD_MEDIA"),
+    8: .same(proto: "REMOVE_MEDIA"),
+    9: .same(proto: "MEDIA_UPDATE"),
+    10: .same(proto: "GET_INFO"),
+    11: .same(proto: "GET_MEDIA"),
+    12: .same(proto: "GET"),
+    13: .same(proto: "DELETE"),
+  ]
+}
+
+extension Server_AlbumResult: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".AlbumResult"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "result"),
+    2: .same(proto: "reason"),
+    3: .same(proto: "album"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.result) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.reason) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._album) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.result != .ok {
+      try visitor.visitSingularEnumField(value: self.result, fieldNumber: 1)
+    }
+    if self.reason != .unknown {
+      try visitor.visitSingularEnumField(value: self.reason, fieldNumber: 2)
+    }
+    try { if let v = self._album {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_AlbumResult, rhs: Server_AlbumResult) -> Bool {
+    if lhs.result != rhs.result {return false}
+    if lhs.reason != rhs.reason {return false}
+    if lhs._album != rhs._album {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_AlbumResult.Result: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "OK"),
+    1: .same(proto: "FAIL"),
+  ]
+}
+
+extension Server_AlbumResult.Reason: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN"),
+    1: .same(proto: "BAD_ALBUM_ID"),
+    2: .same(proto: "NOT_ALLOWED"),
+    3: .same(proto: "TOO_MANY_MEMBERS"),
+  ]
+}
+
+extension Server_AlbumMember: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".AlbumMember"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "uid"),
+    2: .same(proto: "action"),
+    3: .same(proto: "name"),
+    4: .same(proto: "username"),
+    5: .standard(proto: "avatar_id"),
+    6: .same(proto: "role"),
+    7: .same(proto: "pending"),
+    8: .standard(proto: "remove_media"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularInt64Field(value: &self.uid) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.action) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.username) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.avatarID) }()
+      case 6: try { try decoder.decodeSingularEnumField(value: &self.role) }()
+      case 7: try { try decoder.decodeSingularBoolField(value: &self.pending) }()
+      case 8: try { try decoder.decodeSingularBoolField(value: &self.removeMedia) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.uid != 0 {
+      try visitor.visitSingularInt64Field(value: self.uid, fieldNumber: 1)
+    }
+    if self.action != .none {
+      try visitor.visitSingularEnumField(value: self.action, fieldNumber: 2)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 3)
+    }
+    if !self.username.isEmpty {
+      try visitor.visitSingularStringField(value: self.username, fieldNumber: 4)
+    }
+    if !self.avatarID.isEmpty {
+      try visitor.visitSingularStringField(value: self.avatarID, fieldNumber: 5)
+    }
+    if self.role != .viewer {
+      try visitor.visitSingularEnumField(value: self.role, fieldNumber: 6)
+    }
+    if self.pending != false {
+      try visitor.visitSingularBoolField(value: self.pending, fieldNumber: 7)
+    }
+    if self.removeMedia != false {
+      try visitor.visitSingularBoolField(value: self.removeMedia, fieldNumber: 8)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_AlbumMember, rhs: Server_AlbumMember) -> Bool {
+    if lhs.uid != rhs.uid {return false}
+    if lhs.action != rhs.action {return false}
+    if lhs.name != rhs.name {return false}
+    if lhs.username != rhs.username {return false}
+    if lhs.avatarID != rhs.avatarID {return false}
+    if lhs.role != rhs.role {return false}
+    if lhs.pending != rhs.pending {return false}
+    if lhs.removeMedia != rhs.removeMedia {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_AlbumMember.Action: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "NONE"),
+    1: .same(proto: "ACCEPT_INVITE"),
+    2: .same(proto: "REJECT_INVITE"),
+    3: .same(proto: "JOIN"),
+    4: .same(proto: "LEAVE"),
+    5: .same(proto: "UN_INVITE"),
+    6: .same(proto: "REMOVE"),
+    7: .same(proto: "INVITE"),
+    8: .same(proto: "PROMOTE"),
+    9: .same(proto: "DEMOTE"),
+  ]
+}
+
+extension Server_AlbumMember.Role: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "VIEWER"),
+    1: .same(proto: "CONTRIBUTOR"),
+    2: .same(proto: "ADMIN"),
+    3: .same(proto: "OWNER"),
+  ]
+}
+
+extension Server_GetAlbums: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".GetAlbums"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "type"),
+    2: .standard(proto: "album_ids"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.type) }()
+      case 2: try { try decoder.decodeRepeatedStringField(value: &self.albumIds) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.type != .all {
+      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 1)
+    }
+    if !self.albumIds.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.albumIds, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_GetAlbums, rhs: Server_GetAlbums) -> Bool {
+    if lhs.type != rhs.type {return false}
+    if lhs.albumIds != rhs.albumIds {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_GetAlbums.TypeEnum: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "ALL"),
+    1: .same(proto: "MEMBER"),
+    2: .same(proto: "INVITED"),
+  ]
+}
+
+extension Server_MediaItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".MediaItem"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "id"),
+    2: .standard(proto: "publisher_uid"),
+    3: .standard(proto: "publisher_name"),
+    4: .standard(proto: "publisher_username"),
+    5: .standard(proto: "album_id"),
+    6: .same(proto: "payload"),
+    7: .standard(proto: "device_capture_timestamp_ms"),
+    8: .standard(proto: "upload_timestamp_ms"),
+    9: .standard(proto: "parent_media_id"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeSingularInt64Field(value: &self.publisherUid) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.publisherName) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.publisherUsername) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.albumID) }()
+      case 6: try { try decoder.decodeSingularBytesField(value: &self.payload) }()
+      case 7: try { try decoder.decodeSingularInt64Field(value: &self.deviceCaptureTimestampMs) }()
+      case 8: try { try decoder.decodeSingularInt64Field(value: &self.uploadTimestampMs) }()
+      case 9: try { try decoder.decodeSingularStringField(value: &self.parentMediaID) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    }
+    if self.publisherUid != 0 {
+      try visitor.visitSingularInt64Field(value: self.publisherUid, fieldNumber: 2)
+    }
+    if !self.publisherName.isEmpty {
+      try visitor.visitSingularStringField(value: self.publisherName, fieldNumber: 3)
+    }
+    if !self.publisherUsername.isEmpty {
+      try visitor.visitSingularStringField(value: self.publisherUsername, fieldNumber: 4)
+    }
+    if !self.albumID.isEmpty {
+      try visitor.visitSingularStringField(value: self.albumID, fieldNumber: 5)
+    }
+    if !self.payload.isEmpty {
+      try visitor.visitSingularBytesField(value: self.payload, fieldNumber: 6)
+    }
+    if self.deviceCaptureTimestampMs != 0 {
+      try visitor.visitSingularInt64Field(value: self.deviceCaptureTimestampMs, fieldNumber: 7)
+    }
+    if self.uploadTimestampMs != 0 {
+      try visitor.visitSingularInt64Field(value: self.uploadTimestampMs, fieldNumber: 8)
+    }
+    if !self.parentMediaID.isEmpty {
+      try visitor.visitSingularStringField(value: self.parentMediaID, fieldNumber: 9)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_MediaItem, rhs: Server_MediaItem) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs.publisherUid != rhs.publisherUid {return false}
+    if lhs.publisherName != rhs.publisherName {return false}
+    if lhs.publisherUsername != rhs.publisherUsername {return false}
+    if lhs.albumID != rhs.albumID {return false}
+    if lhs.payload != rhs.payload {return false}
+    if lhs.deviceCaptureTimestampMs != rhs.deviceCaptureTimestampMs {return false}
+    if lhs.uploadTimestampMs != rhs.uploadTimestampMs {return false}
+    if lhs.parentMediaID != rhs.parentMediaID {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Server_FriendshipRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".FriendshipRequest"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -24085,6 +25443,106 @@ extension Server_HalloappSearchResponse.Result: SwiftProtobuf._ProtoNameProvidin
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "OK"),
     1: .same(proto: "FAIL"),
+  ]
+}
+
+extension Server_HalloappProfileRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".HalloappProfileRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "uid"),
+    2: .same(proto: "username"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularInt64Field(value: &self.uid) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.username) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.uid != 0 {
+      try visitor.visitSingularInt64Field(value: self.uid, fieldNumber: 1)
+    }
+    if !self.username.isEmpty {
+      try visitor.visitSingularStringField(value: self.username, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_HalloappProfileRequest, rhs: Server_HalloappProfileRequest) -> Bool {
+    if lhs.uid != rhs.uid {return false}
+    if lhs.username != rhs.username {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_HalloappProfileResult: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".HalloappProfileResult"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "result"),
+    2: .same(proto: "reason"),
+    3: .same(proto: "profile"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.result) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.reason) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._profile) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.result != .ok {
+      try visitor.visitSingularEnumField(value: self.result, fieldNumber: 1)
+    }
+    if self.reason != .unknownReason {
+      try visitor.visitSingularEnumField(value: self.reason, fieldNumber: 2)
+    }
+    try { if let v = self._profile {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_HalloappProfileResult, rhs: Server_HalloappProfileResult) -> Bool {
+    if lhs.result != rhs.result {return false}
+    if lhs.reason != rhs.reason {return false}
+    if lhs._profile != rhs._profile {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_HalloappProfileResult.Result: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "OK"),
+    1: .same(proto: "FAIL"),
+  ]
+}
+
+extension Server_HalloappProfileResult.Reason: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN_REASON"),
+    1: .same(proto: "NO_USER"),
   ]
 }
 
