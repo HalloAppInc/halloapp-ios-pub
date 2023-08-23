@@ -2100,9 +2100,6 @@
 /* Whatsapp messages share destination */
 "shareprovider.whatsapp.title" = "WhatsApp";
 
-/* No comment provided by engineer. */
-"Show Photo Suggestions" = "Mostrar Sugestões de Fotos";
-
 /* Label for call bar (shows at top of screen during active call). Returns user to call screen when tapped. */
 "tap.return.call" = "toque para retornar à chamada";
 
