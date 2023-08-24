@@ -305,16 +305,16 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
                         if let viewProvider = self?.configuration.supplementaryViewsProvider {
                             return viewProvider(indexPath.row)
                         }
-                        if showMLImageRank {
-                            cell.mlRankLabel.text = {
-                                if let self, let id = feedMedia.id, let i = self.mlMediaOrdering.firstIndex(of: id) {
-                                    return "\(i + 1) / \(self.mlMediaOrdering.count)"
-                                } else {
-                                    return nil
-                                }
-                            }()
-                        }
                         return []
+                    }
+                    if showMLImageRank {
+                        cell.mlRankLabel.text = {
+                            if let id = feedMedia.id, let i = self.mlMediaOrdering.firstIndex(of: id) {
+                                return "\(i + 1) / \(self.mlMediaOrdering.count)"
+                            } else {
+                                return nil
+                            }
+                        }()
                     }
                 }
                 return cell
