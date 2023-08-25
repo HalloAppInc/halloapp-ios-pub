@@ -5360,6 +5360,22 @@ public struct Server_Iq {
     set {_uniqueStorage()._payload = .hallaoppProfileResult(newValue)}
   }
 
+  public var reverseGeocodeRequest: Server_ReverseGeocodeRequest {
+    get {
+      if case .reverseGeocodeRequest(let v)? = _storage._payload {return v}
+      return Server_ReverseGeocodeRequest()
+    }
+    set {_uniqueStorage()._payload = .reverseGeocodeRequest(newValue)}
+  }
+
+  public var reverseGeocodeResult: Server_ReverseGeocodeResult {
+    get {
+      if case .reverseGeocodeResult(let v)? = _storage._payload {return v}
+      return Server_ReverseGeocodeResult()
+    }
+    set {_uniqueStorage()._payload = .reverseGeocodeResult(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Payload: Equatable {
@@ -5446,6 +5462,8 @@ public struct Server_Iq {
     case getAlbums(Server_GetAlbums)
     case halloappProfileRequest(Server_HalloappProfileRequest)
     case hallaoppProfileResult(Server_HalloappProfileResult)
+    case reverseGeocodeRequest(Server_ReverseGeocodeRequest)
+    case reverseGeocodeResult(Server_ReverseGeocodeResult)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Iq.OneOf_Payload, rhs: Server_Iq.OneOf_Payload) -> Bool {
@@ -5775,6 +5793,14 @@ public struct Server_Iq {
       }()
       case (.hallaoppProfileResult, .hallaoppProfileResult): return {
         guard case .hallaoppProfileResult(let l) = lhs, case .hallaoppProfileResult(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.reverseGeocodeRequest, .reverseGeocodeRequest): return {
+        guard case .reverseGeocodeRequest(let l) = lhs, case .reverseGeocodeRequest(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.reverseGeocodeResult, .reverseGeocodeResult): return {
+        guard case .reverseGeocodeResult(let l) = lhs, case .reverseGeocodeResult(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -11914,6 +11940,173 @@ extension Server_FriendListResponse.Result: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+public struct Server_ReverseGeocodeRequest {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var location: Server_GpsLocation {
+    get {return _location ?? Server_GpsLocation()}
+    set {_location = newValue}
+  }
+  /// Returns true if `location` has been explicitly set.
+  public var hasLocation: Bool {return self._location != nil}
+  /// Clears the value of `location`. Subsequent reads from it will return its default value.
+  public mutating func clearLocation() {self._location = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _location: Server_GpsLocation? = nil
+}
+
+public struct Server_ReverseGeocodeLocation {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var name: String = String()
+
+  public var location: Server_GpsLocation {
+    get {return _location ?? Server_GpsLocation()}
+    set {_location = newValue}
+  }
+  /// Returns true if `location` has been explicitly set.
+  public var hasLocation: Bool {return self._location != nil}
+  /// Clears the value of `location`. Subsequent reads from it will return its default value.
+  public mutating func clearLocation() {self._location = nil}
+
+  public var type: String = String()
+
+  public var address: String = String()
+
+  public var neighborhood: String = String()
+
+  public var postcode: String = String()
+
+  public var district: String = String()
+
+  public var region: String = String()
+
+  public var country: String = String()
+
+  public var place: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _location: Server_GpsLocation? = nil
+}
+
+public struct Server_ReverseGeocodeResult {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var result: Server_ReverseGeocodeResult.Result = .ok
+
+  public var reason: Server_ReverseGeocodeResult.Reason = .unknown
+
+  public var backoff: Int64 = 0
+
+  public var location: Server_ReverseGeocodeLocation {
+    get {return _location ?? Server_ReverseGeocodeLocation()}
+    set {_location = newValue}
+  }
+  /// Returns true if `location` has been explicitly set.
+  public var hasLocation: Bool {return self._location != nil}
+  /// Clears the value of `location`. Subsequent reads from it will return its default value.
+  public mutating func clearLocation() {self._location = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Result: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case ok // = 0
+    case fail // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .ok
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .ok
+      case 1: self = .fail
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .ok: return 0
+      case .fail: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum Reason: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case unknown // = 0
+    case tooSoon // = 1
+    case invalidLatLong // = 2
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .unknown
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .unknown
+      case 1: self = .tooSoon
+      case 2: self = .invalidLatLong
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .unknown: return 0
+      case .tooSoon: return 1
+      case .invalidLatLong: return 2
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+
+  fileprivate var _location: Server_ReverseGeocodeLocation? = nil
+}
+
+#if swift(>=4.2)
+
+extension Server_ReverseGeocodeResult.Result: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_ReverseGeocodeResult.Result] = [
+    .ok,
+    .fail,
+  ]
+}
+
+extension Server_ReverseGeocodeResult.Reason: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_ReverseGeocodeResult.Reason] = [
+    .unknown,
+    .tooSoon,
+    .invalidLatLong,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 #if swift(>=5.5) && canImport(_Concurrency)
 extension Server_PublicFeedContentType: @unchecked Sendable {}
 extension Server_CallType: @unchecked Sendable {}
@@ -12225,6 +12418,11 @@ extension Server_FriendProfile: @unchecked Sendable {}
 extension Server_FriendProfile.Reason: @unchecked Sendable {}
 extension Server_FriendListResponse: @unchecked Sendable {}
 extension Server_FriendListResponse.Result: @unchecked Sendable {}
+extension Server_ReverseGeocodeRequest: @unchecked Sendable {}
+extension Server_ReverseGeocodeLocation: @unchecked Sendable {}
+extension Server_ReverseGeocodeResult: @unchecked Sendable {}
+extension Server_ReverseGeocodeResult.Result: @unchecked Sendable {}
+extension Server_ReverseGeocodeResult.Reason: @unchecked Sendable {}
 #endif  // swift(>=5.5) && canImport(_Concurrency)
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
@@ -17977,6 +18175,8 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
     84: .standard(proto: "get_albums"),
     85: .standard(proto: "halloapp_profile_request"),
     86: .standard(proto: "hallaopp_profile_result"),
+    87: .standard(proto: "reverse_geocode_request"),
+    88: .standard(proto: "reverse_geocode_result"),
   ]
 
   fileprivate class _StorageClass {
@@ -19065,6 +19265,32 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
             _storage._payload = .hallaoppProfileResult(v)
           }
         }()
+        case 87: try {
+          var v: Server_ReverseGeocodeRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .reverseGeocodeRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .reverseGeocodeRequest(v)
+          }
+        }()
+        case 88: try {
+          var v: Server_ReverseGeocodeResult?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .reverseGeocodeResult(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .reverseGeocodeResult(v)
+          }
+        }()
         default: break
         }
       }
@@ -19407,6 +19633,14 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
       case .hallaoppProfileResult?: try {
         guard case .hallaoppProfileResult(let v)? = _storage._payload else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 86)
+      }()
+      case .reverseGeocodeRequest?: try {
+        guard case .reverseGeocodeRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 87)
+      }()
+      case .reverseGeocodeResult?: try {
+        guard case .reverseGeocodeResult(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 88)
       }()
       case nil: break
       }
@@ -25698,5 +25932,200 @@ extension Server_FriendListResponse.Result: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "OK"),
     1: .same(proto: "FAIL"),
+  ]
+}
+
+extension Server_ReverseGeocodeRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ReverseGeocodeRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "location"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._location) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._location {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_ReverseGeocodeRequest, rhs: Server_ReverseGeocodeRequest) -> Bool {
+    if lhs._location != rhs._location {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_ReverseGeocodeLocation: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ReverseGeocodeLocation"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "name"),
+    2: .same(proto: "location"),
+    3: .same(proto: "type"),
+    4: .same(proto: "address"),
+    5: .same(proto: "neighborhood"),
+    6: .same(proto: "postcode"),
+    7: .same(proto: "district"),
+    8: .same(proto: "region"),
+    9: .same(proto: "country"),
+    10: .same(proto: "place"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._location) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.type) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.address) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.neighborhood) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self.postcode) }()
+      case 7: try { try decoder.decodeSingularStringField(value: &self.district) }()
+      case 8: try { try decoder.decodeSingularStringField(value: &self.region) }()
+      case 9: try { try decoder.decodeSingularStringField(value: &self.country) }()
+      case 10: try { try decoder.decodeSingularStringField(value: &self.place) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    try { if let v = self._location {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    if !self.type.isEmpty {
+      try visitor.visitSingularStringField(value: self.type, fieldNumber: 3)
+    }
+    if !self.address.isEmpty {
+      try visitor.visitSingularStringField(value: self.address, fieldNumber: 4)
+    }
+    if !self.neighborhood.isEmpty {
+      try visitor.visitSingularStringField(value: self.neighborhood, fieldNumber: 5)
+    }
+    if !self.postcode.isEmpty {
+      try visitor.visitSingularStringField(value: self.postcode, fieldNumber: 6)
+    }
+    if !self.district.isEmpty {
+      try visitor.visitSingularStringField(value: self.district, fieldNumber: 7)
+    }
+    if !self.region.isEmpty {
+      try visitor.visitSingularStringField(value: self.region, fieldNumber: 8)
+    }
+    if !self.country.isEmpty {
+      try visitor.visitSingularStringField(value: self.country, fieldNumber: 9)
+    }
+    if !self.place.isEmpty {
+      try visitor.visitSingularStringField(value: self.place, fieldNumber: 10)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_ReverseGeocodeLocation, rhs: Server_ReverseGeocodeLocation) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs._location != rhs._location {return false}
+    if lhs.type != rhs.type {return false}
+    if lhs.address != rhs.address {return false}
+    if lhs.neighborhood != rhs.neighborhood {return false}
+    if lhs.postcode != rhs.postcode {return false}
+    if lhs.district != rhs.district {return false}
+    if lhs.region != rhs.region {return false}
+    if lhs.country != rhs.country {return false}
+    if lhs.place != rhs.place {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_ReverseGeocodeResult: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ReverseGeocodeResult"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "result"),
+    2: .same(proto: "reason"),
+    3: .same(proto: "backoff"),
+    4: .same(proto: "location"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.result) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.reason) }()
+      case 3: try { try decoder.decodeSingularInt64Field(value: &self.backoff) }()
+      case 4: try { try decoder.decodeSingularMessageField(value: &self._location) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.result != .ok {
+      try visitor.visitSingularEnumField(value: self.result, fieldNumber: 1)
+    }
+    if self.reason != .unknown {
+      try visitor.visitSingularEnumField(value: self.reason, fieldNumber: 2)
+    }
+    if self.backoff != 0 {
+      try visitor.visitSingularInt64Field(value: self.backoff, fieldNumber: 3)
+    }
+    try { if let v = self._location {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_ReverseGeocodeResult, rhs: Server_ReverseGeocodeResult) -> Bool {
+    if lhs.result != rhs.result {return false}
+    if lhs.reason != rhs.reason {return false}
+    if lhs.backoff != rhs.backoff {return false}
+    if lhs._location != rhs._location {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_ReverseGeocodeResult.Result: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "OK"),
+    1: .same(proto: "FAIL"),
+  ]
+}
+
+extension Server_ReverseGeocodeResult.Reason: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "UNKNOWN"),
+    1: .same(proto: "TOO_SOON"),
+    2: .same(proto: "INVALID_LAT_LONG"),
   ]
 }

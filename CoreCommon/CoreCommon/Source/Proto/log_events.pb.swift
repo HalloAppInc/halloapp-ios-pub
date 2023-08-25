@@ -1376,6 +1376,7 @@ public struct Server_Permissions {
     public typealias RawValue = Int
     case contacts // = 0
     case notifications // = 1
+    case location // = 2
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -1386,6 +1387,7 @@ public struct Server_Permissions {
       switch rawValue {
       case 0: self = .contacts
       case 1: self = .notifications
+      case 2: self = .location
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -1394,6 +1396,7 @@ public struct Server_Permissions {
       switch self {
       case .contacts: return 0
       case .notifications: return 1
+      case .location: return 2
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -1438,6 +1441,7 @@ extension Server_Permissions.TypeEnum: CaseIterable {
   public static var allCases: [Server_Permissions.TypeEnum] = [
     .contacts,
     .notifications,
+    .location,
   ]
 }
 
@@ -3299,6 +3303,7 @@ extension Server_Permissions.TypeEnum: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "CONTACTS"),
     1: .same(proto: "NOTIFICATIONS"),
+    2: .same(proto: "LOCATION"),
   ]
 }
 
