@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -472,6 +472,7 @@
 		F49C8E632835A52900E881E3 /* RoundedRectButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49C8E622835A52900E881E3 /* RoundedRectButton.swift */; };
 		F49D2E6427EE6A8900195566 /* URLRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49D2E6027EE6A5300195566 /* URLRouterTests.swift */; };
 		F49FF9F527F53C8B00EC86B2 /* FeedPostDisplayable.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49FF9F227F53C8A00EC86B2 /* FeedPostDisplayable.swift */; };
+		F4A273862A993D7600786269 /* ServerGeocoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A273852A993D7600786269 /* ServerGeocoder.swift */; };
 		F4B3FC7C2900A50400D73C9A /* FeedShareCarouselCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B3FC7B2900A50400D73C9A /* FeedShareCarouselCell.swift */; };
 		F4B91DF8278FCEEB00DF70C1 /* CADisplayLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */; };
 		F4BF3DDB2A5E2018005663FD /* PhotoSuggestions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4BF3DDA2A5E2018005663FD /* PhotoSuggestions.swift */; };
@@ -1290,6 +1291,7 @@
 		F49C8E622835A52900E881E3 /* RoundedRectButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedRectButton.swift; sourceTree = "<group>"; };
 		F49D2E6027EE6A5300195566 /* URLRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLRouterTests.swift; sourceTree = "<group>"; };
 		F49FF9F227F53C8A00EC86B2 /* FeedPostDisplayable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedPostDisplayable.swift; sourceTree = "<group>"; };
+		F4A273852A993D7600786269 /* ServerGeocoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerGeocoder.swift; sourceTree = "<group>"; };
 		F4B3FC7B2900A50400D73C9A /* FeedShareCarouselCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedShareCarouselCell.swift; sourceTree = "<group>"; };
 		F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CADisplayLink.swift; sourceTree = "<group>"; };
 		F4BF3DDA2A5E2018005663FD /* PhotoSuggestions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSuggestions.swift; sourceTree = "<group>"; };
@@ -2578,6 +2580,7 @@
 			children = (
 				F4BF3DDA2A5E2018005663FD /* PhotoSuggestions.swift */,
 				F4FA225D2A8C192100654455 /* AppleGeocoder.swift */,
+				F4A273852A993D7600786269 /* ServerGeocoder.swift */,
 			);
 			path = Location;
 			sourceTree = "<group>";
@@ -3260,6 +3263,7 @@
 				761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */,
 				688718E427F030E60010111D /* FeedDataLegacy.swift in Sources */,
 				32ECB6DB27725E2C004DABBA /* MessageCommentHeaderView.swift in Sources */,
+				F4A273862A993D7600786269 /* ServerGeocoder.swift in Sources */,
 				7627173B257B0744006F7F3D /* AboutViewController.swift in Sources */,
 				F43DF0EA28F0A686008008B7 /* ShareProvider.swift in Sources */,
 				766103AB2461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift in Sources */,

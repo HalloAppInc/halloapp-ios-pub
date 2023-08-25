@@ -135,7 +135,7 @@ class PhotoSuggestions: NSObject {
                         let clusterLocation = Self.averageLocation(cluster.map(\.normalizedLocation))
 
                         do {
-                            let reverseGeocodeLocation = try await AppleGeocoder.shared.reverseGeocode(location: clusterLocation)
+                            let reverseGeocodeLocation = try await MainAppContext.shared.geocoder.reverseGeocode(location: clusterLocation)
                             locatedClusters.append((reverseGeocodeLocation, cluster.map(\.asset)))
                         } catch {
                             DDLogError("PhotoSuggestions/error geocoding cluster: \(error)")
@@ -399,6 +399,11 @@ extension PHAssetMediaSubtype {
 struct PhotoClusterLocation: Hashable {
     var location: CLLocation
     var name: String
+
+    init(name: String, location: CLLocation) {
+        self.location = location
+        self.name = name
+    }
 
     init?(placemark: CLPlacemark) {
         guard let name = placemark.name, let location = placemark.location else {

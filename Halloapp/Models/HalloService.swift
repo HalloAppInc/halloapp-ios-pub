@@ -119,6 +119,9 @@ protocol HalloService: CoreService {
     // MARK: Reporting content
     func report(postID: FeedPostID, userID: UserID, completion: @escaping ServiceRequestCompletion<Void>)
     func report(userID: UserID, completion: @escaping ServiceRequestCompletion<Void>)
+
+    // MARK: Geolocation
+    func reverseGeolocation(lat: Double, lng: Double, completion: @escaping ServiceRequestCompletion<Server_ReverseGeocodeLocation?>)
 }
 
 protocol HalloFeedDelegate: AnyObject {

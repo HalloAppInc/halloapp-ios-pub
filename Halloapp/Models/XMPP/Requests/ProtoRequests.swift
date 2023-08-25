@@ -561,6 +561,20 @@ final class ProtoReportUserRequest: ProtoRequest<Void> {
     }
 }
 
+final class ProtoReverseGeocodeRequest: ProtoRequest<Server_ReverseGeocodeResult> {
+
+    init(lat: Double, lng: Double, completion: @escaping Completion) {
+        var location = Server_GpsLocation()
+        location.latitude = lat
+        location.longitude = lng
+        var request = Server_ReverseGeocodeRequest()
+        request.location = location
+
+        let iqPacket: Server_Packet = .iqPacket(type: .get, payload: .reverseGeocodeRequest(request))
+        super.init(iqPacket: iqPacket, transform: { .success($0.reverseGeocodeResult) }, completion: completion)
+    }
+}
+
 extension Server_PushPref.Name {
     init(_ configKey: NotificationSettings.ConfigKey) {
         switch configKey {

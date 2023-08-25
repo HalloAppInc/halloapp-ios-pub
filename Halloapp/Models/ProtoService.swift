@@ -2585,6 +2585,30 @@ extension ProtoService: HalloService {
         let request = ProtoReportUserRequest(userID: userID, completion: completion)
         enqueue(request: request)
     }
+
+    func reverseGeolocation(lat: Double, lng: Double, completion: @escaping ServiceRequestCompletion<Server_ReverseGeocodeLocation?>) {
+        let request = ProtoReverseGeocodeRequest(lat: lat, lng: lng) { result in
+            switch result {
+            case .success(let response):
+                switch response.result {
+                case .ok:
+                    completion(.success(response.hasLocation ? response.location : nil))
+                case .fail, .UNRECOGNIZED:
+                    switch response.reason {
+                    case .invalidLatLong:
+                        completion(.failure(RequestError.malformedRequest))
+                    case .tooSoon:
+                        completion(.failure(RequestError.retryDelay(TimeInterval(response.backoff))))
+                    case .unknown, .UNRECOGNIZED:
+                        completion(.failure(RequestError.malformedResponse))
+                    }
+                }
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
+        enqueue(request: request)
+    }
 }
 
 private protocol ReceivedReceipt {
