@@ -2607,7 +2607,7 @@ extension ProtoService: HalloService {
                 completion(.failure(error))
             }
         }
-        enqueue(request: request)
+        enqueueAndWaitForConnection(request: request, timeout: 10)
     }
 }
 

@@ -225,6 +225,28 @@ open class ProtoServiceCoreCommon: NSObject, ObservableObject {
         }
     }
 
+    public func enqueueAndWaitForConnection(request: ProtoRequestBase, timeout: TimeInterval) {
+            var requestHandled = false
+            if isConnected {
+                enqueue(request: request)
+            } else {
+                execute(whenConnectionStateIs: .connected, onQueue: .main) { [weak self] in
+                    guard let self, !requestHandled else {
+                        return
+                    }
+                    requestHandled = true
+                    self.enqueue(request: request)
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + timeout) {
+                    guard !requestHandled else {
+                        return
+                    }
+                    requestHandled = true
+                    request.failOnNoConnection()
+                }
+            }
+        }
+
     private func runCallbacksForCurrentConnectionState() {
         let currentState = connectionState
 
