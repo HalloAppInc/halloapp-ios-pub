@@ -7,10 +7,15 @@
 //
 
 import CocoaLumberjackSwift
+import Combine
 import MapKit
 import Photos
 
 class PhotoSuggestions: NSObject {
+
+    class var suggestionsDidChange: Notification.Name {
+        return Notification.Name(rawValue: "photoSuggestionsChanged")
+    }
 
     enum PhotoSuggestionsError: Error {
         case noPhotoLocations
@@ -31,14 +36,36 @@ class PhotoSuggestions: NSObject {
         static let convergenceThreshold: CLLocationDistance = 10
     }
 
+    private var recentAssets: PHFetchResult<PHAsset>
+
+    private var previousPersistentChangeToken: AnyObject?
+
     private var cachedSuggestions: [PhotoCluster]?
 
+    private var currentTask: Task<[PhotoCluster], Error>?
+
     override init() {
+        recentAssets = PhotoSuggestions.queryAssets(start: Date().advanced(by: -30 * 24 * 60 * 60), limit: 1000)
         super.init()
         PHPhotoLibrary.shared().register(self)
     }
 
     func generateSuggestions() async throws -> [PhotoCluster] {
+        // Dedup requests
+        if let currentTask {
+            return try await currentTask.value
+        } else {
+            let task = Task {
+                try await generateSuggestionsInternal()
+            }
+            currentTask = task
+            let result = try await task.value
+            currentTask = nil
+            return result
+        }
+    }
+
+    private func generateSuggestionsInternal() async throws -> [PhotoCluster] {
         if let cachedSuggestions {
             return cachedSuggestions
         }
@@ -46,22 +73,25 @@ class PhotoSuggestions: NSObject {
         var visitedAssetIdentifiers: Set<String> = []
         var macroClusters: [[PHAsset]] = []
 
-        let recentAssets = Self.queryAssets(start: Date().advanced(by: -30 * 24 * 60 * 60), limit: 1000)
+        var filteredAssets: [PHAsset] = []
+        recentAssets.enumerateObjects { asset, _, _ in
+            if Self.isValidAsset(asset) {
+                filteredAssets.append(asset)
+            }
+        }
 
         // Sanity checks on photos
-        if recentAssets.count == 0 {
+        if filteredAssets.count == 0 {
             throw PhotoSuggestionsError.noPhotos
         }
 
         // DBSCAN to create macroclusters
-        for recentAssetIndex in 0..<recentAssets.count {
-            let asset = recentAssets[recentAssetIndex]
-
+        for asset in filteredAssets {
             guard !visitedAssetIdentifiers.contains(asset.localIdentifier) else {
                 continue
             }
 
-            var clusterableAssets = Set(Self.clusterableAssets(for: asset, in: recentAssets))
+            var clusterableAssets = Set(Self.clusterableAssets(for: asset, in: filteredAssets))
 
             guard clusterableAssets.count >= Constants.minClusterableAssetCount else {
                 continue
@@ -78,7 +108,7 @@ class PhotoSuggestions: NSObject {
                 cluster.append(clusterableAsset)
                 visitedAssetIdentifiers.insert(clusterableAsset.localIdentifier)
 
-                let clusterableAssetNeighbors = Self.clusterableAssets(for: clusterableAsset, in: recentAssets)
+                let clusterableAssetNeighbors = Self.clusterableAssets(for: clusterableAsset, in: filteredAssets)
                 if clusterableAssetNeighbors.count > Constants.minClusterableAssetCount {
                     clusterableAssets.formUnion(clusterableAssetNeighbors)
                 }
@@ -211,7 +241,7 @@ class PhotoSuggestions: NSObject {
         return distance(assetA, assetB) <= Constants.maxDistance
     }
 
-    private class func queryAssets(start: Date? = nil, end: Date? = nil, limit: Int? = nil) -> [PHAsset] {
+    private class func queryAssets(start: Date? = nil, end: Date? = nil, limit: Int? = nil) -> PHFetchResult<PHAsset> {
         var subpredicates: [NSPredicate] = []
         if let start {
             subpredicates.append(NSPredicate(format: "creationDate >= %@", start as NSDate))
@@ -228,15 +258,7 @@ class PhotoSuggestions: NSObject {
             options.fetchLimit = limit
         }
 
-        let assets = PHAsset.fetchAssets(with: options)
-
-        var filteredAssets: [PHAsset] = []
-        assets.enumerateObjects { asset, _, _ in
-            if Self.isValidAsset(asset) {
-                filteredAssets.append(asset)
-            }
-        }
-        return filteredAssets
+        return PHAsset.fetchAssets(with: options)
     }
 
     private class func meanShiftCluster(locations: [CLLocation]) -> [CLLocation] {
@@ -301,7 +323,24 @@ class PhotoSuggestions: NSObject {
 extension PhotoSuggestions: PHPhotoLibraryChangeObserver {
     
     func photoLibraryDidChange(_ changeInstance: PHChange) {
-        cachedSuggestions = nil
+        guard let changeDetails = changeInstance.changeDetails(for: recentAssets) else {
+            return
+        }
+
+        var currentAssetIDs: Set<String> = []
+        var previousAssetIDs: Set<String> = []
+        changeDetails.fetchResultBeforeChanges.enumerateObjects { asset, _, _ in
+            previousAssetIDs.insert(asset.localIdentifier)
+        }
+        changeDetails.fetchResultAfterChanges.enumerateObjects { asset, _, _ in
+            currentAssetIDs.insert(asset.localIdentifier)
+        }
+
+        if currentAssetIDs != previousAssetIDs {
+            recentAssets = changeDetails.fetchResultAfterChanges
+            cachedSuggestions = nil
+            NotificationCenter.default.post(name: Self.suggestionsDidChange, object: self)
+        }
     }
 }
 

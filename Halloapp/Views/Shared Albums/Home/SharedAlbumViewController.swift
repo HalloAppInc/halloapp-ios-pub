@@ -6,6 +6,7 @@
 //  Copyright © 2023 HalloApp, Inc. All rights reserved.
 //
 
+import Combine
 import Core
 import UIKit
 
@@ -49,6 +50,8 @@ class SharedAlbumViewController: UIViewController {
         return UICollectionView(frame: .zero, collectionViewLayout: layout)
     }()
 
+    private var cancellables: Set<AnyCancellable> = []
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -68,6 +71,17 @@ class SharedAlbumViewController: UIViewController {
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
 
+        NotificationCenter.default.publisher(for: PhotoSuggestions.suggestionsDidChange)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.refreshSuggestions()
+            }
+            .store(in: &cancellables)
+
+        refreshSuggestions()
+    }
+
+    func refreshSuggestions() {
         var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
         snapshot.appendSections([.suggestions])
         snapshot.appendItems([.loadIndicator])
