@@ -38,21 +38,6 @@ private enum MenuTitles {
     static var logOut: String { "Log Out" }
 }
 
-struct DeveloperSetting {
-    static var showDecryptionResults: Bool {
-        get { AppContext.shared.userDefaults.bool(forKey: "showDecryptionResults", defaultValue: true) }
-        set { AppContext.shared.userDefaults.set(newValue, forKey: "showDecryptionResults") }
-    }
-    static var showMLImageRank: Bool {
-        get { AppContext.shared.userDefaults.bool(forKey: "showMLImageRank", defaultValue: false) }
-        set { AppContext.shared.userDefaults.set(newValue, forKey: "showMLImageRank") }
-    }
-    static var showPhotoSuggestions: Bool {
-        get { AppContext.shared.userDefaults.bool(forKey: "showPhotoSuggestions", defaultValue: false) }
-        set { AppContext.shared.userDefaults.set(newValue, forKey: "showPhotoSuggestions") }
-    }
-}
-
 struct DeveloperMenuView: View {
 
     @State var useTestServer = MainAppContext.shared.coreService.useTestServer

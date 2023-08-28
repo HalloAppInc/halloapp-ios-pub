@@ -775,7 +775,7 @@ fileprivate struct PostComposerView: View {
     }
 
     private var feedMediaItems: [FeedMedia] {
-        mediaItems.value.map { FeedMedia($0, feedPostId: "") }
+        mediaItems.value.map { FeedMedia($0) }
     }
 
     private var controlYOffset: CGFloat {
@@ -1646,7 +1646,7 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
     let onCrop: () -> Void
 
     private var feedMediaItems: [FeedMedia] {
-        mediaItems.map { FeedMedia($0, feedPostId: "") }
+        mediaItems.map { FeedMedia($0) }
     }
 
     func makeUIView(context: Context) -> MediaCarouselView {

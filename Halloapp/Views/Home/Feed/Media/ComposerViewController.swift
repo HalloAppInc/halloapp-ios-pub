@@ -183,6 +183,14 @@ class ComposerViewController: UIViewController {
         let image = UIImage(named: "Draw")
         return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(drawAction))
     }()
+    
+    private lazy var mlSortButtonItem: UIBarButtonItem = {
+        let sortButtonItem = UIBarButtonItem(image: UIImage(systemName: "arrow.up.and.down.and.sparkles"), style: .plain, target: self, action: #selector(mlSortAction))
+        sortButtonItem.accessibilityLabel = "Auto sort"
+        sortButtonItem.tintColor = .primaryBlue
+
+        return sortButtonItem
+    }()
 
     private lazy var cancelButtonItem: UIBarButtonItem = {
         let configuration = UIImage.SymbolConfiguration(weight: .bold)
@@ -290,7 +298,7 @@ class ComposerViewController: UIViewController {
             ]
         }
 
-        let carouselView = MediaCarouselView(media: media.map { FeedMedia($0, feedPostId: "") }, configuration: configuration)
+        let carouselView = MediaCarouselView(media: media.map { FeedMedia($0) }, configuration: configuration)
         carouselView.translatesAutoresizingMaskIntoConstraints = false
         carouselView.delegate = self
 
@@ -772,13 +780,17 @@ class ComposerViewController: UIViewController {
         case .audio, .document:
             break
         }
+        
+        if DeveloperSetting.showMLImageRank, media.filter({ $0.type == .image }).count > 1 {
+            rightItems.append(mlSortButtonItem)
+        }
     }
 
     private func updateMediaCarouselHeight() {
         guard self.media.allSatisfy({ $0.ready.value }) else { return }
 
         let width = UIScreen.main.bounds.width - 4 * ComposerConstants.horizontalPadding
-        let items = media.map { FeedMedia($0, feedPostId: "") }
+        let items = media.map { FeedMedia($0) }
 
         mediaCarouselHeightConstraint.constant = MediaCarouselView.preferredHeight(for: items, width: width)
     }
@@ -1123,12 +1135,32 @@ extension ComposerViewController: MediaCarouselViewDelegate {
     }
 
     @objc
+    private func mlSortAction() {
+        Task {
+            let rankedItems = await ImageRanker.shared
+                .rankMedia(media.map { FeedMedia($0) })
+                .compactMap { rID in media.first(where: { rID == $0.uuid }) }
+            var currentRank = 0
+            for i in 0..<media.count {
+                guard rankedItems.contains(where: { $0.uuid == media[i].uuid }) else {
+                    // Leave unranked items in current slot
+                    continue
+                }
+                media[i] = rankedItems[currentRank]
+                currentRank += 1
+            }
+            updateMediaState(animated: false)
+
+        }
+    }
+
+    @objc
     private func cancelAction(_ sender: UIBarButtonItem) {
         onCancel?()
     }
 
     private func updateMediaState(animated: Bool) {
-        let items = media.map { FeedMedia($0, feedPostId: "") }
+        let items = media.map { FeedMedia($0) }
         mediaCarouselView.refreshData(media: items, index: index, animated: animated)
         listenForMediaErrors()
         updateUI()

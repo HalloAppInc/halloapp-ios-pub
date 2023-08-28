@@ -299,6 +299,7 @@ public class PendingMedia {
     public static let queue = DispatchQueue(label: "com.halloapp.pending-media", qos: .userInitiated)
     private static let homeDirURL = URL(fileURLWithPath: NSHomeDirectory()).standardizedFileURL
 
+    public var uuid = UUID().uuidString
     public var order: Int = 0
     public var type: CommonMediaType
     public var url: URL?

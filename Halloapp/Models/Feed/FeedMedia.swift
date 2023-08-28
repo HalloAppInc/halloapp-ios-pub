@@ -185,8 +185,8 @@ class FeedMedia: Identifiable, Hashable {
         self.chunkedInfo = ChunkedMediaInfo(commonMedia: feedPostMedia)
     }
 
-    init(_ media: PendingMedia, feedPostId: FeedPostID) {
-        self.id = "\(feedPostId)-\(media.order)"
+    init(_ media: PendingMedia) {
+        self.id = media.uuid
         self.status = .readyToUpload
         self.order = media.order
         self.type = media.type
