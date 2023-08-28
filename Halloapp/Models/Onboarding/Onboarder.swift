@@ -6,6 +6,7 @@
 //  Copyright © 2023 HalloApp, Inc. All rights reserved.
 //
 
+import CoreCommon
 import UIKit
 
 protocol OnboardingModel {
@@ -14,6 +15,7 @@ protocol OnboardingModel {
 
     var hasContactsPermission: Bool { get }
     var contactsSyncProgress: AsyncStream<Double> { get }
+    var friendSuggestions: [UserID] { get async }
 
     func set(countryCode: String, nationalNumber: String)
     func set(name: String)

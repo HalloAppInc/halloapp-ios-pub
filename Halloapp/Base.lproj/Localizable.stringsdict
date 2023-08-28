@@ -321,11 +321,11 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>zero</key>
-			<string>You’re not connected to anyone on HalloApp yet</string>
+			<string>None of your contacts are on HalloApp</string>
 			<key>one</key>
-			<string>You’re connected to %d person on HalloApp</string>
+			<string>1 person from your contacts is on HalloApp. Add them as a friend?</string>
 			<key>other</key>
-			<string>You’re connected to %d people on HalloApp</string>
+			<string>%d people from your contacts are on HalloApp. Add them as friends?</string>
 		</dict>
 	</dict>
 	<key>n.contacts.privacy.disclaimer</key>
