@@ -6,6 +6,7 @@
 //  Copyright © 2023 HalloApp, Inc. All rights reserved.
 //
 
+import CocoaLumberjackSwift
 import CoreCommon
 import CoreLocation
 import Foundation
@@ -25,7 +26,13 @@ class ServerGeocoder {
         }
 
         // Attempt to use Apple Geocoder first, as its free
-        let placemark = try await CLGeocoder().reverseGeocodeLocation(location, preferredLocale: Locale.current).first
+        let placemark: CLPlacemark?
+        do {
+            placemark = try await CLGeocoder().reverseGeocodeLocation(location, preferredLocale: Locale.current).first
+        } catch {
+            placemark = nil
+            DDLogError("ServerGeocoder/error: \(error)")
+        }
 
         let photoClusterLocation: PhotoClusterLocation?
 
