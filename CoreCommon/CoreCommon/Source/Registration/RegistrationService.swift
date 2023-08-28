@@ -16,13 +16,18 @@ public protocol RegistrationService {
 }
 
 public struct RegistrationResponse {
-    var normalizedPhoneNumber: String
-    var retryDelay: TimeInterval
+    public var normalizedPhoneNumber: String
+    public var retryDelay: TimeInterval
 }
 
 public struct RegistrationErrorResponse: Error {
     public var error: Error
     public var retryDelay: TimeInterval?
+
+    public init(error: Error, retryDelay: TimeInterval? = nil) {
+        self.error = error
+        self.retryDelay = retryDelay
+    }
 }
 public enum VerificationCodeRequestError: Error {
     case invalidPhoneNumber(reason: InvalidPhoneNumberReason?) // phone number provided is invalid

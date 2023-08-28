@@ -14,7 +14,7 @@ import CocoaLumberjackSwift
 
 class PermissionsViewController: UIViewController {
 
-    let onboardingManager: OnboardingManager
+    let onboarder: any Onboarder
     private var cancellables: Set<AnyCancellable> = []
 
     private lazy var logoView: UIImageView = {
@@ -116,8 +116,8 @@ class PermissionsViewController: UIViewController {
         .portrait
     }
 
-    init(onboardingManager: OnboardingManager) {
-        self.onboardingManager = onboardingManager
+    init(onboarder: any Onboarder) {
+        self.onboarder = onboarder
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -162,7 +162,7 @@ class PermissionsViewController: UIViewController {
             getStartedButtonStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -OnboardingConstants.bottomButtonBottomDistance),
         ])
 
-        if onboardingManager.hasContactsPermission {
+        if onboarder.hasContactsPermission {
             DDLogInfo("PermissionsViewController/viewDidLoad/has contacts permission")
             // possible that the user gave permissions and then killed the app during the initial sync
             getStartedButton.isEnabled = false
@@ -175,10 +175,10 @@ class PermissionsViewController: UIViewController {
         getStartedButton.isEnabled = false
 
         Task {
-            guard await onboardingManager.requestContactsPermission() else {
+            guard await onboarder.requestContactsPermission() else {
                 Analytics.log(event: .promptedContactPermission, properties: [.granted: false])
                 // denied permission; enter the app
-                return onboardingManager.didCompleteOnboardingFlow()
+                return showNextScreen()
             }
 
             Analytics.log(event: .promptedContactPermission, properties: [.granted: true])
@@ -186,11 +186,10 @@ class PermissionsViewController: UIViewController {
         }
     }
 
-    @MainActor
     private func listenForSyncProgress() async {
         DDLogInfo("PermissionsViewController/listenForSyncProgress")
 
-        for await progress in onboardingManager.contactsSyncProgress {
+        for await progress in onboarder.contactsSyncProgress {
             updateSyncProgress(progress)
         }
 
@@ -232,15 +231,11 @@ class PermissionsViewController: UIViewController {
     }
 
     private func showNextScreen() {
-        let contacts = onboardingManager.fellowContactIDs()
-
-        if contacts.count < 5 {
-            // show more onboarding screens
-            let vc = ExistingNetworkViewController(onboardingManager: onboardingManager, userIDs: contacts)
-            navigationController?.setViewControllers([vc], animated: true)
-        } else {
-            onboardingManager.didCompleteOnboardingFlow()
+        guard let viewController = onboarder.nextViewController() else {
+            return
         }
+
+        navigationController?.setViewControllers([viewController], animated: true)
     }
 }
 

@@ -11,7 +11,14 @@ import Combine
 import CoreData
 import SwiftUI
 
-public enum Credentials {
+public struct Credentials {
+    public let userID: UserID
+    public let name: String
+    public let username: String
+    public let noiseKeys: NoiseKeys
+}
+
+public enum OldCredentials {
     case v2(userID: UserID, noiseKeys: NoiseKeys)
 
     public var userID: UserID {
@@ -59,6 +66,7 @@ public final class UserData: ObservableObject {
             userNamePublisher?.send(name)
         }
     }
+    public var username = ""
 
     // Provided by the server.
     public var normalizedPhoneNumber: String = ""
@@ -74,12 +82,11 @@ public final class UserData: ObservableObject {
     }()
 
     public var credentials: Credentials? {
-        guard !userId.isEmpty else { return nil }
-        if let noiseKeys = noiseKeys {
-            return .v2(userID: userId, noiseKeys: noiseKeys)
-        } else {
+        guard !userId.isEmpty, let noiseKeys else {
             return nil
         }
+
+        return Credentials(userID: userId, name: name, username: "", noiseKeys: noiseKeys)
     }
 
     public func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
@@ -96,12 +103,11 @@ public final class UserData: ObservableObject {
     }
 
     public func update(credentials: Credentials, in managedObjectContext: NSManagedObjectContext) {
-        switch credentials {
-        case .v2(let userID, let noiseKeys):
-            DDLogInfo("UserData/credentials/updating [\(userID)] [noise]")
-            self.userId = userID
-            self.noiseKeys = noiseKeys
-        }
+        userId = credentials.userID
+        name = credentials.name
+        username = credentials.username
+        noiseKeys = credentials.noiseKeys
+
         save(using: managedObjectContext)
     }
 
@@ -127,6 +133,7 @@ public final class UserData: ObservableObject {
                 self.normalizedPhoneNumber = user.phone ?? ""
                 self.userId = user.userId ?? ""
                 self.name = user.name ?? ""
+                self.username = user.username ?? ""
 
                 // If this is the main app and noise keys are present in shared container, load noiseKeys from the container
                 if !isAppClip, let storePrivateKey = user.noisePrivateKey, let storePublicKey = user.noisePublicKey {
@@ -168,6 +175,7 @@ public final class UserData: ObservableObject {
         normalizedPhoneNumber = ""
         userId = ""
         name = ""
+        username = ""
         save(using: managedObjectContext)
 
         isLoggedIn = false
@@ -233,6 +241,7 @@ public final class UserData: ObservableObject {
         user.phone = normalizedPhoneNumber
         user.userId = userId
         user.name = name
+        user.username = username
 
         // Clear password (no longer supported)
         user.password = ""

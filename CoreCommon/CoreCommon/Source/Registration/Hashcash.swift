@@ -21,12 +21,12 @@ public struct HashcashSolution: Equatable {
 }
 
 /// Closure that attempts to fetch a new hashcash challenge and calls a completion block on the result
-typealias HashcashChallengeRequester = (_ completion: @escaping (Result<String, Error>) -> Void) -> Void
+public typealias HashcashChallengeRequester = (_ completion: @escaping (Result<String, Error>) -> Void) -> Void
 
 /// Computes hashcash solution and manages state (initial/requesting/solving/solved)
-class HashcashSolver {
+public class HashcashSolver {
 
-    init(fetchNext: @escaping HashcashChallengeRequester) {
+    public init(fetchNext: @escaping HashcashChallengeRequester) {
         self.fetchNext = fetchNext
     }
 
@@ -45,7 +45,7 @@ class HashcashSolver {
     private var state: State = .initial
     private var completion: ((Result<HashcashSolution, Error>) -> Void)?
 
-    func solveNext(completion: ((Result<HashcashSolution, Error>) -> Void)? = nil) {
+    public func solveNext(completion: ((Result<HashcashSolution, Error>) -> Void)? = nil) {
         if let completion = self.completion {
             completion(.failure(HashcashSolverError.busy))
             self.completion = nil

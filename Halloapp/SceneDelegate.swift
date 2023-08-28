@@ -33,19 +33,11 @@ class SceneDelegate: UIResponder {
             return .expiredVersion
         }
 
-        if isLoggedIn ?? MainAppContext.shared.userData.isLoggedIn {
-            if MainAppContext.shared.userData.name.isEmpty {
-                // placeholder that we use before the user enters their name
-                return .nameInput
-            }
-
-            let initializationComplete = ContactStore.contactsAccessDenied ||
-                (ContactStore.contactsAccessAuthorized && MainAppContext.shared.contactStore.isInitialSyncCompleted)
-
-            return initializationComplete ? .mainInterface : .permissions
+        if (isLoggedIn ?? MainAppContext.shared.userData.isLoggedIn), !RegistrationOnboarder.doesRequireOnboarding {
+            return .mainInterface
         }
 
-        return .registration
+        return .onboarding
     }
 
     private func transition(to newState: UserInterfaceState, completion: (() -> Void)? = nil) {
@@ -206,7 +198,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
             })
         )
 
-        NotificationCenter.default.publisher(for: DefaultOnboardingManager.didCompleteOnboarding)
+        NotificationCenter.default.publisher(for: .didCompleteRegistrationOnboarding)
             .sink { _ in
                 self.transition(to: self.state()) {
                     Task {
@@ -286,7 +278,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
 
         Task {
             let state = rootViewController.state
-            guard state != .registration, state != .nameInput, state != .permissions else {
+            guard state != .onboarding else {
                 // don't show notifications permission prompt during onboarding
                 return
             }

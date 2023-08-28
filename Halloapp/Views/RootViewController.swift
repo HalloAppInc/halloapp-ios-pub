@@ -13,9 +13,7 @@ import UIKit
 
 enum UserInterfaceState {
     case expiredVersion
-    case registration
-    case nameInput
-    case permissions
+    case onboarding
     case mainInterface
     case initial
     case migrating
@@ -77,10 +75,7 @@ final class RootViewController: UIViewController {
         state = newState
 
         switch (oldState, newState) {
-        case (.registration, .nameInput):
-            // registration will lead to name input without having to change it here
-            return
-        case (.permissions, .mainInterface), (.nameInput, .mainInterface):
+        case (.onboarding, .mainInterface):
             return animateMainInterfaceAfterRegistration(completion)
         default:
             break
@@ -163,21 +158,8 @@ final class RootViewController: UIViewController {
         case .initial:
             return UIViewController()
 
-        case .registration where !hasShownRegistrationSplashScreen:
-            let vc = RegistrationSplashScreenViewController(registrationManager: makeRegistrationManager())
-            hasShownRegistrationSplashScreen = true
-            return UINavigationController(rootViewController: vc)
-
-        case .registration:
-            let vc = PhoneNumberEntryViewController(registrationManager: makeRegistrationManager())
-            return UINavigationController(rootViewController: vc)
-
-        case .nameInput:
-            let vc = NameInputViewController(registrationManager: makeRegistrationManager())
-            return UINavigationController(rootViewController: vc)
-
-        case .permissions:
-            let vc = PermissionsViewController(onboardingManager: makeOnboardingManager())
+        case .onboarding:
+            let vc = makeOnboardingViewController()
             return UINavigationController(rootViewController: vc)
 
         case .mainInterface:
@@ -191,26 +173,28 @@ final class RootViewController: UIViewController {
         }
     }
 
-    private func makeRegistrationManager() -> RegistrationManager {
-        // TODO: Move this to AppContext
+    private func makeOnboarder() -> RegistrationOnboarder {
         guard let noiseKeys = MainAppContext.shared.userData.loggedOutNoiseKeys else {
             // Fatal error... we can't register without keys
             fatalError("RootViewController/makeRegistrationManager/error [no-noise-keys]")
         }
+
         let noiseService = NoiseRegistrationService(noiseKeys: noiseKeys)
-        return DefaultRegistrationManager(registrationService: noiseService)
+        return RegistrationOnboarder(registrationService: noiseService)
     }
 
-    private func makeOnboardingManager() -> OnboardingManager {
-        let manager = DefaultOnboardingManager()
-        return manager
+    private func makeOnboardingViewController() -> UIViewController {
+        guard let viewController = makeOnboarder().nextViewController() else {
+            fatalError("RootViewController/makeOnboardingViewController/could not get view controller")
+        }
+
+        return viewController
     }
 
     @objc
     private func didTapCallBar() {
         delegate?.didTapCallBar()
     }
-    
 }
 
 final class CallBar: UIControl {

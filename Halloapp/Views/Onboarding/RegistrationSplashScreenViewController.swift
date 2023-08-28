@@ -187,10 +187,7 @@ class RegistrationSplashScreenViewController: UIViewController {
     }
 
     private func goToNextScreen() {
-        let vc = PhoneNumberEntryViewController(registrationManager: registrationManager)
-
-        navigationController?.pushViewController(vc, animated: true)
-        navigationController?.delegate = nil
+        
     }
 }
 

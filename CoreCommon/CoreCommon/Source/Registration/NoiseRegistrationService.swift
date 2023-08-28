@@ -172,9 +172,11 @@ public final class NoiseRegistrationService: RegistrationService {
                 case .verifyResponse(let verifyResponse):
                     switch verifyResponse.result {
                     case .success:
-                        let credentials = Credentials.v2(
-                            userID: String(verifyResponse.uid),
-                            noiseKeys: noiseKeys)
+                        let userID = String(verifyResponse.uid)
+                        let name = verifyResponse.name
+                        let username = verifyResponse.username
+                        let credentials = Credentials(userID: userID, name: name, username: username, noiseKeys: noiseKeys)
+
                         DispatchQueue.main.async {
                             completion(.success(credentials))
                         }

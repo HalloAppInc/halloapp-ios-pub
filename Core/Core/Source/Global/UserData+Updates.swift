@@ -63,6 +63,12 @@ extension UserData {
                 }
             }
         }
+
+        await MainActor.run {
+            let userData = AppContext.shared.userData
+            userData.username = username
+            userData.save(using: userData.viewContext)
+        }
     }
 
     private func validate(username: String) throws {
@@ -99,6 +105,35 @@ public enum ChangeUsernameError: LocalizedError {
             self = .alreadyTaken
         case .UNRECOGNIZED(_):
             self = .other
+        }
+    }
+
+    public var errorDescription: String? {
+        switch self {
+        case .tooShort:
+            return NSLocalizedString("username.too.short.error",
+                                     value: "Username Too Short",
+                                     comment: "Displayed when trying to set a username with too few characters.")
+        case .tooLong:
+            return NSLocalizedString("username.too.long.error",
+                                     value: "Username Too Long",
+                                     comment: "Displayed when trying to set a username with too many characters.")
+        case .invalidCharacters:
+            return NSLocalizedString("username.invalid.characters.error",
+                                     value: "Username has Invalid Characters",
+                                     comment: "Displayed when trying to set a username with invalid characters.")
+        case .invalidStartingCharacter:
+            return NSLocalizedString("username.invalid.starting.character.error",
+                                     value: "Invalid Starting Character",
+                                     comment: "Displayed when trying to set a username with an invalid starting character.")
+        case .alreadyTaken:
+            return NSLocalizedString("username.taken.error",
+                                     value: "Sorry, @%@ is Taken 🥲",
+                                     comment: "Displayed when the user tries to claim a username that is already taken.")
+        case .other:
+            return NSLocalizedString("username.unknown.error",
+                                     value: "An Error Occurred",
+                                     comment: "Displayed when an unknown error occurred while setting a username.")
         }
     }
 }

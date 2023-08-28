@@ -26,7 +26,7 @@ extension PhoneNumberVerificationViewController {
 
 class PhoneNumberVerificationViewController: UIViewController {
 
-    let registrationManager: RegistrationManager
+    let onboardingManager: any Onboarder
     let registrationNumber: RegistrationPhoneNumber
 
     private var state: State = .requestingCode {
@@ -197,8 +197,8 @@ class PhoneNumberVerificationViewController: UIViewController {
         .portrait
     }
 
-    init(registrationManager: RegistrationManager, registrationNumber: RegistrationPhoneNumber) {
-        self.registrationManager = registrationManager
+    init(onboardingManager: any Onboarder, registrationNumber: RegistrationPhoneNumber) {
+        self.onboardingManager = onboardingManager
         self.registrationNumber = registrationNumber
         super.init(nibName: nil, bundle: nil)
     }
@@ -325,14 +325,17 @@ class PhoneNumberVerificationViewController: UIViewController {
     }
 
     private func transitionAfterSuccess() {
-        let vc = NameInputViewController(registrationManager: registrationManager)
+        guard let viewController = onboardingManager.nextViewController() else {
+            return
+        }
 
         UIView.animate(withDuration: 0.6, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0) {
             self.registrationSuccessStack.alpha = 1
             self.registrationSuccessStack.transform = .identity
         } completion: { _ in
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.navigationController?.pushViewController(vc, animated: true)
+                // using `setViewControllers` as we cannot come back to this screen
+                self.navigationController?.setViewControllers([viewController], animated: true)
             }
         }
     }
@@ -341,7 +344,7 @@ class PhoneNumberVerificationViewController: UIViewController {
     private func requestVerificationCode(byVoice: Bool) async {
         state = .requestingCode
         DDLogInfo("PhoneNumberVerificationViewController/requestVerificationCode byVoice [\(byVoice)]")
-        let result = await registrationManager.requestVerificationCode(byVoice: byVoice)
+        let result = await Task { try await onboardingManager.requestVerificationCode(byVoice: byVoice) }.result
 
         if Task.isCancelled {
             DDLogInfo("PhoneNumberVerificationViewController/requestVerificationCode byVoice [\(byVoice)] cancelled")
@@ -353,9 +356,12 @@ class PhoneNumberVerificationViewController: UIViewController {
             DDLogInfo("PhoneNumberVerificationViewController/requestVerificationCode byVoice [\(byVoice) success")
             handleVerificationCodeRequestSuccess(interval)
             state = .enteringCode
-        case .failure(let errorResponse):
+        case .failure(let error):
             DDLogError("PhoneNumberVerificationViewController/requestVerificationCode byVoice [\(byVoice) failure")
-            handleVerificationCodeRequestError(errorResponse)
+            if let errorResponse = error as? RegistrationErrorResponse {
+                handleVerificationCodeRequestError(errorResponse)
+            }
+
             state = .requestError
         }
     }
@@ -414,16 +420,14 @@ class PhoneNumberVerificationViewController: UIViewController {
         }
     }
 
-    @MainActor
     private func confirmVerificationCode(_ code: String) async {
         state = .confirmingCode
-        let result = await registrationManager.confirmVerificationCode(code, pushOS: nil)
+        let result = await Task { try await onboardingManager.confirmVerificationCode(code, pushOS: nil) }.result
 
         switch result {
         case .success:
             Analytics.log(event: .onboardingEnteredOTP, properties: [.valid: true])
             DDLogInfo("PhoneNumberVerificationViewController/confirmVerificationCode/valid code [\(code)]")
-            registrationManager.didCompleteRegistrationFlow()
             state = .validCode
 
         case .failure(let error):

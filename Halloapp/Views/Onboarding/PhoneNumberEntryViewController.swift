@@ -44,7 +44,7 @@ private extension PhoneNumberEntryViewController {
 
 class PhoneNumberEntryViewController: UIViewController {
 
-    let registrationManager: RegistrationManager
+    let onboarder: any Onboarder
 
     private var cancellables: Set<AnyCancellable> = []
     private let model: PhoneNumberKit = AppContext.shared.phoneNumberFormatter
@@ -288,8 +288,8 @@ class PhoneNumberEntryViewController: UIViewController {
         .portrait
     }
 
-    init(registrationManager: RegistrationManager) {
-        self.registrationManager = registrationManager
+    init(onboarder: any Onboarder) {
+        self.onboarder = onboarder
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -525,13 +525,13 @@ class PhoneNumberEntryViewController: UIViewController {
             return
         }
 
-        registrationManager.set(countryCode: number.countryCode, nationalNumber: number.nationalNumber, userName: "")
+        onboarder.set(countryCode: number.countryCode, nationalNumber: number.nationalNumber)
         hideKeyboard()
 
         Analytics.log(event: .onboardingEnteredPhoneValidNumber)
 
-        let vc = PhoneNumberVerificationViewController(registrationManager: registrationManager, registrationNumber: number)
-        navigationController?.pushViewController(vc, animated: true)
+        let viewController = PhoneNumberVerificationViewController(onboardingManager: onboarder, registrationNumber: number)
+        navigationController?.pushViewController(viewController, animated: true)
     }
 
     private func scrollToTop(animated: Bool = false) {
@@ -648,24 +648,6 @@ fileprivate class CountryCodeTextField: PhoneNumberTextField {
         if let prefix = country?.prefix {
             text = prefix.first == "+" ? String(prefix.dropFirst(1)) : prefix
         }
-    }
-}
-
-// MARK: - onboarding constants
-
-/// Layout values that are used in the onboarding view controllers.
-struct OnboardingConstants {
-
-    static var bottomButtonBottomDistance: CGFloat {
-        50
-    }
-
-    static var bottomButtonInsets: UIEdgeInsets {
-        UIEdgeInsets(top: 12, left: 80, bottom: 12, right: 80)
-    }
-
-    static var bottomButtonPadding: CGFloat {
-        10
     }
 }
 
