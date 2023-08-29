@@ -112,11 +112,46 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         return container
     }()
 
+    private lazy var slideshowButton: UIView = {
+        let shareBtn = LargeHitButton(type: .custom)
+        shareBtn.targetIncrease = 16
+        shareBtn.addTarget(self, action: #selector(openSlideshow), for: [.touchUpInside])
+        shareBtn.setImage(UIImage(systemName: "play.rectangle.fill"), for: .normal)
+        shareBtn.translatesAutoresizingMaskIntoConstraints = false
+
+        let container = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.1)
+        container.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.7)
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.layer.masksToBounds = true
+        container.layer.cornerRadius = 22
+
+        container.widthAnchor.constraint(equalToConstant: 44).isActive = true
+        container.heightAnchor.constraint(equalToConstant: 44).isActive = true
+
+        container.contentView.addSubview(shareBtn)
+        shareBtn.constrain(to: container)
+
+        return container
+    }()
+
+    @objc private func openSlideshow() {
+        let slideshowViewController = SlideshowViewController(media: feedMedia ?? [])        
+        slideshowViewController.modalPresentationStyle = .fullScreen
+        present(slideshowViewController, animated: true)
+    }
+
     private lazy var navigationView: UIStackView = {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
 
-        let stack = UIStackView(arrangedSubviews: [backBtn, spacer, shareBtn])
+        let arrangedSubviews: [UIView]
+        if ServerProperties.isInternalUser, feedMedia != nil {
+            arrangedSubviews = [backBtn, spacer, slideshowButton, shareBtn]
+        } else {
+            arrangedSubviews = [backBtn, spacer, shareBtn]
+        }
+
+        let stack = UIStackView(arrangedSubviews: arrangedSubviews)
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .horizontal
         stack.spacing = 4
@@ -156,7 +191,11 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     private var source: MediaItemSource = .unknown
 
+    // maintain original media structures for slideshow
+    private var feedMedia: [FeedMedia]?
+
     init(media: [FeedMedia], index: Int, canSaveMedia: Bool, source: MediaItemSource) {
+        self.feedMedia = media
         self.media = media.filter({ $0.type != .audio }).map { item in
             let viewContext = MainAppContext.shared.feedData.viewContext
             let progress = MainAppContext.shared.feedData.downloadTask(for: item, using: viewContext)?.downloadProgress.eraseToAnyPublisher()
