@@ -83,13 +83,17 @@ extension ServerGeocoder {
 
     actor LocationCache {
 
+        // Meters / degree at 0,0, giving us roughly meter resolution for our cache
+        // This prevents floating point drift errors
+        private static let coordinateNormalizationFactor = 111132.954
+
         private struct CacheKey: Hashable {
-            let latitude: CLLocationDegrees
-            let longitude: CLLocationDegrees
+            let latitude: Int
+            let longitude: Int
 
             init(_ location: CLLocation) {
-                latitude = location.coordinate.latitude
-                longitude = location.coordinate.longitude
+                latitude = Int(location.coordinate.latitude * LocationCache.coordinateNormalizationFactor)
+                longitude = Int(location.coordinate.longitude * LocationCache.coordinateNormalizationFactor)
             }
         }
 
