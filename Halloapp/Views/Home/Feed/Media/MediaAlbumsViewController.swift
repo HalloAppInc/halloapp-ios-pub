@@ -24,9 +24,11 @@ private extension Localizations {
 class MediaAlbumsViewController: UIViewController {
     
     private let didFinish: MediaAlbumsViewControllerCallback
-    
-    init(didFinish: @escaping MediaAlbumsViewControllerCallback) {
+    private let highlightedAssetCollection: PHAssetCollection?
+
+    init(highlightedAssetCollection: PHAssetCollection? = nil, didFinish: @escaping MediaAlbumsViewControllerCallback) {
         self.didFinish = didFinish
+        self.highlightedAssetCollection = highlightedAssetCollection
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -48,6 +50,10 @@ class MediaAlbumsViewController: UIViewController {
             let smartAlbums = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .any, options: nil)
             let userAlbums = PHAssetCollection.fetchAssetCollections(with: .album, subtype: .albumRegular, options: nil)
             var albums = [Album]()
+
+            if let highlightedAssetCollection = self.highlightedAssetCollection {
+                albums.append(Album(highlightedAssetCollection, useAnyImageAsPreview: true))
+            }
 
             for i in 0..<smartAlbums.count {
                 albums.append(Album(smartAlbums[i]))
@@ -87,11 +93,13 @@ fileprivate class Album : ObservableObject, Identifiable {
     let album: PHAssetCollection
     let title: String
     let count: Int
-    
-    init(_ album: PHAssetCollection) {
+    let useAnyImageAsPreview: Bool
+
+    init(_ album: PHAssetCollection, useAnyImageAsPreview: Bool = false) {
         self.id = album.localIdentifier
         self.album = album
-        
+        self.useAnyImageAsPreview = useAnyImageAsPreview
+
         title = album.localizedTitle ?? ""
         count = PHAsset.fetchAssets(in: album, options: nil).count
         
@@ -104,8 +112,19 @@ fileprivate class Album : ObservableObject, Identifiable {
         let options = PHFetchOptions()
         options.fetchLimit = 1
 
-        guard let asset = PHAsset.fetchKeyAssets(in: album, options: options)?.firstObject else { return }
-        
+        let asset: PHAsset?
+        if let keyAsset = PHAsset.fetchKeyAssets(in: album, options: options)?.firstObject {
+            asset = keyAsset
+        } else if useAnyImageAsPreview, let anyAsset = PHAsset.fetchAssets(in: album, options: options).firstObject {
+            asset = anyAsset
+        } else {
+            asset = nil
+        }
+
+        guard let asset else {
+            return
+        }
+
         PHImageManager.default().requestImage(for: asset, targetSize: CGSize(width: 256, height: 256), contentMode: .aspectFill, options: nil) { [weak self] image, _ in
             guard let self = self else { return }
             self.image = image

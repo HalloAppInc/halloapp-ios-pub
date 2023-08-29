@@ -72,9 +72,10 @@ class AlbumPreviewViewController: UIViewController {
 
     @objc private func createPost() {
         Task {
-            let scoreSortedAssets = await ImageRanker.shared.rankMedia(Array(photoCluster.assets))
+            let scoreSortedAssets = await ImageRanker.shared.rankMedia(Array(self.photoCluster.assets))
             let pendingMedia = scoreSortedAssets.compactMap { PendingMedia(asset: $0) }
-            let state = NewPostState(pendingMedia: Array(pendingMedia.prefix(10)), mediaSource: .library, highlightedMedia: pendingMedia)
+            let highlightedAssetCollection = PHAssetCollection.transientAssetCollection(with: scoreSortedAssets, title: self.photoCluster.locationName)
+            let state = NewPostState(pendingMedia: Array(pendingMedia.prefix(10)), mediaSource: .library, highlightedAssetCollection: highlightedAssetCollection)
 
             let newPostViewController = NewPostViewController(state: state, destination: .feed(.all), showDestinationPicker: true) { didPost, _ in
                 // Reset back to all

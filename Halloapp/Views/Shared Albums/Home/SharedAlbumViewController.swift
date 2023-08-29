@@ -8,6 +8,7 @@
 
 import Combine
 import Core
+import Photos
 import UIKit
 
 class SharedAlbumViewController: UIViewController {
@@ -109,10 +110,11 @@ extension SharedAlbumViewController: UICollectionViewDelegate {
         Task {
             let scoreSortedAssets = await ImageRanker.shared.rankMedia(Array(photoCluster.assets))
             let pendingMedia = scoreSortedAssets.compactMap { PendingMedia(asset: $0) }
+            let highlightedAssetCollection = PHAssetCollection.transientAssetCollection(with: scoreSortedAssets, title: photoCluster.locationName)
             let state = NewPostState(pendingMedia: Array(pendingMedia.prefix(10)),
                                      mediaSource: .library,
                                      pendingInput: MentionInput(text: photoCluster.locationName ?? "", mentions: MentionRangeMap(), selectedRange: NSRange()),
-                                     highlightedMedia: pendingMedia)
+                                     highlightedAssetCollection: highlightedAssetCollection)
 
             let newPostViewController = NewPostViewController(state: state,
                                                               destination: .feed(.all),

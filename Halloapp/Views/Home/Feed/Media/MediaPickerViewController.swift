@@ -159,7 +159,7 @@ class MediaPickerViewController: UIViewController {
     private var preview: MediaPickerPreview?
     private var updatingSnapshot = false
     private var nextInProgress = false
-    private var highlightedMedia: [PendingMedia]?
+    private var highlightedAssetCollection: PHAssetCollection?
 
     private lazy var collectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: view.frame, collectionViewLayout: makeLayout())
@@ -365,11 +365,11 @@ class MediaPickerViewController: UIViewController {
 
     init(config: MediaPickerConfig,
          selected: [PendingMedia] = [],
-         highlightedMedia: [PendingMedia]? = nil,
+         highlightedAssetCollection: PHAssetCollection? = nil,
          didFinish: @escaping MediaPickerViewControllerCallback) {
         self.config = config
         self.selected.append(contentsOf: selected)
-        self.highlightedMedia = highlightedMedia
+        self.highlightedAssetCollection = highlightedAssetCollection
         self.didFinish = didFinish
 
         let modeRawValue = MainAppContext.shared.userDefaults.integer(forKey: UserDefaultsKey.MediaPickerMode)
@@ -421,7 +421,7 @@ class MediaPickerViewController: UIViewController {
         setupPreviews()
 
         PHPhotoLibrary.shared().register(self)
-        fetchAssets()
+        fetchAssets(album: highlightedAssetCollection)
 
         isAnyCallOngoingCancellable = MainAppContext.shared.callManager.isAnyCallOngoing.sink { [weak self] activeCall in
             let isVideoCallOngoing = activeCall?.isVideoCall ?? false
@@ -568,7 +568,7 @@ class MediaPickerViewController: UIViewController {
         
         for cell in collectionView.visibleCells {
             guard let cell = cell as? AssetViewCell else { continue }
-            cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedMedia: highlightedMedia)
+            cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedAssetCollection: highlightedAssetCollection)
         }
 
         config.destination = destination
@@ -620,7 +620,7 @@ class MediaPickerViewController: UIViewController {
                 
                 for cell in collectionView.visibleCells {
                     guard let cell = cell as? AssetViewCell else { continue }
-                    cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedMedia: highlightedMedia)
+                    cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedAssetCollection: self.highlightedAssetCollection)
                 }
                 
                 transitionState = .inprogress
@@ -854,7 +854,7 @@ class MediaPickerViewController: UIViewController {
     }
 
     @objc private func openAlbumsAction() {
-        let controller = MediaAlbumsViewController() {[weak self] controller, album, cancel in
+        let controller = MediaAlbumsViewController(highlightedAssetCollection: highlightedAssetCollection) {[weak self] controller, album, cancel in
             guard let self = self else { return }
             DDLogInfo("openAlbumsAction \(album?.description ?? "missing-album")")
             
@@ -958,7 +958,7 @@ extension MediaPickerViewController: UICollectionViewDelegate {
                 cell.image.transform = CGAffineTransform.identity
             })
         }, completion: { _ in
-            cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedMedia: self.highlightedMedia)
+            cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedAssetCollection: self.highlightedAssetCollection)
         })
     }
 
@@ -980,7 +980,7 @@ extension MediaPickerViewController: UICollectionViewDelegate {
         }, completion: { _ in
             for cell in collectionView.visibleCells {
                 guard let cell = cell as? AssetViewCell else { continue }
-                cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedMedia: self.highlightedMedia)
+                cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedAssetCollection: self.highlightedAssetCollection)
             }
         })
     }
@@ -1033,7 +1033,7 @@ extension MediaPickerViewController: UICollectionViewDataSource {
                 guard let self = self else { return }
                 guard cell.asset?.localIdentifier == asset.localIdentifier else { return }
                 cell.image.image = image
-                cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedMedia: highlightedMedia)
+                cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedAssetCollection: highlightedAssetCollection)
             }
         }
 
@@ -1180,7 +1180,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         return (spacing, column * spacing / columnCount, spacing - ((column + 1) * spacing / columnCount))
     }
     
-    func prepare(config: MediaPickerConfig, mode: MediaPickerMode, selection: [PendingMedia], highlightedMedia: [PendingMedia]?) {
+    func prepare(config: MediaPickerConfig, mode: MediaPickerMode, selection: [PendingMedia], highlightedAssetCollection: PHAssetCollection?) {
         let (spacingBottom, spacingLead, spacingTrail) = calculateSpacing(mode: mode)
         
         NSLayoutConstraint.deactivate(activeConstraints)
@@ -1224,9 +1224,9 @@ fileprivate class AssetViewCell: UICollectionViewCell {
 
         setNeedsLayout()
 
-        if let highlightedMedia {
+        if let highlightedAssetCollection {
             let highlighted: Bool
-            if let asset, highlightedMedia.compactMap(\.asset?.localIdentifier).contains(asset.localIdentifier) {
+            if let asset, PHAsset.fetchAssets(in: highlightedAssetCollection, options: nil).contains(asset) {
                 highlighted = true
             } else {
                 highlighted = false

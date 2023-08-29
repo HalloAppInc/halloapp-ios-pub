@@ -45,7 +45,7 @@ struct NewPostState {
     var mediaSource = NewPostMediaSource.noMedia
     var pendingInput = MentionInput(text: "", mentions: MentionRangeMap(), selectedRange: NSRange())
     var pendingVoiceNote: PendingMedia?
-    var highlightedMedia: [PendingMedia]?
+    var highlightedAssetCollection: PHAssetCollection?
 
     var isPostComposerCancellable: Bool {
         // We can only return to the library picker (UIImagePickerController freezes after choosing an image 🙄).
@@ -370,12 +370,14 @@ final class NewPostViewController: UINavigationController {
 
         return vc
     }
-    
+
     private func makeMediaPickerViewControllerNew() -> UIViewController {
         let config = MediaPickerConfig.config(with: destination)
-        let pickerController = MediaPickerViewController(config: config, selected: state.pendingMedia, highlightedMedia: state.highlightedMedia) { [weak self] controller, destination, media, cancel in
+        let pickerController = MediaPickerViewController(config: config,
+                                                         selected: state.pendingMedia,
+                                                         highlightedAssetCollection: state.highlightedAssetCollection) { [weak self] controller, destination, media, cancel in
             guard let self = self else { return }
-            
+
             if cancel {
                 self.cleanupAndFinish()
             } else {
@@ -388,7 +390,7 @@ final class NewPostViewController: UINavigationController {
             }
         }
         pickerController.title = Localizations.newPost
-        
+
         return pickerController
     }
 }
