@@ -520,6 +520,9 @@
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Bu sohbeti silerek sohbet geçmişini ve içeriğini cihazından temizleyeceksin.";
 
+/* Prompts the user to choose a photo. */
+"choose.photo" = "Fotoğraf seç";
+
 /* Title for the button in comment deletion confirmation prompt. */
 "comment.delete.action" = "Yorumu sil";
 
@@ -895,6 +898,9 @@
 /* Explains that as more contacts join the app, they will appear in this list automatically. */
 "fellow.contacts.will.arrive" = "HalloApp'e kaydolan kişilerin burada otomatik olarak görünecek";
 
+/* Disclaimer telling users that their posts can be seen by their friends. */
+"friends.privacy.disclaimer" = "Eklediğin kişiler, arkadaşlarınla paylaştığın gönderileri görebilecek";
+
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Grup açıklaması ekle";
 
@@ -1213,6 +1219,9 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Uygulamanı güncelle.";
 
+/* Shown to the user when suggestions are being loaded. */
+"loading.suggestions" = "Öneriler yükleniyor";
+
 /* Title to indicate that a fetch operation is in progress. */
 "locating.title" = "Konum bulunuyor";
 
@@ -1413,7 +1422,8 @@
 /* Explains that the listed contacts will be able to see posts that are shared with all contacts */
 "n.contacts.privacy.disclaimer" = "n.kişiler.iletişimgizliliği.sorumlulukreddi";
 
-/* Number of contacts that are already on HalloApp. */
+/* Number of contacts that are already on HalloApp.
+   Number of contacts that are already registered on HalloApp. */
 "n.fellow.contacts" = "n.yakın.arkadaşlar";
 
 /* Indicates how many invites are remaining */
@@ -1433,6 +1443,9 @@
 
 /* Header that appears above unread messages in the chats view. */
 "n.unread.messages.title" = "n.unread.messages.title";
+
+/* Indicates the user's name. */
+"name.title" = "İsim";
 
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
 "new.group.members.empty.placeholder" = "HalloApp'teki kişilerin burada görünecek";
@@ -1584,7 +1597,7 @@
 /* Menu option to open a location in (Apple) Maps. */
 "openInMapsApp.maps" = "Haritalarda aç";
 
-/* Title that suggests something is optional. */
+/* Title denoting something that is optional. */
 "optional.title" = "Seçmeli";
 
 /* button to launch photo and video library */
@@ -1806,9 +1819,6 @@
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Kaydolmak için bir Grup Davet İlişimiyle yönlendirildiysen lütfen kaydını tamamlamak için ilişime tekrar tıkla ve gruba katıl. ";
 
-/* Text prompting the user for their push name. */
-"registration.name.prompt" = "Sana nasıl hitap etmeliyiz?";
-
 /* Placeholder text for name entry */
 "registration.nameEntry.placeholder" = "Adın";
 
@@ -1908,8 +1918,14 @@
 /* Title that indicates that someone took a screenshot. */
 "screenshot.title" = "Ekran görüntüsü";
 
+/* Title of a button that displays all results. */
+"see.all" = "Hepsini gör";
+
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Lütfen en az bir kişi seç";
+
+/* Prompts the user to choose their username. */
+"select.username.prompt" = "Adını gir ve bir kullanıcı adı seç";
 
 /* Indicates that an item is in the process of being sent. */
 "sending.title" = "Gönderiliyor";
@@ -2076,6 +2092,15 @@
 /* Text placed on the blurred overlay of someone else's moment. */
 "shared.moment" = "%@ kişisinin anlığı";
 
+/* Count of photos in album */
+"sharedalbums.albumsuggestioncell.countformat" = "+%d";
+
+/* title of album suggestion with location */
+"sharedalbums.albumsuggestioncell.titleformat.location" = "@%2$@ mekanından %1$d fotoğraf";
+
+/* title of album suggestion without location */
+"sharedalbums.albumsuggestioncell.titleformat.nolocation" = "çekilen %d fotoğraf";
+
 /* Title for sharing to instagram stories */
 "shareprovider.instagramstories.title" = "Instagram Hikâyeleri";
 
@@ -2132,6 +2157,9 @@
 
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
 "thread.list.preview.new.user.default" = "%@ HalloApp'te! 🎉";
+
+/* Tab for shared albums in main interface */
+"title.albums" = "Albümler";
 
 /* Camera screen title */
 "title.camera" = "Kamera";
@@ -2237,6 +2265,9 @@
 
 /* Button to start voice call. Should be translated as verb. */
 "user.voice.call" = "Ara";
+
+/* Indicates the user's username. */
+"username.title" = "Kullanıcı adı";
 
 /* No comment provided by engineer. */
 "VIDEO" = "VİDEO";

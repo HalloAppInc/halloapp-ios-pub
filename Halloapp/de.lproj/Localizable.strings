@@ -1413,7 +1413,8 @@
 /* Explains that the listed contacts will be able to see posts that are shared with all contacts */
 "n.contacts.privacy.disclaimer" = "n.contacts.privacy.disclaimer";
 
-/* Number of contacts that are already on HalloApp. */
+/* Number of contacts that are already on HalloApp.
+   Number of contacts that are already registered on HalloApp. */
 "n.fellow.contacts" = "n.fellow.contacts";
 
 /* Indicates how many invites are remaining */
@@ -1584,7 +1585,7 @@
 /* Menu option to open a location in (Apple) Maps. */
 "openInMapsApp.maps" = "In Karten öffnen";
 
-/* Title that suggests something is optional. */
+/* Title denoting something that is optional. */
 "optional.title" = "Optional";
 
 /* button to launch photo and video library */
@@ -1805,9 +1806,6 @@
 
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Wenn du einem Gruppeneinladungslink gefolgt bist, um dich zu registrieren, klicke bitte erneut auf den Link, um die Registrierung abzuschließen und der Gruppe beizutreten.";
-
-/* Text prompting the user for their push name. */
-"registration.name.prompt" = "Wie sollen wir dich nennen?";
 
 /* Placeholder text for name entry */
 "registration.nameEntry.placeholder" = "Dein Name";

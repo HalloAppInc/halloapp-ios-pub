@@ -520,6 +520,9 @@
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Al eliminar este chat estarás borrando toda la historia del chat y el contenido de tu dispositivo.";
 
+/* Prompts the user to choose a photo. */
+"choose.photo" = "Seleccionar foto";
+
 /* Title for the button in comment deletion confirmation prompt. */
 "comment.delete.action" = "Eliminar comentario";
 
@@ -895,6 +898,9 @@
 /* Explains that as more contacts join the app, they will appear in this list automatically. */
 "fellow.contacts.will.arrive" = "Tus contactos telefónicos que se registren con HalloApp aparecerán aquí automáticamente.";
 
+/* Disclaimer telling users that their posts can be seen by their friends. */
+"friends.privacy.disclaimer" = "Las personas que agregaste podrán ver tus publicaciones compartidas con todos los amigos de HalloApp.";
+
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Agrega la descripción del grupo";
 
@@ -1213,6 +1219,9 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Actualiza tu aplicación.";
 
+/* Shown to the user when suggestions are being loaded. */
+"loading.suggestions" = "Cargando Sugerencias";
+
 /* Title to indicate that a fetch operation is in progress. */
 "locating.title" = "Localizando";
 
@@ -1413,7 +1422,8 @@
 /* Explains that the listed contacts will be able to see posts that are shared with all contacts */
 "n.contacts.privacy.disclaimer" = "n.contacts.privacy.disclaimer";
 
-/* Number of contacts that are already on HalloApp. */
+/* Number of contacts that are already on HalloApp.
+   Number of contacts that are already registered on HalloApp. */
 "n.fellow.contacts" = "n.fellow.contacts";
 
 /* Indicates how many invites are remaining */
@@ -1433,6 +1443,9 @@
 
 /* Header that appears above unread messages in the chats view. */
 "n.unread.messages.title" = "n.unread.messages.title";
+
+/* Indicates the user's name. */
+"name.title" = "Nombre";
 
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
 "new.group.members.empty.placeholder" = "Tus contactos que están en HalloApp aparecerán aquí";
@@ -1584,7 +1597,7 @@
 /* Menu option to open a location in (Apple) Maps. */
 "openInMapsApp.maps" = "Abrir en mapas";
 
-/* Title that suggests something is optional. */
+/* Title denoting something that is optional. */
 "optional.title" = "Opcional";
 
 /* button to launch photo and video library */
@@ -1806,9 +1819,6 @@
 /* Popup that appears when user tries to register uninvited number */
 "registration.invite.only" = "Si seguiste un enlace de invitación de grupo para registrarte, haz clic en el enlace nuevamente para finalizar el registro y unirte al grupo.\n";
 
-/* Text prompting the user for their push name. */
-"registration.name.prompt" = "¿Cómo deberíamos llamarte?";
-
 /* Placeholder text for name entry */
 "registration.nameEntry.placeholder" = "Tu nombre";
 
@@ -1908,8 +1918,14 @@
 /* Title that indicates that someone took a screenshot. */
 "screenshot.title" = "Captura de pantalla";
 
+/* Title of a button that displays all results. */
+"see.all" = "Ver todo";
+
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Por favor, selecciona al menos un contacto.";
+
+/* Prompts the user to choose their username. */
+"select.username.prompt" = "Ingresa tu nombre y elige usuario";
 
 /* Indicates that an item is in the process of being sent. */
 "sending.title" = "Enviando";
@@ -2249,6 +2265,9 @@
 
 /* Button to start voice call. Should be translated as verb. */
 "user.voice.call" = "Llamar";
+
+/* Indicates the user's username. */
+"username.title" = "usuario";
 
 /* No comment provided by engineer. */
 "VIDEO" = "VIDEO";

@@ -239,11 +239,11 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>Je bent met %d persoon verbonden op HalloApp</string>
+			<string>Eén van je contacten gebruikt HalloApp. Toevoegen als vriend?</string>
 			<key>other</key>
-			<string>Je bent met %d personen verbonden op HalloApp</string>
+			<string>%d van je contacten gebruiken HalloApp. Toevoegen als vrienden?</string>
 			<key>zero</key>
-			<string>Je bent nog met niemand verbonden op HalloApp</string>
+			<string>Niemand van je contacten gebruikt HalloApp</string>
 		</dict>
 	</dict>
 	<key>n.invites.count</key>
