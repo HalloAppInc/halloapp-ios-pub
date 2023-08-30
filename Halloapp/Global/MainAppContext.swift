@@ -45,6 +45,7 @@ class MainAppContext: AppContext {
     private lazy var mergeSharedDataQueue = { DispatchQueue(label: "com.halloapp.mergeSharedData", qos: .default) }()
 
     lazy var photoSuggestions = PhotoSuggestions()
+    lazy var visitTracker = VisitTracker(photoSuggestions: photoSuggestions)
 
     static let MediaUploadDataLastCleanUpTime = "MediaUploadDataLastCleanUpTime"
 
@@ -214,6 +215,10 @@ class MainAppContext: AppContext {
                 mediaUploader?.resumeBackgroundURLSessions()
             }
             .store(in: &cancellableSet)
+
+        DispatchQueue.main.async {
+            self.visitTracker.startVisitTrackingIfAvailable()
+        }
     }
 
     private func performAppUpdateMigrationIfNecessary() {

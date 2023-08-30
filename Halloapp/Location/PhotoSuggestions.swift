@@ -8,6 +8,7 @@
 
 import CocoaLumberjackSwift
 import Combine
+import Core
 import MapKit
 import Photos
 
@@ -409,6 +410,19 @@ extension PhotoSuggestions {
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(assets)
+        }
+
+        var newPostState: NewPostState {
+            get async {
+                let scoreSortedAssets = await ImageRanker.shared.rankMedia(Array(assets))
+                let selectedMedia = scoreSortedAssets.prefix(ServerProperties.maxPostMediaItems).compactMap { PendingMedia(asset: $0) }
+                let createdAtSortedAssets = assets.sorted { $0.creationDate ?? .distantFuture < $1.creationDate ?? .distantFuture }
+                let highlightedAssetCollection = PHAssetCollection.transientAssetCollection(with: createdAtSortedAssets, title: locationName)
+                return NewPostState(pendingMedia: selectedMedia,
+                                    mediaSource: .library,
+                                    pendingInput: MentionInput(text: locationName ?? "", mentions: MentionRangeMap(), selectedRange: NSRange()),
+                                    highlightedAssetCollection: highlightedAssetCollection)
+            }
         }
     }
 }

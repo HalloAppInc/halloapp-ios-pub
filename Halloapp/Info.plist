@@ -49,17 +49,25 @@
 	<string>This lets you make video calls, and take photos and videos on HalloApp</string>
 	<key>NSContactsUsageDescription</key>
 	<string>To share and see posts from your friends and family, allow HalloApp upload your contacts to it&apos;s servers.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This lets you send your current location or nearby places in comments and chats.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This lets you make calls, send audio posts and messages, and record videos with sound.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This lets you send photos and videos from your gallery, and save the ones you capture.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This lets you send your current location or nearby places in comments and chats.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This lets us track visits (TODO)</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This lets us track visits (TODO)</string>
 	<key>NSUserActivityTypes</key>
 	<array>
 		<string>INSendMessageIntent</string>
 		<string>INStartCallIntent</string>
 	</array>
+	<key>SCSDKClientId</key>
+	<string>9fa954ce-5a28-4385-8cc7-0b57df98a48f</string>
+	<key>SnapKitAutoInit</key>
+	<false/>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Gotham-Black.otf</string>
@@ -105,6 +113,7 @@
 	<array>
 		<string>audio</string>
 		<string>fetch</string>
+		<string>location</string>
 		<string>processing</string>
 		<string>remote-notification</string>
 		<string>voip</string>
@@ -123,9 +132,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>SCSDKClientId</key>
-	<string>9fa954ce-5a28-4385-8cc7-0b57df98a48f</string>
-	<key>SnapKitAutoInit</key>
-	<false/>
 </dict>
 </plist>

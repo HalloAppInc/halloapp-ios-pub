@@ -65,11 +65,19 @@ class SharedAlbumViewController: UIViewController {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
 
+        let enableLocationBanner = EnableLocationBanner()
+        enableLocationBanner.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(enableLocationBanner)
+
         NSLayoutConstraint.activate([
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.topAnchor.constraint(equalTo: view.topAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            enableLocationBanner.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            enableLocationBanner.leadingAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 42),
+            enableLocationBanner.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
         ])
 
         NotificationCenter.default.publisher(for: PhotoSuggestions.suggestionsDidChange)
@@ -108,15 +116,8 @@ extension SharedAlbumViewController: UICollectionViewDelegate {
         }
 
         Task {
-            let scoreSortedAssets = await ImageRanker.shared.rankMedia(Array(photoCluster.assets))
-            let pendingMedia = scoreSortedAssets.compactMap { PendingMedia(asset: $0) }
-            let highlightedAssetCollection = PHAssetCollection.transientAssetCollection(with: scoreSortedAssets, title: photoCluster.locationName)
-            let state = NewPostState(pendingMedia: Array(pendingMedia.prefix(10)),
-                                     mediaSource: .library,
-                                     pendingInput: MentionInput(text: photoCluster.locationName ?? "", mentions: MentionRangeMap(), selectedRange: NSRange()),
-                                     highlightedAssetCollection: highlightedAssetCollection)
-
-            let newPostViewController = NewPostViewController(state: state,
+            let newPostState = await photoCluster.newPostState
+            let newPostViewController = NewPostViewController(state: newPostState,
                                                               destination: .feed(.all),
                                                               showDestinationPicker: true) { didPost, _ in
                 // Reset back to all

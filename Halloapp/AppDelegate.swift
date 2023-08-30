@@ -384,15 +384,20 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         DDLogInfo("appdelegate/notifications/user-response/\(response.actionIdentifier) UserInfo=\(response.notification.request.content.userInfo)")
 
         if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
-            if let metadata = NotificationMetadata.load(from: response) {
+            if VisitTracker.isVisitNotification(response.notification) {
+                MainAppContext.shared.visitTracker.handleNofication(response.notification, completionHandler: completionHandler)
+            } else if let metadata = NotificationMetadata.load(from: response) {
                 Analytics.log(event: .notificationOpened, properties: [.notificationType: metadata.contentType.rawValue])
                 DDLogInfo("appdelegate/notifications/user-response MetaData=\(metadata)")
                 metadata.saveToUserDefaults()
                 MainAppContext.shared.didTapNotification.send(metadata)
+                completionHandler()
+            } else {
+                completionHandler()
             }
+        } else {
+            completionHandler()
         }
-
-        completionHandler()
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter,
