@@ -43,13 +43,15 @@ class ServerGeocoder {
            let thoroughfare = placemark.thoroughfare,
            !name.localizedCaseInsensitiveContains(thoroughfare) {
             photoClusterLocation = PhotoClusterLocation(placemark: placemark)
-        // Perform a lookup using our geocoding service
-        } else if let serverLocation = try await requestLocation(location) {
+        // Perform a lookup using our geocoding service, use if < 100m away
+        } else if let serverLocation = try await requestLocation(location),
+                  serverLocation.type != "poi" || serverLocation.clLocation.distance(from: location) < 100 {
             photoClusterLocation = PhotoClusterLocation(serverLocation: serverLocation)
         // fall back to placemark address
-        } else if let location = placemark?.location, let city = placemark?.locality {
+        } else if let location = placemark?.location, let name = placemark?.subLocality ?? placemark?.locality ?? placemark?.thoroughfare {
             let address = placemark?.postalAddress.flatMap { CNPostalAddressFormatter.string(from: $0, style: .mailingAddress) }
-            photoClusterLocation = PhotoClusterLocation(name: city, location: location, address: address)
+            let formattedAddress = address?.split(separator: "\n").first.flatMap { String($0) }
+            photoClusterLocation = PhotoClusterLocation(name: name, location: location, address: formattedAddress)
         } else {
             photoClusterLocation = nil
         }
@@ -125,5 +127,12 @@ extension PhotoClusterLocation {
             name = serverLocation.name
         }
         address = serverLocation.address
+    }
+}
+
+private extension Server_ReverseGeocodeLocation {
+
+    var clLocation: CLLocation {
+        return CLLocation(latitude: location.latitude, longitude: location.longitude)
     }
 }

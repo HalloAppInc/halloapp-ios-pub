@@ -35,8 +35,8 @@ class PhotoSuggestions: NSObject {
 
         // mean shift location clustering
         static let maxMacroclusters = 20
-        static let meanShiftDistanceNormalizationFactor: CLLocationDistance = 75
-        static let convergenceThreshold: CLLocationDistance = 10
+        static let meanShiftDistanceNormalizationFactor: CLLocationDistance = 100
+        static let convergenceThreshold: CLLocationDistance = 5
     }
 
     private var recentAssets: PHFetchResult<PHAsset>
@@ -96,7 +96,7 @@ class PhotoSuggestions: NSObject {
 
             var clusterableAssets = Set(Self.clusterableAssets(for: asset, in: filteredAssets))
 
-            guard clusterableAssets.count >= Constants.minClusterableAssetCount else {
+            guard clusterableAssets.count >= Constants.minClusterableAssetCount - 1 else {
                 continue
             }
 
@@ -112,7 +112,7 @@ class PhotoSuggestions: NSObject {
                 visitedAssetIdentifiers.insert(clusterableAsset.localIdentifier)
 
                 let clusterableAssetNeighbors = Self.clusterableAssets(for: clusterableAsset, in: filteredAssets)
-                if clusterableAssetNeighbors.count > Constants.minClusterableAssetCount {
+                if clusterableAssetNeighbors.count >= Constants.minClusterableAssetCount - 1 {
                     clusterableAssets.formUnion(clusterableAssetNeighbors)
                 }
             }
@@ -147,7 +147,7 @@ class PhotoSuggestions: NSObject {
                     for (asset, normalizedLocation) in zip(assetsWithLocation, Self.meanShiftCluster(locations: assetLocations)) {
                         let idx = clusteredAssetsWithNormalizedLocation.firstIndex { cluster in
                             cluster.contains {
-                                $0.normalizedLocation.distance(from: normalizedLocation) <= Constants.convergenceThreshold
+                                $0.normalizedLocation.distance(from: normalizedLocation) <= 2 * Constants.convergenceThreshold
                             }
                         }
                         if let idx {
