@@ -12,7 +12,7 @@ import UIKit
 class AssetImageView: UIImageView {
 
     private struct Constants {
-        static let thumbnailSize = CGSize(width: 480, height: 480)
+        static let thumbnailSize = CGSize(width: 256, height: 256)
     }
 
     enum AssetMode {
@@ -23,11 +23,17 @@ class AssetImageView: UIImageView {
     private static let imageManager = PHCachingImageManager()
 
     private var currentImageRequestID: PHImageRequestID?
+    private var currentAssetLocalIdentifier: String?
 
     var assetMode: AssetMode = .thumbnail
 
     var asset: PHAsset? {
         didSet {
+            if let asset, asset.localIdentifier == currentAssetLocalIdentifier {
+                return
+            }
+            currentAssetLocalIdentifier = asset?.localIdentifier
+
             image = nil
 
             if let currentImageRequestID {
@@ -46,27 +52,21 @@ class AssetImageView: UIImageView {
                 targetSize = PHImageManagerMaximumSize
             }
 
-            var didLoadImageSynchronously = true
+            let options = PHImageRequestOptions()
+            options.isNetworkAccessAllowed = true
+
             var requestID: PHImageRequestID?
             requestID = Self.imageManager.requestImage(for: asset,
                                                        targetSize: targetSize,
                                                        contentMode: contentMode.imageContentMode,
-                                                       options: nil) { [weak self] image, metadata in
+                                                       options: options) { [weak self] image, metadata in
                 guard let self, let requestID, requestID == self.currentImageRequestID else {
                     return
                 }
 
-                if didLoadImageSynchronously {
-                    self.image = image
-                } else {
-                    UIView.transition(with: self, duration: 0.01, options: .transitionCrossDissolve) {
-                        self.image = image
-                    }
-                }
+                self.image = image
             }
-            didLoadImageSynchronously = false
-            self.currentImageRequestID = requestID
-
+            currentImageRequestID = requestID
         }
     }
 }

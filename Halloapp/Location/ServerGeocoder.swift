@@ -7,6 +7,7 @@
 //
 
 import CocoaLumberjackSwift
+import Contacts
 import CoreCommon
 import CoreLocation
 import Foundation
@@ -47,7 +48,8 @@ class ServerGeocoder {
             photoClusterLocation = PhotoClusterLocation(serverLocation: serverLocation)
         // fall back to placemark address
         } else if let location = placemark?.location, let city = placemark?.locality {
-            photoClusterLocation = PhotoClusterLocation(name: city, location: location)
+            let address = placemark?.postalAddress.flatMap { CNPostalAddressFormatter.string(from: $0, style: .mailingAddress) }
+            photoClusterLocation = PhotoClusterLocation(name: city, location: location, address: address)
         } else {
             photoClusterLocation = nil
         }
@@ -122,5 +124,6 @@ extension PhotoClusterLocation {
         } else {
             name = serverLocation.name
         }
+        address = serverLocation.address
     }
 }

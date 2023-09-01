@@ -467,6 +467,7 @@
 		F45D9F792825DF62005BAD9D /* GroupGridCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D9F782825DF62005BAD9D /* GroupGridCollectionViewCell.swift */; };
 		F45D9F7D282C3ACF005BAD9D /* GroupGridDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D9F7C282C3ACF005BAD9D /* GroupGridDataSource.swift */; };
 		F45D9F7F282C4E4B005BAD9D /* GroupGridHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D9F7E282C4E4B005BAD9D /* GroupGridHeader.swift */; };
+		F4622BE42AA159D600DC051C /* PhotoSuggestionsHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4622BE32AA159D600DC051C /* PhotoSuggestionsHeader.swift */; };
 		F470251027ED31A6008CD37F /* URLRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F470250F27ED31A6008CD37F /* URLRouter.swift */; };
 		F48466622A9EB9CA00B693C6 /* EnableLocationBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F48466612A9EB9CA00B693C6 /* EnableLocationBanner.swift */; };
 		F4867F3328ECA0B4006C22A8 /* ShareCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4867F3228ECA0B4006C22A8 /* ShareCarousel.swift */; };
@@ -488,7 +489,6 @@
 		F4C29B16283D5A4C00A4FE08 /* MediaImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C29B15283D5A4C00A4FE08 /* MediaImageView.swift */; };
 		F4D88F5127D6D8A300D706DA /* InviteContactViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */; };
 		F4D88F6B27D9873F00D706DA /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F6A27D9873E00D706DA /* Toast.swift */; };
-		F4E21D872A65C9D0007C32A3 /* AlbumPreviewViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4E21D862A65C9D0007C32A3 /* AlbumPreviewViewController.swift */; };
 		F4F13CBD2A608752007EFC21 /* SharedAlbumViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F13CBC2A608752007EFC21 /* SharedAlbumViewController.swift */; };
 		F4F13CC02A60896A007EFC21 /* AlbumSuggestionCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F13CBF2A60896A007EFC21 /* AlbumSuggestionCollectionViewCell.swift */; };
 		F4F13CC32A609B84007EFC21 /* AssetImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F13CC22A609B84007EFC21 /* AssetImageView.swift */; };
@@ -1297,6 +1297,7 @@
 		F45D9F782825DF62005BAD9D /* GroupGridCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridCollectionViewCell.swift; sourceTree = "<group>"; };
 		F45D9F7C282C3ACF005BAD9D /* GroupGridDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridDataSource.swift; sourceTree = "<group>"; };
 		F45D9F7E282C4E4B005BAD9D /* GroupGridHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridHeader.swift; sourceTree = "<group>"; };
+		F4622BE32AA159D600DC051C /* PhotoSuggestionsHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSuggestionsHeader.swift; sourceTree = "<group>"; };
 		F470250F27ED31A6008CD37F /* URLRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLRouter.swift; sourceTree = "<group>"; };
 		F48466612A9EB9CA00B693C6 /* EnableLocationBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnableLocationBanner.swift; sourceTree = "<group>"; };
 		F4867F3228ECA0B4006C22A8 /* ShareCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareCarousel.swift; sourceTree = "<group>"; };
@@ -1316,7 +1317,6 @@
 		F4C29B15283D5A4C00A4FE08 /* MediaImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaImageView.swift; sourceTree = "<group>"; };
 		F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteContactViewController.swift; sourceTree = "<group>"; };
 		F4D88F6A27D9873E00D706DA /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
-		F4E21D862A65C9D0007C32A3 /* AlbumPreviewViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumPreviewViewController.swift; sourceTree = "<group>"; };
 		F4F13CBC2A608752007EFC21 /* SharedAlbumViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedAlbumViewController.swift; sourceTree = "<group>"; };
 		F4F13CBF2A60896A007EFC21 /* AlbumSuggestionCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumSuggestionCollectionViewCell.swift; sourceTree = "<group>"; };
 		F4F13CC22A609B84007EFC21 /* AssetImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetImageView.swift; sourceTree = "<group>"; };
@@ -2632,7 +2632,6 @@
 			children = (
 				F4F13CC12A60896E007EFC21 /* Cells */,
 				F4F13CBC2A608752007EFC21 /* SharedAlbumViewController.swift */,
-				F4E21D862A65C9D0007C32A3 /* AlbumPreviewViewController.swift */,
 				F48466612A9EB9CA00B693C6 /* EnableLocationBanner.swift */,
 			);
 			path = Home;
@@ -2643,6 +2642,7 @@
 			children = (
 				F4F13CBF2A60896A007EFC21 /* AlbumSuggestionCollectionViewCell.swift */,
 				F4F547D32A69FB3400A67901 /* AlbumSuggestionLoadIndicatorCollectionViewCell.swift */,
+				F4622BE32AA159D600DC051C /* PhotoSuggestionsHeader.swift */,
 			);
 			path = Cells;
 			sourceTree = "<group>";
@@ -3440,12 +3440,12 @@
 				762EDBDB244E344300986617 /* UIFont.swift in Sources */,
 				F88A5CD927145F0800DFA205 /* PostViewController.swift in Sources */,
 				6A6D50D9270FE56800CD2EFC /* Feed4ToFeed6.xcmappingmodel in Sources */,
-				F4E21D872A65C9D0007C32A3 /* AlbumPreviewViewController.swift in Sources */,
 				766492232450DDB9009BC368 /* BadgedButton.swift in Sources */,
 				328447C0282D8B6300F76AB5 /* MessageCellViewEvent.swift in Sources */,
 				76B5B5322501F1700055E712 /* NotificationSettings.swift in Sources */,
 				68F935D3252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift in Sources */,
 				A1CD4481291C722100623FF6 /* CameraPostViewController.swift in Sources */,
+				F4622BE42AA159D600DC051C /* PhotoSuggestionsHeader.swift in Sources */,
 				7653F302255DB7FE001CC946 /* FeedPostCollectionViewCell.swift in Sources */,
 				A15E6C782809FA1B008CAEA0 /* ProfileViewController.swift in Sources */,
 				A1DD9748287E39A000B98618 /* StackedMomentCollectionViewCell.swift in Sources */,

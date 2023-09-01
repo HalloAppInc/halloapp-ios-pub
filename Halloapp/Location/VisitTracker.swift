@@ -82,7 +82,7 @@ class VisitTracker: NSObject {
 
             do {
                 try await UNUserNotificationCenter.current().add(request)
-                DDLogInfo("VisitTracker/notified user of suggestion for \(String(describing: closestSuggestion.locationName))")
+                DDLogInfo("VisitTracker/notified user of suggestion for \(String(describing: closestSuggestion.location?.name))")
                 backgroundTaskCompletion()
             } catch {
                 DDLogError("VisitTracker/error adding notification: \(error)")
@@ -172,7 +172,7 @@ extension Localizations {
     }
 
     static func visitNotificationBody(photoCluster: PhotoSuggestions.PhotoCluster) -> String {
-        if let locationName = photoCluster.locationName {
+        if let locationName = photoCluster.location?.name {
             let formatString = NSLocalizedString("visitTracker.notification.body.withlocation",
                                                  value: "%ld photos from %@",
                                                  comment: "Body of notification that a user has a new sharing suggestion. '6 photos from Terun'")

@@ -57,8 +57,12 @@ extension Localizations {
         NSLocalizedString("title.storage", value: "Storage", comment: "Row in Settings screen")
     }
 
-    static var titleAlbums: String {
-        NSLocalizedString("title.albums", value: "Albums", comment: "Tab for shared albums in main interface")
+    static var titleSuggestions: String {
+        NSLocalizedString("title.suggestions", value: "Suggestions", comment: "Tab for suggestions tab in main interface")
+    }
+
+    static var titlePost: String {
+        NSLocalizedString("title.posts", value: "Post", comment: "Tab for posts tab in main interface")
     }
 
     // MARK: FAB

@@ -8,7 +8,9 @@
 
 import CocoaLumberjackSwift
 import Combine
+import Contacts
 import Core
+import CoreCommon
 import MapKit
 import Photos
 
@@ -199,7 +201,7 @@ class PhotoSuggestions: NSObject {
 
                     return locatedClusters.map { (location, assets) in
                         let photoCluster = PhotoCluster(assets: assets)
-                        photoCluster.locationName = location?.name
+                        photoCluster.location = location
                         return photoCluster
                     }
                 }
@@ -352,7 +354,7 @@ extension PhotoSuggestions {
         private(set) var start: Date
         private(set) var end: Date
         private(set) var assets: Set<PHAsset>
-        fileprivate(set) var locationName: String?
+        fileprivate(set) var location: PhotoClusterLocation?
 
         var center: CLLocation {
             let coordinate = assets
@@ -417,10 +419,11 @@ extension PhotoSuggestions {
                 let scoreSortedAssets = await ImageRanker.shared.rankMedia(Array(assets))
                 let selectedMedia = scoreSortedAssets.prefix(ServerProperties.maxPostMediaItems).compactMap { PendingMedia(asset: $0) }
                 let createdAtSortedAssets = assets.sorted { $0.creationDate ?? .distantFuture < $1.creationDate ?? .distantFuture }
-                let highlightedAssetCollection = PHAssetCollection.transientAssetCollection(with: createdAtSortedAssets, title: locationName)
+                let albumTitle = location?.name ?? location?.address ?? Localizations.suggestionAlbumTitle
+                let highlightedAssetCollection = PHAssetCollection.transientAssetCollection(with: createdAtSortedAssets, title: albumTitle)
                 return NewPostState(pendingMedia: selectedMedia,
                                     mediaSource: .library,
-                                    pendingInput: MentionInput(text: locationName ?? "", mentions: MentionRangeMap(), selectedRange: NSRange()),
+                                    pendingInput: MentionInput(text: location?.name ?? "", mentions: MentionRangeMap(), selectedRange: NSRange()),
                                     highlightedAssetCollection: highlightedAssetCollection)
             }
         }
@@ -450,12 +453,14 @@ extension PHAssetMediaSubtype {
 }
 
 struct PhotoClusterLocation: Hashable {
-    var location: CLLocation
-    var name: String
+    let location: CLLocation
+    let name: String
+    let address: String?
 
-    init(name: String, location: CLLocation) {
+    init(name: String, location: CLLocation, address: String?) {
         self.location = location
         self.name = name
+        self.address = address
     }
 
     init?(placemark: CLPlacemark) {
@@ -464,6 +469,7 @@ struct PhotoClusterLocation: Hashable {
         }
         self.name = name
         self.location = location
+        self.address = placemark.postalAddress.flatMap { CNPostalAddressFormatter.string(from: $0, style: .mailingAddress) }
     }
 
     init?(mapItem: MKMapItem) {
@@ -472,5 +478,13 @@ struct PhotoClusterLocation: Hashable {
         }
         self.name = name
         self.location = location
+        self.address = mapItem.placemark.postalAddress.flatMap { CNPostalAddressFormatter.string(from: $0, style: .mailingAddress) }
+    }
+}
+
+extension Localizations {
+
+    static var suggestionAlbumTitle: String {
+        NSLocalizedString("photoSuggestions.album.title", value: "Suggested", comment: "fallback title for suggested photo album")
     }
 }

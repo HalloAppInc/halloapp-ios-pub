@@ -269,11 +269,12 @@ class HomeViewController: UITabBarController {
     private func cameraNavigationController() -> UIViewController {
         if DeveloperSetting.showPhotoSuggestions {
             let controller = SharedAlbumViewController()
-            controller.title = Localizations.titleAlbums
+            controller.title = Localizations.titleSuggestions
 
             let navigationController = UINavigationController(rootViewController: controller)
-            navigationController.tabBarItem.image = UIImage(named: "TabBarAlbums")?.withTintColor(.tabBar, renderingMode: .alwaysOriginal)
-            navigationController.tabBarItem.selectedImage = UIImage(named: "TabBarAlbumsActive")
+            navigationController.tabBarItem.title = Localizations.titlePost
+            navigationController.tabBarItem.image = UIImage(systemName: "plus.circle")
+            navigationController.tabBarItem.selectedImage = UIImage(systemName: "plus.circle.fill")
             navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
             return navigationController
         } else {

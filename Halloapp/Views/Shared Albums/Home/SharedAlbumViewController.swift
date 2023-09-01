@@ -24,7 +24,7 @@ class SharedAlbumViewController: UIViewController {
     }
 
     private lazy var dataSource: UICollectionViewDiffableDataSource<Section, Item> = {
-        return UICollectionViewDiffableDataSource(collectionView: collectionView) { collectionView, indexPath, itemIdentifier in
+        let dataSource = UICollectionViewDiffableDataSource<Section, Item>(collectionView: collectionView) { collectionView, indexPath, itemIdentifier in
             switch itemIdentifier {
             case .suggestion(let photoCluster):
                 if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AlbumSuggestionCollectionViewCell.reuseIdentifier, for: indexPath) as? AlbumSuggestionCollectionViewCell {
@@ -37,14 +37,32 @@ class SharedAlbumViewController: UIViewController {
 
             return nil
         }
+
+        dataSource.supplementaryViewProvider = { collectionView, elementKind, indexPath in
+            switch elementKind {
+            case UICollectionView.elementKindSectionHeader:
+                return collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader,
+                                                                       withReuseIdentifier: PhotoSuggestionsHeader.reuseIdentifier,
+                                                                       for: indexPath)
+            default:
+                return nil
+            }
+        }
+
+        return dataSource
     }()
 
     private lazy var collectionView: UICollectionView = {
         let item = NSCollectionLayoutItem(layoutSize: .init(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0)))
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: .init(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(88)), subitems: [item])
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: .init(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(130)), subitems: [item])
         let section = NSCollectionLayoutSection(group: group)
-        section.interGroupSpacing = 16
-        section.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
+        section.boundarySupplementaryItems = [
+            NSCollectionLayoutBoundarySupplementaryItem(layoutSize: .init(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(80)),
+                                                        elementKind: UICollectionView.elementKindSectionHeader,
+                                                        alignment: .top)
+        ]
+        section.interGroupSpacing = 15
+        section.contentInsets = NSDirectionalEdgeInsets(top: 15, leading: 15, bottom: 15, trailing: 15)
 
         let layout = UICollectionViewCompositionalLayout(section: section)
 
@@ -56,12 +74,17 @@ class SharedAlbumViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        collectionView.backgroundColor = .lightGray
+        installAvatarBarButton()
+
+        collectionView.backgroundColor = .feedBackground
         collectionView.delegate = self
         collectionView.register(AlbumSuggestionCollectionViewCell.self,
                                 forCellWithReuseIdentifier: AlbumSuggestionCollectionViewCell.reuseIdentifier)
         collectionView.register(AlbumSuggestionLoadIndicatorCollectionViewCell.self,
                                 forCellWithReuseIdentifier: AlbumSuggestionLoadIndicatorCollectionViewCell.reuseIdentifier)
+        collectionView.register(PhotoSuggestionsHeader.self,
+                                forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+                                withReuseIdentifier: PhotoSuggestionsHeader.reuseIdentifier)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
 

@@ -7,42 +7,39 @@
 //
 
 import CoreCommon
+import Photos
 import UIKit
 
 class AlbumSuggestionCollectionViewCell: UICollectionViewCell {
 
     static let reuseIdentifier = "AlbumSuggestionCollectionViewCell"
 
-    private let imageView: AssetImageView = {
-        let imageView = AssetImageView()
-        imageView.assetMode = .thumbnail
-        imageView.clipsToBounds = true
-        imageView.contentMode = .scaleAspectFill
-        imageView.layer.cornerRadius = 10
+    private let photoGridView: PhotoGridView = {
+        let imageView = PhotoGridView()
         return imageView
     }()
 
-    private let countLabel: UILabel = {
-        let countLabel = UILabel()
-        countLabel.allowsDefaultTighteningForTruncation = true
-        countLabel.adjustsFontSizeToFitWidth = true
-        countLabel.font = .gothamFont(ofFixedSize: 17, weight: .bold)
-        countLabel.textColor = .white
-        return countLabel
+    private let headerLabel: UILabel = {
+        let headerLabel = UILabel()
+        headerLabel.adjustsFontSizeToFitWidth = true
+        headerLabel.font = .scaledSystemFont(ofSize: 19, weight: .medium)
+        headerLabel.numberOfLines = 2
+        headerLabel.textColor = .primaryBlackWhite
+        return headerLabel
     }()
 
     private let titleLabel: UILabel = {
         let titleLabel = UILabel()
         titleLabel.font = .scaledSystemFont(ofSize: 16, weight: .regular)
         titleLabel.numberOfLines = 0
-        titleLabel.textColor = .white
+        titleLabel.textColor = .primaryBlackWhite
         return titleLabel
     }()
 
     private let timestampLabel: UILabel = {
         let timestampLabel = UILabel()
         timestampLabel.font = .scaledSystemFont(ofSize: 13, weight: .medium)
-        timestampLabel.textColor = .white.withAlphaComponent(0.4)
+        timestampLabel.textColor = .primaryBlackWhite.withAlphaComponent(0.4)
         return timestampLabel
     }()
 
@@ -50,47 +47,55 @@ class AlbumSuggestionCollectionViewCell: UICollectionViewCell {
         super.init(frame: frame)
 
         let backgroundView = UIView()
-        backgroundView.backgroundColor = .black.withAlphaComponent(0.5)
         backgroundView.layer.cornerRadius = 22
+        backgroundView.layer.shadowColor = UIColor.black.cgColor
+        backgroundView.layer.shadowOffset = CGSize(width: 0, height: 3)
+        backgroundView.layer.shadowOpacity = 0.05
+        backgroundView.layer.shadowRadius = 6
         self.backgroundView = backgroundView
 
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(imageView)
+        contentView.backgroundColor = .feedPostBackground
+        contentView.clipsToBounds = true
+        contentView.layer.cornerRadius = 22
 
-        countLabel.translatesAutoresizingMaskIntoConstraints = false
-        imageView.addSubview(countLabel)
-
-        titleLabel.setContentCompressionResistancePriority(UILayoutPriority(1), for: .horizontal)
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(titleLabel)
+        photoGridView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(photoGridView)
 
         timestampLabel.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         timestampLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(timestampLabel)
 
-        let heightMinimizationConstraint = contentView.heightAnchor.constraint(equalToConstant: 0)
-        heightMinimizationConstraint.priority = .defaultLow
+        let headerTitleStack = UIStackView(arrangedSubviews: [headerLabel, titleLabel])
+        headerTitleStack.axis = .vertical
+        headerTitleStack.alignment = .leading
+        headerTitleStack.spacing = 2
+        headerTitleStack.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(headerTitleStack)
+
+        let heightConstraint = contentView.heightAnchor.constraint(equalToConstant: 130)
+        heightConstraint.priority = .defaultHigh
+
+        let stackCenterYConstraint = headerTitleStack.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+        stackCenterYConstraint.priority = .defaultHigh
 
         NSLayoutConstraint.activate([
-            imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 15),
-            imageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
-            imageView.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -12),
-            imageView.widthAnchor.constraint(equalToConstant: 64),
-            imageView.heightAnchor.constraint(equalToConstant: 64),
+            photoGridView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            photoGridView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            photoGridView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            photoGridView.widthAnchor.constraint(equalToConstant: 130),
 
-            countLabel.centerXAnchor.constraint(equalTo: imageView.centerXAnchor),
-            countLabel.centerYAnchor.constraint(equalTo: imageView.centerYAnchor),
-            countLabel.leadingAnchor.constraint(greaterThanOrEqualTo: imageView.leadingAnchor, constant: 2),
-
-            titleLabel.leadingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: 8),
-            titleLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            titleLabel.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor, constant: 12),
-
-            timestampLabel.leadingAnchor.constraint(greaterThanOrEqualTo: titleLabel.trailingAnchor, constant: 2),
             timestampLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
             timestampLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15),
 
-            heightMinimizationConstraint,
+            headerLabel.trailingAnchor.constraint(lessThanOrEqualTo: timestampLabel.leadingAnchor, constant: -5),
+
+            headerTitleStack.leadingAnchor.constraint(equalTo: photoGridView.trailingAnchor, constant: 18),
+            headerTitleStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15),
+            headerTitleStack.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -12),
+            headerTitleStack.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor, constant: 12),
+            stackCenterYConstraint,
+
+            heightConstraint,
         ])
     }
     
@@ -98,36 +103,118 @@ class AlbumSuggestionCollectionViewCell: UICollectionViewCell {
         fatalError()
     }
 
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        guard let backgroundView else {
+            return
+        }
+
+        backgroundView.layer.shadowPath = UIBezierPath(roundedRect: backgroundView.bounds, cornerRadius: backgroundView.layer.cornerRadius).cgPath
+    }
+
     func configure(photoCluster: PhotoSuggestions.PhotoCluster) {
-        imageView.asset = photoCluster.assets.first
-        countLabel.text = Localizations.albumSuggestionFormattedCount(photoCluster.assets.count - 1)
-        titleLabel.text = Localizations.albumSuggestionsFormattedTitle(count: photoCluster.assets.count, location: photoCluster.locationName)
-        timestampLabel.text = photoCluster.start.feedTimestamp()
+        let assets = photoCluster.assets.sorted { $0.creationDate ?? .distantFuture < $1.creationDate ?? .distantFuture}
+        if assets.count < 4 {
+            photoGridView.configure(assets: assets)
+        } else {
+            let selectedAssets = [assets[0], assets[assets.count / 4], assets[assets.count * 3 / 4], assets[assets.count - 1]]
+            photoGridView.configure(assets: selectedAssets)
+        }
+
+        timestampLabel.text = photoCluster.start.chatListTimestamp()
+        headerLabel.text = photoCluster.location?.name
+        headerLabel.isHidden = headerLabel.text?.isEmpty ?? true
+        titleLabel.text = Localizations.albumSuggestionsFormattedTitle(count: photoCluster.assets.count, address: photoCluster.location?.address)
+    }
+}
+
+extension AlbumSuggestionCollectionViewCell {
+
+    private class PhotoGridView: UIView {
+
+        private let imageViews = (0..<4).map { _ in
+            let imageView = AssetImageView()
+            imageView.assetMode = .thumbnail
+            imageView.clipsToBounds = true
+            imageView.contentMode = .scaleAspectFill
+            imageView.isHidden = true
+            return imageView
+        }
+
+        override init(frame: CGRect) {
+            super.init(frame: frame)
+
+            imageViews.forEach { addSubview($0) }
+        }
+
+        required init?(coder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
+
+        func configure(assets: [PHAsset]) {
+            for imageView in imageViews {
+                imageView.isHidden = true
+            }
+            for (imageView, asset) in zip(imageViews, assets) {
+                imageView.asset = asset
+                imageView.isHidden = false
+            }
+
+            setNeedsLayout()
+        }
+
+        override func layoutSubviews() {
+            super.layoutSubviews()
+
+            let visibleImageViews = imageViews.filter { !$0.isHidden }
+
+            var frames = Array(repeating: CGRect.zero, count: imageViews.count)
+
+            switch visibleImageViews.count {
+            case 0:
+                break
+            case 1:
+                frames[0] = bounds
+            case 2:
+                (frames[0], _) = bounds.divided(atDistance: (bounds.width - 1) * 0.5, from: .minXEdge)
+                (frames[1], _) = bounds.divided(atDistance: (bounds.width - 1) * 0.5, from: .maxXEdge)
+            case 3:
+                let (topRect, _) = bounds.divided(atDistance: (bounds.height - 1) * 0.5, from: .minYEdge)
+
+                (frames[0], _) = topRect.divided(atDistance: (bounds.width - 1) * 0.4, from: .minXEdge)
+                (frames[1], _) = topRect.divided(atDistance: (bounds.width - 1) * 0.6, from: .maxXEdge)
+                (frames[2], _) = bounds.divided(atDistance: (bounds.height - 1) * 0.5, from: .maxYEdge)
+            default: // 4+
+                let (topRect, _) = bounds.divided(atDistance: (bounds.height - 1) * 0.5, from: .minYEdge)
+                let (bottomRect, _) = bounds.divided(atDistance: (bounds.height - 1) * 0.5, from: .maxYEdge)
+
+                (frames[0], _) = topRect.divided(atDistance: (bounds.width - 1) * 0.4, from: .minXEdge)
+                (frames[1], _) = topRect.divided(atDistance: (bounds.width - 1) * 0.6, from: .maxXEdge)
+                (frames[2], _) = bottomRect.divided(atDistance: (bounds.width - 1) * 0.7, from: .minXEdge)
+                (frames[3], _) = bottomRect.divided(atDistance: (bounds.width - 1) * 0.3, from: .maxXEdge)
+            }
+
+            for (imageView, frame) in zip(imageViews, frames) {
+                imageView.frame = frame
+            }
+        }
     }
 }
 
 extension Localizations {
 
-    static func albumSuggestionFormattedCount(_ count: Int) -> String {
-        let format = NSLocalizedString("sharedalbums.albumsuggestioncell.countformat",
-                                       value: "+%d",
-                                       comment: "Count of photos in album")
-        return String(format: format, count)
-    }
-
-    static func albumSuggestionsFormattedTitle(count: Int, location: String?) -> String {
-        if let location {
+    static func albumSuggestionsFormattedTitle(count: Int, address: String?) -> String {
+        if let address, !address.isEmpty {
             let format = NSLocalizedString("sharedalbums.albumsuggestioncell.titleformat.location",
-                                           value: "%d photos taken @%@",
+                                           value: "%d photos taken at %@",
                                            comment: "title of album suggestion with location")
-            return String(format: format, count, location)
+            return String(format: format, count, address)
         } else {
             let format = NSLocalizedString("sharedalbums.albumsuggestioncell.titleformat.nolocation",
                                            value: "%d photos taken",
                                            comment: "title of album suggestion without location")
             return String(format: format, count)
         }
-
-
     }
 }
