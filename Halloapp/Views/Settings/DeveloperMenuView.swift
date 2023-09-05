@@ -35,6 +35,7 @@ private enum MenuTitles {
     static var disableMultiCamMoments: String { "Disable multi-cam moments" }
     static var disableQueueSerialization: String { "Disable Queue Serialization" }
     static var showPhotoSuggestions: String { "Show photo suggestions (restart app)" }
+    static var resetPhotoSuggestionsFTUX: String { "Reset photo suggestions FTUX" }
     static var logOut: String { "Log Out" }
 }
 
@@ -276,7 +277,13 @@ struct DeveloperMenuView: View {
                         .onReceive(Just(showPhotoSuggestions)) { value in
                             DeveloperSetting.showPhotoSuggestions = value
                         }
-                    
+                    Button {
+                        DeveloperSetting.didHidePhotoSuggestionsFirstUse = false
+                        dismiss?()
+                    } label: {
+                        Text(MenuTitles.resetPhotoSuggestionsFTUX)
+                    }
+
                     // Log Out
                     Button(action: {
                         self.userData.logout(using: self.userData.viewContext)

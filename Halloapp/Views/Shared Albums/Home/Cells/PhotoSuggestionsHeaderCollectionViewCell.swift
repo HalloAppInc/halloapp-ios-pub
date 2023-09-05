@@ -9,9 +9,9 @@
 import CoreCommon
 import UIKit
 
-class PhotoSuggestionsHeader: UICollectionReusableView {
+class PhotoSuggestionsHeaderCollectionViewCell: UICollectionViewCell {
 
-    static let reuseIdentifier = "PhotoSuggestionsHeader"
+    static let reuseIdentifier = "PhotoSuggestionsHeaderCollectionViewCell"
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -21,13 +21,13 @@ class PhotoSuggestionsHeader: UICollectionReusableView {
         titleLabel.text = Localizations.photoSuggestionsHeaderTitle
         titleLabel.textColor = .primaryBlackWhite
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(titleLabel)
+        contentView.addSubview(titleLabel)
 
         NSLayoutConstraint.activate([
-            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
-            titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 28),
-            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor),
-            titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
+            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 28),
+            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            titleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12),
         ])
     }
 

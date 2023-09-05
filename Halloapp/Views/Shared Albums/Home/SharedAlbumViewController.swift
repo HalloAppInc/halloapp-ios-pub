@@ -23,10 +23,12 @@ class SharedAlbumViewController: UIViewController {
     private enum Item: Hashable {
         case suggestion(PhotoSuggestions.PhotoCluster)
         case loadIndicator
+        case header
+        case magicPhotosExplainer
     }
 
     private lazy var dataSource: UICollectionViewDiffableDataSource<Section, Item> = {
-        let dataSource = UICollectionViewDiffableDataSource<Section, Item>(collectionView: collectionView) { collectionView, indexPath, itemIdentifier in
+        return UICollectionViewDiffableDataSource<Section, Item>(collectionView: collectionView) { collectionView, indexPath, itemIdentifier in
             switch itemIdentifier {
             case .suggestion(let photoCluster):
                 if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AlbumSuggestionCollectionViewCell.reuseIdentifier, for: indexPath) as? AlbumSuggestionCollectionViewCell {
@@ -35,39 +37,29 @@ class SharedAlbumViewController: UIViewController {
                 }
             case .loadIndicator:
                 return collectionView.dequeueReusableCell(withReuseIdentifier: AlbumSuggestionLoadIndicatorCollectionViewCell.reuseIdentifier, for: indexPath)
+            case .header:
+                return collectionView.dequeueReusableCell(withReuseIdentifier: PhotoSuggestionsHeaderCollectionViewCell.reuseIdentifier, for: indexPath)
+            case .magicPhotosExplainer:
+                if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MagicPhotosExplainerCollectionViewCell.reuseIdentifier, for: indexPath) as? MagicPhotosExplainerCollectionViewCell {
+                    cell.dismissAction = { [weak self] in
+                        DeveloperSetting.didHidePhotoSuggestionsFirstUse = true
+                        self?.refreshSuggestions(showLoadIndicator: false)
+                    }
+                    return cell
+                }
             }
 
             return nil
         }
-
-        dataSource.supplementaryViewProvider = { collectionView, elementKind, indexPath in
-            switch elementKind {
-            case UICollectionView.elementKindSectionHeader:
-                return collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader,
-                                                                       withReuseIdentifier: PhotoSuggestionsHeader.reuseIdentifier,
-                                                                       for: indexPath)
-            default:
-                return nil
-            }
-        }
-
-        return dataSource
     }()
 
     private lazy var collectionView: UICollectionView = {
-        let item = NSCollectionLayoutItem(layoutSize: .init(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0)))
+        let item = NSCollectionLayoutItem(layoutSize: .init(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(130)))
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: .init(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(130)), subitems: [item])
         let section = NSCollectionLayoutSection(group: group)
-        section.boundarySupplementaryItems = [
-            NSCollectionLayoutBoundarySupplementaryItem(layoutSize: .init(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(80)),
-                                                        elementKind: UICollectionView.elementKindSectionHeader,
-                                                        alignment: .top)
-        ]
         section.interGroupSpacing = 15
         section.contentInsets = NSDirectionalEdgeInsets(top: 15, leading: 15, bottom: 15, trailing: 15)
-
         let layout = UICollectionViewCompositionalLayout(section: section)
-
         return UICollectionView(frame: .zero, collectionViewLayout: layout)
     }()
 
@@ -84,9 +76,10 @@ class SharedAlbumViewController: UIViewController {
                                 forCellWithReuseIdentifier: AlbumSuggestionCollectionViewCell.reuseIdentifier)
         collectionView.register(AlbumSuggestionLoadIndicatorCollectionViewCell.self,
                                 forCellWithReuseIdentifier: AlbumSuggestionLoadIndicatorCollectionViewCell.reuseIdentifier)
-        collectionView.register(PhotoSuggestionsHeader.self,
-                                forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
-                                withReuseIdentifier: PhotoSuggestionsHeader.reuseIdentifier)
+        collectionView.register(PhotoSuggestionsHeaderCollectionViewCell.self,
+                                forCellWithReuseIdentifier: PhotoSuggestionsHeaderCollectionViewCell.reuseIdentifier)
+        collectionView.register(MagicPhotosExplainerCollectionViewCell.self,
+                                forCellWithReuseIdentifier: MagicPhotosExplainerCollectionViewCell.reuseIdentifier)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
 
@@ -124,11 +117,13 @@ class SharedAlbumViewController: UIViewController {
         collectionView.contentInset.bottom = view.bounds.maxY - triggerButtonFrame.minY
     }
 
-    func refreshSuggestions() {
-        var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
-        snapshot.appendSections([.suggestions])
-        snapshot.appendItems([.loadIndicator])
-        dataSource.apply(snapshot, animatingDifferences: false)
+    func refreshSuggestions(showLoadIndicator: Bool = true) {
+        if showLoadIndicator {
+            var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
+            snapshot.appendSections([.suggestions])
+            snapshot.appendItems([.loadIndicator])
+            dataSource.apply(snapshot, animatingDifferences: false)
+        }
 
         Task {
             guard let suggestions = try? await MainAppContext.shared.photoSuggestions.generateSuggestions().sorted(by: { $0.end > $1.end }) else {
@@ -136,6 +131,11 @@ class SharedAlbumViewController: UIViewController {
             }
             var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
             snapshot.appendSections([.suggestions])
+            if DeveloperSetting.didHidePhotoSuggestionsFirstUse {
+                snapshot.appendItems([.header])
+            } else {
+                snapshot.appendItems([.magicPhotosExplainer])
+            }
             snapshot.appendItems(suggestions.map { .suggestion($0) })
             dataSource.apply(snapshot, animatingDifferences: true)
         }
@@ -312,5 +312,12 @@ extension SharedAlbumViewController: FloatingMenuPresenter {
 
     func floatingMenuExpansionStateWillChange(to state: FloatingMenu.ExpansionState) {
         // no-op
+    }
+}
+
+extension SharedAlbumViewController: UIViewControllerScrollsToTop {
+    
+    func scrollToTop(animated: Bool) {
+        collectionView.setContentOffset(CGPoint(x: 0, y: -collectionView.adjustedContentInset.top), animated: animated)
     }
 }
