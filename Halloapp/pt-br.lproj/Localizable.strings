@@ -520,6 +520,9 @@
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Ao remover este chat, você limpará o histórico e o conteúdo deste chat de seu dispositivo.";
 
+/* Prompts the user to choose a photo. */
+"choose.photo" = "Escolher Foto";
+
 /* Title for the button in comment deletion confirmation prompt. */
 "comment.delete.action" = "Excluir comentário";
 
@@ -1435,6 +1438,9 @@
 /* Header that appears above unread messages in the chats view. */
 "n.unread.messages.title" = "n.não lidas.mensagens.título";
 
+/* Indicates the user's name. */
+"name.title" = "Nome";
+
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
 "new.group.members.empty.placeholder" = "Seus contatos que estão no HalloApp aparecerão aqui";
 
@@ -1906,6 +1912,9 @@
 /* Title that indicates that someone took a screenshot. */
 "screenshot.title" = "Captura de tela";
 
+/* Title of a button that displays all results. */
+"see.all" = "Ver todos";
+
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Por favor selecione pelo menos um contato.";
 
@@ -2074,9 +2083,6 @@
 /* Text placed on the blurred overlay of someone else's moment. */
 "shared.moment" = "Momento de %@";
 
-/* Count of photos in album */
-"sharedalbums.albumsuggestioncell.countformat" = "+%d";
-
 /* title of album suggestion with location */
 "sharedalbums.albumsuggestioncell.titleformat.location" = "%1$d fotos tiradas @%2$@";
 
@@ -2139,9 +2145,6 @@
 
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
 "thread.list.preview.new.user.default" = "%@ está no HalloApp! 🎉";
-
-/* Tab for shared albums in main interface */
-"title.albums" = "Álbuns";
 
 /* Camera screen title */
 "title.camera" = "Câmera";
@@ -2247,6 +2250,9 @@
 
 /* Button to start voice call. Should be translated as verb. */
 "user.voice.call" = "Ligar";
+
+/* Indicates the user's username. */
+"username.title" = "Nome do usuário";
 
 /* No comment provided by engineer. */
 "VIDEO" = "VÍDEO";

@@ -2092,9 +2092,6 @@
 /* Text placed on the blurred overlay of someone else's moment. */
 "shared.moment" = "Moment van %@";
 
-/* Count of photos in album */
-"sharedalbums.albumsuggestioncell.countformat" = "+%d";
-
 /* title of album suggestion with location */
 "sharedalbums.albumsuggestioncell.titleformat.location" = "%1$d foto's gemaakt @%2$@";
 
@@ -2157,9 +2154,6 @@
 
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
 "thread.list.preview.new.user.default" = "%@ gebruikt HalloApp🎉";
-
-/* Tab for shared albums in main interface */
-"title.albums" = "Albums";
 
 /* Camera screen title */
 "title.camera" = "Camera";
