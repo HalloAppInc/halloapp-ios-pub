@@ -121,18 +121,8 @@ extension UIViewControllerMediaSaving {
     @discardableResult @MainActor
     func saveMedia(source: MediaItemSource, _ mediaInfoProvider: @MainActor @Sendable () async throws -> [(type: CommonMediaType, url: URL)]) async -> Bool {
         do {
-            let isAuthorizedToSave: Bool = await {
-                if #available(iOS 14, *) {
-                    let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
-                    return status == .authorized || status == .limited
-                } else {
-                    let status = await withCheckedContinuation { continuation in
-                        PHPhotoLibrary.requestAuthorization { continuation.resume(returning: $0) }
-                    }
-                    return status == .authorized
-                }
-            }()
-            
+            let isAuthorizedToSave: Bool = await PhotoPermissionsHelper.requestAuthorization(for: .addOnly).hasAnyAuthorization
+
             guard isAuthorizedToSave else {
                 DDLogInfo("UIViewControllerMediaSaving/saveMedia: User denied media saving permissions")
                 

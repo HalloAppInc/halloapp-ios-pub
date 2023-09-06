@@ -466,16 +466,9 @@ class MediaPickerViewController: UIViewController {
     }
     
     private func fetchAssets(album: PHAssetCollection? = nil) {
-        let status: PHAuthorizationStatus
-        if #available(iOS 14, *) {
-            status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
-        } else {
-            status = PHPhotoLibrary.authorizationStatus()
-        }
-
-        switch(status) {
+        switch (PhotoPermissionsHelper.authorizationStatus(for: .readWrite)) {
         case .notDetermined:
-            PHPhotoLibrary.requestAuthorization { status in
+            PhotoPermissionsHelper.requestAuthorization(for: .readWrite) { _ in
                 DispatchQueue.main.async {
                     self.fetchAssets(album: album)
                 }

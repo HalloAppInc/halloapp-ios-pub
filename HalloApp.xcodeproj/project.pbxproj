@@ -490,6 +490,7 @@
 		F4D88F5127D6D8A300D706DA /* InviteContactViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */; };
 		F4D88F6B27D9873F00D706DA /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F6A27D9873E00D706DA /* Toast.swift */; };
 		F4EFF90F2AA7A45D00F09C54 /* MagicPhotosExplainerCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4EFF90E2AA7A45D00F09C54 /* MagicPhotosExplainerCollectionViewCell.swift */; };
+		F4EFF9132AA7F46500F09C54 /* PhotoPermissionsHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4EFF9122AA7F46500F09C54 /* PhotoPermissionsHelper.swift */; };
 		F4F13CBD2A608752007EFC21 /* SharedAlbumViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F13CBC2A608752007EFC21 /* SharedAlbumViewController.swift */; };
 		F4F13CC02A60896A007EFC21 /* AlbumSuggestionCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F13CBF2A60896A007EFC21 /* AlbumSuggestionCollectionViewCell.swift */; };
 		F4F13CC32A609B84007EFC21 /* AssetImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F13CC22A609B84007EFC21 /* AssetImageView.swift */; };
@@ -1319,6 +1320,7 @@
 		F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteContactViewController.swift; sourceTree = "<group>"; };
 		F4D88F6A27D9873E00D706DA /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		F4EFF90E2AA7A45D00F09C54 /* MagicPhotosExplainerCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MagicPhotosExplainerCollectionViewCell.swift; sourceTree = "<group>"; };
+		F4EFF9122AA7F46500F09C54 /* PhotoPermissionsHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoPermissionsHelper.swift; sourceTree = "<group>"; };
 		F4F13CBC2A608752007EFC21 /* SharedAlbumViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedAlbumViewController.swift; sourceTree = "<group>"; };
 		F4F13CBF2A60896A007EFC21 /* AlbumSuggestionCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumSuggestionCollectionViewCell.swift; sourceTree = "<group>"; };
 		F4F13CC22A609B84007EFC21 /* AssetImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetImageView.swift; sourceTree = "<group>"; };
@@ -1720,6 +1722,7 @@
 				F470250C27ED318A008CD37F /* Routing */,
 				EABF312423EE1EDF0039B5A6 /* Extensions */,
 				761C6166242D89D70028AE19 /* Views */,
+				F4EFF9122AA7F46500F09C54 /* PhotoPermissionsHelper.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -3303,6 +3306,7 @@
 				A11272EA2856C5930009EBD7 /* NewMomentViewController.swift in Sources */,
 				76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */,
 				32C83FB7268FA44F00BEB4F5 /* FeedPermissionDeniedController.swift in Sources */,
+				F4EFF9132AA7F46500F09C54 /* PhotoPermissionsHelper.swift in Sources */,
 				F45D9F792825DF62005BAD9D /* GroupGridCollectionViewCell.swift in Sources */,
 				327AB839272C8356001C0E00 /* ChatLinkPreview+CoreDataProperties copy.swift in Sources */,
 				680528CD264F14B9001F6A57 /* SafetyNumber.swift in Sources */,
