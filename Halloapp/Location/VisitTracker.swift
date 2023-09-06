@@ -104,7 +104,7 @@ class VisitTracker: NSObject {
         }
 
         Task {
-            guard let closestSuggestion = try? await MainAppContext.shared.visitTracker.photoCluster(for: visit) else {
+            guard let closestSuggestion = try? await photoCluster(for: visit) else {
                 DDLogError("VisitTracker/handleNotification/could not find cluster for visit")
                 completionHandler()
                 return

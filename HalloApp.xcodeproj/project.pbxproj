@@ -490,6 +490,7 @@
 		F4D88F5127D6D8A300D706DA /* InviteContactViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */; };
 		F4D88F6B27D9873F00D706DA /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F6A27D9873E00D706DA /* Toast.swift */; };
 		F4EFF90F2AA7A45D00F09C54 /* MagicPhotosExplainerCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4EFF90E2AA7A45D00F09C54 /* MagicPhotosExplainerCollectionViewCell.swift */; };
+		F4EFF9112AA7D44800F09C54 /* PhotoSuggestionsEmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4EFF9102AA7D44800F09C54 /* PhotoSuggestionsEmptyStateView.swift */; };
 		F4EFF9132AA7F46500F09C54 /* PhotoPermissionsHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4EFF9122AA7F46500F09C54 /* PhotoPermissionsHelper.swift */; };
 		F4F13CBD2A608752007EFC21 /* SharedAlbumViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F13CBC2A608752007EFC21 /* SharedAlbumViewController.swift */; };
 		F4F13CC02A60896A007EFC21 /* AlbumSuggestionCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F13CBF2A60896A007EFC21 /* AlbumSuggestionCollectionViewCell.swift */; };
@@ -1320,6 +1321,7 @@
 		F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteContactViewController.swift; sourceTree = "<group>"; };
 		F4D88F6A27D9873E00D706DA /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		F4EFF90E2AA7A45D00F09C54 /* MagicPhotosExplainerCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MagicPhotosExplainerCollectionViewCell.swift; sourceTree = "<group>"; };
+		F4EFF9102AA7D44800F09C54 /* PhotoSuggestionsEmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSuggestionsEmptyStateView.swift; sourceTree = "<group>"; };
 		F4EFF9122AA7F46500F09C54 /* PhotoPermissionsHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoPermissionsHelper.swift; sourceTree = "<group>"; };
 		F4F13CBC2A608752007EFC21 /* SharedAlbumViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedAlbumViewController.swift; sourceTree = "<group>"; };
 		F4F13CBF2A60896A007EFC21 /* AlbumSuggestionCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumSuggestionCollectionViewCell.swift; sourceTree = "<group>"; };
@@ -2638,6 +2640,7 @@
 				F4F13CC12A60896E007EFC21 /* Cells */,
 				F4F13CBC2A608752007EFC21 /* SharedAlbumViewController.swift */,
 				F48466612A9EB9CA00B693C6 /* EnableLocationBanner.swift */,
+				F4EFF9102AA7D44800F09C54 /* PhotoSuggestionsEmptyStateView.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -3580,6 +3583,7 @@
 				68CCB16726964851007015FA /* InitializingViewController.swift in Sources */,
 				F4F157DC276AA5B7002FDB9E /* DeleteAccountTextView.swift in Sources */,
 				A10466192915A3D600BF7AC7 /* CameraPresetPicker.swift in Sources */,
+				F4EFF9112AA7D44800F09C54 /* PhotoSuggestionsEmptyStateView.swift in Sources */,
 				EAA4C0A12739F505002F1628 /* AddGroupMembersWelcomeView.swift in Sources */,
 				F43DF0F628F60E0B008008B7 /* InstagramStoriesShareProvider.swift in Sources */,
 				EA039C6326C49BC4002CC4CF /* EditGroupDescViewController.swift in Sources */,

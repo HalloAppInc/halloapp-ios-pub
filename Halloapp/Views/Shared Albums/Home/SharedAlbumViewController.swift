@@ -118,6 +118,8 @@ class SharedAlbumViewController: UIViewController {
     }
 
     func refreshSuggestions(showLoadIndicator: Bool = true) {
+        collectionView.backgroundView = nil
+
         if showLoadIndicator {
             var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
             snapshot.appendSections([.suggestions])
@@ -130,13 +132,18 @@ class SharedAlbumViewController: UIViewController {
                 return
             }
             var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
-            snapshot.appendSections([.suggestions])
-            if DeveloperSetting.didHidePhotoSuggestionsFirstUse {
-                snapshot.appendItems([.header])
+            if suggestions.isEmpty {
+                let hasPhotoPermissions = PhotoPermissionsHelper.authorizationStatus(for: .readWrite) == .authorized
+                collectionView.backgroundView = PhotoSuggestionsEmptyStateView(hasPhotoPermissions ? .magicPostsExplainer : .allowPhotoAccess)
             } else {
-                snapshot.appendItems([.magicPhotosExplainer])
+                snapshot.appendSections([.suggestions])
+                if DeveloperSetting.didHidePhotoSuggestionsFirstUse {
+                    snapshot.appendItems([.header])
+                } else {
+                    snapshot.appendItems([.magicPhotosExplainer])
+                }
+                snapshot.appendItems(suggestions.map { .suggestion($0) })
             }
-            snapshot.appendItems(suggestions.map { .suggestion($0) })
             dataSource.apply(snapshot, animatingDifferences: true)
         }
     }

@@ -20,11 +20,6 @@ class PhotoSuggestions: NSObject {
         return Notification.Name(rawValue: "photoSuggestionsChanged")
     }
 
-    enum PhotoSuggestionsError: Error {
-        case noPhotoLocations
-        case noPhotos
-    }
-
     private struct Constants {
         // dbscan macroclustering
         static let maxTimeIntervalForClustering: TimeInterval = 12 * 60 * 60 // 12 hours
@@ -39,7 +34,7 @@ class PhotoSuggestions: NSObject {
         static let convergenceThreshold: CLLocationDistance = 5
     }
 
-    private var recentAssets: PHFetchResult<PHAsset>
+    private var recentAssets: PHFetchResult<PHAsset> = PHFetchResult()
 
     private var previousPersistentChangeToken: AnyObject?
 
@@ -47,10 +42,35 @@ class PhotoSuggestions: NSObject {
 
     private var currentTask: Task<[PhotoCluster], Error>?
 
+    private var cancellables = Set<AnyCancellable>()
+
     override init() {
-        recentAssets = PhotoSuggestions.queryAssets(start: Date().advanced(by: -30 * 24 * 60 * 60), limit: 1000)
         super.init()
-        PHPhotoLibrary.shared().register(self)
+
+        let fetchAssets = { [weak self] in
+            guard let self else {
+                return
+            }
+            self.cachedSuggestions = nil
+            if PhotoPermissionsHelper.authorizationStatus(for: .readWrite).hasAnyAuthorization {
+                self.recentAssets = PhotoSuggestions.queryAssets(start: Date().advanced(by: -30 * 24 * 60 * 60), limit: 1000)
+                PHPhotoLibrary.shared().register(self)
+            } else {
+                self.recentAssets = PHFetchResult()
+                PHPhotoLibrary.shared().unregisterChangeObserver(self)
+
+            }
+            NotificationCenter.default.post(name: Self.suggestionsDidChange, object: self)
+        }
+
+        NotificationCenter.default.publisher(for: PhotoPermissionsHelper.photoAuthorizationDidChange)
+            .receive(on: DispatchQueue.main)
+            .sink { _ in
+                fetchAssets()
+            }
+            .store(in: &cancellables)
+
+        fetchAssets()
     }
 
     func generateSuggestions() async throws -> [PhotoCluster] {
@@ -84,8 +104,8 @@ class PhotoSuggestions: NSObject {
         }
 
         // Sanity checks on photos
-        if filteredAssets.count == 0 {
-            throw PhotoSuggestionsError.noPhotos
+        guard !filteredAssets.isEmpty else {
+            return []
         }
 
         // DBSCAN to create macroclusters
