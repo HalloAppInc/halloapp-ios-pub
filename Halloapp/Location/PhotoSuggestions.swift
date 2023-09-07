@@ -73,6 +73,22 @@ class PhotoSuggestions: NSObject {
         fetchAssets()
     }
 
+    var hasLocationsForPhotos: Bool {
+        var hasLocation = false
+        var hasAnyAsset = false
+        recentAssets.enumerateObjects { asset, _, stop in
+            guard Self.isValidAsset(asset) else {
+                return
+            }
+            hasAnyAsset = true
+            if asset.location != nil {
+                hasLocation = true
+                stop.pointee = true
+            }
+        }
+        return hasAnyAsset && hasLocation
+    }
+
     func generateSuggestions() async throws -> [PhotoCluster] {
         // Dedup requests
         if let currentTask {

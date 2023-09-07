@@ -24,7 +24,7 @@ class SharedAlbumViewController: UIViewController {
         case suggestion(PhotoSuggestions.PhotoCluster)
         case loadIndicator
         case header
-        case magicPhotosExplainer
+        case callToAction(AlbumSuggestionCallToActionCollectionViewCell.CallToActionType)
     }
 
     private lazy var dataSource: UICollectionViewDiffableDataSource<Section, Item> = {
@@ -39,9 +39,12 @@ class SharedAlbumViewController: UIViewController {
                 return collectionView.dequeueReusableCell(withReuseIdentifier: AlbumSuggestionLoadIndicatorCollectionViewCell.reuseIdentifier, for: indexPath)
             case .header:
                 return collectionView.dequeueReusableCell(withReuseIdentifier: PhotoSuggestionsHeaderCollectionViewCell.reuseIdentifier, for: indexPath)
-            case .magicPhotosExplainer:
-                if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MagicPhotosExplainerCollectionViewCell.reuseIdentifier, for: indexPath) as? MagicPhotosExplainerCollectionViewCell {
-                    cell.dismissAction = { [weak self] in
+            case .callToAction(let ctaType):
+                if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AlbumSuggestionCallToActionCollectionViewCell.reuseIdentifier, for: indexPath) as? AlbumSuggestionCallToActionCollectionViewCell {
+                    cell.configure(type: ctaType) { [weak self] in
+                        guard ctaType == .firstTimeUse else {
+                            return
+                        }
                         DeveloperSetting.didHidePhotoSuggestionsFirstUse = true
                         self?.refreshSuggestions(showLoadIndicator: false)
                     }
@@ -78,24 +81,16 @@ class SharedAlbumViewController: UIViewController {
                                 forCellWithReuseIdentifier: AlbumSuggestionLoadIndicatorCollectionViewCell.reuseIdentifier)
         collectionView.register(PhotoSuggestionsHeaderCollectionViewCell.self,
                                 forCellWithReuseIdentifier: PhotoSuggestionsHeaderCollectionViewCell.reuseIdentifier)
-        collectionView.register(MagicPhotosExplainerCollectionViewCell.self,
-                                forCellWithReuseIdentifier: MagicPhotosExplainerCollectionViewCell.reuseIdentifier)
+        collectionView.register(AlbumSuggestionCallToActionCollectionViewCell.self,
+                                forCellWithReuseIdentifier: AlbumSuggestionCallToActionCollectionViewCell.reuseIdentifier)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
-
-        let enableLocationBanner = EnableLocationBanner()
-        enableLocationBanner.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(enableLocationBanner)
 
         NSLayoutConstraint.activate([
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.topAnchor.constraint(equalTo: view.topAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-
-            enableLocationBanner.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            enableLocationBanner.leadingAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 42),
-            enableLocationBanner.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
         ])
 
         installFloatingActionMenu()
@@ -104,6 +99,13 @@ class SharedAlbumViewController: UIViewController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.refreshSuggestions()
+            }
+            .store(in: &cancellables)
+
+        LocationPermissionsMonitor.shared.authorizationStatus
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.refreshSuggestions(showLoadIndicator: false)
             }
             .store(in: &cancellables)
 
@@ -138,10 +140,16 @@ class SharedAlbumViewController: UIViewController {
             } else {
                 snapshot.appendSections([.suggestions])
                 if DeveloperSetting.didHidePhotoSuggestionsFirstUse {
-                    snapshot.appendItems([.header])
+                    if !MainAppContext.shared.photoSuggestions.hasLocationsForPhotos {
+                        snapshot.appendItems([.callToAction(.enablePhotoLocations)])
+                    } else if CLLocationManager.authorizationStatus() != .authorizedAlways,
+                              [.authorized, .provisional].contains(await UNUserNotificationCenter.current().notificationSettings().authorizationStatus) {
+                        snapshot.appendItems([.callToAction(.enableAlwaysOnLocation)])
+                    }
                 } else {
-                    snapshot.appendItems([.magicPhotosExplainer])
+                    snapshot.appendItems([.callToAction(.firstTimeUse)])
                 }
+                snapshot.appendItems([.header])
                 snapshot.appendItems(suggestions.map { .suggestion($0) })
             }
             dataSource.apply(snapshot, animatingDifferences: true)

@@ -106,8 +106,24 @@ final class ImageRanker {
         return sortedAssets ?? []
     }
 
-    private var cachedScores = [String: CGFloat]()
-    
+    private var _cachedScores = [String: CGFloat]()
+
+    private let cacheQueue = DispatchQueue(label: "com.halloapp.imagerankercache")
+
+    private var cachedScores: [String: CGFloat] {
+        get {
+            cacheQueue.sync {
+                _cachedScores
+            }
+        }
+
+        set {
+            cacheQueue.sync {
+                _cachedScores = newValue
+            }
+        }
+    }
+
     private func preprocess(image: UIImage) -> MLMultiArray? {
         let fillScale = max(224.0/image.size.height, 224.0/image.size.width)
         let fillSize = CGSize(width: image.size.width * fillScale, height: image.size.height * fillScale)

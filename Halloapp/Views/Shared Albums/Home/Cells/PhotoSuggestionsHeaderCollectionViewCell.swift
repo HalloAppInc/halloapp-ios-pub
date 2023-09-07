@@ -17,17 +17,17 @@ class PhotoSuggestionsHeaderCollectionViewCell: UICollectionViewCell {
         super.init(frame: frame)
 
         let titleLabel = UILabel()
-        titleLabel.font = .scaledSystemFont(ofSize: 17, weight: .medium)
-        titleLabel.text = Localizations.photoSuggestionsHeaderTitle
-        titleLabel.textColor = .primaryBlackWhite
+        titleLabel.font = .scaledSystemFont(ofSize: 12, weight: .medium)
+        titleLabel.text = Localizations.photoSuggestionsHeaderTitle.uppercased()
+        titleLabel.textColor = .primaryBlackWhite.withAlphaComponent(0.5)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(titleLabel)
 
         NSLayoutConstraint.activate([
-            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 28),
+            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
+            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
             titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            titleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12),
+            titleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
         ])
     }
 

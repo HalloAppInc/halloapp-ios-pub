@@ -58,11 +58,7 @@ extension Localizations {
     }
 
     static var titleSuggestions: String {
-        NSLocalizedString("title.suggestions", value: "Suggestions", comment: "Tab for suggestions tab in main interface")
-    }
-
-    static var titlePost: String {
-        NSLocalizedString("title.posts", value: "Post", comment: "Tab for posts tab in main interface")
+        NSLocalizedString("title.suggestions", value: "Magic Post", comment: "Tab for suggestions tab in main interface")
     }
 
     // MARK: FAB

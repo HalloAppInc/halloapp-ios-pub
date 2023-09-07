@@ -272,9 +272,8 @@ class HomeViewController: UITabBarController {
             controller.title = Localizations.titleSuggestions
 
             let navigationController = UINavigationController(rootViewController: controller)
-            navigationController.tabBarItem.title = Localizations.titlePost
-            navigationController.tabBarItem.image = UIImage(systemName: "plus.circle")
-            navigationController.tabBarItem.selectedImage = UIImage(systemName: "plus.circle.fill")
+            navigationController.tabBarItem.image = UIImage(systemName: "wand.and.stars.inverse")
+            navigationController.tabBarItem.selectedImage = UIImage(systemName: "wand.and.stars")
             navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
             return navigationController
         } else {

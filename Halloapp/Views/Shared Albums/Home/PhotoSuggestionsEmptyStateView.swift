@@ -24,25 +24,22 @@ class PhotoSuggestionsEmptyStateView: UIView {
 
         super.init(frame: .zero)
 
-        let image: UIImage?
         let title: String
         let subtitle: String
         let showActionButton: Bool
 
         switch type {
         case .magicPostsExplainer:
-            image = UIImage(named: "MagicPostsEmptyStateIcon")
             title = Localizations.magicPostsExplainerTitle
             subtitle = Localizations.magicPostsExplainerSubtitle
             showActionButton = false
         case .allowPhotoAccess:
-            image = UIImage(named: "MagicPostsEmptyStatePermissionsIcon")
             title = Localizations.photoSuggestionsEmptyStatePhotoPermissionTitle
             subtitle = Localizations.magicPostsExplainerSubtitle
             showActionButton = true
         }
 
-        let imageView = UIImageView(image: image)
+        let imageView = UIImageView(image: UIImage(named: "MagicPostsEmptyStateIcon"))
 
         let titleLabel = UILabel()
         titleLabel.font = .scaledSystemFont(ofSize: 16, weight: .medium)
@@ -66,7 +63,6 @@ class PhotoSuggestionsEmptyStateView: UIView {
         actionButton.setTitle(Localizations.photoSuggestionsEmptyStatePhotoPermissionsGrantAction, for: .normal)
         actionButton.setTitleColor(.white, for: .normal)
         actionButton.titleLabel?.font = .scaledSystemFont(ofSize: 15, weight: .bold)
-
 
         let contentStackView = UIStackView(arrangedSubviews: [imageView, titleLabel, subtitleLabel, actionButton])
         contentStackView.alignment = .center

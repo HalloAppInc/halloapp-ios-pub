@@ -48,17 +48,17 @@
 	<key>NSCameraUsageDescription</key>
 	<string>This lets you make video calls, and take photos and videos on HalloApp</string>
 	<key>NSContactsUsageDescription</key>
-	<string>To share and see posts from your friends and family, allow HalloApp upload your contacts to it&apos;s servers.</string>
+	<string>To share and see posts from your friends and family, allow HalloApp upload your contacts to it's servers.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This lets you send your current location or nearby places in comments and chats and lets us notify you of new photo suggestions.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This lets you send your current location or nearby places in comments and chats and lets us notify you of new photo suggestions.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This lets you send your current location or nearby places in comments and chats.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This lets you make calls, send audio posts and messages, and record videos with sound.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This lets you send photos and videos from your gallery, and save the ones you capture.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>This lets us track visits (TODO)</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>This lets us track visits (TODO)</string>
 	<key>NSUserActivityTypes</key>
 	<array>
 		<string>INSendMessageIntent</string>

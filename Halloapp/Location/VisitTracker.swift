@@ -23,6 +23,8 @@ class VisitTracker: NSObject {
     private let photoSuggestions: PhotoSuggestions
     private let locationManager = CLLocationManager()
 
+    private var isMonitoringVisits = false
+
     init(photoSuggestions: PhotoSuggestions) {
         self.photoSuggestions = photoSuggestions
 
@@ -39,8 +41,12 @@ class VisitTracker: NSObject {
 
         switch CLLocationManager.authorizationStatus() {
         case .authorizedAlways:
-            locationManager.startMonitoringVisits()
+            if !isMonitoringVisits {
+                isMonitoringVisits = true
+                locationManager.startMonitoringVisits()
+            }
         default:
+            isMonitoringVisits = false
             locationManager.stopMonitoringVisits()
         }
     }
