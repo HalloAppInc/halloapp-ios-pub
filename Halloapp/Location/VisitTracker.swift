@@ -67,6 +67,8 @@ class VisitTracker: NSObject {
         DDLogInfo("VisitTracker/detected visit at (\(visit.coordinate.latitude),\(visit.coordinate.longitude))")
 
         Task {
+            // Photo library may have changed while we were backgrounded, make sure we refetch before processing the visit
+            photoSuggestions.resetFetchedPhotos()
             guard let closestSuggestion = try await photoCluster(for: visit) else {
                 DDLogInfo("VisitTracker/detected visit with no associated suggestions")
                 backgroundTaskCompletion()

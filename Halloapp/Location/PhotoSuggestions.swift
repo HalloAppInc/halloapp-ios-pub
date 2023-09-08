@@ -47,30 +47,14 @@ class PhotoSuggestions: NSObject {
     override init() {
         super.init()
 
-        let fetchAssets = { [weak self] in
-            guard let self else {
-                return
-            }
-            self.cachedSuggestions = nil
-            if PhotoPermissionsHelper.authorizationStatus(for: .readWrite).hasAnyAuthorization {
-                self.recentAssets = PhotoSuggestions.queryAssets(start: Date().advanced(by: -30 * 24 * 60 * 60), limit: 1000)
-                PHPhotoLibrary.shared().register(self)
-            } else {
-                self.recentAssets = PHFetchResult()
-                PHPhotoLibrary.shared().unregisterChangeObserver(self)
-
-            }
-            NotificationCenter.default.post(name: Self.suggestionsDidChange, object: self)
-        }
-
         NotificationCenter.default.publisher(for: PhotoPermissionsHelper.photoAuthorizationDidChange)
             .receive(on: DispatchQueue.main)
-            .sink { _ in
-                fetchAssets()
+            .sink { [weak self] _ in
+                self?.resetFetchedPhotos()
             }
             .store(in: &cancellables)
 
-        fetchAssets()
+        resetFetchedPhotos()
     }
 
     var hasLocationsForPhotos: Bool {
@@ -87,6 +71,18 @@ class PhotoSuggestions: NSObject {
             }
         }
         return hasAnyAsset && hasLocation
+    }
+
+    func resetFetchedPhotos() {
+        self.cachedSuggestions = nil
+        if PhotoPermissionsHelper.authorizationStatus(for: .readWrite).hasAnyAuthorization {
+            self.recentAssets = PhotoSuggestions.queryAssets(start: Date().advanced(by: -30 * 24 * 60 * 60), limit: 1000)
+            PHPhotoLibrary.shared().register(self)
+        } else {
+            self.recentAssets = PHFetchResult()
+            PHPhotoLibrary.shared().unregisterChangeObserver(self)
+        }
+        NotificationCenter.default.post(name: Self.suggestionsDidChange, object: self)
     }
 
     func generateSuggestions() async throws -> [PhotoCluster] {
