@@ -1603,6 +1603,24 @@
 /* button to launch photo and video library */
 "photo.and.video.library" = "Foto- & Videobibliotheek";
 
+/* fallback title for suggested photo album */
+"photoSuggestions.album.title" = "Voorgesteld";
+
+/* Button to allow access to photos */
+"photosuggestions.emptystate.photopermission.action" = "Inschakelen";
+
+/* Explanatory text on empty state view */
+"photosuggestions.emptystate.photopermission.title" = "Geeft volledige toegang tot je foto's om Magische Posts te gebruiken";
+
+/* explanation for photo suggestions */
+"photosuggestions.explainer.subtitle" = "Wanneer je nieuwe foto's neemt, maken we een concept-post van je beste shots, zodat je die kunt plaatsen als je dat wilt.";
+
+/* title for explanation of photo suggestions */
+"photosuggestions.explainer.title" = "Probeer Magische Posts";
+
+/* title for photo suggestions section */
+"photosuggestionsheader.title" = "Nieuwe voorgestelde posts";
+
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Geef toegang via Instellingen";
 
@@ -2271,6 +2289,15 @@
 
 /* Text that indicates a view action. */
 "view.title" = "Bekijken";
+
+/* Body of notification that a user has a new sharing suggestion. '6 photos' */
+"visitTracker.notification.body.nolocation" = "%ld foto's";
+
+/* Body of notification that a user has a new sharing suggestion. '6 photos from Terun' */
+"visitTracker.notification.body.withlocation" = "%1$ld foto's van %2$@";
+
+/* Title of notification that a user has a new sharing suggestion */
+"visitTracker.notification.title" = "Nieuwe suggestie om te delen";
 
 /* Moment deletion confirmation. Displays as action sheet title. */
 "your.moment.delete.confirmation" = "Dit moment verwijderen? Deze actie kan niet ongedaan worden gemaakt.";

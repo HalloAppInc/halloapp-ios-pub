@@ -520,6 +520,9 @@
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Ao remover este chat, todo o histórico e conteúdos deste chat serão apagados do seu dispositivo.";
 
+/* Prompts the user to choose a photo. */
+"choose.photo" = "Escolher Foto";
+
 /* Title for the button in comment deletion confirmation prompt. */
 "comment.delete.action" = "Apagar comentário";
 
@@ -895,6 +898,9 @@
 /* Explains that as more contacts join the app, they will appear in this list automatically. */
 "fellow.contacts.will.arrive" = "Seus contatos telefônicos que se registrarem no HalloApp aparecerão aqui automaticamente.";
 
+/* Disclaimer telling users that their posts can be seen by their friends. */
+"friends.privacy.disclaimer" = "As pessoas que você adicionou poderão ver suas postagens compartilhadas com todos os amigos do HalloApp.";
+
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Adicionar descrição do grupo";
 
@@ -1213,6 +1219,9 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Atualize a sua aplicação.";
 
+/* Shown to the user when suggestions are being loaded. */
+"loading.suggestions" = "Carregando sugestões";
+
 /* Title to indicate that a fetch operation is in progress. */
 "locating.title" = "Localizando";
 
@@ -1435,6 +1444,9 @@
 /* Header that appears above unread messages in the chats view. */
 "n.unread.messages.title" = "n.não lidas.mensagens.título";
 
+/* Indicates the user's name. */
+"name.title" = "Nome";
+
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
 "new.group.members.empty.placeholder" = "Seus contatos que estão no HalloApp aparecerão aqui";
 
@@ -1590,6 +1602,12 @@
 
 /* button to launch photo and video library */
 "photo.and.video.library" = "Biblioteca de Fotos e Vídeos";
+
+/* fallback title for suggested photo album */
+"photoSuggestions.album.title" = "Sugerido";
+
+/* title for photo suggestions section */
+"photosuggestionsheader.title" = "Sugestões de novas postagens";
 
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Por favor, habilite o acesso em Configurações";
@@ -1906,8 +1924,14 @@
 /* Title that indicates that someone took a screenshot. */
 "screenshot.title" = "Captura de tela";
 
+/* Title of a button that displays all results. */
+"see.all" = "Ver todos";
+
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Por favor selecione pelo menos um contato.";
+
+/* Prompts the user to choose their username. */
+"select.username.prompt" = "Digite seu nome e escolha um nome de usuário";
 
 /* Indicates that an item is in the process of being sent. */
 "sending.title" = "Enviando";
@@ -2242,6 +2266,9 @@
 /* Button to start voice call. Should be translated as verb. */
 "user.voice.call" = "Ligar";
 
+/* Indicates the user's username. */
+"username.title" = "Nome de usuário";
+
 /* No comment provided by engineer. */
 "VIDEO" = "VÍDEO";
 
@@ -2250,6 +2277,15 @@
 
 /* Text that indicates a view action. */
 "view.title" = "Visualizar";
+
+/* Body of notification that a user has a new sharing suggestion. '6 photos' */
+"visitTracker.notification.body.nolocation" = "%ld fotos";
+
+/* Body of notification that a user has a new sharing suggestion. '6 photos from Terun' */
+"visitTracker.notification.body.withlocation" = "%1$ld fotos de %2$@";
+
+/* Title of notification that a user has a new sharing suggestion */
+"visitTracker.notification.title" = "Nova sugestão de compartilhamento";
 
 /* Moment deletion confirmation. Displays as action sheet title. */
 "your.moment.delete.confirmation" = "Excluir este momento? Essa ação não pode ser desfeita.";

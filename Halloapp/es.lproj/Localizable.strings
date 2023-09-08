@@ -1603,6 +1603,24 @@
 /* button to launch photo and video library */
 "photo.and.video.library" = "Galería de fotos y videos";
 
+/* fallback title for suggested photo album */
+"photoSuggestions.album.title" = "Sugerido";
+
+/* Button to allow access to photos */
+"photosuggestions.emptystate.photopermission.action" = "Activar";
+
+/* Explanatory text on empty state view */
+"photosuggestions.emptystate.photopermission.title" = "Permitir el acceso a Fotos para usar Magic Posts";
+
+/* explanation for photo suggestions */
+"photosuggestions.explainer.subtitle" = "Cuando haces nuevas fotos, buscamos las mejores y las organizamos en un borrador para que lo tengas listo si te apetece publicarlo.";
+
+/* title for explanation of photo suggestions */
+"photosuggestions.explainer.title" = "Prueba Magic Posts";
+
+/* title for photo suggestions section */
+"photosuggestionsheader.title" = "Sugerencias de nuevas publicaciones";
+
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Por favor, otorga acceso en Configuración";
 
@@ -2271,6 +2289,15 @@
 
 /* Text that indicates a view action. */
 "view.title" = "Ver";
+
+/* Body of notification that a user has a new sharing suggestion. '6 photos' */
+"visitTracker.notification.body.nolocation" = "%ld fotos";
+
+/* Body of notification that a user has a new sharing suggestion. '6 photos from Terun' */
+"visitTracker.notification.body.withlocation" = "%1$ld fotos de %2$@";
+
+/* Title of notification that a user has a new sharing suggestion */
+"visitTracker.notification.title" = "Nueva sugerencia para compartir";
 
 /* Moment deletion confirmation. Displays as action sheet title. */
 "your.moment.delete.confirmation" = "¿Eliminar este momento? Esta acción no se puede revertir.";
