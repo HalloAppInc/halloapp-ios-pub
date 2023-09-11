@@ -73,7 +73,7 @@ extension UserProfile {
 
 extension Server_FriendshipStatus {
 
-    var userProfileFriendshipStatus: UserProfile.FriendshipStatus {
+    public var userProfileFriendshipStatus: UserProfile.FriendshipStatus {
         switch self {
         case .noneStatus:
             return .none

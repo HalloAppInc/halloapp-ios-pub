@@ -126,7 +126,7 @@ public final class ProtoFriendshipRequest: ProtoRequest<Server_HalloappUserProfi
         request.action = action
 
         let transform: (Server_Iq) -> Result<Server_HalloappUserProfile, RequestError> = { iq in
-            if iq.relationshipResponse.result == .ok, iq.relationshipResponse.hasProfile {
+            if iq.relationshipResponse.result == .ok {
                 return .success(iq.friendshipResponse.profile)
             } else {
                 return .failure(.serverError("Failed to update relationship"))

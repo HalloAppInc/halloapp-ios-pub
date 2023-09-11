@@ -70,6 +70,9 @@ public protocol CoreService: CoreServiceCommon {
     func userProfile(userID: UserID, completion: @escaping ServiceRequestCompletion<Server_HalloappUserProfile>)
     func userProfile(username: String, completion: @escaping ServiceRequestCompletion<Server_HalloappUserProfile>)
 
+    // MARK: UserProfile search
+    func searchUsernames(string: String, completion: @escaping ServiceRequestCompletion<[Server_HalloappUserProfile]>)
+
     // MARK: ContentMissing - Handle rerequests
     func sendContentMissing(id contentID: String, type contentType: Server_ContentMissing.ContentType, to toUserID: UserID, completion: @escaping ServiceRequestCompletion<Void>)
 
