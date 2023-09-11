@@ -262,6 +262,7 @@ public final class UserData: ObservableObject {
 
         do {
             try managedObjectContext.save()
+            NotificationCenter.default.post(name: Self.userDataDidSave, object: nil)
         } catch {
             DDLogError("usercore/save/error [\(error)]")
             fatalError()
@@ -296,4 +297,11 @@ public final class UserData: ObservableObject {
             fatalError()
         }
     }
+}
+
+// MARK: - Save notification
+
+extension UserData {
+
+    public static let userDataDidSave = Notification.Name("userDataDidSave")
 }

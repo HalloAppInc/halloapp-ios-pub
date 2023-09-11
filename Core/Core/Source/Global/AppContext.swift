@@ -316,7 +316,11 @@ open class AppContext: AppContextCommon {
                                         chatData: coreChatData,
                                         contactStore: contactStore,
                                         commonMediaUploader: mediaUploader)
-        userProfileDataImpl = UserProfileData(dataStore: mainDataStore, service: coreService, avatarStore: avatarStore, userData: userData)
+        userProfileDataImpl = UserProfileData(dataStore: mainDataStore,
+                                              service: coreService,
+                                              avatarStore: avatarStore,
+                                              userData: userData,
+                                              userDefaults: userDefaults)
 
         DispatchQueue.global(qos: .background).async {
             self.migrateLogFilesIfNeeded()

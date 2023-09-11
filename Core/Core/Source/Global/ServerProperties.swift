@@ -51,6 +51,7 @@ public struct ServerProperties {
         case closeFriendRecommendations = "close_friends_recos"
         case enableGroupChat = "group_chat"
         case enableMomentExternalShare = "moment_external_share"
+        case relationshipSyncFrequency = "relationship_sync_frequency"
     }
 
     private struct UserDefaultsKey {
@@ -99,6 +100,7 @@ public struct ServerProperties {
         static let closeFriendRecommendations = false
         static let enableGroupChat = false
         static let enableMomentExternalShare = false
+        static let relationshipSyncFrequency: TimeInterval = 604800
     }
 
     // MARK: Storage
@@ -317,6 +319,8 @@ public struct ServerProperties {
                 value = useClearTextGroupFeedContent
             case .enableMomentExternalShare:
                 value = enableMomentExternalShare
+            case .relationshipSyncFrequency:
+                value = relationshipSyncFrequency
             }
             partialResult[key.rawValue] = value
         }
@@ -472,5 +476,9 @@ public struct ServerProperties {
 
     public static var enableMomentExternalShare: Bool {
         ServerProperties.bool(forKey: .enableMomentExternalShare) ?? Defaults.enableMomentExternalShare
+    }
+
+    public static var relationshipSyncFrequency: TimeInterval {
+        ServerProperties.double(forKey: .relationshipSyncFrequency) ?? Defaults.relationshipSyncFrequency
     }
 }

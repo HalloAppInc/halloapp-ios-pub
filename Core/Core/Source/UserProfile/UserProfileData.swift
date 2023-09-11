@@ -8,6 +8,7 @@
 
 import Foundation
 import CoreData
+import Combine
 import CoreCommon
 import CocoaLumberjackSwift
 
@@ -17,16 +18,30 @@ public class UserProfileData: NSObject {
     public let service: CoreService
     public let avatarStore: AvatarStore
     public let userData: UserData
+    public let userDefaults: UserDefaults
 
-    public init(dataStore: MainDataStore, service: CoreService, avatarStore: AvatarStore, userData: UserData) {
+    private var cancellables: Set<AnyCancellable> = []
+
+    public init(dataStore: MainDataStore, service: CoreService, avatarStore: AvatarStore, userData: UserData, userDefaults: UserDefaults) {
         self.mainDataStore = dataStore
         self.service = service
         self.avatarStore = avatarStore
         self.userData = userData
+        self.userDefaults = userDefaults
 
         super.init()
 
-        // TODO: sync friendships
+        service.didConnect
+            .sink { [weak self] in
+                self?.syncFriendshipsIfNeeded()
+            }
+            .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: UserData.userDataDidSave)
+            .sink { [weak self] _ in
+                self?.syncUserProfile()
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: Actions
@@ -105,8 +120,18 @@ public class UserProfileData: NSObject {
         }
     }
 
+    // MARK: Sync
+
     private func syncFriendshipsIfNeeded() {
-        let listTypes: [Server_FriendListRequest.Action] = [.getFriends, .getIncomingPending, .getIncomingPending, .getOutgoingPending]
+        let key = "friendshipsSyncDateKey"
+        let lastSyncTime = Date(timeIntervalSince1970: userDefaults.double(forKey: key))
+
+        guard lastSyncTime < Date(timeIntervalSinceNow: -ServerProperties.relationshipSyncFrequency) else {
+            DDLogInfo("UserProfileData/syncFriendshipsIfNeeded/skipping sync")
+            return
+        }
+
+        let listTypes: [Server_FriendListRequest.Action] = [.getFriends, .getOutgoingPending, .getIncomingPending]
 
         Task {
             for type in listTypes {
@@ -125,6 +150,8 @@ public class UserProfileData: NSObject {
                     DDLogError("UserProfileData/syncFriendshipsIfNeeded/failed with error \(String(describing: error))")
                 }
             }
+
+            userDefaults.set(Date().timeIntervalSince1970, forKey: key)
         }
     }
 
@@ -182,6 +209,19 @@ public class UserProfileData: NSObject {
                     continuation.resume(throwing: error)
                 }
             }
+        }
+    }
+
+    private func syncUserProfile() {
+        DDLogInfo("UserProfileData/syncUserProfile")
+        let userID = userData.userId
+        let name = userData.name
+        let username = userData.username
+
+        mainDataStore.saveSeriallyOnBackgroundContext { context in
+            let userProfile = UserProfile.findOrCreate(with: userID, in: context)
+            userProfile.name = name
+            userProfile.username = username
         }
     }
 }
