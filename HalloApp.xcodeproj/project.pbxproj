@@ -288,6 +288,10 @@
 		A15E6C84280F1AA6008CAEA0 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15E6C83280F1AA6008CAEA0 /* SettingsViewController.swift */; };
 		A16117C828E246820034F382 /* CMDeviceMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16117C728E246820034F382 /* CMDeviceMotion.swift */; };
 		A16297F2289C6F000081C0AA /* NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16297F1289C6EFF0081C0AA /* NSAttributedString.swift */; };
+		A163A2522AAF742F00501DE3 /* FriendsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A163A2512AAF742F00501DE3 /* FriendsViewController.swift */; };
+		A163A2542AAF745900501DE3 /* FriendCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A163A2532AAF745900501DE3 /* FriendCollectionViewCell.swift */; };
+		A163A2562AAF746B00501DE3 /* FriendHeaderViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A163A2552AAF746B00501DE3 /* FriendHeaderViews.swift */; };
+		A163A2582AAF74B700501DE3 /* UILayoutPriority.swift in Sources */ = {isa = PBXBuildFile; fileRef = A163A2572AAF74B700501DE3 /* UILayoutPriority.swift */; };
 		A17B5129284FD48600B75405 /* CameraSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17B5128284FD48600B75405 /* CameraSessionManager.swift */; };
 		A17CEAD12AAA2D4200FCCECD /* FriendsDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17CEAD02AAA2D4200FCCECD /* FriendsDataSource.swift */; };
 		A17CEAD32AAA2D5200FCCECD /* FriendsPublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17CEAD22AAA2D5200FCCECD /* FriendsPublisher.swift */; };
@@ -1126,6 +1130,10 @@
 		A15E6C83280F1AA6008CAEA0 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		A16117C728E246820034F382 /* CMDeviceMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CMDeviceMotion.swift; sourceTree = "<group>"; };
 		A16297F1289C6EFF0081C0AA /* NSAttributedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSAttributedString.swift; sourceTree = "<group>"; };
+		A163A2512AAF742F00501DE3 /* FriendsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsViewController.swift; sourceTree = "<group>"; };
+		A163A2532AAF745900501DE3 /* FriendCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendCollectionViewCell.swift; sourceTree = "<group>"; };
+		A163A2552AAF746B00501DE3 /* FriendHeaderViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendHeaderViews.swift; sourceTree = "<group>"; };
+		A163A2572AAF74B700501DE3 /* UILayoutPriority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UILayoutPriority.swift; sourceTree = "<group>"; };
 		A17B5128284FD48600B75405 /* CameraSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraSessionManager.swift; sourceTree = "<group>"; };
 		A17CEAD02AAA2D4200FCCECD /* FriendsDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsDataSource.swift; sourceTree = "<group>"; };
 		A17CEAD22AAA2D5200FCCECD /* FriendsPublisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsPublisher.swift; sourceTree = "<group>"; };
@@ -1972,6 +1980,9 @@
 			children = (
 				A17CEAD02AAA2D4200FCCECD /* FriendsDataSource.swift */,
 				A17CEAD22AAA2D5200FCCECD /* FriendsPublisher.swift */,
+				A163A2512AAF742F00501DE3 /* FriendsViewController.swift */,
+				A163A2532AAF745900501DE3 /* FriendCollectionViewCell.swift */,
+				A163A2552AAF746B00501DE3 /* FriendHeaderViews.swift */,
 			);
 			path = Friends;
 			sourceTree = "<group>";
@@ -2457,6 +2468,7 @@
 				F4C29B132838704C00A4FE08 /* UICollectionView.swift */,
 				A16297F1289C6EFF0081C0AA /* NSAttributedString.swift */,
 				A16117C728E246820034F382 /* CMDeviceMotion.swift */,
+				A163A2572AAF74B700501DE3 /* UILayoutPriority.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -3216,6 +3228,7 @@
 				761442C5245D32C200DD9D1A /* UIDevice.swift in Sources */,
 				F470251027ED31A6008CD37F /* URLRouter.swift in Sources */,
 				3245AF16284F23B30036CB8E /* MessageMediaView.swift in Sources */,
+				A163A2582AAF74B700501DE3 /* UILayoutPriority.swift in Sources */,
 				F84DF6852851E4FF00BEC721 /* MediaListAnimator.swift in Sources */,
 				A1FF1ED528BE78D40057FC27 /* PermissionsViewController.swift in Sources */,
 				5B493BCC27FF316500FDEA0D /* ChunkedMediaResourceLoaderDelegate.swift in Sources */,
@@ -3321,6 +3334,7 @@
 				F825BC922863867B00BB85A0 /* ComposerViewController.swift in Sources */,
 				76538094243D4B33000AD9A1 /* FeedNotification+CoreDataProperties.swift in Sources */,
 				A11272EA2856C5930009EBD7 /* NewMomentViewController.swift in Sources */,
+				A163A2542AAF745900501DE3 /* FriendCollectionViewCell.swift in Sources */,
 				76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */,
 				32C83FB7268FA44F00BEB4F5 /* FeedPermissionDeniedController.swift in Sources */,
 				F4EFF9132AA7F46500F09C54 /* PhotoPermissionsHelper.swift in Sources */,
@@ -3401,6 +3415,7 @@
 				F4867F3328ECA0B4006C22A8 /* ShareCarousel.swift in Sources */,
 				A1E6767B28513F5E0086EDD2 /* CameraShutterButton.swift in Sources */,
 				A17DCD7027C0885F00E00073 /* ExpandableTextView.swift in Sources */,
+				A163A2562AAF746B00501DE3 /* FriendHeaderViews.swift in Sources */,
 				A188383928BD5DA6005BBCC2 /* PhoneNumberEntryViewController.swift in Sources */,
 				EAC46556251484FE00783821 /* EditGroupViewController.swift in Sources */,
 				F4C29B16283D5A4C00A4FE08 /* MediaImageView.swift in Sources */,
@@ -3425,6 +3440,7 @@
 				76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */,
 				EB9E73D2285D12C5009F1B45 /* ReactionViewController.swift in Sources */,
 				EA50FBA426FE82D00097C451 /* HAMarkdown.swift in Sources */,
+				A163A2522AAF742F00501DE3 /* FriendsViewController.swift in Sources */,
 				68E4619625C9C93B008B5698 /* ExpiredVersionViewController.swift in Sources */,
 				761B3962241D9C4D00858251 /* SyncSession.swift in Sources */,
 				3213A7902909DB5D00D0450A /* EmptyDestinationCell.swift in Sources */,
