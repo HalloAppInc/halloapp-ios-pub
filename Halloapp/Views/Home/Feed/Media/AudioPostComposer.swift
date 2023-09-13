@@ -230,7 +230,7 @@ fileprivate struct RecordButton: View {
 
 class AudioComposerRecorder: NSObject, ObservableObject {
 
-    @Published private(set) var duration = 0.formatted
+    @Published private(set) var duration = 0.formatted()
     @Published private(set) var isRecording = false
 
     @Published private(set) var canRecord = false

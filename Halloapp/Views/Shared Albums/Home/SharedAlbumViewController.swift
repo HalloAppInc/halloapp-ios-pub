@@ -152,7 +152,7 @@ class SharedAlbumViewController: UIViewController {
                 snapshot.appendItems([.header])
                 snapshot.appendItems(suggestions.map { .suggestion($0) })
             }
-            dataSource.apply(snapshot, animatingDifferences: true)
+            await dataSource.apply(snapshot, animatingDifferences: true)
         }
     }
 
