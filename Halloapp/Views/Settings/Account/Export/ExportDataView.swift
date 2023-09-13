@@ -16,12 +16,8 @@ struct ExportDataView: View {
     @ObservedObject var model: ExportDataModel
     
     var body: some View {
-        if #available(iOS 14, *) {
-            mainBody
-                .navigationBarTitleDisplayMode(.inline)
-        } else {
-            mainBody
-        }
+        mainBody
+            .navigationBarTitleDisplayMode(.inline)
     }
     
     private var mainBody: some View {
@@ -52,14 +48,9 @@ struct ExportDataView: View {
 
 private struct AwaitingServerResponseView: View {
     var body: some View {
-        if #available(iOS 14, *) {
-            ProgressView()
-                .scaleEffect(2.5)
-                .frame(width: 100, height: 100)
-        } else {
-            Text(Localizations.loadingDataLabel)
-                .font(.title)
-        }
+        ProgressView()
+            .scaleEffect(2.5)
+            .frame(width: 100, height: 100)
     }
 }
 
@@ -131,12 +122,8 @@ private struct AvailableView: View {
 struct ExportDataView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            if #available(iOS 14.0, *) {
-                ExportDataView(model: PreviewDataModel)
-                    .navigationBarTitleDisplayMode(.inline)
-            } else {
-                ExportDataView(model: PreviewDataModel)
-            }
+            ExportDataView(model: PreviewDataModel)
+                .navigationBarTitleDisplayMode(.inline)
         }
     }
 }

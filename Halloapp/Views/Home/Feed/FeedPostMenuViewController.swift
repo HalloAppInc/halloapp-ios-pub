@@ -251,12 +251,8 @@ class FeedPostMenuViewController: BottomSheetViewController {
         let section = NSCollectionLayoutSection(group: group)
         section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20)
 
-        let sectionIdentifier: Section?
-        if #available(iOS 15.0, *) {
-            sectionIdentifier = dataSource.sectionIdentifier(for: sectionIndex)
-        } else {
-            sectionIdentifier = dataSource.snapshot().sectionIdentifiers[sectionIndex]
-        }
+        let sectionIdentifier = dataSource.sectionIdentifier(for: sectionIndex)
+
         if case .actions = sectionIdentifier?.type {
             let decorationItem = NSCollectionLayoutDecorationItem.background(elementKind: ElementKind.sectionBackground)
             decorationItem.contentInsets = section.contentInsets

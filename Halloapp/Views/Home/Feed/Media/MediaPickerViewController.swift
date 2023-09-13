@@ -547,7 +547,7 @@ class MediaPickerViewController: UIViewController {
     }
 
     func showLimitedAccessBubbleIfNecessary() {
-        if #available(iOS 14, *), PHPhotoLibrary.authorizationStatus(for: .readWrite) == .limited {
+        if PHPhotoLibrary.authorizationStatus(for: .readWrite) == .limited {
             limitedAccessBubble.isHidden = false
         } else {
             limitedAccessBubble.isHidden = true
@@ -866,20 +866,18 @@ class MediaPickerViewController: UIViewController {
     }
 
     @objc private func askForLimitedAccessUpdate() {
-        if #available(iOS 14, *) {
-            let sheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-            sheet.addAction(UIAlertAction(title: Localizations.limitedAccessUpdateSelection, style: .default, handler: { _ in
-                PHPhotoLibrary.shared().presentLimitedLibraryPicker(from: self)
-            }))
-            sheet.addAction(UIAlertAction(title: Localizations.limitedAccessChangeSettings, style: .default, handler: { _ in
-                if let url = URL(string: UIApplication.openSettingsURLString) {
-                    UIApplication.shared.open(url)
-                }
-            }))
-            sheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        let sheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        sheet.addAction(UIAlertAction(title: Localizations.limitedAccessUpdateSelection, style: .default, handler: { _ in
+            PHPhotoLibrary.shared().presentLimitedLibraryPicker(from: self)
+        }))
+        sheet.addAction(UIAlertAction(title: Localizations.limitedAccessChangeSettings, style: .default, handler: { _ in
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(url)
+            }
+        }))
+        sheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
 
-            self.present(sheet, animated: true)
-        }
+        self.present(sheet, animated: true)
     }
 
     private func scrollToBottom(_ animated: Bool = false) {

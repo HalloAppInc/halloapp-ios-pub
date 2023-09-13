@@ -62,11 +62,8 @@ enum CameraInitError: Error, LocalizedError {
 
 class CameraController: UIViewController, AVCapturePhotoCaptureDelegate {
     private static let volumeDidChangeNotificationName: NSNotification.Name = {
-        var name = "AVSystemController_SystemVolumeDidChangeNotification"
-        if #available(iOS 15, *) {
-           name = "SystemVolumeDidChange"
-        }
-        
+        let name = "SystemVolumeDidChange"
+
         return NSNotification.Name(rawValue: name)
     }()
     private static let volumeNotificationParameter = "AVSystemController_AudioVolumeNotificationParameter"

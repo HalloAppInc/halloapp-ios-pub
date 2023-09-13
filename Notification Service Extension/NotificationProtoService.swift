@@ -129,20 +129,15 @@ final class NotificationProtoService: ProtoServiceCore {
             self.disconnect()
         }
         // might have to add an artificial delay here to handle cleanup.
-        if #available(iOSApplicationExtension 14.5, *) {
-            DispatchQueue.main.async {
-                let metadataContent = ["nse_content": serverMsgPb.base64EncodedString()]
-                CXProvider.reportNewIncomingVoIPPushPayload(["metadata": metadataContent]) { error in
-                    if let error = error {
-                        DDLogError("NotificationProtoService/reportIncomingCall/failure: \(error)")
-                    } else {
-                        DDLogInfo("NotificationProtoService/reportIncomingCall/success")
-                    }
+        DispatchQueue.main.async {
+            let metadataContent = ["nse_content": serverMsgPb.base64EncodedString()]
+            CXProvider.reportNewIncomingVoIPPushPayload(["metadata": metadataContent]) { error in
+                if let error = error {
+                    DDLogError("NotificationProtoService/reportIncomingCall/failure: \(error)")
+                } else {
+                    DDLogInfo("NotificationProtoService/reportIncomingCall/success")
                 }
             }
-        } else {
-            // Fallback on earlier versions.
-            // Test with always sending voip push on ios for versions < 14.5
         }
     }
 

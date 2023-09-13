@@ -152,59 +152,49 @@ class AudioCallViewController: CallViewController {
     }()
 
     func updateSpeakerButton() {
-        if #available(iOS 14.0, *) {
-            let inputs = RTCAudioSession.sharedInstance().session.availableInputs ?? []
-            if inputs.count > 1 {
-                speakerButton.showsMenuAsPrimaryAction = true
-                var menuItems: [UIMenuElement] = []
-                menuItems += inputs.map { input in
-                    var title = input.portName
-                    if input.portType == .builtInMic {
-                        title = UIDevice.current.localizedModel
-                    }
-                    var state: UIMenuElement.State = .off
-                    // We ignore the name when the input-type is inbuilt microphone, else we rely on the input's name.
-                    // This is done to avoid localization for the string "iPhone Microphone" - which is the default selected input.
-                    if selectedOutputPortType == .builtInMic && selectedOutputPortType == input.portType && speakerOn == false {
-                        state = .on
-                    } else if selectedOutputName == input.portName && speakerOn == false {
-                        state = .on
-                    } else {
-                        state = .off
-                    }
-                    return UIAction(title: title,
-                                    state: state,
-                                    handler: { _ in
-                        self.selectedOutputPortType = input.portType
-                        self.selectedOutputName = input.portName
-                        self.speakerOn = false
-                        self.selectAudioInput(input: input)
-                        self.updateSpeakerButton()
-                    })
+        let inputs = RTCAudioSession.sharedInstance().session.availableInputs ?? []
+        if inputs.count > 1 {
+            speakerButton.showsMenuAsPrimaryAction = true
+            var menuItems: [UIMenuElement] = []
+            menuItems += inputs.map { input in
+                var title = input.portName
+                if input.portType == .builtInMic {
+                    title = UIDevice.current.localizedModel
                 }
-
-                menuItems.append(UIAction(title: Localizations.callSpeaker, state: speakerOn ? .on : .off, handler: { _ in
-                    self.selectedOutputPortType = .builtInSpeaker
-                    self.selectedOutputName = Localizations.callSpeaker
-                    self.speakerOn = true
-                    self.setSpeakerOn()
-                    self.updateSpeakerButton()
-                }))
-                if #available(iOS 15.0, *) {
-                    speakerButton.menu = UIMenu(options: [.singleSelection], children: menuItems)
+                var state: UIMenuElement.State = .off
+                // We ignore the name when the input-type is inbuilt microphone, else we rely on the input's name.
+                // This is done to avoid localization for the string "iPhone Microphone" - which is the default selected input.
+                if selectedOutputPortType == .builtInMic && selectedOutputPortType == input.portType && speakerOn == false {
+                    state = .on
+                } else if selectedOutputName == input.portName && speakerOn == false {
+                    state = .on
                 } else {
-                    // Fallback on earlier versions
-                    speakerButton.menu = UIMenu(children: menuItems)
+                    state = .off
                 }
-                speakerButton.removeTarget(self, action: #selector(speakerButtonTapped), for: .touchUpInside)
-            } else {
-                speakerButton.showsMenuAsPrimaryAction = false
-                speakerButton.menu = nil
-                speakerButton.image = speakerImage
-                speakerButton.addTarget(self, action: #selector(speakerButtonTapped), for: .touchUpInside)
+                return UIAction(title: title,
+                                state: state,
+                                handler: { _ in
+                    self.selectedOutputPortType = input.portType
+                    self.selectedOutputName = input.portName
+                    self.speakerOn = false
+                    self.selectAudioInput(input: input)
+                    self.updateSpeakerButton()
+                })
             }
+
+            menuItems.append(UIAction(title: Localizations.callSpeaker, state: speakerOn ? .on : .off, handler: { _ in
+                self.selectedOutputPortType = .builtInSpeaker
+                self.selectedOutputName = Localizations.callSpeaker
+                self.speakerOn = true
+                self.setSpeakerOn()
+                self.updateSpeakerButton()
+            }))
+
+            speakerButton.menu = UIMenu(options: [.singleSelection], children: menuItems)
+            speakerButton.removeTarget(self, action: #selector(speakerButtonTapped), for: .touchUpInside)
         } else {
-            // handle this.
+            speakerButton.showsMenuAsPrimaryAction = false
+            speakerButton.menu = nil
             speakerButton.image = speakerImage
             speakerButton.addTarget(self, action: #selector(speakerButtonTapped), for: .touchUpInside)
         }

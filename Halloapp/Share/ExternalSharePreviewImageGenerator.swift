@@ -217,11 +217,7 @@ class ExternalSharePreviewImageGenerator {
 
         let duration: CMTime
         do {
-            if #available(iOS 15, *) {
-                duration = try await asset.load(.duration)
-            } else {
-                duration = asset.duration
-            }
+            duration = try await asset.load(.duration)
         } catch {
             DDLogError("ExternalSharePreviewImageGenerator/video/error loading duration: \(error)")
             return nil

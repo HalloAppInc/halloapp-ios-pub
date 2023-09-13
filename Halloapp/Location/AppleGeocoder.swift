@@ -33,35 +33,9 @@ class AppleGeocoder {
         }
 
         let searchLocation = placemark?.location ?? location
-        let localSearch: MKLocalSearch
-
-        if #available(iOS 14.0, *) {
-            let request = MKLocalPointsOfInterestRequest(center: searchLocation.coordinate, radius: Constants.searchRadius)
-            request.pointOfInterestFilter = Constants.pointOfInterestFilter
-            localSearch = MKLocalSearch(request: request)
-        } else {
-            let searchText: String
-            if let placemark {
-                if let postalAddress = placemark.postalAddress {
-                    searchText = CNPostalAddressFormatter.string(from: postalAddress, style: .mailingAddress)
-                } else if let name = placemark.name, !name.isEmpty {
-                    searchText = name
-                } else {
-                    searchText = "\(searchLocation.coordinate.latitude), \(searchLocation.coordinate.longitude)"
-                }
-            } else {
-                searchText = "\(searchLocation.coordinate.latitude), \(searchLocation.coordinate.longitude)"
-            }
-
-            let request = MKLocalSearch.Request()
-            request.naturalLanguageQuery = searchText
-            request.resultTypes = [.pointOfInterest]
-            request.region = MKCoordinateRegion(center: location.coordinate,
-                                                latitudinalMeters: Constants.searchRadius,
-                                                longitudinalMeters: Constants.searchRadius)
-            request.pointOfInterestFilter = Constants.pointOfInterestFilter
-            localSearch = MKLocalSearch(request: request)
-        }
+        let request = MKLocalPointsOfInterestRequest(center: searchLocation.coordinate, radius: Constants.searchRadius)
+        request.pointOfInterestFilter = Constants.pointOfInterestFilter
+        let localSearch = MKLocalSearch(request: request)
 
         let response: MKLocalSearch.Response
 

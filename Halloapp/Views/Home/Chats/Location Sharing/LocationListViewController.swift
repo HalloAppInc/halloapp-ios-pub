@@ -66,12 +66,8 @@ class LocationListViewController: UIViewController {
     private lazy var collectionItemIcon: UIImage? = {
         let image = UIImage(systemName: "magnifyingglass.circle.fill")
         var configuration = UIImage.SymbolConfiguration(scale: .large)
-        if #available(iOS 15.0, *) {
-            configuration = configuration.applying(UIImage.SymbolConfiguration(hierarchicalColor: .systemGray))
-            return image?.withConfiguration(configuration)
-        } else {
-            return image?.withConfiguration(configuration).withTintColor(.systemGray, renderingMode: .alwaysOriginal)
-        }
+        configuration = configuration.applying(UIImage.SymbolConfiguration(hierarchicalColor: .systemGray))
+        return image?.withConfiguration(configuration)
     }()
     
     private func collection(fromLocations locations: [MKMapItem]) -> InsetCollectionView.Collection {

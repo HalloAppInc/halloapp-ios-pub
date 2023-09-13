@@ -175,9 +175,7 @@ class AudioSessionManager {
                 } else {
                     category = .playback
                 }
-                if #available(iOS 14.5, *) {
-                    options = .overrideMutedMicrophoneInterruption
-                }
+                options = .overrideMutedMicrophoneInterruption
                 disableIdleTimer = true
                 monitorProximity = true
             case .record:
@@ -305,14 +303,11 @@ class AudioSessionManager {
             break
         }
 
-
-        if #available(iOS 14.5, *) {
-            guard let reasonValue = notification.userInfo?[AVAudioSessionInterruptionReasonKey] as? UInt,
-                  let reason = AVAudioSession.InterruptionReason(rawValue: reasonValue) else {
-                      return
-                  }
-            DDLogInfo("AudioSessionManager/handleInterruption/reason: \(reason.rawValue)")
-        }
+        guard let reasonValue = notification.userInfo?[AVAudioSessionInterruptionReasonKey] as? UInt,
+              let reason = AVAudioSession.InterruptionReason(rawValue: reasonValue) else {
+                  return
+              }
+        DDLogInfo("AudioSessionManager/handleInterruption/reason: \(reason.rawValue)")
     }
 
     static func unmanagedAudioSessionDidActivate() {

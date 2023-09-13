@@ -137,9 +137,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
         tableView.sectionHeaderHeight = UITableView.automaticDimension
         tableView.estimatedSectionHeaderHeight = 44
-        if #available(iOS 15, *) {
-            tableView.sectionHeaderTopPadding = .zero
-        }
+        tableView.sectionHeaderTopPadding = .zero
 
         dataSource = ChatsListDataSource(tableView: tableView) { [weak self] (tableView, indexPath, row) in
             guard let self = self else { return UITableViewCell() }

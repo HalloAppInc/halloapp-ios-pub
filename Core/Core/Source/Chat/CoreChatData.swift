@@ -612,35 +612,33 @@ public class CoreChatData {
     /// - Parameter toUserId: The user ID for the person the user just shared with
     /// - Remark: This is different from the implementation in `ShareComposerViewController.swift` because `MainAppContext` isn't available in the share extension.
     public func addIntent(toUserId: UserID) {
-        if #available(iOS 14.0, *) {
-            var name = ""
-            contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-                name = self.contactStore.fullNameIfAvailable(for: toUserId, ownName: nil, in: managedObjectContext) ?? ""
-            }
-
-            let recipient = INSpeakableString(spokenPhrase: name)
-            let sendMessageIntent = INSendMessageIntent(recipients: nil,
-                                                        content: nil,
-                                                        speakableGroupName: recipient,
-                                                        conversationIdentifier: ConversationID(id: toUserId, type: .chat).description,
-                                                        serviceName: nil, sender: nil)
-
-            let potentialUserAvatar = AppContext.shared.avatarStore.userAvatar(forUserId: toUserId).image
-            guard let defaultAvatar = UIImage(named: "AvatarUser") else { return }
-
-            // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
-            guard let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData() else { return }
-            let userAvatar = INImage(imageData: userAvaterUIImage)
-
-            sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
-
-            let interaction = INInteraction(intent: sendMessageIntent, response: nil)
-            interaction.donate(completion: { error in
-                if let error = error {
-                    DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
-                }
-            })
+        var name = ""
+        contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+            name = self.contactStore.fullNameIfAvailable(for: toUserId, ownName: nil, in: managedObjectContext) ?? ""
         }
+
+        let recipient = INSpeakableString(spokenPhrase: name)
+        let sendMessageIntent = INSendMessageIntent(recipients: nil,
+                                                    content: nil,
+                                                    speakableGroupName: recipient,
+                                                    conversationIdentifier: ConversationID(id: toUserId, type: .chat).description,
+                                                    serviceName: nil, sender: nil)
+
+        let potentialUserAvatar = AppContext.shared.avatarStore.userAvatar(forUserId: toUserId).image
+        guard let defaultAvatar = UIImage(named: "AvatarUser") else { return }
+
+        // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
+        guard let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData() else { return }
+        let userAvatar = INImage(imageData: userAvaterUIImage)
+
+        sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
+
+        let interaction = INInteraction(intent: sendMessageIntent, response: nil)
+        interaction.donate(completion: { error in
+            if let error = error {
+                DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
+            }
+        })
     }
 
     // MARK: - Receipts

@@ -340,13 +340,8 @@ public class FeedDownloadManager {
                 }
                 fileSize += curEncryptedDataChunk.count
             }
-            let offset: UInt64
-            if #available(iOSApplicationExtension 13.4, *) {
-                offset = try encryptedFileHandle.offset()
-            } else {
-                // Fallback on earlier versions
-                offset = 0
-            }
+
+            let offset = try encryptedFileHandle.offset()
             DDLogInfo("FeedDownloadManager/\(task.id)/verifyHash/wip fileSize=[\(fileSize)]/offset: \(offset)")
 
             // Verify hash-sha256 here and only then proceed.

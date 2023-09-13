@@ -1068,23 +1068,16 @@ fileprivate struct PostComposerView: View {
                                 audioRecordingView
                             } else {
                                 ZStack(alignment: .top) {
-                                    if #available(iOS 15.0, *) {
-                                        ScrollView {
-                                            postTextView
-                                        }
-                                        .safeAreaInset(edge: .bottom) {
-                                            Spacer()
-                                                .frame(height: PostComposerLayoutConstants.sendButtonHeight + 24)
-
-                                        }
-                                        .frame(maxHeight: scrollGeometry.size.height - 2 * PostComposerLayoutConstants.verticalPadding)
-                                    } else {
-                                        ScrollView {
-                                            postTextView
-                                                .padding(.bottom, PostComposerLayoutConstants.sendButtonHeight + 24)
-                                        }
-                                        .frame(maxHeight: scrollGeometry.size.height - 2 * PostComposerLayoutConstants.verticalPadding)
+                                    ScrollView {
+                                        postTextView
                                     }
+                                    .safeAreaInset(edge: .bottom) {
+                                        Spacer()
+                                            .frame(height: PostComposerLayoutConstants.sendButtonHeight + 24)
+
+                                    }
+                                    .frame(maxHeight: scrollGeometry.size.height - 2 * PostComposerLayoutConstants.verticalPadding)
+
                                     if initialPostType == .unified, audioComposerRecorder.voiceNote != nil {
                                         VStack {
                                             Spacer()
@@ -1177,7 +1170,7 @@ fileprivate struct PostComposerView: View {
                     .background(
                         YOffsetGetter(coordinateSpace: .named(PostComposerLayoutConstants.mainScrollCoordinateSpace))
                             .onPreferenceChange(YOffsetPreferenceKey.self, perform: {
-                                if $0 > 0, #available(iOS 14.0, *) { // top overscroll, before iOS 14 the reported offset seems inaccurrate
+                                if $0 > 0 { // top overscroll, before iOS 14 the reported offset seems inaccurrate
                                     PostComposerView.stopTextEdit()
                                 }
                             })
@@ -1915,10 +1908,6 @@ fileprivate struct KeyboardHeightHandler: ViewModifier {
 
 fileprivate extension View {
     func handleKeyboard() -> some View {
-        if #available(iOS 14, *) {
-            return AnyView(self)
-        } else {
-            return AnyView(modifier(KeyboardHeightHandler()))
-        }
+        return AnyView(self)
     }
 }

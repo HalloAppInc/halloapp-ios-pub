@@ -864,35 +864,33 @@ class ShareComposerViewController: UIViewController {
     /// - Parameter chatGroup: The ID for the group the user is sharing to
     /// - Remark: This is different from the implementation in `FeedData.swift` because `MainAppContext` isn't available.
     private func addIntent(chatGroup: GroupListSyncItem) {
-        if #available(iOS 14.0, *) {
-            let recipient = INSpeakableString(spokenPhrase: chatGroup.name)
-            let sendMessageIntent = INSendMessageIntent(recipients: nil,
-                                                        content: nil,
-                                                        speakableGroupName: recipient,
-                                                        conversationIdentifier: ConversationID(id: chatGroup.id, type: .group).description,
-                                                        serviceName: nil,
-                                                        sender: nil)
+        let recipient = INSpeakableString(spokenPhrase: chatGroup.name)
+        let sendMessageIntent = INSendMessageIntent(recipients: nil,
+                                                    content: nil,
+                                                    speakableGroupName: recipient,
+                                                    conversationIdentifier: ConversationID(id: chatGroup.id, type: .group).description,
+                                                    serviceName: nil,
+                                                    sender: nil)
 
-            var potentialUserAvatar: UIImage?
-            ShareExtensionContext.shared.avatarStore.viewContext.performAndWait {
-                potentialUserAvatar = ShareExtensionContext.shared.avatarStore.groupAvatarData(for: chatGroup.id).image
-            }
-
-            guard let defaultAvatar = UIImage(named: "AvatarGroup") else { return }
-            
-            // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
-            guard let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData() else { return }
-            let userAvatar = INImage(imageData: userAvaterUIImage)
-            
-            sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
-            
-            let interaction = INInteraction(intent: sendMessageIntent, response: nil)
-            interaction.donate(completion: { error in
-                if let error = error {
-                    DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
-                }
-            })
+        var potentialUserAvatar: UIImage?
+        ShareExtensionContext.shared.avatarStore.viewContext.performAndWait {
+            potentialUserAvatar = ShareExtensionContext.shared.avatarStore.groupAvatarData(for: chatGroup.id).image
         }
+
+        guard let defaultAvatar = UIImage(named: "AvatarGroup") else { return }
+
+        // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
+        guard let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData() else { return }
+        let userAvatar = INImage(imageData: userAvaterUIImage)
+
+        sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
+
+        let interaction = INInteraction(intent: sendMessageIntent, response: nil)
+        interaction.donate(completion: { error in
+            if let error = error {
+                DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
+            }
+        })
     }
     
     /// Donates an intent to Siri for improved suggestions when sharing content.
@@ -902,34 +900,32 @@ class ShareComposerViewController: UIViewController {
     /// - Parameter toUserId: The user ID for the person the user just shared with
     /// - Remark: This is different from the implementation in `ChatData.swift` because `MainAppContext` isn't available in the share extension.
     private func addIntent(toUserId: UserID) {
-        if #available(iOS 14.0, *) {
-            let contactsContextView = ShareExtensionContext.shared.contactStore.viewContext
-            contactsContextView.performAndWait {
-                guard let fullName = ShareExtensionContext.shared.contactStore.fullNameIfAvailable(for: toUserId, ownName: Localizations.meCapitalized, in: contactsContextView) else { return }
+        let contactsContextView = ShareExtensionContext.shared.contactStore.viewContext
+        contactsContextView.performAndWait {
+            guard let fullName = ShareExtensionContext.shared.contactStore.fullNameIfAvailable(for: toUserId, ownName: Localizations.meCapitalized, in: contactsContextView) else { return }
 
-                let recipient = INSpeakableString(spokenPhrase: fullName)
-                let sendMessageIntent = INSendMessageIntent(recipients: nil,
-                                                            content: nil,
-                                                            speakableGroupName: recipient,
-                                                            conversationIdentifier: ConversationID(id: toUserId, type: .chat).description,
-                                                            serviceName: nil, sender: nil)
+            let recipient = INSpeakableString(spokenPhrase: fullName)
+            let sendMessageIntent = INSendMessageIntent(recipients: nil,
+                                                        content: nil,
+                                                        speakableGroupName: recipient,
+                                                        conversationIdentifier: ConversationID(id: toUserId, type: .chat).description,
+                                                        serviceName: nil, sender: nil)
 
-                let potentialUserAvatar = ShareExtensionContext.shared.avatarStore.userAvatar(forUserId: toUserId).image
-                guard let defaultAvatar = UIImage(named: "AvatarUser") else { return }
+            let potentialUserAvatar = ShareExtensionContext.shared.avatarStore.userAvatar(forUserId: toUserId).image
+            guard let defaultAvatar = UIImage(named: "AvatarUser") else { return }
 
-                // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
-                guard let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData() else { return }
-                let userAvatar = INImage(imageData: userAvaterUIImage)
+            // Have to convert UIImage to data and then NIImage because NIImage(uiimage: UIImage) initializer was throwing exception
+            guard let userAvaterUIImage = (potentialUserAvatar ?? defaultAvatar).pngData() else { return }
+            let userAvatar = INImage(imageData: userAvaterUIImage)
 
-                sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
+            sendMessageIntent.setImage(userAvatar, forParameterNamed: \.speakableGroupName)
 
-                let interaction = INInteraction(intent: sendMessageIntent, response: nil)
-                interaction.donate(completion: { error in
-                    if let error = error {
-                        DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
-                    }
-                })
-            }
+            let interaction = INInteraction(intent: sendMessageIntent, response: nil)
+            interaction.donate(completion: { error in
+                if let error = error {
+                    DDLogDebug("ChatViewController/sendMessage/\(error.localizedDescription)")
+                }
+            })
         }
     }
 }

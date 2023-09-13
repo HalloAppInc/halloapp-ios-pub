@@ -978,7 +978,7 @@ extension AVCaptureDevice {
     var preferredMulticamFormat: Format? {
         formats
             .filter {
-                if #available(iOS 15, *), position == .front {
+                if position == .front {
                     return $0.isMultiCamSupported && $0.isPortraitEffectSupported && !$0.isVideoBinned
                 }
 

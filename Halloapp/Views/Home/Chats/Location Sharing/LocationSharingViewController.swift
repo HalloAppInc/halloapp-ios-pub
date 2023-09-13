@@ -273,7 +273,7 @@ class LocationSharingViewController: UIViewController {
     }
     
     private func preventSheetAutoResizingAfterKeyboardDidShow() {
-        if #available(iOS 15.0, *), let sheet = navigationController?.sheetPresentationController ?? sheetPresentationController {
+        if let sheet = navigationController?.sheetPresentationController ?? sheetPresentationController {
             NotificationCenter.default
                 .publisher(for: UIResponder.keyboardDidShowNotification)
                 .first()

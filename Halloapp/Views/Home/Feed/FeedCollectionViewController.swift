@@ -1204,11 +1204,7 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
 
         if let collectionViewDataSource = collectionViewDataSource, let displayItem = feedDataSource.item(at: indexPath.item) {
             var snapshot = collectionViewDataSource.snapshot()
-            if #available(iOS 15.0, *) {
-                snapshot.reconfigureItems([displayItem])
-            } else {
-                snapshot.reloadItems([displayItem])
-            }
+            snapshot.reconfigureItems([displayItem])
             collectionViewDataSource.apply(snapshot)
         } else {
             DDLogWarn("FeedPostViewController/feedPostCollectionViewCellDidRequestTextExpansion/unable to resize via dataSource")
@@ -1308,11 +1304,7 @@ extension FeedCollectionViewController {
                 if let cell = collectionView.cellForItem(at: indexPath) as? FeedInviteCarouselCell {
                     cell.configure(with: inviteContactsManager.randomSelection, invitedContacts: invitedContacts, animated: true)
                 } else {
-                    if #available(iOS 15.0, *) {
-                        snapshot.reconfigureItems([.inviteCarousel])
-                    } else {
-                        snapshot.reloadItems([.inviteCarousel])
-                    }
+                    snapshot.reconfigureItems([.inviteCarousel])
                     updateSnapshot = true
                 }
             }

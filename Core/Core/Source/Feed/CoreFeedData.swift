@@ -79,8 +79,7 @@ open class CoreFeedData: NSObject {
     /// - Parameter chatGroup: The ID for the group the user is sharing to
     /// - Remark: This is different from the implementation in `FeedData.swift` because `MainAppContext` isn't available.
     public func addIntent(groupId: GroupID?) {
-        guard let groupId = groupId,
-              #available(iOS 14.0, *) else {
+        guard let groupId else {
             return
         }
         let potentialUserAvatar = AppContext.shared.avatarStore.groupAvatarData(for: groupId).image

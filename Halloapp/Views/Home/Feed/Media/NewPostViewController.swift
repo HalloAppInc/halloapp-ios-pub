@@ -117,9 +117,7 @@ final class NewPostViewController: UINavigationController {
         appearance.configureWithTransparentBackground()
 
         tabBarItem.standardAppearance = appearance
-        if #available(iOS 15, *) {
-            tabBarItem.scrollEdgeAppearance = appearance
-        }
+        tabBarItem.scrollEdgeAppearance = appearance
     }
 
     private func cleanupAndFinish(didPost: Bool = false, destinations: [ShareDestination] = []) {

@@ -42,11 +42,7 @@ class PhotoPermissionsHelper {
     }
 
     class func authorizationStatus(for accessLevel: AccessLevel) -> PHAuthorizationStatus {
-        if #available(iOS 14, *) {
-            return PHPhotoLibrary.authorizationStatus(for: accessLevel.phAccessLevel)
-        } else {
-            return PHPhotoLibrary.authorizationStatus()
-        }
+        return PHPhotoLibrary.authorizationStatus(for: accessLevel.phAccessLevel)
     }
 
     class func requestAuthorization(for accessLevel: AccessLevel, handler: ((PHAuthorizationStatus) -> Void)? = nil) {
@@ -54,11 +50,8 @@ class PhotoPermissionsHelper {
             NotificationCenter.default.post(Notification(name: PhotoPermissionsHelper.photoAuthorizationDidChange))
             handler?(status)
         }
-        if #available(iOS 14, *) {
-            PHPhotoLibrary.requestAuthorization(for: accessLevel.phAccessLevel, handler: notificationHandler)
-        } else {
-            PHPhotoLibrary.requestAuthorization(notificationHandler)
-        }
+
+        PHPhotoLibrary.requestAuthorization(for: accessLevel.phAccessLevel, handler: notificationHandler)
     }
 
     class func requestAuthorization(for accessLevel: AccessLevel) async -> PHAuthorizationStatus {

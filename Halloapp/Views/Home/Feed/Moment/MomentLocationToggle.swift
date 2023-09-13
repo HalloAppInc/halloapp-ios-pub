@@ -253,12 +253,7 @@ extension MomentLocationToggle: CLLocationManagerDelegate {
 
     @discardableResult
     private func checkLocationAuthorization() -> CLAuthorizationStatus {
-        let authorization: CLAuthorizationStatus
-        if #available(iOS 14, *) {
-            authorization = locationManager.authorizationStatus
-        } else {
-            authorization = CLLocationManager.authorizationStatus()
-        }
+        let authorization = locationManager.authorizationStatus
 
         DDLogInfo("MomentLocationToggle/checkAuthorization/status [\(authorization)]")
         return authorization

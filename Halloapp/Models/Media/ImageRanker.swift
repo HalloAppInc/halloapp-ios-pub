@@ -36,15 +36,13 @@ final class ImageRanker {
                             return (id, score)
                         }
                         
-                        if #available(iOS 15.0, *) {
-                            for try await image in mediaItem.imagePublisher.values {
-                                guard let image else { continue }
-                                let score = self.computeScore(for: image)
-                                self.cachedScores[id] = score
-                                return (id, score)
-                            }
+                        for try await image in mediaItem.imagePublisher.values {
+                            guard let image else { continue }
+                            let score = self.computeScore(for: image)
+                            self.cachedScores[id] = score
+                            return (id, score)
                         }
-                        
+
                         return nil
                     }
                 }
@@ -152,23 +150,17 @@ final class ImageRanker {
     
     public func computeScore(for image: UIImage) -> CGFloat {
         let score: CGFloat
-        if #available(iOS 15.0, *) {
-            do {
-                guard let multiArray = preprocess(image: image) else { return 0 }
-                let model = try AestheticCoreML()
-                let input = AestheticCoreMLInput(input_1: MLShapedArray(multiArray))
-                if let prediction = try model.prediction(input: input).featureValue(for: "Identity")?.multiArrayValue?.float32Array {
-                    score = self.score(from: prediction)
-                } else {
-                    score = 0
-                }
-            } catch {
-                DDLogError("Aesthetic classifier error: \(error)")
+        do {
+            guard let multiArray = preprocess(image: image) else { return 0 }
+            let model = try AestheticCoreML()
+            let input = AestheticCoreMLInput(input_1: MLShapedArray(multiArray))
+            if let prediction = try model.prediction(input: input).featureValue(for: "Identity")?.multiArrayValue?.float32Array {
+                score = self.score(from: prediction)
+            } else {
                 score = 0
             }
-            
-        } else {
-            DDLogInfo("CoreML unavailable")
+        } catch {
+            DDLogError("Aesthetic classifier error: \(error)")
             score = 0
         }
         return score

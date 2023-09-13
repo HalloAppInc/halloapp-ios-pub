@@ -992,9 +992,10 @@ extension FlatCommentsViewController: MessageViewCommentDelegate, ReactionViewCo
             let reactionList = ReactionListViewController(feedPostComment: feedPostComment)
             reactionList.delegate = self
             let navigationController = UINavigationController(rootViewController: reactionList)
-            if #available(iOS 15.0, *), let sheet = navigationController.sheetPresentationController {
-                sheet.detents = [.medium(), .large()]
-            }
+
+            let sheet = navigationController.sheetPresentationController
+            sheet?.detents = [.medium(), .large()]
+
             self.present(navigationController, animated: true)
         }
     }
@@ -1169,9 +1170,8 @@ extension FlatCommentsViewController: ContentInputDelegate {
             .store(in: &cancellableSet)
 
         let navigationController = UINavigationController(rootViewController: locationSharingViewController)
-        if #available(iOS 15.0, *), let sheet = navigationController.sheetPresentationController {
-            sheet.detents = [.medium(), .large()]
-        }
+        let sheet = navigationController.sheetPresentationController
+        sheet?.detents = [.medium(), .large()]
 
         present(navigationController, animated: true)
     }

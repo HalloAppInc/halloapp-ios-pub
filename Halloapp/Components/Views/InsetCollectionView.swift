@@ -132,12 +132,7 @@ extension InsetCollectionView {
 
         let isFirstItem = indexPath.row == 0
         let isLastItem = indexPath.row == collectionView.numberOfItems(inSection: indexPath.section) - 1
-        let section: Section?
-        if #available(iOS 15, *) {
-            section = data.sectionIdentifier(for: indexPath.section)
-        } else {
-            section = data.snapshot().sectionIdentifiers[indexPath.section]
-        }
+        let section = data.sectionIdentifier(for: indexPath.section)
 
         if let cell = cell as? InsetCollectionViewCell, let options = section?.roundedCorners {
             finalizeStyle(for: cell, isFirstItem: isFirstItem, isLastItem: isLastItem, options: options)

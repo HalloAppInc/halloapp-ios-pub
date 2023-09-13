@@ -358,12 +358,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         }
 
         dataSource?.defaultRowAnimation = .fade
-
-        if #available(iOS 15.0, *) {
-            dataSource?.applySnapshotUsingReloadData(snapshot)
-        } else {
-            dataSource?.apply(snapshot, animatingDifferences: animated)
-        }
+        dataSource?.applySnapshotUsingReloadData(snapshot)
     }
 
     private func generateHistoryStatsString() -> String {
@@ -1273,9 +1268,7 @@ private class MenuCell: UITableViewCell {
 
     var menu: HAMenu? {
         didSet {
-            if #available(iOS 14.0, *) {
-                menuButton.menu = menu.flatMap { UIMenu(menu: $0) }
-            }
+            menuButton.menu = menu.flatMap { UIMenu(menu: $0) }
         }
     }
 
@@ -1284,11 +1277,7 @@ private class MenuCell: UITableViewCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
 
-        if #available(iOS 14.0, *) {
-            menuButton.showsMenuAsPrimaryAction = true
-        } else {
-            menuButton.addTarget(self, action: #selector(showMenu), for: .touchUpInside)
-        }
+        menuButton.showsMenuAsPrimaryAction = true
         menuButton.setContentHuggingPriority(UILayoutPriority(1), for: .vertical)
         contentView.addSubview(menuButton)
     }

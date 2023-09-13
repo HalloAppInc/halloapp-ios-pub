@@ -1094,7 +1094,7 @@ extension GroupChatViewController: ContentInputDelegate {
             .store(in: &cancellableSet)
 
         let navigationController = UINavigationController(rootViewController: locationSharingViewController)
-        if #available(iOS 15.0, *), let sheet = navigationController.sheetPresentationController {
+        if let sheet = navigationController.sheetPresentationController {
             sheet.detents = [.medium(), .large()]
         }
 
@@ -1157,12 +1157,7 @@ extension GroupChatViewController: ContentInputDelegate {
     }
 
     private func presentFilePicker() {
-        let vc: UIDocumentPickerViewController
-        if #available(iOS 14.0, *) {
-            vc = UIDocumentPickerViewController(forOpeningContentTypes: [.data])
-        } else {
-            vc = UIDocumentPickerViewController(documentTypes: ["public.data"], in: .open)
-        }
+        let vc = UIDocumentPickerViewController(forOpeningContentTypes: [.data])
         vc.delegate = self
         present(vc, animated: true)
 
@@ -1488,7 +1483,7 @@ extension GroupChatViewController: MessageViewChatDelegate, ReactionViewControll
             let reactionList = ReactionListViewController(chatMessage: chatMessage)
             reactionList.delegate = self
             let navigationController = UINavigationController(rootViewController: reactionList)
-            if #available(iOS 15.0, *), let sheet = navigationController.sheetPresentationController {
+            if let sheet = navigationController.sheetPresentationController {
                 sheet.detents = [.medium(), .large()]
             }
             self.present(navigationController, animated: true)

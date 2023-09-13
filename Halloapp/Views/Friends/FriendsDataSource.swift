@@ -107,11 +107,7 @@ class FriendsDataSource: NSObject {
              the items that are different.
              */
             var snapshot = collectionViewDataSource.snapshot()
-            if #available(iOS 15, *) {
-                snapshot.reconfigureItems(itemsToReconfigure)
-            } else {
-                snapshot.reloadItems(itemsToReconfigure)
-            }
+            snapshot.reconfigureItems(itemsToReconfigure)
 
             collectionViewDataSource.apply(snapshot, animatingDifferences: animated)
         }

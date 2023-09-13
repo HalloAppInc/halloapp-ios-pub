@@ -245,19 +245,17 @@ struct DeveloperMenuView: View {
                             MainAppContext.shared.userDefaults.set(value, forKey: "disableQueueSerialization")
                         }
 
-                    if #available(iOS 14, *) {
-                        Menu("Demo onboarding (code is 111111)") {
-                            Button("Network size of 0") {
-                                performOnboardingDemo?(0)
-                            }
+                    Menu("Demo onboarding (code is 111111)") {
+                        Button("Network size of 0") {
+                            performOnboardingDemo?(0)
+                        }
 
-                            Button("Network size is 4 or fewer contacts") {
-                                performOnboardingDemo?(4)
-                            }
+                        Button("Network size is 4 or fewer contacts") {
+                            performOnboardingDemo?(4)
+                        }
 
-                            Button("Network size greater than 4 contacts") {
-                                performOnboardingDemo?(5)
-                            }
+                        Button("Network size greater than 4 contacts") {
+                            performOnboardingDemo?(5)
                         }
                     }
                 }

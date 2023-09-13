@@ -184,56 +184,45 @@ class VideoCallViewController: CallViewController {
     }()
 
     func updateSpeakerButton() {
-        if #available(iOS 14.0, *) {
-            let inputs = RTCAudioSession.sharedInstance().session.availableInputs ?? []
-            if inputs.count > 1 {
-                speakerButton.showsMenuAsPrimaryAction = true
-                var menuItems: [UIMenuElement] = []
-                menuItems += inputs.compactMap { input in
-                    let title = input.portName
-                    if input.portType == .builtInMic {
-                        return nil
-                    } else {
-                        var state: UIMenuElement.State = .off
-                        if selectedOutputName == input.portName && speakerOn == false {
-                            state = .on
-                        } else {
-                            state = .off
-                        }
-                        return UIAction(title: title,
-                                        state: state,
-                                        handler: { _ in
-                            self.selectedOutputPortType = input.portType
-                            self.selectedOutputName = input.portName
-                            self.speakerOn = false
-                            self.selectAudioInput(input: input)
-                            self.updateSpeakerButton()
-                        })
-                    }
-                }
-
-                menuItems.append(UIAction(title: Localizations.callSpeaker, state: speakerOn ? .on : .off, handler: { _ in
-                    self.selectedOutputPortType = .builtInSpeaker
-                    self.selectedOutputName = Localizations.callSpeaker
-                    self.speakerOn = true
-                    self.setSpeakerOn()
-                    self.updateSpeakerButton()
-                }))
-                if #available(iOS 15.0, *) {
-                    speakerButton.menu = UIMenu(options: [.singleSelection], children: menuItems)
+        let inputs = RTCAudioSession.sharedInstance().session.availableInputs ?? []
+        if inputs.count > 1 {
+            speakerButton.showsMenuAsPrimaryAction = true
+            var menuItems: [UIMenuElement] = []
+            menuItems += inputs.compactMap { input in
+                let title = input.portName
+                if input.portType == .builtInMic {
+                    return nil
                 } else {
-                    // Fallback on earlier versions
-                    speakerButton.menu = UIMenu(children: menuItems)
+                    var state: UIMenuElement.State = .off
+                    if selectedOutputName == input.portName && speakerOn == false {
+                        state = .on
+                    } else {
+                        state = .off
+                    }
+                    return UIAction(title: title,
+                                    state: state,
+                                    handler: { _ in
+                        self.selectedOutputPortType = input.portType
+                        self.selectedOutputName = input.portName
+                        self.speakerOn = false
+                        self.selectAudioInput(input: input)
+                        self.updateSpeakerButton()
+                    })
                 }
-                speakerButton.removeTarget(self, action: #selector(speakerButtonTapped), for: .touchUpInside)
-            } else {
-                speakerButton.showsMenuAsPrimaryAction = false
-                speakerButton.menu = nil
-                speakerButton.image = speakerImage
-                speakerButton.addTarget(self, action: #selector(speakerButtonTapped), for: .touchUpInside)
             }
+
+            menuItems.append(UIAction(title: Localizations.callSpeaker, state: speakerOn ? .on : .off, handler: { _ in
+                self.selectedOutputPortType = .builtInSpeaker
+                self.selectedOutputName = Localizations.callSpeaker
+                self.speakerOn = true
+                self.setSpeakerOn()
+                self.updateSpeakerButton()
+            }))
+            speakerButton.menu = UIMenu(options: [.singleSelection], children: menuItems)
+            speakerButton.removeTarget(self, action: #selector(speakerButtonTapped), for: .touchUpInside)
         } else {
-            // handle this.
+            speakerButton.showsMenuAsPrimaryAction = false
+            speakerButton.menu = nil
             speakerButton.image = speakerImage
             speakerButton.addTarget(self, action: #selector(speakerButtonTapped), for: .touchUpInside)
         }

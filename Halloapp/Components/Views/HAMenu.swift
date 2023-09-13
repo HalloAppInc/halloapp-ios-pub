@@ -284,27 +284,12 @@ extension UIMenu {
     
     fileprivate convenience init(menu: HAMenu, uncacheAction: (@MainActor () -> Void)?) {
         let children: [UIMenuElement] = {
-            if #available(iOS 14.0, *), menu.isLazy {
-                if #available(iOS 15.0, *) {
-                    return [UIDeferredMenuElement.uncached { completion in
-                        completion(menu.uiMenuElements())
-                    }]
-                } else {
-                    return [UIDeferredMenuElement { completion in
-                        completion(menu.uiMenuElements())
-                        uncacheAction?()
-                    }]
-                }
-            } else {
-                return menu.uiMenuElements()
-            }
+            return [UIDeferredMenuElement.uncached { completion in
+                completion(menu.uiMenuElements())
+            }]
         }()
         
-        if #available(iOS 15.0, *) {
-            self.init(title: menu.title, subtitle: menu.subtitle, image: menu.image, identifier: menu.identifier, options: menu.options, children: children)
-        } else {
-            self.init(title: menu.subtitle.map { "\(menu.title) (\($0))" } ?? menu.title, image: menu.image, identifier: menu.identifier, options: menu.options, children: children)
-        }
+        self.init(title: menu.title, subtitle: menu.subtitle, image: menu.image, identifier: menu.identifier, options: menu.options, children: children)
     }
 }
 
@@ -355,66 +340,33 @@ extension UIButton {
 extension UIBarButtonItem {
     @MainActor convenience init(title: String? = nil, image: UIImage? = nil, buildMenu: () -> HAMenu) {
         let menu = buildMenu()
-        if #available(iOS 14.0, *) {
-            self.init(title: title, image: image, primaryAction: nil, menu: nil)
-            if menu.isLazy {
-                // A workaround to backport uncaching deferred menus to iOS 14.
-                // `uncache` reassigns the menu to itself to invalidate the cache.
-                // It is run immediately after the `UIDeferredMenuElement` resolves its content.
-                weak var weakSelf = self
-                func uncache() {
-                    weakSelf?.menu = UIMenu(menu: menu, uncacheAction: uncache)
-                }
-                uncache()
-            } else {
-                self.menu = UIMenu(menu: menu)
+        self.init(title: title, image: image, primaryAction: nil, menu: nil)
+        if menu.isLazy {
+            // A workaround to backport uncaching deferred menus to iOS 14.
+            // `uncache` reassigns the menu to itself to invalidate the cache.
+            // It is run immediately after the `UIDeferredMenuElement` resolves its content.
+            weak var weakSelf = self
+            func uncache() {
+                weakSelf?.menu = UIMenu(menu: menu, uncacheAction: uncache)
             }
+            uncache()
         } else {
-            if let image = image {
-                self.init(image: image, style: .plain, target: nil, action: #selector(_performLegacyMenuAction(sender:)))
-            } else {
-                self.init(title: title, style: .plain, target: nil, action: #selector(_performLegacyMenuAction(sender:)))
-            }
-            self.target = self
-            
-            self._legacyMenuAction = { [weak self] in
-                guard let viewController = (self?.value(forKey: "view") as? UIView)?.firstViewController() else {
-                    assertionFailure("A view controller associated with the bar button can't be found")
-                    return
-                }
-                if let actionSheet = ActionSheetViewController(buildMenu: { menu }) {
-                    viewController.present(actionSheet, animated: true)
-                }
-            }
+            self.menu = UIMenu(menu: menu)
         }
     }
     
     @MainActor convenience init(systemItem: UIBarButtonItem.SystemItem, buildMenu: () -> HAMenu) {
         let menu = buildMenu()
-        if #available(iOS 14.0, *) {
-            self.init(systemItem: systemItem, primaryAction: nil, menu: nil)
-            if menu.isLazy {
-                weak var weakSelf = self
-                func uncache() {
-                    weakSelf?.menu = UIMenu(menu: menu, uncacheAction: uncache)
-                }
-                uncache()
-            } else {
-                self.menu = UIMenu(menu: menu)
-            }
-        } else {
-            self.init(barButtonSystemItem: systemItem, target: nil, action: #selector(_performLegacyMenuAction(sender:)))
-            self.target = self
+        self.init(systemItem: systemItem, primaryAction: nil, menu: nil)
 
-            self._legacyMenuAction = { [weak self] in
-                guard let viewController = (self?.value(forKey: "view") as? UIView)?.firstViewController() else {
-                    assertionFailure("A view controller associated with the bar button can't be found")
-                    return
-                }
-                if let actionSheet = ActionSheetViewController(buildMenu: { menu }) {
-                    viewController.present(actionSheet, animated: true)
-                }
+        if menu.isLazy {
+            weak var weakSelf = self
+            func uncache() {
+                weakSelf?.menu = UIMenu(menu: menu, uncacheAction: uncache)
             }
+            uncache()
+        } else {
+            self.menu = UIMenu(menu: menu)
         }
     }
 }
@@ -422,29 +374,17 @@ extension UIBarButtonItem {
 extension UIButton {
     @MainActor func configureWithMenu(_ buildMenu: () -> HAMenu) {
         let menu = buildMenu()
-        if #available(iOS 14.0, *) {
-            if menu.isLazy {
-                weak var weakSelf = self
-                func uncache() {
-                    weakSelf?.menu = UIMenu(menu: menu, uncacheAction: uncache)
-                }
-                uncache()
-            } else {
-                self.menu = UIMenu(menu: menu)
+        
+        if menu.isLazy {
+            weak var weakSelf = self
+            func uncache() {
+                weakSelf?.menu = UIMenu(menu: menu, uncacheAction: uncache)
             }
-            self.showsMenuAsPrimaryAction = true
+            uncache()
         } else {
-            self.addTarget(self, action: #selector(_performLegacyMenuAction(sender:)), for: .touchUpInside)
-            self._legacyMenuAction = { [weak self] in
-                guard let viewController = self?.firstViewController() else {
-                    assertionFailure("A view controller associated with the button can't be found")
-                    return
-                }
-                if let actionSheet = ActionSheetViewController(buildMenu: { menu }) {
-                    viewController.present(actionSheet, animated: true)
-                }
-            }
+            self.menu = UIMenu(menu: menu)
         }
+        self.showsMenuAsPrimaryAction = true
     }
 }
 

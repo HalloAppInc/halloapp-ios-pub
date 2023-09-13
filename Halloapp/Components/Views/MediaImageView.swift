@@ -420,9 +420,7 @@ class MediaImageView: UIImageView {
         }
 #endif
 
-        if #available(iOS 14.0, *) {
-            playerItem.appliesPerFrameHDRDisplayMetadata = false
-        }
+        playerItem.appliesPerFrameHDRDisplayMetadata = false
 
         let player: AVPlayer
         if let existingPlayer = self.player {

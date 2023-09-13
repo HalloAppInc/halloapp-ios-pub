@@ -54,14 +54,9 @@ struct DeleteAccountView: View {
                 case .confirm:
                     phoneNumberForm
                 case .waitingForResponse:
-                    if #available(iOS 14, *) {
-                        ProgressView()
-                            .scaleEffect(2.5)
-                            .frame(width: 100, height: 100)
-                    } else {
-                        Text(Localizations.waitingForResponseLabel)
-                            .font(.title)
-                    }
+                    ProgressView()
+                        .scaleEffect(2.5)
+                        .frame(width: 100, height: 100)
                 case .deleted:
                     Text(Localizations.accountDeletedLabel)
                 }
