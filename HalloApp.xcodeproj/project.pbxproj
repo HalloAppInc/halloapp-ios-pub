@@ -292,6 +292,7 @@
 		A163A2542AAF745900501DE3 /* FriendCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A163A2532AAF745900501DE3 /* FriendCollectionViewCell.swift */; };
 		A163A2562AAF746B00501DE3 /* FriendHeaderViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A163A2552AAF746B00501DE3 /* FriendHeaderViews.swift */; };
 		A163A2582AAF74B700501DE3 /* UILayoutPriority.swift in Sources */ = {isa = PBXBuildFile; fileRef = A163A2572AAF74B700501DE3 /* UILayoutPriority.swift */; };
+		A163A25A2AAF778100501DE3 /* SegmentedFriendsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A163A2592AAF778100501DE3 /* SegmentedFriendsViewController.swift */; };
 		A17B5129284FD48600B75405 /* CameraSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17B5128284FD48600B75405 /* CameraSessionManager.swift */; };
 		A17CEAD12AAA2D4200FCCECD /* FriendsDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17CEAD02AAA2D4200FCCECD /* FriendsDataSource.swift */; };
 		A17CEAD32AAA2D5200FCCECD /* FriendsPublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17CEAD22AAA2D5200FCCECD /* FriendsPublisher.swift */; };
@@ -1134,6 +1135,7 @@
 		A163A2532AAF745900501DE3 /* FriendCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendCollectionViewCell.swift; sourceTree = "<group>"; };
 		A163A2552AAF746B00501DE3 /* FriendHeaderViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendHeaderViews.swift; sourceTree = "<group>"; };
 		A163A2572AAF74B700501DE3 /* UILayoutPriority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UILayoutPriority.swift; sourceTree = "<group>"; };
+		A163A2592AAF778100501DE3 /* SegmentedFriendsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentedFriendsViewController.swift; sourceTree = "<group>"; };
 		A17B5128284FD48600B75405 /* CameraSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraSessionManager.swift; sourceTree = "<group>"; };
 		A17CEAD02AAA2D4200FCCECD /* FriendsDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsDataSource.swift; sourceTree = "<group>"; };
 		A17CEAD22AAA2D5200FCCECD /* FriendsPublisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsPublisher.swift; sourceTree = "<group>"; };
@@ -1983,6 +1985,7 @@
 				A163A2512AAF742F00501DE3 /* FriendsViewController.swift */,
 				A163A2532AAF745900501DE3 /* FriendCollectionViewCell.swift */,
 				A163A2552AAF746B00501DE3 /* FriendHeaderViews.swift */,
+				A163A2592AAF778100501DE3 /* SegmentedFriendsViewController.swift */,
 			);
 			path = Friends;
 			sourceTree = "<group>";
@@ -3342,6 +3345,7 @@
 				327AB839272C8356001C0E00 /* ChatLinkPreview+CoreDataProperties copy.swift in Sources */,
 				680528CD264F14B9001F6A57 /* SafetyNumber.swift in Sources */,
 				EA388C5C2520EB9500DEAB53 /* Banner.swift in Sources */,
+				A163A25A2AAF778100501DE3 /* SegmentedFriendsViewController.swift in Sources */,
 				68130169268D369A001BBDC6 /* ContactSelectionViewController.swift in Sources */,
 				A104661729145F7700BF7AC7 /* CameraViewModel.swift in Sources */,
 				A1EA4CC12A8BDDBB0051DA16 /* UsernameInputViewController.swift in Sources */,
