@@ -11343,12 +11343,30 @@ public struct Server_FriendshipRequest {
 
   public enum Action: SwiftProtobuf.Enum {
     public typealias RawValue = Int
+
+    /// sending a friend request.
     case addFriend // = 0
+
+    /// accepting the friend request.
     case acceptFriend // = 1
+
+    /// remove the friend request after accepting.
     case removeFriend // = 2
-    case block // = 3
-    case unblock // = 4
-    case rejectSuggestion // = 5
+
+    /// reject the friend request.
+    case rejectFriend // = 3
+
+    /// block the user.
+    case block // = 4
+
+    /// unblock user.
+    case unblock // = 5
+
+    /// reject friend suggestion.
+    case rejectSuggestion // = 6
+
+    /// withdraw pending friend request by sender.
+    case withdrawFriendRequest // = 7
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -11360,9 +11378,11 @@ public struct Server_FriendshipRequest {
       case 0: self = .addFriend
       case 1: self = .acceptFriend
       case 2: self = .removeFriend
-      case 3: self = .block
-      case 4: self = .unblock
-      case 5: self = .rejectSuggestion
+      case 3: self = .rejectFriend
+      case 4: self = .block
+      case 5: self = .unblock
+      case 6: self = .rejectSuggestion
+      case 7: self = .withdrawFriendRequest
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -11372,9 +11392,11 @@ public struct Server_FriendshipRequest {
       case .addFriend: return 0
       case .acceptFriend: return 1
       case .removeFriend: return 2
-      case .block: return 3
-      case .unblock: return 4
-      case .rejectSuggestion: return 5
+      case .rejectFriend: return 3
+      case .block: return 4
+      case .unblock: return 5
+      case .rejectSuggestion: return 6
+      case .withdrawFriendRequest: return 7
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -11392,9 +11414,11 @@ extension Server_FriendshipRequest.Action: CaseIterable {
     .addFriend,
     .acceptFriend,
     .removeFriend,
+    .rejectFriend,
     .block,
     .unblock,
     .rejectSuggestion,
+    .withdrawFriendRequest,
   ]
 }
 
@@ -25436,9 +25460,11 @@ extension Server_FriendshipRequest.Action: SwiftProtobuf._ProtoNameProviding {
     0: .same(proto: "ADD_FRIEND"),
     1: .same(proto: "ACCEPT_FRIEND"),
     2: .same(proto: "REMOVE_FRIEND"),
-    3: .same(proto: "BLOCK"),
-    4: .same(proto: "UNBLOCK"),
-    5: .same(proto: "REJECT_SUGGESTION"),
+    3: .same(proto: "REJECT_FRIEND"),
+    4: .same(proto: "BLOCK"),
+    5: .same(proto: "UNBLOCK"),
+    6: .same(proto: "REJECT_SUGGESTION"),
+    7: .same(proto: "WITHDRAW_FRIEND_REQUEST"),
   ]
 }
 
@@ -26129,3 +26155,4 @@ extension Server_ReverseGeocodeResult.Reason: SwiftProtobuf._ProtoNameProviding 
     2: .same(proto: "INVALID_LAT_LONG"),
   ]
 }
+
