@@ -87,9 +87,16 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate {
                       icon: UIImage(named: "Posts"),
                     action: { [weak self] in self?.openPosts() })
 
-                Item(title: PrivacyList.name(forPrivacyListType: .all),
-                      icon: UIImage(systemName: "person"),
-                    action: { [weak self] in self?.openContacts() })
+                if !MainAppContext.shared.userData.username.isEmpty {
+                    // allow friend management for migrated users
+                    Item(title: Localizations.friendsTitle,
+                          icon: UIImage(systemName: "person"),
+                        action: { [weak self] in self?.openFriends() })
+                } else {
+                    Item(title: PrivacyList.name(forPrivacyListType: .all),
+                          icon: UIImage(systemName: "person"),
+                        action: { [weak self] in self?.openContacts() })
+                }
 
                 Item(title: Localizations.favoritesTitle,
                      icon: UIImage(named: "FavoritesOutline")?.withRenderingMode(.alwaysTemplate),
@@ -137,21 +144,28 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate {
         vc.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(vc, animated: true)
     }
-    
+
     private func openContacts() {
         guard ContactStore.contactsAccessAuthorized else {
             let vc = PrivacyPermissionDeniedController()
             present(UINavigationController(rootViewController: vc), animated: true)
             return
         }
-        
+
         let vc = ContactSelectionViewController.forAllContacts(.all,
-                                                           in: MainAppContext.shared.privacySettings,
-                                                   doneAction: { [weak self] in self?.dismiss(animated: true) },
-                                                dismissAction: { [weak self] in self?.dismiss(animated: true) })
-        
+                                                               in: MainAppContext.shared.privacySettings,
+                                                               doneAction: { [weak self] in self?.dismiss(animated: true) },
+                                                               dismissAction: { [weak self] in self?.dismiss(animated: true) })
+
         let nc = UINavigationController(rootViewController: vc)
         present(nc, animated: true)
+    }
+
+    private func openFriends() {
+        let viewController = SegmentedFriendsViewController()
+        let navigationController = UINavigationController(rootViewController: viewController)
+
+        present(navigationController, animated: true)
     }
     
     private func openFavorites() {
