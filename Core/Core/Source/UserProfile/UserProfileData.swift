@@ -69,6 +69,27 @@ public class UserProfileData: NSObject {
         }
     }
 
+    public func cancelRequest(userID: UserID) async throws {
+        let updatedProfile = try await perform(action: .withdrawFriendRequest, for: userID)
+        try await perform { context in
+            UserProfile.findOrCreate(with: userID, in: context).update(with: updatedProfile)
+        }
+    }
+
+    public func ignoreRequest(userID: UserID) async throws {
+        let updatedProfile = try await perform(action: .rejectFriend, for: userID)
+        try await perform { context in
+            UserProfile.findOrCreate(with: userID, in: context).update(with: updatedProfile)
+        }
+    }
+
+    public func ignoreSuggestions(userID: UserID) async throws {
+        let updatedProfile = try await perform(action: .rejectSuggestion, for: userID)
+        try await perform { context in
+            UserProfile.findOrCreate(with: userID, in: context).update(with: updatedProfile)
+        }
+    }
+
     public func block(userID: UserID) async throws {
         let updatedProfile = try await perform(action: .block, for: userID)
         try await perform { context in
