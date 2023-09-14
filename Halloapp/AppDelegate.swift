@@ -385,7 +385,12 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
 
         if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
             if VisitTracker.isVisitNotification(response.notification) {
-                MainAppContext.shared.visitTracker.handleNofication(response.notification, completionHandler: completionHandler)
+                MainAppContext.shared.visitTracker.handleNofication(response.notification) {
+                    // completionHandler must be called on main thread
+                    DispatchQueue.main.async {
+                        completionHandler()
+                    }
+                }
             } else if let metadata = NotificationMetadata.load(from: response) {
                 Analytics.log(event: .notificationOpened, properties: [.notificationType: metadata.contentType.rawValue])
                 DDLogInfo("appdelegate/notifications/user-response MetaData=\(metadata)")
