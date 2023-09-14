@@ -1288,7 +1288,7 @@ class ChatData: ObservableObject {
             do {
                 try FileManager.default.createDirectory(at: toUrl.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
             } catch {
-                DDLogError(error.localizedDescription)
+                DDLogError("\(error.localizedDescription)")
             }
         }
 

@@ -16,12 +16,6 @@ private extension Localizations {
     }
 }
 
-extension UIColor {
-    class var commentVoiceNoteBackground: UIColor {
-        UIColor(named: "CommentVoiceNoteBackground")!
-    }
-}
-
 public class PostComposerLinkPreviewView: UIView {
 
     private let didFinish: ((Bool, LinkPreviewData?, UIImage?) -> Void)

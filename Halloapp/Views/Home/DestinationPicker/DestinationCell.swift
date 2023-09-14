@@ -106,7 +106,7 @@ class DestinationCell: UICollectionViewCell {
     private(set) lazy var separator: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = .separator
+        view.backgroundColor = .separatorGray
 
         return view
     }()

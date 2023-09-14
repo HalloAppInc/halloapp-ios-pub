@@ -496,7 +496,7 @@ extension AppDelegate: PKPushRegistryDelegate {
     }
 
     private func handleVoipMsg(serverMsgPb: Data, completion: @escaping () -> Void) {
-        var service = MainAppContext.shared.service
+        let service = MainAppContext.shared.service
         do {
             let msg = try Server_Msg(serializedData: serverMsgPb)
             let fromUserID = UserID(msg.fromUid)

@@ -446,7 +446,7 @@ final class FeedItemHeaderView: UIView {
         label.isHidden = true
 
         let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")?.withRenderingMode(.alwaysTemplate).imageFlippedForRightToLeftLayoutDirection()
-        let groupIndicatorColor = UIColor(named: "GroupNameArrow") ?? .label
+        let groupIndicatorColor = UIColor.groupNameArrowTint
 
         if let groupIndicator = groupIndicatorImage, let font = label.font {
             let iconAttachment = NSTextAttachment(image: groupIndicator)
@@ -516,7 +516,7 @@ final class FeedItemHeaderView: UIView {
         let label = UILabel()
         label.font = UIFont.systemFont(forTextStyle: .footnote, weight: .medium)
         label.adjustsFontForContentSizeCategory = true
-        label.textColor = UIColor(named: "TimestampLabel")
+        label.textColor = .timestampLabel
         label.textAlignment = .natural
         label.setContentCompressionResistancePriority(.defaultHigh + 10, for: .horizontal) // higher than contact name
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -528,7 +528,7 @@ final class FeedItemHeaderView: UIView {
         let label = UILabel()
         label.font = UIFont.systemFont(forTextStyle: .footnote, weight: .medium)
         label.adjustsFontForContentSizeCategory = true
-        label.textColor = UIColor(named: "TimestampLabel")
+        label.textColor = .timestampLabel
         label.textAlignment = .natural
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -886,7 +886,7 @@ final class FeedItemFooterView: UIView, FeedItemFooterProtocol {
 
     lazy var separator: UIView = {
         let separator = UIView()
-        separator.backgroundColor = .separator
+        separator.backgroundColor = .separatorGray
         separator.translatesAutoresizingMaskIntoConstraints = false
         separator.heightAnchor.constraint(equalToConstant: 1 / UIScreen.main.scale).isActive = true
         return separator
@@ -1325,7 +1325,7 @@ final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
 
     lazy var separator: UIView = {
         let separator = UIView()
-        separator.backgroundColor = .separator
+        separator.backgroundColor = .separatorGray
         separator.translatesAutoresizingMaskIntoConstraints = false
         separator.heightAnchor.constraint(equalToConstant: 1 / UIScreen.main.scale).isActive = true
         return separator

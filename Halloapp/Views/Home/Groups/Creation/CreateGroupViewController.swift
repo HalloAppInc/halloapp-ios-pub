@@ -59,7 +59,7 @@ class CreateGroupViewController: UIViewController {
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.scrollEdgeAppearance = .transparentAppearance
 
-        view.backgroundColor = UIColor(named: "CreateGroupBackground")
+        view.backgroundColor = .createGroupBackground
 
         view.addSubview(avatarImageView)
 
@@ -168,12 +168,12 @@ class CreateGroupViewController: UIViewController {
     private lazy var avatarImageView: UIImageView = {
         let avatarImageView = UIImageView(image: UIImage(named: "CreateGroupAvatarPlaceholder"))
         avatarImageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(chooseAvatar)))
-        avatarImageView.backgroundColor = UIColor(named: "CreateGroupAvatarBackgroundColor")
+        avatarImageView.backgroundColor = .createGroupAvatarBackground
         avatarImageView.clipsToBounds = true
         avatarImageView.contentMode = .center
         avatarImageView.isUserInteractionEnabled = true
         avatarImageView.layer.cornerRadius = 20
-        avatarImageView.tintColor = UIColor(named: "CreateGroupAvatarForegroundColor")
+        avatarImageView.tintColor = .createGroupAvatarForeground
         avatarImageView.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([

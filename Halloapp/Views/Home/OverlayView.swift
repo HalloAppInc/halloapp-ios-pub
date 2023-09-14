@@ -24,7 +24,7 @@ final class NUXItem: UIView {
 
         addSubview(panel)
         panel.translatesAutoresizingMaskIntoConstraints = false
-        panel.backgroundColor = .nux
+        panel.backgroundColor = .NUX
         panel.layer.cornerRadius = 15
         panel.layoutMargins = .init(top: 20, left: 20, bottom: 20, right: 20)
         panel.constrainMargins([.leading, .trailing, .bottom], to: self)

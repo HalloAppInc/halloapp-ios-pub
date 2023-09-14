@@ -1421,7 +1421,7 @@ extension GroupChatViewController: UIDocumentPickerDelegate {
             do {
                 try FileManager.default.createDirectory(at: localURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
             } catch {
-                DDLogError(error.localizedDescription)
+                DDLogError("\(error.localizedDescription)")
             }
         }
 

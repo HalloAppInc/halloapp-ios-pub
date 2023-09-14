@@ -74,7 +74,7 @@ class MessageCommentHeaderView: UICollectionReusableView {
         label.isHidden = true
 
         let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")?.withRenderingMode(.alwaysTemplate).imageFlippedForRightToLeftLayoutDirection()
-        let groupIndicatorColor = UIColor(named: "GroupNameArrow") ?? .label
+        let groupIndicatorColor = UIColor.groupNameArrowTint
 
         if let groupIndicator = groupIndicatorImage, let font = label.font {
             let iconAttachment = NSTextAttachment(image: groupIndicator)
@@ -155,7 +155,7 @@ class MessageCommentHeaderView: UICollectionReusableView {
 
         let separatorView = UIView()
         separatorView.translatesAutoresizingMaskIntoConstraints = false
-        separatorView.backgroundColor = .separator
+        separatorView.backgroundColor = .separatorGray
         self.addSubview(separatorView)
 
         NSLayoutConstraint.activate([

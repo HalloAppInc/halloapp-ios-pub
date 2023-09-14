@@ -74,10 +74,9 @@ final class FeedPermissionTutorialAlert: UIView {
         goToSettingsButton.translatesAutoresizingMaskIntoConstraints = false
         goToSettingsButton.setContentCompressionResistancePriority(.required, for: .vertical)
         goToSettingsButton.setTitle(Localizations.buttonGoToSettings, for: .normal)
-        goToSettingsButton.setTitleColor(UIColor.nux, for: .normal)
+        goToSettingsButton.setTitleColor(UIColor.NUX, for: .normal)
         goToSettingsButton.titleLabel?.font = .systemFont(forTextStyle: .callout, weight: .regular)
         goToSettingsButton.addTarget(self, action: #selector(didTapOpenSettings), for: .touchUpInside)
-
         self.translatesAutoresizingMaskIntoConstraints = false
 
         self.addSubview(titleLabel)

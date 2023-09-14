@@ -61,7 +61,7 @@ class MessageCommentViewHeaderPreview: UICollectionReusableView {
         label.isHidden = true
 
         let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")?.withRenderingMode(.alwaysTemplate).imageFlippedForRightToLeftLayoutDirection()
-        let groupIndicatorColor = UIColor(named: "GroupNameArrow") ?? .label
+        let groupIndicatorColor = UIColor.groupNameArrowTint
 
         if let groupIndicator = groupIndicatorImage, let font = label.font {
             let iconAttachment = NSTextAttachment(image: groupIndicator)

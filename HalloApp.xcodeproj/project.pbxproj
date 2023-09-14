@@ -68,9 +68,7 @@
 		329E044326824A4900C2D250 /* SharedAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* SharedAssets.xcassets */; };
 		329E044A26824B1F00C2D250 /* AppClipHomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E044926824B1F00C2D250 /* AppClipHomeViewController.swift */; };
 		329E044D26824B8900C2D250 /* VerificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329E044C26824B8900C2D250 /* VerificationViewController.swift */; };
-		329E045026824DC900C2D250 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB41E24A6C5F300D4E354 /* Color.swift */; };
 		329E045226824DCC00C2D250 /* Font.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146B93782405F40500768AC6 /* Font.swift */; };
-		329E045326824DDF00C2D250 /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C2245CF4FC00DD9D1A /* UIColor.swift */; };
 		329E045426824DDF00C2D250 /* UIFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762EDBDA244E344300986617 /* UIFont.swift */; };
 		329E045626824DDF00C2D250 /* UIButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C8245D4DE500DD9D1A /* UIButton.swift */; };
 		32C83FB7268FA44F00BEB4F5 /* FeedPermissionDeniedController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FB6268FA44F00BEB4F5 /* FeedPermissionDeniedController.swift */; };
@@ -171,7 +169,6 @@
 		6ACF5ACF27B32452003B7B3C /* endcalltone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6ACF5ACD27B32452003B7B3C /* endcalltone.mp3 */; };
 		6ACF5AEB27B6D060003B7B3C /* busycalltone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6ACF5AE927B6D060003B7B3C /* busycalltone.mp3 */; };
 		6ACF5AF027B7070E003B7B3C /* reconnectingcalltone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6ACF5AEF27B7070E003B7B3C /* reconnectingcalltone.mp3 */; };
-		761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C2245CF4FC00DD9D1A /* UIColor.swift */; };
 		761442C5245D32C200DD9D1A /* UIDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C4245D32C200DD9D1A /* UIDevice.swift */; };
 		761442C9245D4DE500DD9D1A /* UIButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C8245D4DE500DD9D1A /* UIButton.swift */; };
 		761B3957241D815800858251 /* SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3956241D815800858251 /* SyncManager.swift */; };
@@ -212,7 +209,6 @@
 		764A0E6524453FC900E1BDCE /* NotificationsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764A0E6424453FC900E1BDCE /* NotificationsViewController.swift */; };
 		764AB41824A67A5C00D4E354 /* Privacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB41724A67A5C00D4E354 /* Privacy.swift */; };
 		764AB41A24A6A48400D4E354 /* PrivacyRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB41924A6A48400D4E354 /* PrivacyRequests.swift */; };
-		764AB41F24A6C5F300D4E354 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB41E24A6C5F300D4E354 /* Color.swift */; };
 		764AB42124A7188600D4E354 /* FeedPrivacyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB42024A7188600D4E354 /* FeedPrivacyView.swift */; };
 		764AB42424A71D6900D4E354 /* PrivacyListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB42324A71D6900D4E354 /* PrivacyListView.swift */; };
 		764D5AEC248F0F3B009295F3 /* UINavigationBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764D5AEB248F0F3B009295F3 /* UINavigationBar.swift */; };
@@ -250,7 +246,6 @@
 		769CD3AC255CDB8D006F21BB /* NameEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 769CD3AB255CDB8D006F21BB /* NameEditViewController.swift */; };
 		76A92444244E659600794859 /* FeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A92443244E659600794859 /* FeedViewController.swift */; };
 		76A92449244EBCB600794859 /* ShapeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A92448244EBCB600794859 /* ShapeView.swift */; };
-		76B5B524250086330055E712 /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C2245CF4FC00DD9D1A /* UIColor.swift */; };
 		76B5B52C2501EE790055E712 /* NotificationMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B5B52B2501EE790055E712 /* NotificationMetadata.swift */; };
 		76B5B52D2501EE790055E712 /* NotificationMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B5B52B2501EE790055E712 /* NotificationMetadata.swift */; };
 		76B5B52F2501EEBE0055E712 /* UNExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B5B52E2501EEBE0055E712 /* UNExtensions.swift */; };
@@ -569,7 +564,6 @@
 		F8EC3A7C281820C60041D8E3 /* MediaEdit.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E605492671F6A700DDEB2A /* MediaEdit.swift */; };
 		F8EC3A7D281820F70041D8E3 /* UIButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C8245D4DE500DD9D1A /* UIButton.swift */; };
 		F8EC3A7E281821310041D8E3 /* ImageEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E60546266F931E00DDEB2A /* ImageEditViewController.swift */; };
-		F8EC3A7F2818214A0041D8E3 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB41E24A6C5F300D4E354 /* Color.swift */; };
 		F8EC3A80281821660041D8E3 /* VideoEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84A8E5825D408C3003A8528 /* VideoEditViewController.swift */; };
 		F8EC3A81281821810041D8E3 /* TimeInterval.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E6DCDE271EB06F005EECC5 /* TimeInterval.swift */; };
 		F8F5ED79284E17760094CB17 /* ChatMediaListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8F5ED78284E17760094CB17 /* ChatMediaListViewController.swift */; };
@@ -1018,7 +1012,6 @@
 		6ACF5AE927B6D060003B7B3C /* busycalltone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = busycalltone.mp3; sourceTree = "<group>"; };
 		6ACF5AEF27B7070E003B7B3C /* reconnectingcalltone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = reconnectingcalltone.mp3; sourceTree = "<group>"; };
 		6AF7594C26F2BB110087078A /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		761442C2245CF4FC00DD9D1A /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIColor.swift; path = HalloApp/Components/Extensions/UIColor.swift; sourceTree = SOURCE_ROOT; };
 		761442C4245D32C200DD9D1A /* UIDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIDevice.swift; path = HalloApp/Components/Extensions/UIDevice.swift; sourceTree = SOURCE_ROOT; };
 		761442C8245D4DE500DD9D1A /* UIButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIButton.swift; path = HalloApp/Components/Extensions/UIButton.swift; sourceTree = SOURCE_ROOT; };
 		761B3956241D815800858251 /* SyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncManager.swift; sourceTree = "<group>"; };
@@ -1057,7 +1050,6 @@
 		764A0E6424453FC900E1BDCE /* NotificationsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationsViewController.swift; sourceTree = "<group>"; };
 		764AB41724A67A5C00D4E354 /* Privacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Privacy.swift; path = HalloApp/Models/Privacy/Privacy.swift; sourceTree = SOURCE_ROOT; };
 		764AB41924A6A48400D4E354 /* PrivacyRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PrivacyRequests.swift; path = HalloApp/Models/Privacy/PrivacyRequests.swift; sourceTree = SOURCE_ROOT; };
-		764AB41E24A6C5F300D4E354 /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Color.swift; path = HalloApp/Components/Extensions/Color.swift; sourceTree = SOURCE_ROOT; };
 		764AB42024A7188600D4E354 /* FeedPrivacyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedPrivacyView.swift; path = Halloapp/Views/Settings/Privacy/FeedPrivacyView.swift; sourceTree = SOURCE_ROOT; };
 		764AB42324A71D6900D4E354 /* PrivacyListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PrivacyListView.swift; path = HalloApp/Views/Settings/Privacy/PrivacyListView.swift; sourceTree = SOURCE_ROOT; };
 		764D5AEB248F0F3B009295F3 /* UINavigationBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UINavigationBar.swift; path = HalloApp/Components/Extensions/UINavigationBar.swift; sourceTree = SOURCE_ROOT; };
@@ -2456,12 +2448,10 @@
 			children = (
 				EECC0A9028791CF700F5AFFF /* Combine.swift */,
 				EA0B9916249C1FFB00B05094 /* Character.swift */,
-				764AB41E24A6C5F300D4E354 /* Color.swift */,
 				146B93782405F40500768AC6 /* Font.swift */,
 				EA0B9918249C205E00B05094 /* String.swift */,
 				F8E6DCDE271EB06F005EECC5 /* TimeInterval.swift */,
 				761442C8245D4DE500DD9D1A /* UIButton.swift */,
-				761442C2245CF4FC00DD9D1A /* UIColor.swift */,
 				761442C4245D32C200DD9D1A /* UIDevice.swift */,
 				762EDBDA244E344300986617 /* UIFont.swift */,
 				764D5AEB248F0F3B009295F3 /* UINavigationBar.swift */,
@@ -2912,8 +2902,9 @@
 		EAF3A1B72334191E00805FF9 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1250;
-				LastUpgradeCheck = 1400;
+				LastUpgradeCheck = 1500;
 				ORGANIZATIONNAME = "HalloApp, Inc.";
 				TargetAttributes = {
 					24D743D524B3D199001111BF = {
@@ -3149,10 +3140,8 @@
 				2446D68624CB6DA9005BAD3C /* ContactTableViewCell.swift in Sources */,
 				F86919E026395EB300B01306 /* UIFont.swift in Sources */,
 				F8B0F7612745785400235CCF /* ShareDataLoader.swift in Sources */,
-				76B5B524250086330055E712 /* UIColor.swift in Sources */,
 				2446D68B24CF732B005BAD3C /* DataStore.swift in Sources */,
 				F8EC3A81281821810041D8E3 /* TimeInterval.swift in Sources */,
-				F8EC3A7F2818214A0041D8E3 /* Color.swift in Sources */,
 				24009E8D24B6643700155DE2 /* ShareExtensionContext.swift in Sources */,
 				F82D303727722522006D1245 /* ShareDestinationRowView.swift in Sources */,
 				2446D68424CB682C005BAD3C /* AppExtensionContext.swift in Sources */,
@@ -3169,11 +3158,9 @@
 			files = (
 				329E045626824DDF00C2D250 /* UIButton.swift in Sources */,
 				3250C60A27D0120D0032FEC4 /* VerificationCodeViewController.swift in Sources */,
-				329E045326824DDF00C2D250 /* UIColor.swift in Sources */,
 				329E03FB268247BD00C2D250 /* AppDelegate.swift in Sources */,
 				329E044A26824B1F00C2D250 /* AppClipHomeViewController.swift in Sources */,
 				329E044D26824B8900C2D250 /* VerificationViewController.swift in Sources */,
-				329E045026824DC900C2D250 /* Color.swift in Sources */,
 				3250C60927D0120D0032FEC4 /* PhoneInputViewController.swift in Sources */,
 				3250C60B27D0120D0032FEC4 /* Localizations+Registration.swift in Sources */,
 				329E045426824DDF00C2D250 /* UIFont.swift in Sources */,
@@ -3351,7 +3338,6 @@
 				A1EA4CC12A8BDDBB0051DA16 /* UsernameInputViewController.swift in Sources */,
 				F43DF0FA28F75C98008008B7 /* ExternalSharePreviewImageGenerator.swift in Sources */,
 				A1DD974A287E569900B98618 /* StackedMomentView.swift in Sources */,
-				761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */,
 				688718E427F030E60010111D /* FeedDataLegacy.swift in Sources */,
 				32ECB6DB27725E2C004DABBA /* MessageCommentHeaderView.swift in Sources */,
 				F4A273862A993D7600786269 /* ServerGeocoder.swift in Sources */,
@@ -3592,7 +3578,6 @@
 				764AB41A24A6A48400D4E354 /* PrivacyRequests.swift in Sources */,
 				A1FF1ED328BE76560057FC27 /* OnboardingManager.swift in Sources */,
 				F499FB0D2877A914005D5ADD /* GroupGridProgressView.swift in Sources */,
-				764AB41F24A6C5F300D4E354 /* Color.swift in Sources */,
 				5B64B56224F3FA2E00BCBEA8 /* CameraController.swift in Sources */,
 				5BF5D12324F5295300F272D8 /* CameraViewController.swift in Sources */,
 				A1FB1BD12889DA0600574822 /* UserDefault.swift in Sources */,
@@ -4638,6 +4623,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -4672,6 +4658,7 @@
 				DEPLOYMENT_POSTPROCESSING = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -4689,6 +4676,7 @@
 				STRIPFLAGS = "-rSTx";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = BETA;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -5096,6 +5084,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -5130,6 +5119,7 @@
 				DEPLOYMENT_POSTPROCESSING = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -5153,6 +5143,7 @@
 				SDKROOT = iphoneos;
 				STRIPFLAGS = "-rSTx";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG INTERNAL";
+				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -5162,6 +5153,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -5196,6 +5188,7 @@
 				DEPLOYMENT_POSTPROCESSING = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -5213,6 +5206,7 @@
 				STRIPFLAGS = "-rSTx";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "BETA INTERNAL";
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";

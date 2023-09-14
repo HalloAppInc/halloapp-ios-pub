@@ -288,7 +288,7 @@ class MediaPickerViewController: UIViewController {
     private lazy var limitedAccessBubble: UIView = {
         let bubble = UIView()
         bubble.translatesAutoresizingMaskIntoConstraints = false
-        bubble.backgroundColor = .nux
+        bubble.backgroundColor = .NUX
         bubble.layer.cornerRadius = 10
         bubble.layer.shadowColor = UIColor.black.cgColor
         bubble.layer.shadowOpacity = 0.25

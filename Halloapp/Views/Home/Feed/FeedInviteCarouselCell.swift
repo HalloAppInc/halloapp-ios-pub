@@ -238,7 +238,7 @@ private class FeedInviteCarouselContactCell: UICollectionViewCell {
 
     private let searchIconImageView: UIImageView = {
         let searchIconImageView = UIImageView()
-        searchIconImageView.backgroundColor = .avatarDefaultBg
+        searchIconImageView.backgroundColor = AvatarView.defaultBackgroundColor
         searchIconImageView.contentMode = .center
         searchIconImageView.image = UIImage(systemName: "magnifyingglass")
         searchIconImageView.layer.cornerRadius = Constants.avatarSize / 2.0

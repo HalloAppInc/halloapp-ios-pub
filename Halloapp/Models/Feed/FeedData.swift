@@ -3210,7 +3210,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func uploadMediaAndSend(feedLinkPreview: CommonLinkPreview) {
         let linkPreviewID = feedLinkPreview.id
         let commentID = feedLinkPreview.comment?.id
-        let postID = feedLinkPreview.post?.id
 
         guard let mediaItemsToUpload = feedLinkPreview.media?.filter({ [.none, .readyToUpload, .processedForUpload, .uploading].contains($0.status) }), !mediaItemsToUpload.isEmpty else {
             // no link preview media.. upload

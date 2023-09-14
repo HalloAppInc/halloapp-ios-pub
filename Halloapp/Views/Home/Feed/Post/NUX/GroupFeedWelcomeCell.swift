@@ -177,7 +177,7 @@ class GroupFeedWelcomeCell: UICollectionViewCell {
         let label = UILabel()
         label.numberOfLines = 0
         label.font = .systemFont(ofSize: 13, weight: .medium)
-        label.textColor = UIColor(named: "TimestampLabel")
+        label.textColor = .timestampLabel
         label.text = Date().feedTimestamp()
 
         label.translatesAutoresizingMaskIntoConstraints = false

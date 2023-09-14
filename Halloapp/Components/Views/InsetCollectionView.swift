@@ -453,7 +453,7 @@ fileprivate class InsetCollectionViewCell: UICollectionViewCell {
 
     let separator: UIView = {
         let view = UIView()
-        view.backgroundColor = .separator
+        view.backgroundColor = .separatorGray
         view.isHidden = true
         view.translatesAutoresizingMaskIntoConstraints = false
         return view

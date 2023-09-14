@@ -10,21 +10,6 @@ import Combine
 import UIKit
 import SwiftUI
 
-
-extension UIColor {
-    class var linkPreviewPostBackground: UIColor {
-        UIColor(named: "LinkPreviewPostBackground")!
-    }
-
-    class var linkPreviewPostSquareBackground: UIColor {
-        UIColor(named: "LinkPreviewPostSquareBackground")!
-    }
-
-    class var linkPreviewPostSquareDarkBackground: UIColor {
-        UIColor(named: "LinkPreviewPostSquareDarkBackground")!
-    }
-}
-
 public enum LinkPreviewConfiguration{
     case rectangleImage
     case squareImage

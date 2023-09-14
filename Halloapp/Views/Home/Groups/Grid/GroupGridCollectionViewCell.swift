@@ -598,18 +598,18 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         return formatter
     }()
 
-    private static let postBackgroundColors = [
-        UIColor(named: "GroupFeedCellBackground1"),
-        UIColor(named: "GroupFeedCellBackground2"),
-        UIColor(named: "GroupFeedCellBackground3"),
-        UIColor(named: "GroupFeedCellBackground4"),
-        UIColor(named: "GroupFeedCellBackground5"),
-        UIColor(named: "GroupFeedCellBackground6"),
-        UIColor(named: "GroupFeedCellBackground7"),
-        UIColor(named: "GroupFeedCellBackground8"),
-        UIColor(named: "GroupFeedCellBackground9"),
-        UIColor(named: "GroupFeedCellBackground10"),
-    ].compactMap { $0 }
+    private static let postBackgroundColors: [UIColor] = [
+        .groupFeedCellBackground1,
+        .groupFeedCellBackground2,
+        .groupFeedCellBackground3,
+        .groupFeedCellBackground4,
+        .groupFeedCellBackground5,
+        .groupFeedCellBackground6,
+        .groupFeedCellBackground7,
+        .groupFeedCellBackground8,
+        .groupFeedCellBackground9,
+        .groupFeedCellBackground10,
+    ]
 
     private static func backgroundColor(for postID: FeedPostID) -> UIColor {
         return postBackgroundColors[abs(postID.hashValue % postBackgroundColors.count)]

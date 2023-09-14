@@ -53,7 +53,7 @@ final class FeedPermissionExplanationAlert: UIView {
         learnMoreButton.translatesAutoresizingMaskIntoConstraints = false
         learnMoreButton.setContentCompressionResistancePriority(.required, for: .vertical)
         learnMoreButton.setTitle(Localizations.linkLearnMore, for: .normal)
-        learnMoreButton.setTitleColor(UIColor.nux, for: .normal)
+        learnMoreButton.setTitleColor(UIColor.NUX, for: .normal)
         learnMoreButton.titleLabel?.font = .systemFont(forTextStyle: .callout, weight: .regular)
 
         learnMoreButton.addTarget(self, action: #selector(didTapLearnMore), for: .touchUpInside)
@@ -63,7 +63,7 @@ final class FeedPermissionExplanationAlert: UIView {
         continueButton.translatesAutoresizingMaskIntoConstraints = false
         continueButton.setContentCompressionResistancePriority(.required, for: .vertical)
         continueButton.setTitle(Localizations.buttonContinue, for: .normal)
-        continueButton.setTitleColor(UIColor.nux, for: .normal)
+        continueButton.setTitleColor(UIColor.NUX, for: .normal)
         continueButton.titleLabel?.font = .systemFont(forTextStyle: .callout, weight: .regular)
         continueButton.addTarget(self, action: #selector(didTapContinue), for: .touchUpInside)
         

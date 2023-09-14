@@ -458,7 +458,7 @@ class MomentView: UIView {
     }
 
     private func determineState() -> State {
-        guard let feedPost else {
+        guard feedPost != nil else {
             return .prompt
         }
 

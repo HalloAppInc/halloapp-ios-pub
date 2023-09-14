@@ -112,7 +112,7 @@ public class Analytics {
         let isAppExtension = Bundle.main.bundlePath.hasSuffix("appex")
         if isAppExtension {
             Amplitude.instance().eventUploadPeriodSeconds = 3
-            Amplitude.instance().trackingSessionEvents = false
+            Amplitude.instance().defaultTracking.sessions = false
         }
 
         Amplitude.instance().setServerUrl("https://amplitude.halloapp.net")

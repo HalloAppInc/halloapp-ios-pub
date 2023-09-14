@@ -439,7 +439,7 @@ fileprivate class SuggestionCollectionViewCell: UICollectionViewCell {
     private let separator: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = .separator
+        view.backgroundColor = .separatorGray
         return view
     }()
 

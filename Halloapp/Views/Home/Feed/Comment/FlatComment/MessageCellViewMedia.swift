@@ -73,7 +73,7 @@ class MessageCellViewMedia: MessageCellViewBase {
             MainAppContext.shared.feedData.loadImages(commentID: comment.id)
             mediaView.configure(feedPostComment: comment, media: media)
         } else {
-            DDLogError("MessageCellViewMedia/configure/error missing media for comment " + comment.id)
+            DDLogError("MessageCellViewMedia/configure/error missing media for comment \(comment.id)")
         }
 
         configureCell()
@@ -91,7 +91,7 @@ class MessageCellViewMedia: MessageCellViewBase {
             MainAppContext.shared.chatData.downloadMedia(in: message)
             mediaView.configure(chatMessage: message, media: media)
         } else {
-            DDLogError("MessageCellViewMedia/configure/error missing media for message " + message.id)
+            DDLogError("MessageCellViewMedia/configure/error missing media for message \(message.id)")
         }
 
         if isOwnMessage {

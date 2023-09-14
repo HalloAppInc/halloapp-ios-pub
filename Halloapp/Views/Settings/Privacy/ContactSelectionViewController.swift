@@ -503,7 +503,7 @@ fileprivate class BackgroundDecorationView: UICollectionReusableView {
 
         let height = ContactSelectionViewController.rowHeight
         let inset = CGFloat(16)
-        let color = UIColor.separator
+        let color = UIColor.separatorGray
         let count = Int(bounds.height / height)
 
         if count > 0 {

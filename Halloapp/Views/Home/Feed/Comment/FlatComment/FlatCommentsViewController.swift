@@ -817,9 +817,9 @@ class FlatCommentsViewController: UIViewController, UICollectionViewDelegate, NS
             UIView.animate(withDuration: 0.5, animations: { [self] in
                 navigationTitleView.titleLabel.alpha = 0
                 navigationTitleView.headerView.alpha = 1
-                navigationController?.navigationBar.standardAppearance.shadowColor = .separator
-                navigationController?.navigationBar.scrollEdgeAppearance?.shadowColor = .separator
-                navigationController?.navigationBar.compactAppearance?.shadowColor = .separator
+                navigationController?.navigationBar.standardAppearance.shadowColor = .separatorGray
+                navigationController?.navigationBar.scrollEdgeAppearance?.shadowColor = .separatorGray
+                navigationController?.navigationBar.compactAppearance?.shadowColor = .separatorGray
             })
         }
     }

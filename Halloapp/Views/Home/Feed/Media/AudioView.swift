@@ -35,7 +35,7 @@ class AudioView : UIStackView {
                                         pauseIcon: UIImage(systemName: "pause.fill",
                                                            withConfiguration: UIImage.SymbolConfiguration(pointSize: 20))!,
                                         playPauseButtonSize: CGSize(width: 32, height: 32),
-                                        playedControlColor: UIColor.feedPostAudioPlayerControlColor,
+                                        playedControlColor: UIColor.feedPostAudioPlayerControl,
                                         thumbDiameter: 12)
 
         static let comment = Configuration(playIcon: UIImage(systemName: "play.fill",

@@ -580,7 +580,7 @@ class CommentsTableHeaderView: UIView {
         label.isHidden = true
 
         let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")?.withRenderingMode(.alwaysTemplate).imageFlippedForRightToLeftLayoutDirection()
-        let groupIndicatorColor = UIColor(named: "GroupNameArrow") ?? .label
+        let groupIndicatorColor = UIColor.groupNameArrowTint
 
         if let groupIndicator = groupIndicatorImage, let font = label.font {
             let iconAttachment = NSTextAttachment(image: groupIndicator)
@@ -658,7 +658,7 @@ class CommentsTableHeaderView: UIView {
 
         let separatorView = UIView()
         separatorView.translatesAutoresizingMaskIntoConstraints = false
-        separatorView.backgroundColor = .separator
+        separatorView.backgroundColor = .separatorGray
         self.addSubview(separatorView)
         separatorView.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
         separatorView.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true

@@ -71,9 +71,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         if let windowScene = scene as? UIWindowScene {
             let window = UIWindow(windowScene: windowScene)
-            if let tintColor = UIColor(named: "Tint") {
-                window.tintColor = tintColor
-            }
+            window.tintColor = .tint
             self.window = window
             window.makeKeyAndVisible()
         }

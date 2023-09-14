@@ -72,7 +72,7 @@ struct DeleteAccountView: View {
                     Button(action: model.cancel) {
                         Text("Cancel")
                             .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(.nux)
+                            .foregroundColor(.NUX)
                     }
                     .padding(.top, 16)
                     // Use a fixed size from the bottom if the keyboard is hidden
