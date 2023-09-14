@@ -23,6 +23,11 @@ extension UserProfile {
     @NSManaged public var isBlocked: Bool
     @NSManaged public var name: String
     @NSManaged public var username: String
+    @NSManaged public var isFavorite: Bool
+
+    @NSManaged public var posts: Set<FeedPost>
+    @NSManaged public var comments: Set<FeedPostComment>
+    @NSManaged public var messages: Set<ChatMessage>
 }
 
 extension UserProfile: Identifiable {

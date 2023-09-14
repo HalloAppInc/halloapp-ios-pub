@@ -55,6 +55,8 @@ public extension ChatMessage {
     @NSManaged var feedPostID: String?
     @NSManaged var feedPostMediaIndex: Int32
 
+    @NSManaged var user: UserProfile
+
     @NSManaged var chatReplyMessageID: String?
     @NSManaged var chatReplyMessageSenderID: UserID?
     @NSManaged var chatReplyMessageMediaIndex: Int32

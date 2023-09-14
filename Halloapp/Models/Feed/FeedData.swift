@@ -1026,6 +1026,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             feedPost.id = xmppPost.id
             feedPost.userId = xmppPost.userId
+            feedPost.user = UserProfile.findOrCreate(with: xmppPost.userId, in: managedObjectContext)
             feedPost.groupId = groupID
             feedPost.rawText = xmppPost.text
             feedPost.timestamp = xmppPost.timestamp
@@ -1271,6 +1272,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
                 comment.id = xmppComment.id
                 comment.userId = xmppComment.userId
+                comment.user = UserProfile.findOrCreate(with: xmppComment.userId, in: managedObjectContext)
                 comment.parent = parentComment
                 comment.post = feedPost
                 comment.timestamp = xmppComment.timestamp
@@ -2854,6 +2856,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let feedComment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
             feedComment.id = commentId
             feedComment.userId = AppContext.shared.userData.userId
+            feedComment.user = UserProfile.findOrCreate(with: AppContext.shared.userData.userId, in: managedObjectContext)
             feedComment.rawText = comment.collapsedText
             feedComment.parent = parentComment
             feedComment.post = feedPost

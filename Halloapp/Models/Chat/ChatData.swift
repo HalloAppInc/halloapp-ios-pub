@@ -3236,6 +3236,7 @@ extension ChatData {
         chatMessage.id = xmppChatMessage.id
         chatMessage.chatMessageRecipient = xmppChatMessage.chatMessageRecipient
         chatMessage.fromUserId = xmppChatMessage.fromUserId
+        chatMessage.user = UserProfile.findOrCreate(with: xmppChatMessage.fromUserId, in: managedObjectContext)
         chatMessage.feedPostId = xmppChatMessage.context.feedPostID
         chatMessage.feedPostMediaIndex = xmppChatMessage.context.feedPostMediaIndex
         

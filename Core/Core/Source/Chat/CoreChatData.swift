@@ -189,6 +189,7 @@ public class CoreChatData {
         chatMessage.id = messageId
         chatMessage.chatMessageRecipient = chatMessageRecipient
         chatMessage.fromUserId = userData.userId
+        chatMessage.user = UserProfile.findOrCreate(with: userData.userId, in: context)
         chatMessage.rawText = mentionText.collapsedText
         chatMessage.mentions = mentionText.mentions.map { (index, user) in
             return MentionData(index: index, userID: user.userID, name: contactStore.pushNames[user.userID] ?? user.pushName ?? "")
@@ -1369,6 +1370,7 @@ public class CoreChatData {
             chatMessage.id = chatMessageProtocol.id
             chatMessage.chatMessageRecipient = chatMessageProtocol.chatMessageRecipient
             chatMessage.fromUserId = chatMessageProtocol.fromUserId
+            chatMessage.user = UserProfile.findOrCreate(with: chatMessageProtocol.fromUserId, in: context)
             chatMessage.feedPostId = chatMessageProtocol.context.feedPostID
             chatMessage.feedPostMediaIndex = chatMessageProtocol.context.feedPostMediaIndex
 

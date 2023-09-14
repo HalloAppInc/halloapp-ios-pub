@@ -135,6 +135,8 @@ open class CoreFeedData: NSObject {
             let feedPost = FeedPost(context: managedObjectContext)
             feedPost.id = postId
             feedPost.userId = AppContext.shared.userData.userId
+            feedPost.user = UserProfile.findOrCreate(with: AppContext.shared.userData.userId, in: managedObjectContext)
+
             if case .group(let groupID, _, _) = destination {
                 feedPost.groupId = groupID
                 if let group = self.chatData.chatGroup(groupId: groupID, in: managedObjectContext) {
@@ -952,6 +954,7 @@ open class CoreFeedData: NSObject {
 
             feedPost.id = postData.id
             feedPost.userID = postData.userId
+            feedPost.user = UserProfile.findOrCreate(with: postData.userId, in: context)
             feedPost.groupId = groupID
             feedPost.rawText = postData.text
             feedPost.timestamp = postData.timestamp
@@ -1125,6 +1128,7 @@ open class CoreFeedData: NSObject {
 
             feedComment.id = commentData.id
             feedComment.userId = commentData.userId
+            feedComment.user = UserProfile.findOrCreate(with: commentData.userId, in: context)
             feedComment.parent = parentComment
             feedComment.post = feedPost
             feedComment.timestamp = commentData.timestamp

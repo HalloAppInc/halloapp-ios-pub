@@ -49,6 +49,7 @@
         <relationship name="quoted" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatQuoted" inverseName="message" inverseEntity="ChatQuoted"/>
         <relationship name="reactions" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CommonReaction" inverseName="message" inverseEntity="CommonReaction"/>
         <relationship name="receiptInfo" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ChatReceiptInfo" inverseName="chatMessage" inverseEntity="ChatReceiptInfo"/>
+        <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserProfile" inverseName="messages" inverseEntity="UserProfile"/>
         <uniquenessConstraints>
             <uniquenessConstraint>
                 <constraint value="id"/>
@@ -215,6 +216,7 @@
         <relationship name="linkPreviews" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonLinkPreview" inverseName="post" inverseEntity="CommonLinkPreview"/>
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonMedia" inverseName="post" inverseEntity="CommonMedia"/>
         <relationship name="reactions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonReaction" inverseName="post" inverseEntity="CommonReaction"/>
+        <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserProfile" inverseName="posts" inverseEntity="UserProfile"/>
         <uniquenessConstraints>
             <uniquenessConstraint>
                 <constraint value="id"/>
@@ -237,6 +239,7 @@
         <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="comments" inverseEntity="FeedPost"/>
         <relationship name="reactions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CommonReaction" inverseName="comment" inverseEntity="CommonReaction"/>
         <relationship name="replies" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="parent" inverseEntity="FeedPostComment"/>
+        <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserProfile" inverseName="comments" inverseEntity="UserProfile"/>
         <uniquenessConstraints>
             <uniquenessConstraint>
                 <constraint value="id"/>
@@ -297,8 +300,12 @@
         <attribute name="friendshipStatusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="id" attributeType="String"/>
         <attribute name="isBlocked" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
-        <attribute name="name" attributeType="String"/>
-        <attribute name="username" attributeType="String"/>
+        <attribute name="isFavorite" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="name" attributeType="String" defaultValueString=""/>
+        <attribute name="username" attributeType="String" defaultValueString=""/>
+        <relationship name="comments" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="user" inverseEntity="FeedPostComment"/>
+        <relationship name="messages" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatMessage" inverseName="user" inverseEntity="ChatMessage"/>
+        <relationship name="posts" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="user" inverseEntity="FeedPost"/>
         <fetchIndex name="byIDIndex">
             <fetchIndexElement property="id" type="Binary" order="ascending"/>
         </fetchIndex>

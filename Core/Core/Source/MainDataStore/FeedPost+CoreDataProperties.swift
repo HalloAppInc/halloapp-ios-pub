@@ -38,6 +38,7 @@ public extension FeedPost {
     @NSManaged var timestamp: Date
     @NSManaged var userID: UserID
     @NSManaged var groupID: GroupID?
+    @NSManaged var user: UserProfile
     @NSManaged var comments: Set<FeedPostComment>?
     @NSManaged var media: Set<CommonMedia>?
     @NSManaged var reactions: Set<CommonReaction>?

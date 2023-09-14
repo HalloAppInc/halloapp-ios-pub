@@ -40,6 +40,7 @@ public extension FeedPostComment {
     @NSManaged var userID: UserID
     @NSManaged var parent: FeedPostComment?
     @NSManaged var post: FeedPost
+    @NSManaged var user: UserProfile
     @NSManaged var media: Set<CommonMedia>?
     @NSManaged var replies: Set<FeedPostComment>?
     @NSManaged var linkPreviews: Set<CommonLinkPreview>?
