@@ -44,17 +44,41 @@ class PhotoSuggestions: NSObject {
 
     private var cancellables = Set<AnyCancellable>()
 
+    private var hasRegisteredChangeObserver = false
+
     override init() {
         super.init()
 
         NotificationCenter.default.publisher(for: PhotoPermissionsHelper.photoAuthorizationDidChange)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.resetFetchedPhotos()
+                guard let self else {
+                    return
+                }
+                registerChangeObserverIfNeeded()
+                resetFetchedPhotos()
+                
             }
             .store(in: &cancellables)
 
+        registerChangeObserverIfNeeded()
         resetFetchedPhotos()
+    }
+
+    private func registerChangeObserverIfNeeded() {
+        let shouldRegister = PhotoPermissionsHelper.authorizationStatus(for: .readWrite).hasAnyAuthorization
+
+        guard shouldRegister != hasRegisteredChangeObserver else {
+            return
+        }
+
+        if shouldRegister {
+            PHPhotoLibrary.shared().register(self)
+        } else {
+            PHPhotoLibrary.shared().unregisterChangeObserver(self)
+        }
+
+        hasRegisteredChangeObserver = shouldRegister
     }
 
     var hasLocationsForPhotos: Bool {
@@ -74,14 +98,34 @@ class PhotoSuggestions: NSObject {
     }
 
     func resetFetchedPhotos() {
-        self.cachedSuggestions = nil
-        if PhotoPermissionsHelper.authorizationStatus(for: .readWrite).hasAnyAuthorization {
-            self.recentAssets = PhotoSuggestions.queryAssets(start: Date().advanced(by: -30 * 24 * 60 * 60), limit: 1000)
-            PHPhotoLibrary.shared().register(self)
-        } else {
-            self.recentAssets = PHFetchResult()
-            PHPhotoLibrary.shared().unregisterChangeObserver(self)
+        guard PhotoPermissionsHelper.authorizationStatus(for: .readWrite).hasAnyAuthorization else {
+            let hadCachedSuggestions = cachedSuggestions != nil
+            cachedSuggestions = nil
+            recentAssets = PHFetchResult()
+            if hadCachedSuggestions {
+                NotificationCenter.default.post(name: Self.suggestionsDidChange, object: self)
+            }
+            return
         }
+
+        let updatedAssets = PhotoSuggestions.queryAssets(start: Date().advanced(by: -30 * 24 * 60 * 60), limit: 1000)
+
+        var currentAssetIDs: Set<String> = []
+        var previousAssetIDs: Set<String> = []
+        recentAssets.enumerateObjects { asset, _, _ in
+            previousAssetIDs.insert(asset.localIdentifier)
+        }
+        updatedAssets.enumerateObjects { asset, _, _ in
+            currentAssetIDs.insert(asset.localIdentifier)
+        }
+
+        guard currentAssetIDs != previousAssetIDs else {
+            return
+        }
+
+        self.cachedSuggestions = nil
+        recentAssets = updatedAssets
+
         NotificationCenter.default.post(name: Self.suggestionsDidChange, object: self)
     }
 
