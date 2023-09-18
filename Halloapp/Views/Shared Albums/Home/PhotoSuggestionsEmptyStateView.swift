@@ -42,33 +42,38 @@ class PhotoSuggestionsEmptyStateView: UIView {
         let imageView = UIImageView(image: UIImage(named: "MagicPostsEmptyStateIcon"))
 
         let titleLabel = UILabel()
-        titleLabel.font = .scaledSystemFont(ofSize: 16, weight: .medium)
+        titleLabel.font = .scaledSystemFont(ofSize: 16, weight: .semibold)
         titleLabel.numberOfLines = 0
         titleLabel.text = title
         titleLabel.textAlignment = .center
-        titleLabel.textColor = .primaryBlue
+        titleLabel.textColor = .primaryBlackWhite
 
         let subtitleLabel = UILabel()
-        subtitleLabel.font = .scaledSystemFont(ofSize: 15, weight: .regular)
+        subtitleLabel.font = .scaledSystemFont(ofSize: 14, weight: .regular)
         subtitleLabel.numberOfLines = 0
         subtitleLabel.text = subtitle
         subtitleLabel.textAlignment = .center
         subtitleLabel.textColor = .primaryBlackWhite.withAlphaComponent(0.5)
 
-        let actionButton = RoundedRectButton()
-        actionButton.addTarget(self, action: #selector(performAction), for: .touchUpInside)
-        actionButton.backgroundTintColor = .primaryBlue
-        actionButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 15, bottom: 10, right: 15)
+        var actionButtonConfiguration = UIButton.Configuration.filled()
+        actionButtonConfiguration.baseBackgroundColor = .primaryBlue
+        actionButtonConfiguration.baseForegroundColor = .primaryWhiteBlack
+        actionButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 15, bottom: 10, trailing: 15)
+        actionButtonConfiguration.cornerStyle = .capsule
+
+        let actionButton = UIButton(configuration: actionButtonConfiguration, primaryAction: UIAction(handler: { [weak self] _ in
+            self?.performAction()
+        }))
         actionButton.isHidden = !showActionButton
         actionButton.setTitle(Localizations.photoSuggestionsEmptyStatePhotoPermissionsGrantAction, for: .normal)
-        actionButton.setTitleColor(.white, for: .normal)
         actionButton.titleLabel?.font = .scaledSystemFont(ofSize: 15, weight: .bold)
+        actionButton.tintColor = .primaryBlue
 
         let contentStackView = UIStackView(arrangedSubviews: [imageView, titleLabel, subtitleLabel, actionButton])
         contentStackView.alignment = .center
         contentStackView.axis = .vertical
         contentStackView.setCustomSpacing(20, after: imageView)
-        contentStackView.setCustomSpacing(4, after: titleLabel)
+        contentStackView.setCustomSpacing(6, after: titleLabel)
         contentStackView.setCustomSpacing(20, after: subtitleLabel)
         contentStackView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(contentStackView)
@@ -94,7 +99,7 @@ class PhotoSuggestionsEmptyStateView: UIView {
         fatalError()
     }
 
-    @objc private func performAction() {
+    private func performAction() {
         switch type {
         case .allowPhotoAccess:
             switch PhotoPermissionsHelper.authorizationStatus(for: .readWrite) {

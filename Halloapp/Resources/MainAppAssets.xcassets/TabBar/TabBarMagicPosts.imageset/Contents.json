@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "MagicPostInactive.svg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

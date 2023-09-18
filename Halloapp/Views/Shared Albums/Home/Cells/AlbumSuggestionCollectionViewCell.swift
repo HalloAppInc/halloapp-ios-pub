@@ -22,9 +22,9 @@ class AlbumSuggestionCollectionViewCell: UICollectionViewCell {
     private let headerLabel: UILabel = {
         let headerLabel = UILabel()
         headerLabel.adjustsFontSizeToFitWidth = true
-        headerLabel.font = .scaledSystemFont(ofSize: 19, weight: .medium)
+        headerLabel.font = .scaledSystemFont(ofSize: 17, weight: .semibold)
         headerLabel.numberOfLines = 2
-        headerLabel.textColor = .primaryBlackWhite
+        headerLabel.textColor = .primaryBlackWhite.withAlphaComponent(0.25)
         return headerLabel
     }()
 
@@ -32,14 +32,14 @@ class AlbumSuggestionCollectionViewCell: UICollectionViewCell {
         let titleLabel = UILabel()
         titleLabel.font = .scaledSystemFont(ofSize: 16, weight: .regular)
         titleLabel.numberOfLines = 0
-        titleLabel.textColor = .primaryBlackWhite
+        titleLabel.textColor = .primaryBlackWhite.withAlphaComponent(0.5)
         return titleLabel
     }()
 
     private let timestampLabel: UILabel = {
         let timestampLabel = UILabel()
-        timestampLabel.font = .scaledSystemFont(ofSize: 13, weight: .medium)
-        timestampLabel.textColor = .primaryBlackWhite.withAlphaComponent(0.4)
+        timestampLabel.font = .scaledSystemFont(ofSize: 14, weight: .regular)
+        timestampLabel.textColor = .primaryBlackWhite.withAlphaComponent(0.3)
         return timestampLabel
     }()
 
@@ -177,22 +177,17 @@ extension AlbumSuggestionCollectionViewCell {
             case 1:
                 frames[0] = bounds
             case 2:
-                (frames[0], _) = bounds.divided(atDistance: (bounds.width - 1) * 0.5, from: .minXEdge)
-                (frames[1], _) = bounds.divided(atDistance: (bounds.width - 1) * 0.5, from: .maxXEdge)
+                (frames[0], frames[1]) = bounds.divided(atDistance: bounds.width * 0.55, from: .minXEdge)
             case 3:
-                let (topRect, _) = bounds.divided(atDistance: (bounds.height - 1) * 0.5, from: .minYEdge)
+                let (topRect, bottomRect) = bounds.divided(atDistance: bounds.height * 0.55, from: .minYEdge)
 
-                (frames[0], _) = topRect.divided(atDistance: (bounds.width - 1) * 0.4, from: .minXEdge)
-                (frames[1], _) = topRect.divided(atDistance: (bounds.width - 1) * 0.6, from: .maxXEdge)
-                (frames[2], _) = bounds.divided(atDistance: (bounds.height - 1) * 0.5, from: .maxYEdge)
+                (frames[0], frames[1]) = topRect.divided(atDistance: bounds.width * 0.4, from: .minXEdge)
+                frames[2] = bottomRect
             default: // 4+
-                let (topRect, _) = bounds.divided(atDistance: (bounds.height - 1) * 0.5, from: .minYEdge)
-                let (bottomRect, _) = bounds.divided(atDistance: (bounds.height - 1) * 0.5, from: .maxYEdge)
+                let (topRect, bottomRect) = bounds.divided(atDistance: bounds.height * 0.55, from: .minYEdge)
 
-                (frames[0], _) = topRect.divided(atDistance: (bounds.width - 1) * 0.4, from: .minXEdge)
-                (frames[1], _) = topRect.divided(atDistance: (bounds.width - 1) * 0.6, from: .maxXEdge)
-                (frames[2], _) = bottomRect.divided(atDistance: (bounds.width - 1) * 0.7, from: .minXEdge)
-                (frames[3], _) = bottomRect.divided(atDistance: (bounds.width - 1) * 0.3, from: .maxXEdge)
+                (frames[0], frames[1]) = topRect.divided(atDistance: bounds.width * 0.4, from: .minXEdge)
+                (frames[2], frames[3]) = bottomRect.divided(atDistance: bounds.width * 0.7, from: .minXEdge)
             }
 
             for (imageView, frame) in zip(imageViews, frames) {

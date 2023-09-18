@@ -22,8 +22,8 @@ class AlbumSuggestionCallToActionCollectionViewCell: UICollectionViewCell {
 
     private let closeButton: UIButton = {
         let closeButton = UIButton(type: .system)
-        closeButton.setImage(UIImage(systemName: "xmark")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 12, weight: .bold)), for: .normal)
-        closeButton.tintColor = .primaryBlackWhite.withAlphaComponent(0.5)
+        closeButton.setImage(UIImage(systemName: "xmark")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 12, weight: .medium)), for: .normal)
+        closeButton.tintColor = .primaryBlackWhite.withAlphaComponent(0.3)
         return closeButton
     }()
 
@@ -33,10 +33,10 @@ class AlbumSuggestionCallToActionCollectionViewCell: UICollectionViewCell {
 
     private let titleLabel: UILabel = {
         let titleLabel = UILabel()
-        titleLabel.font = .scaledSystemFont(ofSize: 15, weight: .medium)
+        titleLabel.font = .scaledSystemFont(ofSize: 16, weight: .semibold)
         titleLabel.numberOfLines = 0
         titleLabel.textAlignment = .center
-        titleLabel.textColor = .primaryBlackWhite.withAlphaComponent(0.75)
+        titleLabel.textColor = .primaryBlackWhite
         return titleLabel
     }()
 
@@ -72,21 +72,25 @@ class AlbumSuggestionCallToActionCollectionViewCell: UICollectionViewCell {
         contentStackView.alignment = .center
         contentStackView.axis = .vertical
         contentStackView.setCustomSpacing(20, after: imageView)
-        contentStackView.setCustomSpacing(4, after: titleLabel)
+        contentStackView.setCustomSpacing(6, after: titleLabel)
         contentStackView.setCustomSpacing(20, after: subtitleLabel)
         contentStackView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(contentStackView)
 
         NSLayoutConstraint.activate([
             closeButton.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 5),
-            closeButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            closeButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -5),
 
             contentStackView.topAnchor.constraint(equalTo: closeButton.bottomAnchor),
-            contentStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 5),
+            contentStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 15),
             contentStackView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            contentStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20),
+            contentStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -15),
         ])
     }
+
+    private static let subtitleFormatRegex: NSRegularExpression? = {
+        return try? NSRegularExpression(pattern: "(\\*)(?<text>.+?)(\\*)")
+    }()
 
     required init?(coder: NSCoder) {
         fatalError()
@@ -97,30 +101,55 @@ class AlbumSuggestionCallToActionCollectionViewCell: UICollectionViewCell {
         self.dismissAction = dismissAction
 
         let title: String
-        let subtitle: String
+        let subtitle: NSAttributedString
         let ctaText: String?
         let canDismiss: Bool
 
         switch type {
         case .firstTimeUse:
             title = Localizations.magicPostsExplainerTitle
-            subtitle = Localizations.magicPostsExplainerSubtitle
+            subtitle = NSAttributedString(string: Localizations.magicPostsExplainerSubtitle)
             ctaText = nil
             canDismiss = true
         case .enablePhotoLocations:
             title = Localizations.enablePhotoLocationCtaTitle
-            subtitle = Localizations.enablePhotoLocationCtaSubtitle
+
+            let instructionsSubtitle = NSMutableAttributedString(string: Localizations.enablePhotoLocationCtaSubtitle2)
+            var rangeAdjustment = 0
+            Self.subtitleFormatRegex?.enumerateMatches(in: instructionsSubtitle.string,
+                                                       range: NSMakeRange(0, instructionsSubtitle.length),
+                                                       using: { result, matchingFlags, _ in
+                guard let result else {
+                    return
+                }
+                let updatedResult = result.adjustingRanges(offset: rangeAdjustment)
+                let selectionRange = updatedResult.range(at: 0)
+                let textRange = updatedResult.range(withName: "text")
+                guard selectionRange.location != NSNotFound, textRange.location != NSNotFound else {
+                    return
+                }
+                let text = (instructionsSubtitle.string as NSString).substring(with: textRange)
+                instructionsSubtitle.replaceCharacters(in: selectionRange,
+                                                       with: NSAttributedString(string: text, attributes: [.foregroundColor: UIColor.primaryBlackWhite]))
+                rangeAdjustment += (textRange.length - selectionRange.length)
+            })
+
+            let mutableSubtitle = NSMutableAttributedString()
+            mutableSubtitle.append(NSAttributedString(string: Localizations.enablePhotoLocationCtaSubtitle1))
+            mutableSubtitle.append(NSAttributedString(string: "\n\n"))
+            mutableSubtitle.append(instructionsSubtitle)
+            subtitle = mutableSubtitle
             ctaText = Localizations.enablePhotoLocationCtaAction
             canDismiss = false
         case .enableAlwaysOnLocation:
             title = Localizations.enableAlwaysOnLocationCtaTitle
-            subtitle = Localizations.enableAlwaysOnLocationCtaSubtitle
+            subtitle = NSAttributedString(string: Localizations.enableAlwaysOnLocationCtaSubtitle)
             ctaText = Localizations.enableAlwaysOnLocationCtaAction
             canDismiss = false
         }
 
         titleLabel.text = title
-        subtitleLabel.text = subtitle
+        subtitleLabel.attributedText = subtitle
         ctaButton.setTitle(ctaText, for: .normal)
         ctaButton.isHidden = ctaText == nil
         closeButton.isHidden = !canDismiss
@@ -141,7 +170,7 @@ class AlbumSuggestionCallToActionCollectionViewCell: UICollectionViewCell {
                 UIApplication.shared.open(settingsURL)
             }
         case .enableAlwaysOnLocation:
-            switch CLLocationManager.authorizationStatus() {
+            switch CLLocationManager().authorizationStatus {
             case .authorizedAlways:
                 break
             case .notDetermined:
@@ -175,19 +204,25 @@ extension Localizations {
 
     static var enablePhotoLocationCtaTitle: String {
         NSLocalizedString("photosuggestions.cta.photolocation.title",
-                          value: "Allow Location access for the Photos app",
+                          value: "Allow Location Access For The Photos App",
                           comment: "title for explanation of why we want location access for photos app")
     }
 
-    static var enablePhotoLocationCtaSubtitle: String {
-        NSLocalizedString("photosuggestions.cta.photolocation.subtitle", 
+    static var enablePhotoLocationCtaSubtitle1: String {
+        NSLocalizedString("photosuggestions.cta.photolocation.subtitle1",
                           value: "Allow Location access for the Photos app to improve Magic Posts. HalloApp uses location metadata from your photos to help sort and name them.",
                           comment: "explanation for why we need to turn on location access for photos")
     }
 
+    static var enablePhotoLocationCtaSubtitle2: String {
+        NSLocalizedString("photosuggestions.cta.photolocation.subtitle2",
+                          value: "To allow Location access, go to: *Settings* > *Privacy & Security* > *Location Services* > *Photos*",
+                          comment: "instructions for enabling location access for photos app. maintain '*' to indicate bold text.")
+    }
+
     static var enablePhotoLocationCtaAction: String {
         NSLocalizedString("photosuggestions.cta.photolocation.action",
-                          value: "Allow in Settings",
+                          value: "Open Settings",
                           comment: "Button to link to settings to enable location permission for Photos app")
     }
 
@@ -195,19 +230,19 @@ extension Localizations {
 
     static var enableAlwaysOnLocationCtaTitle: String {
         NSLocalizedString("photosuggestions.cta.alwaysonlocation.title",
-                          value: "Allow HalloApp to access Location to be notified of new Magic Posts",
+                          value: "To Use Magic Posts, Allow HalloApp to Access Location",
                           comment: "title for explanation of why we want always location access")
     }
 
     static var enableAlwaysOnLocationCtaSubtitle: String {
         NSLocalizedString("photosuggestions.cta.alwaysonlocation.subtitle",
-                          value: "HalloApp will notify you of new Magic Posts when you take photos and leave a location",
+                          value: "When you take new photos, we find the best shots and organize them into a post draft, so it’s ready for you if you feel like posting.",
                           comment: "explanation of why we want always location access")
     }
 
     static var enableAlwaysOnLocationCtaAction: String {
         NSLocalizedString("photosuggestions.cta.alwaysonlocation.action",
-                          value: "Allow location access",
+                          value: "Allow in Settings",
                           comment: "Button to link to settings to enable location permission for HalloApp")
     }
 }

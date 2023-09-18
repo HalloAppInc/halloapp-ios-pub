@@ -17,14 +17,14 @@ class PhotoSuggestionsHeaderCollectionViewCell: UICollectionViewCell {
         super.init(frame: frame)
 
         let titleLabel = UILabel()
-        titleLabel.font = .scaledSystemFont(ofSize: 12, weight: .medium)
-        titleLabel.text = Localizations.photoSuggestionsHeaderTitle.uppercased()
-        titleLabel.textColor = .primaryBlackWhite.withAlphaComponent(0.5)
+        titleLabel.font = .scaledSystemFont(ofSize: 20, weight: .medium)
+        titleLabel.text = Localizations.photoSuggestionsHeaderTitle
+        titleLabel.textColor = .primaryBlackWhite
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(titleLabel)
 
         NSLayoutConstraint.activate([
-            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
+            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 15),
             titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
             titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             titleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
@@ -39,6 +39,6 @@ class PhotoSuggestionsHeaderCollectionViewCell: UICollectionViewCell {
 extension Localizations {
 
     static var photoSuggestionsHeaderTitle: String {
-        NSLocalizedString("photosuggestionsheader.title", value: "New post suggestions", comment: "title for photo suggestions section")
+        NSLocalizedString("photosuggestionsheader.title", value: "New Post Suggestions", comment: "title for photo suggestions section")
     }
 }
