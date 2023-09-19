@@ -105,7 +105,7 @@ class SharedAlbumViewController: UIViewController {
         LocationPermissionsMonitor.shared.authorizationStatus
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.refreshSuggestions(showLoadIndicator: false)
+                self?.refreshSuggestions()
             }
             .store(in: &cancellables)
 
@@ -142,7 +142,7 @@ class SharedAlbumViewController: UIViewController {
                 if DeveloperSetting.didHidePhotoSuggestionsFirstUse {
                     if !MainAppContext.shared.photoSuggestions.hasLocationsForPhotos {
                         snapshot.appendItems([.callToAction(.enablePhotoLocations)])
-                    } else if CLLocationManager.authorizationStatus() != .authorizedAlways,
+                    } else if CLLocationManager().authorizationStatus != .authorizedAlways,
                               [.authorized, .provisional].contains(await UNUserNotificationCenter.current().notificationSettings().authorizationStatus) {
                         snapshot.appendItems([.callToAction(.enableAlwaysOnLocation)])
                     }
@@ -152,7 +152,9 @@ class SharedAlbumViewController: UIViewController {
                 snapshot.appendItems([.header])
                 snapshot.appendItems(suggestions.map { .suggestion($0) })
             }
-            await dataSource.apply(snapshot, animatingDifferences: true)
+            await MainActor.run {
+                dataSource.apply(snapshot, animatingDifferences: true)
+            }
         }
     }
 
