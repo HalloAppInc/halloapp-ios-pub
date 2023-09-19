@@ -10,6 +10,124 @@ import CocoaLumberjackSwift
 import CoreML
 import Foundation
 import Photos
+import Vision
+
+final class BurstAwareHighlightSelector {
+    
+    let BurstThreshold = TimeInterval(15)
+    let SimilarityThreshold = Float(15)
+    
+    func selectHighlights(_ n: Int, from assets: [PHAsset]) async -> [PHAsset] {
+        
+        // 1. Divide photos into bursts (sets of photos taken less than BurstThreshold apart)
+        
+        var bursts = [[PHAsset]]()
+        let timeOrderedAssets = assets.sorted { a1, a2 in
+            guard let t1 = a1.creationDate else { return false }
+            guard let t2 = a2.creationDate else { return true }
+            return t1 < t2
+        }
+        var burst = [PHAsset]()
+        for a in timeOrderedAssets {
+            guard let time = a.creationDate else {
+                bursts.append([a])
+                continue
+            }
+            guard let lastTime = burst.last?.creationDate else {
+                burst.append(a)
+                continue
+            }
+            if lastTime.addingTimeInterval(BurstThreshold) > time {
+                burst.append(a)
+            } else {
+                bursts.append(burst)
+                burst = [a]
+            }
+        }
+        if !burst.isEmpty { bursts.append(burst) }
+        
+        DDLogInfo("selectHighlights/burst [found \(assets.count) bursts]")
+        
+        // 2. Take top scoring photo from each burst
+        DDLogInfo("selectHighlights/scoring [\(assets.count) assets]")
+        
+        let scoredAssets = await ImageRanker.shared.scoreAssets(assets)
+        let scoredAssetMap = Dictionary(scoredAssets, uniquingKeysWith: { max($0, $1) })
+        
+        let candidates: [PHAsset] = bursts.compactMap { $0.max(by: {
+            let s0 = scoredAssetMap[$0.localIdentifier] ?? 0
+            let s1 = scoredAssetMap[$1.localIdentifier] ?? 0
+            return s0 > s1
+        }) }.sorted {
+            let s0 = scoredAssetMap[$0.localIdentifier] ?? 0
+            let s1 = scoredAssetMap[$1.localIdentifier] ?? 0
+            return s0 > s1
+        }
+        
+        for c in candidates {
+            DDLogInfo("selectHighlights/scoring [\(c.localIdentifier) \(scoredAssetMap[c.localIdentifier] ?? 0)")
+        }
+        
+        // 3. Select up to N highest scoring candidates
+        var out = [PHAsset]()
+        
+        DDLogInfo("selectHighlights/similarity/analyzing [\(candidates.count) assets]")
+        var featurePrintObservations = [String: VNFeaturePrintObservation]()
+        for c in candidates {
+            let candidateFPO: VNFeaturePrintObservation? = await {
+                if let cached = featurePrintObservations[c.localIdentifier] {
+                    return cached
+                }
+                guard let computed = await ImageRanker.shared.featurePrintObservationForAsset(c) else {
+                    return nil
+                }
+                featurePrintObservations[c.localIdentifier] = computed
+                return computed
+            }()
+            guard let candidateFPO else {
+                // Include the candidate if no feature print exists for comparison
+                out.append(c)
+                continue
+            }
+            var distance = Float()
+            var tooSimilar = false
+            for incumbent in out {
+                let incumbentFPO: VNFeaturePrintObservation? = await {
+                    if let cached = featurePrintObservations[incumbent.localIdentifier] {
+                        return cached
+                    }
+                    guard let computed = await ImageRanker.shared.featurePrintObservationForAsset(incumbent) else {
+                        return nil
+                    }
+                    featurePrintObservations[incumbent.localIdentifier] = computed
+                    return computed
+                }()
+                guard let incumbentFPO else {
+                    continue
+                }
+                do {
+                    try incumbentFPO.computeDistance(&distance, to: candidateFPO)
+                    DDLogInfo("selectHighlights/similarity/distance [\(distance)]")
+                } catch {
+                    DDLogError("selectHighlights/similarity/computeDistance error [\(error)]")
+                    continue
+                }
+                if distance < SimilarityThreshold {
+                    DDLogInfo("selectHighlights/similarity/tooSimilar [\(distance)]")
+                    tooSimilar = true
+                    break
+                }
+            }
+            if !tooSimilar {
+                DDLogInfo("selectHighlights/similarity/adding")
+                out.append(c)
+            }
+        }
+        
+        return out
+    }
+    
+}
 
 final class ImageRanker {
     
@@ -57,6 +175,84 @@ final class ImageRanker {
             })
         
         return scores ?? []
+    }
+    
+    func featurePrintObservationForAsset(_ asset: PHAsset) async -> VNFeaturePrintObservation? {
+        let image = await withCheckedContinuation { continuation in
+            let options = PHImageRequestOptions()
+            options.deliveryMode = .fastFormat
+
+            var didReturnImage = false
+
+            self.cachingImageManager.requestImage(for: asset, targetSize: CGSize(width: 224, height: 224), contentMode: .default, options: options) { image, _ in
+                guard !didReturnImage else {
+                    return
+                }
+                didReturnImage = true
+                continuation.resume(returning: image)
+            }
+        }
+        guard let cgImage = image?.cgImage else { return nil }
+        return featurePrintObservationForImage(cgImage)
+    }
+    
+    func featurePrintObservationForImage(_ image: CGImage) -> VNFeaturePrintObservation? {
+        let requestHandler = VNImageRequestHandler(cgImage: image, options: [:])
+        let request = VNGenerateImageFeaturePrintRequest()
+        do {
+            DDLogInfo("Requesting FPO for image...")
+            try requestHandler.perform([request])
+            DDLogInfo("Received FPO")
+            return request.results?.first as? VNFeaturePrintObservation
+        } catch {
+            print("Vision error: \(error)")
+            return nil
+        }
+    }
+    
+    // Returns 0 for unscored assets
+    
+    public func scoreAssets(_ assets: [PHAsset]) async -> [(String, CGFloat)] {
+        let scoredAssets = try? await withThrowingTaskGroup(
+            of: (asset: String, score: CGFloat).self,
+            returning: [(asset: String, score: CGFloat)].self,
+            body: { taskGroup in
+                for asset in assets {
+                    taskGroup.addTask {
+                        if let cachedScore = self.cachedScores[asset.localIdentifier] {
+                            return (asset.localIdentifier, cachedScore)
+                        }
+                        let image = await withCheckedContinuation { continuation in
+                            let options = PHImageRequestOptions()
+                            options.deliveryMode = .fastFormat
+
+                            var didReturnImage = false
+
+                            self.cachingImageManager.requestImage(for: asset, targetSize: CGSize(width: 224, height: 224), contentMode: .default, options: options) { image, _ in
+                                guard !didReturnImage else {
+                                    return
+                                }
+                                didReturnImage = true
+                                continuation.resume(returning: image)
+                            }
+                        }
+                        if let image {
+                            let score = self.computeScore(for: image)
+                            self.cachedScores[asset.localIdentifier] = score
+                            return (asset.localIdentifier, score)
+                        } else {
+                            return (asset.localIdentifier, 0)
+                        }
+                    }
+                }
+                var scores = [(String, CGFloat)]()
+                for try await result in taskGroup {
+                    scores.append(result)
+                }
+                return scores
+            })
+
+        return scoredAssets ?? []
     }
 
     public func rankMedia(_ assets: [PHAsset]) async -> [PHAsset]  {

@@ -492,7 +492,7 @@ extension PhotoSuggestions {
 
         var newPostState: NewPostState {
             get async {
-                let scoreSortedAssets = await ImageRanker.shared.rankMedia(Array(assets))
+                let scoreSortedAssets = await BurstAwareHighlightSelector().selectHighlights(10, from: Array(assets))
                 let selectedMedia = scoreSortedAssets.prefix(ServerProperties.maxPostMediaItems).compactMap { PendingMedia(asset: $0) }
                 let createdAtSortedAssets = assets.sorted { $0.creationDate ?? .distantFuture < $1.creationDate ?? .distantFuture }
                 let albumTitle = location?.name ?? location?.address ?? Localizations.suggestionAlbumTitle
