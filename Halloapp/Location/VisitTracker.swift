@@ -15,8 +15,8 @@ import Photos
 class VisitTracker: NSObject {
 
     private struct Constants {
-        static let maxDistanceForPhoto: CLLocationDistance = 2_500 // meters
-        static let maxTimeInterval: TimeInterval = 4 * 3600 // 4 hours
+        static let maxDistanceForPhoto: CLLocationDistance = 300 // meters
+        static let maxTimeInterval: TimeInterval = 5 * 60 // 5 min
         static let visitNotificationUserInfoKey = "com.halloapp.visit"
     }
 
@@ -39,7 +39,7 @@ class VisitTracker: NSObject {
             return
         }
 
-        switch CLLocationManager.authorizationStatus() {
+        switch locationManager.authorizationStatus {
         case .authorizedAlways:
             if !isMonitoringVisits {
                 isMonitoringVisits = true
