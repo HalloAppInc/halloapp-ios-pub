@@ -169,6 +169,7 @@ class MediaPickerViewController: UIViewController {
         collectionView.allowsMultipleSelection = true
         collectionView.register(AssetViewCell.self, forCellWithReuseIdentifier: AssetViewCell.reuseIdentifier)
         collectionView.dataSource = self
+        collectionView.alwaysBounceVertical = true
 
         return collectionView
     }()
@@ -439,6 +440,12 @@ class MediaPickerViewController: UIViewController {
         }
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        collectionView.contentInset.top = albumsButton.isHidden ? 0 : albumsButton.convert(albumsButton.bounds, to: view).maxY - view.safeAreaInsets.top + 12
+    }
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
@@ -491,6 +498,7 @@ class MediaPickerViewController: UIViewController {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
             let recent = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumUserLibrary, options: nil).firstObject
+            let isHighlightedAssetCollection = album === highlightedAssetCollection
 
             let assets: PHFetchResult<PHAsset>
             let options = PHFetchOptions()
@@ -520,6 +528,10 @@ class MediaPickerViewController: UIViewController {
             
             DispatchQueue.main.async {
                 self.assets = assets
+                if isHighlightedAssetCollection {
+                    // reset to large view for the highlighted asset collection
+                    self.mode = .dayLarge
+                }
                 self.collectionView.reloadData()
                 if self.selected.isEmpty {
                     self.scrollToBottom()
@@ -662,7 +674,7 @@ class MediaPickerViewController: UIViewController {
     }
     
     private func makeLayout() -> UICollectionViewFlowLayout {
-        let layout = UICollectionViewFlowLayout()
+        let layout = MediaPickerFlowLayout()
         layout.minimumInteritemSpacing = 0
         layout.minimumLineSpacing = 0
         
@@ -1050,6 +1062,25 @@ extension MediaPickerViewController: PHPhotoLibraryChangeObserver {
 extension MediaPickerViewController: UIAdaptivePresentationControllerDelegate {
     func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
         cancelAction()
+    }
+}
+
+extension MediaPickerViewController {
+
+    private class MediaPickerFlowLayout: UICollectionViewFlowLayout {
+
+        override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
+            guard let collectionView else {
+                return proposedContentOffset
+            }
+
+            var contentOffset = proposedContentOffset
+            // keep it in bounds
+            // fixes issue with transition scrolling to invalid contentOffset
+            contentOffset.y = min(contentOffset.y, collectionViewContentSize.height - collectionView.bounds.height + collectionView.adjustedContentInset.bottom)
+            contentOffset.y = max(contentOffset.y, -collectionView.adjustedContentInset.top)
+            return contentOffset
+        }
     }
 }
 
