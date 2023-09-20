@@ -204,19 +204,19 @@ extension Localizations {
 
     static var enablePhotoLocationCtaTitle: String {
         NSLocalizedString("photosuggestions.cta.photolocation.title",
-                          value: "Allow Location Access For The Photos App",
+                          value: "Allow Location Access For The Camera App",
                           comment: "title for explanation of why we want location access for photos app")
     }
 
     static var enablePhotoLocationCtaSubtitle1: String {
         NSLocalizedString("photosuggestions.cta.photolocation.subtitle1",
-                          value: "Allow Location access for the Photos app to improve Magic Posts. HalloApp uses location metadata from your photos to help sort and name them.",
+                          value: "Allow Location access for the Camera app to improve Magic Posts. HalloApp uses location metadata from your photos to help sort and name them.",
                           comment: "explanation for why we need to turn on location access for photos")
     }
 
     static var enablePhotoLocationCtaSubtitle2: String {
         NSLocalizedString("photosuggestions.cta.photolocation.subtitle2",
-                          value: "To allow Location access, go to: *Settings* > *Privacy & Security* > *Location Services* > *Photos*",
+                          value: "To allow Location access, go to: *Settings* > *Privacy & Security* > *Location Services* > *Camera*",
                           comment: "instructions for enabling location access for photos app. maintain '*' to indicate bold text.")
     }
 
