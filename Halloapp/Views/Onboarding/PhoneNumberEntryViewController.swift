@@ -264,12 +264,8 @@ class PhoneNumberEntryViewController: UIViewController {
     }()
 
     private lazy var nextButton: RoundedRectChevronButton = {
-        let button = RoundedRectChevronButton()
-        button.contentEdgeInsets = OnboardingConstants.bottomButtonInsets
-        button.backgroundTintColor = .lavaOrange
-        button.tintColor = .white
+        let button = OnboardingConstants.AdvanceButton()
         button.setTitle(Localizations.buttonNext, for: .normal)
-
         button.addTarget(self, action: #selector(nextButtonPushed), for: .touchUpInside)
         return button
     }()

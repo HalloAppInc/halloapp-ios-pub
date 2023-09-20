@@ -250,29 +250,23 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
     }()
 
     private lazy var shareButton: UIButton = {
-        let attributedTitle = NSAttributedString(string: Localizations.buttonShare,
-                                                 attributes: [.kern: 0.5, .foregroundColor: UIColor.white])
-        let disabledAttributedTitle = NSAttributedString(string: Localizations.buttonShare,
-                                                         attributes: [.kern: 0.5, .foregroundColor: UIColor.white])
-
         let button = RoundedRectButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        // Attributed strings do not respect button title colors
-        button.setAttributedTitle(attributedTitle, for: .normal)
-        button.setAttributedTitle(disabledAttributedTitle, for: .disabled)
-        button.tintColor = .white
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
-        button.setImage(UIImage(named: "icon_share"), for: .normal)
-        button.imageEdgeInsets = UIEdgeInsets(top: -4, left: 0, bottom: -4, right: 0)
-
-        // keep image on the right & tappable
-        if case .rightToLeft = view.effectiveUserInterfaceLayoutDirection {
-            button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: 12, bottom: 0, right: 32)
-            button.semanticContentAttribute = .forceLeftToRight
-        } else {
-            button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: 32, bottom: 0, right: 12)
-            button.semanticContentAttribute = .forceRightToLeft
+        button.configuration?.contentInsets = NSDirectionalEdgeInsets(top: -1.5, leading: 32, bottom: 0, trailing: 12)
+        button.configuration?.imageColorTransformer = UIConfigurationColorTransformer { _ in .white }
+        button.configuration?.imagePlacement = .trailing
+        button.configuration?.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributeContainer in
+            var updatedAttributeContainer = attributeContainer
+            updatedAttributeContainer.font = .systemFont(ofSize: 17, weight: .semibold)
+            updatedAttributeContainer.kern = 0.5
+            return updatedAttributeContainer
         }
+
+        button.setImage(UIImage(named: "icon_share"), for: .normal)
+        button.setTitle(Localizations.buttonShare, for: .normal)
+        // Default button configurations override the title color for disabled buttons
+        button.setTitleColor(.white, for: .normal)
+        button.setTitleColor(.white, for: .disabled)
+        button.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
             button.heightAnchor.constraint(equalToConstant: 44),

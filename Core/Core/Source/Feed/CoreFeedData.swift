@@ -90,11 +90,13 @@ open class CoreFeedData: NSObject {
             let name = group.name
             let recipient = INSpeakableString(spokenPhrase: name)
             let sendMessageIntent = INSendMessageIntent(recipients: nil,
+                                                        outgoingMessageType: .outgoingMessageText,
                                                         content: nil,
                                                         speakableGroupName: recipient,
                                                         conversationIdentifier: ConversationID(id: groupId, type: .group).description,
                                                         serviceName: nil,
-                                                        sender: nil)
+                                                        sender: nil,
+                                                        attachments: nil)
 
             guard let defaultAvatar = UIImage(named: "AvatarGroup") else { return }
 

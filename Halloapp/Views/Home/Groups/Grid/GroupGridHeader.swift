@@ -57,20 +57,25 @@ class GroupGridHeader: UICollectionReusableView {
         groupAvatarAndNameStackView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(groupAvatarAndNameStackView)
 
-        let postButton = RoundedRectButton()
+        var postButtonConfiguration = UIButton.Configuration.filled()
+        postButtonConfiguration.baseBackgroundColor = .systemGray5
+        postButtonConfiguration.baseForegroundColor = .primaryBlue
+        postButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 5, leading: 12, bottom: 5, trailing: 8)
+        postButtonConfiguration.cornerStyle = .capsule
+        postButtonConfiguration.imagePadding = 2
+        postButtonConfiguration.imagePlacement = .trailing
+        postButtonConfiguration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
+        postButtonConfiguration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributeContainer in
+            var updatedAttributeContainer = attributeContainer
+            updatedAttributeContainer.font = .quicksandFont(ofFixedSize: 16, weight: .bold)
+            return updatedAttributeContainer
+        }
+
+        let postButton = UIButton(type: .system)
+        postButton.configuration = postButtonConfiguration
         postButton.addTarget(self, action: #selector(composeButtonTapped), for: .touchUpInside)
-        postButton.backgroundTintColor = .systemGray5
-        postButton.titleLabel?.font = .quicksandFont(ofFixedSize: 16, weight: .bold)
-        postButton.imageView?.tintColor = .primaryBlue
-        postButton.setImage(UIImage(systemName: "plus")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold)),
-                            for: .normal)
+        postButton.setImage(UIImage(systemName: "plus"), for: .normal)
         postButton.setTitle(Localizations.fabPostButton, for: .normal)
-        postButton.setTitleColor(.primaryBlue, for: .normal)
-        let isLTR = postButton.effectiveUserInterfaceLayoutDirection == .leftToRight
-        postButton.contentEdgeInsets = UIEdgeInsets(top: 5, left: isLTR ? 12 : 8, bottom: 5, right: isLTR ? 8 : 12)
-        postButton.titleEdgeInsets = UIEdgeInsets(top: 0, left: isLTR ? -2 : 2, bottom: 0, right: isLTR ? 2 : -2)
-        postButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: isLTR ? 2 : -2, bottom: 0, right: isLTR ? -2 : 2)
-        postButton.semanticContentAttribute = isLTR ? .forceRightToLeft : .forceLeftToRight
         postButton.setContentCompressionResistancePriority(.required, for: .horizontal)
         postButton.translatesAutoresizingMaskIntoConstraints = false
         addSubview(postButton)

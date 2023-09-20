@@ -13,7 +13,7 @@ class LocationPermissionsMonitor: NSObject {
 
     static let shared = LocationPermissionsMonitor()
 
-    let authorizationStatus = CurrentValueSubject<CLAuthorizationStatus, Never>(CLLocationManager.authorizationStatus())
+    private(set) lazy var authorizationStatus = CurrentValueSubject<CLAuthorizationStatus, Never>(locationManager.authorizationStatus)
 
     private let locationManager = CLLocationManager()
 

@@ -630,7 +630,7 @@ class NotificationMetadata: Codable {
             UserProfile.findOrCreate(with: $0.userID, in: context).name = $0.name
         }
 
-        let mentionNameProvider: (UserID) -> String = { [self] userID in
+        let mentionNameProvider: (UserID) -> String = { userID in
             let name = UserProfile.find(with: userID, in: context)?.name
 
             return name ?? Localizations.unknownContact

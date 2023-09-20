@@ -149,8 +149,6 @@ class VideoCallViewController: CallViewController {
         let button = VideoCallViewButton(image: camImage, title: "")
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(camButtonTapped), for: .touchUpInside)
-        let edgeInset = (VideoCallViewButton.Style.normal.circleDiameter - VideoCallViewButton.Style.normal.iconHeight)/2
-        button.contentEdgeInsets = UIEdgeInsets(top: edgeInset, left: 0, bottom: edgeInset, right: 0)
         return button
     }()
 
@@ -158,8 +156,6 @@ class VideoCallViewController: CallViewController {
         let button = VideoCallViewButton(image: videoImage, title: "")
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(videoButtonTapped), for: .touchUpInside)
-        let edgeInset = (VideoCallViewButton.Style.normal.circleDiameter - VideoCallViewButton.Style.normal.iconHeight)/2
-        button.contentEdgeInsets = UIEdgeInsets(top: edgeInset, left: 0, bottom: edgeInset, right: 0)
         return button
     }()
 
@@ -167,8 +163,6 @@ class VideoCallViewController: CallViewController {
         let button = VideoCallViewButton(image: micImage, title: "")
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(micButtonTapped), for: .touchUpInside)
-        let edgeInset = (VideoCallViewButton.Style.normal.circleDiameter - VideoCallViewButton.Style.normal.iconHeight)/2
-        button.contentEdgeInsets = UIEdgeInsets(top: edgeInset, left: 0, bottom: edgeInset, right: 0)
         return button
     }()
 
@@ -177,8 +171,6 @@ class VideoCallViewController: CallViewController {
         let button = VideoCallViewButton(image: speakerImage, title: "")
         button.translatesAutoresizingMaskIntoConstraints = false
         button.isSelected = true
-        let edgeInset = (VideoCallViewButton.Style.normal.circleDiameter - VideoCallViewButton.Style.normal.iconHeight)/2
-        button.contentEdgeInsets = UIEdgeInsets(top: edgeInset, left: 0, bottom: edgeInset, right: 0)
         return button
     }()
 
@@ -232,8 +224,6 @@ class VideoCallViewController: CallViewController {
         button.tintColor = .red
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(endCallButtonTapped), for: .touchUpInside)
-        let edgeInset = (VideoCallViewButton.Style.destructive.circleDiameter - VideoCallViewButton.Style.destructive.iconHeight)/2
-        button.contentEdgeInsets = UIEdgeInsets(top: edgeInset, left: 0, bottom: edgeInset, right: 0)
         return button
     }()
 
@@ -1031,6 +1021,10 @@ final class VideoCallViewButton: UIButton {
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    override var intrinsicContentSize: CGSize {
+        return CGSize(width: diameter, height: diameter)
     }
 
     let diameter: CGFloat

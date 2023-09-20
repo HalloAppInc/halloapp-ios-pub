@@ -292,7 +292,6 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
         var contactsNotInAddressBook: [GroupMember] = []
         
         if let objects = fetchedResultsController?.fetchedObjects {
-            let contactsViewContext = MainAppContext.shared.contactStore.viewContext
             for groupMember in objects {
                 if groupMember.userID == MainAppContext.shared.userData.userId {
                     yourself.append(groupMember)
@@ -706,7 +705,7 @@ extension GroupInfoViewController: UITableViewDelegate {
                 let isFriend = profile?.friendshipStatus ?? .none == .friends
                 let selectedMembers = [memberUserID]
 
-                let actionSheet = UIAlertController(title: "\(userName)", message: nil, preferredStyle: .actionSheet)
+                let actionSheet = UIAlertController(title: userName, message: nil, preferredStyle: .actionSheet)
                 actionSheet.view.tintColor = UIColor.systemBlue
 
                 actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoViewProfile, style: .default) { [weak self] _ in

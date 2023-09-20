@@ -84,12 +84,12 @@ class InAppPermissionsViewController: UIViewController {
 
     private lazy var openSettingsButton: RoundedRectChevronButton = {
         let button = RoundedRectChevronButton()
+        button.configuration?.baseBackgroundColor = .systemBlue
+        button.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 15, leading: 15, bottom: 15, trailing: 15)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundTintColor = .systemBlue
         button.setTitle(Localizations.allowInSettingsTitle, for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.tintColor = .white
-        button.contentEdgeInsets = UIEdgeInsets(top: 15, left: 15, bottom: 15, right: 15)
+        button.setTitleColor(.white, for: .disabled)
         button.addTarget(self, action: #selector(openSettingsPushed), for: .touchUpInside)
         return button
     }()

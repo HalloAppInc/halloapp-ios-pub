@@ -424,6 +424,8 @@ class ComposerViewController: UIViewController {
         let icon = UIImage(named: "icon_share")?.withTintColor(.white, renderingMode: .alwaysOriginal)
 
         let button = RoundedRectButton()
+        button.configuration?.contentInsets = .zero
+        button.configuration?.imageColorTransformer = UIConfigurationColorTransformer { _ in .white }
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(icon, for: .normal)
         button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
@@ -441,52 +443,48 @@ class ComposerViewController: UIViewController {
     private lazy var largeSendButton: UIButton = {
         let icon: UIImage?
         let title: String
-        let leftContentInset: CGFloat
-        let rightContentInset: CGFloat
+        let leadingContentInset: CGFloat
+        let trailingContentInset: CGFloat
         let horizontalImageInset: CGFloat
 
         if showDestinationPicker, !isCompactShareFlow {
             // chevron left as the button's semantic content attribute is reversed
-            icon = UIImage(systemName: "chevron.left")?.imageFlippedForRightToLeftLayoutDirection()
+            icon = UIImage(systemName: "chevron.forward")
             title = Localizations.sendTo
-            leftContentInset = 30
-            rightContentInset = 36
+            leadingContentInset = 30
+            trailingContentInset = 24
             horizontalImageInset = 12
         } else if case .user(_, _, _) = config.destination {
             icon = nil
             title = Localizations.buttonSend
-            leftContentInset = 16
-            rightContentInset = 16
+            leadingContentInset = 16
+            trailingContentInset = 16
             horizontalImageInset = 0
         } else {
             icon = UIImage(named: "icon_share")
             title = Localizations.buttonShare
-            leftContentInset = 20
-            rightContentInset = 16
+            leadingContentInset = 20
+            trailingContentInset = 4
             horizontalImageInset = 8
         }
 
         let button = RoundedRectButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        // Attributed strings do not respect button title colors
-        let attributedTitle = NSAttributedString(string: title, attributes: [.kern: 0.5, .foregroundColor: UIColor.white])
-        button.setAttributedTitle(attributedTitle, for: .normal)
-        button.setAttributedTitle(attributedTitle, for: .disabled)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
-        let configuredIcon = icon?
-            .withConfiguration(UIImage.SymbolConfiguration(pointSize: 16, weight: .bold))
-            .withTintColor(.white, renderingMode: .alwaysOriginal)
-        button.setImage(configuredIcon, for: .normal)
-        button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: leftContentInset, bottom: 0, right: rightContentInset)
-
-        // keep image on the right & tappable
-        if case .rightToLeft = view.effectiveUserInterfaceLayoutDirection {
-            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -horizontalImageInset, bottom: 0, right: horizontalImageInset)
-            button.semanticContentAttribute = .forceLeftToRight
-        } else {
-            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: horizontalImageInset, bottom: 0, right: -horizontalImageInset)
-            button.semanticContentAttribute = .forceRightToLeft
+        button.configuration?.contentInsets = NSDirectionalEdgeInsets(top: -1.5, leading: leadingContentInset, bottom: 0, trailing: trailingContentInset)
+        button.configuration?.imageColorTransformer = UIConfigurationColorTransformer { _ in .white }
+        button.configuration?.imagePadding = horizontalImageInset
+        button.configuration?.imagePlacement = .trailing
+        button.configuration?.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 13, weight: .bold)
+        button.configuration?.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributeContainer in
+            var updatedAttributeContainer = attributeContainer
+            updatedAttributeContainer.font = .systemFont(ofSize: 17, weight: .semibold)
+            updatedAttributeContainer.kern = 0.5
+            return updatedAttributeContainer
         }
+        button.setImage(icon, for: .normal)
+        button.setTitle(title, for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.setTitleColor(.white, for: .disabled)
+        button.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
             button.heightAnchor.constraint(equalToConstant: 44),

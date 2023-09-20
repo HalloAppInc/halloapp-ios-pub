@@ -53,7 +53,7 @@ final class CallManager: NSObject, CXProviderDelegate {
 
     // The app's provider configuration, representing its CallKit capabilities
     static var providerConfiguration: CXProviderConfiguration {
-        let providerConfiguration = CXProviderConfiguration(localizedName: "HalloApp")
+        let providerConfiguration = CXProviderConfiguration()
         // Temporary change to disable facetime on locked-screen for audio calls.
         providerConfiguration.supportsVideo = true
         providerConfiguration.maximumCallsPerCallGroup = 1

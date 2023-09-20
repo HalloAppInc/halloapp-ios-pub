@@ -180,15 +180,6 @@ private class FeedInviteCarouselCollectionView: UICollectionView {
     }
 }
 
-private class FeedInviteCarouselInviteButton: UIButton {
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-
-        layer.cornerRadius = min(bounds.width, bounds.height) / 2.0
-    }
-}
-
 private protocol FeedInviteCarouselContactCellDelegate: AnyObject {
     func feedInviteCarouselContactCellDidInvite(_ cell: FeedInviteCarouselContactCell)
     func feedInviteCarouselContactCellDidDismiss(_ cell: FeedInviteCarouselContactCell)
@@ -266,15 +257,28 @@ private class FeedInviteCarouselContactCell: UICollectionViewCell {
         return numContactsLabel
     }()
 
-    private let inviteButton: UIButton = {
-        let inviteButton = FeedInviteCarouselInviteButton(type: .system)
-        inviteButton.clipsToBounds = true
+    private lazy var inviteButtonConfiguration: UIButton.Configuration = {
+        var inviteButtonConfiguration = UIButton.Configuration.filled()
+        inviteButtonConfiguration.baseBackgroundColor = .primaryBlue
+        inviteButtonConfiguration.baseForegroundColor = .white
+        inviteButtonConfiguration.cornerStyle = .capsule
         // adjust down for visual alignment
-        inviteButton.contentEdgeInsets = UIEdgeInsets(top: Constants.inviteButtonVerticalPadding - 1,
-                                                      left: 16,
-                                                      bottom: Constants.inviteButtonVerticalPadding + 1,
-                                                      right: 16)
-        inviteButton.setTitleColor(.white, for: .normal)
+        inviteButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: Constants.inviteButtonVerticalPadding - 1,
+                                                                          leading: 16,
+                                                                          bottom: Constants.inviteButtonVerticalPadding + 1,
+                                                                          trailing: 16)
+        return inviteButtonConfiguration
+    }()
+
+    private lazy var inviteButtonInvitedConfiguration: UIButton.Configuration = {
+        var inviteButtonInvitedConfiguration = inviteButtonConfiguration
+        inviteButtonInvitedConfiguration.baseBackgroundColor = .systemGray
+        return inviteButtonInvitedConfiguration
+    }()
+
+    private lazy var inviteButton: UIButton = {
+        let inviteButton = UIButton(type: .system)
+        inviteButton.configuration = inviteButtonConfiguration
         inviteButton.titleLabel?.adjustsFontSizeToFitWidth = true
         inviteButton.titleLabel?.font = Constants.inviteButtonFont
         inviteButton.titleLabel?.minimumScaleFactor = 0.5
@@ -282,12 +286,15 @@ private class FeedInviteCarouselContactCell: UICollectionViewCell {
     }()
 
     private let dismissButton: UIButton = {
+        var dismissButtonConfiguration = UIButton.Configuration.plain()
+        dismissButtonConfiguration.baseForegroundColor = .label.withAlphaComponent(0.2)
+        dismissButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
+
         let dismissButton = UIButton(type: .system)
-        dismissButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        dismissButton.configuration = dismissButtonConfiguration
         let dismissButtonImage = UIImage(systemName: "xmark")?
             .withConfiguration(UIImage.SymbolConfiguration(pointSize: 16, weight: .medium))
         dismissButton.setImage(dismissButtonImage, for: .normal)
-        dismissButton.tintColor = .label.withAlphaComponent(0.2)
         return dismissButton
     }()
 
@@ -376,12 +383,12 @@ private class FeedInviteCarouselContactCell: UICollectionViewCell {
         nameLabel.numberOfLines = 2
         nameLabel.text = contact.fullName
         numContactsLabel.text = contact.friendCount.flatMap { Localizations.contactsOnHalloApp($0) }
+        inviteButton.configuration = invited ? inviteButtonInvitedConfiguration : inviteButtonConfiguration
         // Prevent title fade animation
         UIView.performWithoutAnimation {
             inviteButton.setTitle(Localizations.buttonInvite, for: .normal)
             inviteButton.layoutIfNeeded()
         }
-        inviteButton.setBackgroundColor(invited ? .systemGray : .primaryBlue, for: .normal)
         dismissButton.isHidden = false
     }
 
@@ -391,12 +398,12 @@ private class FeedInviteCarouselContactCell: UICollectionViewCell {
         nameLabel.numberOfLines = 0
         nameLabel.text = Localizations.feedInviteCarouselSearchPrompt
         numContactsLabel.text = nil
+        inviteButton.configuration = inviteButtonConfiguration
         // Prevent title fade animation
         UIView.performWithoutAnimation {
             inviteButton.setTitle(Localizations.labelSearch, for: .normal)
             inviteButton.layoutIfNeeded()
         }
-        inviteButton.setBackgroundColor(.primaryBlue, for: .normal)
         dismissButton.isHidden = true
     }
 

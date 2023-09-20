@@ -123,14 +123,12 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         view.backgroundColor = UIColor.primaryBg
         isModalInPresentation = true
 
-        mainView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
-        mainView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
-        mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-
-        let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first
-
-        let safeAreaInsetBottom = (keyWindow?.safeAreaInsets.bottom ?? 0) + 10
-        mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: safeAreaInsetBottom).isActive = true
+        NSLayoutConstraint.activate([
+            mainView.topAnchor.constraint(equalTo: view.topAnchor),
+            mainView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
 
         setupFetchedResultsController()
 
@@ -218,6 +216,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
 
         view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 10, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
+        view.insetsLayoutMarginsFromSafeArea = false
 
         view.translatesAutoresizingMaskIntoConstraints = false
 
@@ -230,6 +229,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
 
         view.layoutMargins = UIEdgeInsets(top: 15, left: 0, bottom: 10, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
+        view.insetsLayoutMarginsFromSafeArea = false
 
         view.translatesAutoresizingMaskIntoConstraints = false
         view.heightAnchor.constraint(equalToConstant: 120).isActive = true

@@ -72,15 +72,16 @@ class PermissionsViewController: UIViewController {
 
     private lazy var getStartedButton: RoundedRectButton = {
         let button = RoundedRectButton()
-        let font = UIFont.systemFont(ofSize: 18, weight: .semibold)
+        button.configuration?.contentInsets = OnboardingConstants.bottomButtonInsets
+        button.configuration?.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributeContainer in
+            var updatedAttributeContainer = attributeContainer
+            updatedAttributeContainer.font = .systemFont(ofSize: 18, weight: .semibold)
+            return updatedAttributeContainer
+        }
 
-        button.backgroundTintColor = .lavaOrange
-        button.layer.cornerCurve = .continuous
         button.setTitle(Localizations.registrationGetStarted, for: .normal)
-        button.titleLabel?.font = font
         button.tintColor = .white
 
-        button.contentEdgeInsets = OnboardingConstants.bottomButtonInsets
         button.setContentCompressionResistancePriority(.required, for: .vertical)
 
         button.addTarget(self, action: #selector(getStartedButtonPushed), for: .touchUpInside)

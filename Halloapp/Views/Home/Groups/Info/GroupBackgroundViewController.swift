@@ -47,13 +47,12 @@ class GroupBackgroundViewController: UIViewController {
 
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(closeAction))
 
-        mainView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
-        mainView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
-        mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-
-        let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first
-        let safeAreaInsetBottom = keyWindow?.safeAreaInsets.bottom ?? 0
-        mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: safeAreaInsetBottom).isActive = true
+        NSLayoutConstraint.activate([
+            mainView.topAnchor.constraint(equalTo: view.topAnchor),
+            mainView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
 
         setupColorSelection()
         changePreviewBg(theme: chatGroup.background)
@@ -92,6 +91,7 @@ class GroupBackgroundViewController: UIViewController {
 
         view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
+        view.insetsLayoutMarginsFromSafeArea = false
 
         view.translatesAutoresizingMaskIntoConstraints = false
 

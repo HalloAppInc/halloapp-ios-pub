@@ -91,12 +91,8 @@ class ExistingNetworkViewController: UIViewController, UserActionHandler {
     }()
 
     private lazy var nextButton: RoundedRectChevronButton = {
-        let button = RoundedRectChevronButton()
-        button.backgroundTintColor = .lavaOrange
+        let button = OnboardingConstants.AdvanceButton()
         button.setTitle(Localizations.buttonNext, for: .normal)
-        button.tintColor = .white
-        button.contentEdgeInsets = OnboardingConstants.bottomButtonInsets
-        let imageInset: CGFloat = 12
 
         button.addTarget(self, action: #selector(nextButtonPushed), for: .touchUpInside)
         return button

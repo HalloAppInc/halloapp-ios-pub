@@ -216,7 +216,7 @@ class MessageCellViewQuoted: MessageCellViewBase {
                     MainAppContext.shared.chatData.downloadMedia(in: message)
                     mediaView.configure(chatMessage: message, media: media)
                 } else {
-                    DDLogError("MessageCellViewMedia/configure/error missing media for message " + message.id)
+                    DDLogError("MessageCellViewMedia/configure/error missing media for message \(message.id)")
                 }
                 nameContentTimeRow.addArrangedSubview(mediaView)
                 hasMedia = true

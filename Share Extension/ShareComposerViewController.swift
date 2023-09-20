@@ -866,11 +866,13 @@ class ShareComposerViewController: UIViewController {
     private func addIntent(chatGroup: GroupListSyncItem) {
         let recipient = INSpeakableString(spokenPhrase: chatGroup.name)
         let sendMessageIntent = INSendMessageIntent(recipients: nil,
+                                                    outgoingMessageType: .outgoingMessageText,
                                                     content: nil,
                                                     speakableGroupName: recipient,
                                                     conversationIdentifier: ConversationID(id: chatGroup.id, type: .group).description,
                                                     serviceName: nil,
-                                                    sender: nil)
+                                                    sender: nil,
+                                                    attachments: nil)
 
         var potentialUserAvatar: UIImage?
         ShareExtensionContext.shared.avatarStore.viewContext.performAndWait {
@@ -908,10 +910,13 @@ class ShareComposerViewController: UIViewController {
 
             let recipient = INSpeakableString(spokenPhrase: fullName)
             let sendMessageIntent = INSendMessageIntent(recipients: nil,
+                                                        outgoingMessageType: .outgoingMessageText,
                                                         content: nil,
                                                         speakableGroupName: recipient,
                                                         conversationIdentifier: ConversationID(id: toUserId, type: .chat).description,
-                                                        serviceName: nil, sender: nil)
+                                                        serviceName: nil,
+                                                        sender: nil,
+                                                        attachments: nil)
 
             let potentialUserAvatar = ShareExtensionContext.shared.avatarStore.userAvatar(forUserId: toUserId).image
             guard let defaultAvatar = UIImage(named: "AvatarUser") else { return }
@@ -1046,6 +1051,29 @@ extension ShareComposerViewController: UICollectionViewDataSource, UICollectionV
     }
 }
 
+fileprivate extension UIButton.Configuration {
+
+    static var shareComposerEditButtonConfiguration: UIButton.Configuration {
+        var buttonConfiguration: UIButton.Configuration = .plain()
+        buttonConfiguration.background.cornerRadius = 17
+        buttonConfiguration.background.visualEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        buttonConfiguration.baseForegroundColor = .white
+        buttonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 6, bottom: 1, trailing: 12)
+        buttonConfiguration.cornerStyle = .fixed
+        buttonConfiguration.image = UIImage(systemName: "pencil.circle.fill")
+        buttonConfiguration.imagePadding = 4
+        buttonConfiguration.imagePlacement = .leading
+        buttonConfiguration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 14)
+        buttonConfiguration.title = Localizations.edit
+        buttonConfiguration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributeContainer in
+            var updatedAttributeContainer = attributeContainer
+            updatedAttributeContainer.font = .systemFont(ofSize: 17, weight: .medium)
+            return updatedAttributeContainer
+        }
+        return buttonConfiguration
+    }
+}
+
 fileprivate class EmptyCell: UICollectionViewCell {
     static var reuseIdentifier: String {
         return String(describing: EmptyCell.self)
@@ -1067,33 +1095,11 @@ fileprivate class ImageCell: UICollectionViewCell {
     }()
 
     private lazy var editButton: UIButton = {
-        let background = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 1)
-        background.translatesAutoresizingMaskIntoConstraints = false
-        background.isUserInteractionEnabled = false
-
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 22)
-        let image = UIImage(systemName: "pencil.circle.fill", withConfiguration: imageConfig)?.withTintColor(.white, renderingMode: .alwaysOriginal)
-
         let button = UIButton(type: .custom)
+        button.configuration = .shareComposerEditButtonConfiguration
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(image, for: .normal)
-        button.setTitle(Localizations.edit, for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
-        button.layer.cornerRadius = 17
-        button.clipsToBounds = true
-        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 12)
-        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 4, bottom: 1, right: 6)
         button.addTarget(self, action: #selector(editAction), for: .touchUpInside)
-
-        button.insertSubview(background, at: 0)
-        if let imageView = button.imageView {
-            button.bringSubviewToFront(imageView)
-        }
-        if let titleLabel = button.titleLabel {
-            button.bringSubviewToFront(titleLabel)
-        }
-
-        background.constrain(to: button)
+        
         NSLayoutConstraint.activate([
             button.heightAnchor.constraint(equalToConstant: 34)
         ])
@@ -1186,33 +1192,11 @@ class VideoCell: UICollectionViewCell {
     }()
 
     private lazy var editButton: UIButton = {
-        let background = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 1)
-        background.translatesAutoresizingMaskIntoConstraints = false
-        background.isUserInteractionEnabled = false
-
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 18)
-        let image = UIImage(systemName: "pencil.circle.fill", withConfiguration: imageConfig)?.withTintColor(.white, renderingMode: .alwaysOriginal)
-
         let button = UIButton(type: .custom)
+        button.configuration = .shareComposerEditButtonConfiguration
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(image, for: .normal)
-        button.setTitle(Localizations.edit, for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
-        button.layer.cornerRadius = 15
-        button.clipsToBounds = true
-        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 12)
-        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 4, bottom: 1, right: 6)
         button.addTarget(self, action: #selector(editAction), for: .touchUpInside)
 
-        button.insertSubview(background, at: 0)
-        if let imageView = button.imageView {
-            button.bringSubviewToFront(imageView)
-        }
-        if let titleLabel = button.titleLabel {
-            button.bringSubviewToFront(titleLabel)
-        }
-
-        background.constrain(to: button)
         NSLayoutConstraint.activate([
             button.heightAnchor.constraint(equalToConstant: 30)
         ])

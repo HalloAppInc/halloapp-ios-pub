@@ -320,9 +320,12 @@ class CreateGroupViewController: UIViewController {
     }()
 
     private lazy var groupExpiryButton: UIButton = {
+        var buttonConfig = UIButton.Configuration.plain()
+        buttonConfig.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 20, bottom: 12, trailing: 20)
+        buttonConfig.baseForegroundColor = .label.withAlphaComponent(0.5)
+
         let button = UIButton()
-        button.contentEdgeInsets = UIEdgeInsets(top: 12, left: 20, bottom: 12, right: 20)
-        button.setTitleColor(.label.withAlphaComponent(0.5), for: .normal)
+        button.configuration = buttonConfig
         button.titleLabel?.font = .scaledSystemFont(ofSize: 17)
 
         let attributedTitlePrefix = NSMutableAttributedString()

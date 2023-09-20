@@ -170,14 +170,12 @@ final class ContactSelectionViewController: UIViewController {
         view.backgroundColor = UIColor.primaryBg
         isModalInPresentation = true
 
-        mainView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
-        mainView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
-        mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-
-        // TODO: Get rid of key window stuff
-        let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first
-        let safeAreaInsetBottom = (keyWindow?.safeAreaInsets.bottom ?? 0) + 10
-        mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: safeAreaInsetBottom).isActive = true
+        NSLayoutConstraint.activate([
+            mainView.topAnchor.constraint(equalTo: view.topAnchor),
+            mainView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            mainView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
+        ])
 
         dataSource.apply(makeDataSnapshot(searchString: nil), animatingDifferences: false)
 

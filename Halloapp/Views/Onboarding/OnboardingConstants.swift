@@ -21,8 +21,8 @@ struct OnboardingConstants {
         10
     }
 
-    static var bottomButtonInsets: UIEdgeInsets {
-        UIEdgeInsets(top: 12, left: 80, bottom: 12, right: 80)
+    static var bottomButtonInsets: NSDirectionalEdgeInsets {
+        NSDirectionalEdgeInsets(top: 12, leading: 80, bottom: 12, trailing: 80)
     }
 
     static var bottomButtonPadding: CGFloat {
@@ -38,10 +38,11 @@ extension OnboardingConstants {
 
         override init(frame: CGRect) {
             super.init(frame: frame)
-
-            backgroundTintColor = .lavaOrange
-            tintColor = .white
-            contentEdgeInsets = .init(top: 12, left: 80, bottom: 12, right: 80)
+            configuration?.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 80, bottom: 12, trailing: 70)
+            // Always color title / icon white
+            configuration?.imageColorTransformer = UIConfigurationColorTransformer { _ in .white }
+            setTitleColor(.white, for: .normal)
+            setTitleColor(.white, for: .disabled)
         }
 
         required init(coder: NSCoder) {

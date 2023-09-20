@@ -36,12 +36,13 @@ class BlockedContactSheetViewController: UIViewController, UIViewControllerTrans
         return label
     }()
     
-    private lazy var unblockButton: CapsuleButton = {
-        let button = CapsuleButton()
-        button.setTitle(Localizations.unBlockButton, for: .normal)
-        button.setBackgroundColor(.primaryBlue, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        button.setTitleColor(.white, for: .normal)
+    private lazy var unblockButton: UIButton = {
+        var unlockButtonConfiguration: UIButton.Configuration = .filledCapsule(backgroundColor: .primaryBlue)
+        unlockButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 11, leading: 20, bottom: 13, trailing: 20)
+        unlockButtonConfiguration.attributedTitle = AttributedString(Localizations.unBlockButton,
+                                                                     attributes: .init([.font: UIFont.systemFont(ofSize: 17, weight: .semibold)]))
+        let button = UIButton()
+        button.configuration = unlockButtonConfiguration
         button.addTarget(self, action: #selector(pushedUnblock), for: .touchUpInside)
         
         return button

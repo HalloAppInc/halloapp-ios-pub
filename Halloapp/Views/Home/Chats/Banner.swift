@@ -24,7 +24,14 @@ class Banner {
                      groupID: GroupID? = nil,
                      type: ThreadType,
                      using avatarStore: AvatarStore) {
-        guard let keyWindow = UIApplication.shared.windows.filter({ $0.isKeyWindow }).first else {
+        let keyWindow = UIApplication.shared.connectedScenes
+            .lazy
+            .compactMap { $0 as? UIWindowScene}
+            .filter { [.foregroundInactive, .foregroundActive].contains($0.activationState) }
+            .compactMap { $0.windows.first { $0.isKeyWindow } }
+            .first
+
+        guard let keyWindow else {
             return
         }
         

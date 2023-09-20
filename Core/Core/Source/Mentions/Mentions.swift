@@ -27,7 +27,7 @@ public struct MentionableUser: Hashable {
 
 public final class Mentions {
     public static func mentionableUsersForNewPost(privacyListType: PrivacyListType, in context: NSManagedObjectContext) -> [MentionableUser] {
-        var allContactIDs = (UserProfile.users(in: privacyListType, in: context) ?? [])
+        let allContactIDs = (UserProfile.users(in: privacyListType, in: context) ?? [])
             .reduce(into: Set<UserID>()) {
                 $0.insert($1.id)
             }

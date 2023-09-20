@@ -71,7 +71,6 @@
 		329E045226824DCC00C2D250 /* Font.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146B93782405F40500768AC6 /* Font.swift */; };
 		329E045426824DDF00C2D250 /* UIFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762EDBDA244E344300986617 /* UIFont.swift */; };
 		329E045626824DDF00C2D250 /* UIButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C8245D4DE500DD9D1A /* UIButton.swift */; };
-		32C83FB7268FA44F00BEB4F5 /* FeedPermissionDeniedController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FB6268FA44F00BEB4F5 /* FeedPermissionDeniedController.swift */; };
 		32C83FB9268FC8FE00BEB4F5 /* NewChatPermissionDeniedController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FB8268FC8FE00BEB4F5 /* NewChatPermissionDeniedController.swift */; };
 		32C83FBD268FD6B000BEB4F5 /* NewGroupMembersPermissionDeniedController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FBC268FD6B000BEB4F5 /* NewGroupMembersPermissionDeniedController.swift */; };
 		32C83FBF268FDC7D00BEB4F5 /* UpdateContactsPermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C83FBE268FDC7D00BEB4F5 /* UpdateContactsPermissionView.swift */; };
@@ -110,7 +109,6 @@
 		685B509B25E075FE00F782F9 /* Reachability in Frameworks */ = {isa = PBXBuildFile; productRef = 685B509A25E075FE00F782F9 /* Reachability */; };
 		685B76C124E262AF00BF666A /* MentionInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685B76BF24E262AF00BF666A /* MentionInputTests.swift */; };
 		685B76CC24E4A37600BF666A /* FloatingMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685B76CB24E4A37600BF666A /* FloatingMenu.swift */; };
-		68610B8F27A12DD3007019F4 /* ChatCallCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68610B8E27A12DD3007019F4 /* ChatCallCell.swift */; };
 		6861957628C6CCDA00B4AFDB /* MessageCellViewDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6861957528C6CCDA00B4AFDB /* MessageCellViewDocument.swift */; };
 		68629294265C660D00C54367 /* FeedPermissionAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68629293265C660D00C54367 /* FeedPermissionAlert.swift */; };
 		686CDFBC2548A6C200DB7266 /* RegistrationDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686CDFBB2548A6C200DB7266 /* RegistrationDemo.swift */; };
@@ -169,7 +167,6 @@
 		6ACF5ACF27B32452003B7B3C /* endcalltone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6ACF5ACD27B32452003B7B3C /* endcalltone.mp3 */; };
 		6ACF5AEB27B6D060003B7B3C /* busycalltone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6ACF5AE927B6D060003B7B3C /* busycalltone.mp3 */; };
 		6ACF5AF027B7070E003B7B3C /* reconnectingcalltone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6ACF5AEF27B7070E003B7B3C /* reconnectingcalltone.mp3 */; };
-		761442C5245D32C200DD9D1A /* UIDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C4245D32C200DD9D1A /* UIDevice.swift */; };
 		761442C9245D4DE500DD9D1A /* UIButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C8245D4DE500DD9D1A /* UIButton.swift */; };
 		761B3957241D815800858251 /* SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3956241D815800858251 /* SyncManager.swift */; };
 		761B3962241D9C4D00858251 /* SyncSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3961241D9C4D00858251 /* SyncSession.swift */; };
@@ -366,7 +363,6 @@
 		EA039C6326C49BC4002CC4CF /* EditGroupDescViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA039C6226C49BC4002CC4CF /* EditGroupDescViewController.swift */; };
 		EA0B9917249C1FFB00B05094 /* Character.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B9916249C1FFB00B05094 /* Character.swift */; };
 		EA0B9919249C205E00B05094 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B9918249C205E00B05094 /* String.swift */; };
-		EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0C315623EB97C800016EDB /* PostComposerView.swift */; };
 		EA0D20152368B04B008B8289 /* FeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20142368B04B008B8289 /* FeedData.swift */; };
 		EA1CEF5E2617964C00BC0C79 /* GroupInvitePreviewViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1CEF5D2617964C00BC0C79 /* GroupInvitePreviewViewController.swift */; };
 		EA27790925B91E58009CA884 /* PrivacyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA27790825B91E58009CA884 /* PrivacyViewController.swift */; };
@@ -444,6 +440,7 @@
 		EECB00B0286E2396003996B3 /* LocationSharingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EECB00AF286E2396003996B3 /* LocationSharingViewController.swift */; };
 		EECB00B4286E454F003996B3 /* LocationListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EECB00B3286E454F003996B3 /* LocationListViewController.swift */; };
 		EECC0A9128791CF700F5AFFF /* Combine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EECC0A9028791CF700F5AFFF /* Combine.swift */; };
+		F402E9F52AC36335008EBDB9 /* UIButtonConfiguration+HalloApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F402E9F42AC36335008EBDB9 /* UIButtonConfiguration+HalloApp.swift */; };
 		F404FC392810B135008313FF /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F404FC372810B135008313FF /* Core.framework */; };
 		F404FC3A2810B135008313FF /* Core.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F404FC372810B135008313FF /* Core.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F404FC3B2810B135008313FF /* CoreCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F404FC382810B135008313FF /* CoreCommon.framework */; };
@@ -457,7 +454,6 @@
 		F4063F2F276836F50068B9ED /* ShareButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4063F2E276836F50068B9ED /* ShareButton.swift */; };
 		F408E27B281B0BDE00A49B29 /* MigrationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F408E27A281B0BDE00A49B29 /* MigrationViewController.swift */; };
 		F40F7C6B274C8159008144DE /* PostAudioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40F7C6A274C8158008144DE /* PostAudioView.swift */; };
-		F40F7C8727570707008144DE /* AudioPostComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40F7C8627570707008144DE /* AudioPostComposer.swift */; };
 		F4197B41291DD84C004811C7 /* SnapchatShareProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4197B40291DD84C004811C7 /* SnapchatShareProvider.swift */; };
 		F41F82972798D2AC0021BF40 /* GroupInviteSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41F82962798D2AC0021BF40 /* GroupInviteSheetViewController.swift */; };
 		F41FAA4227E52B7E00FC5090 /* BottomSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41FAA4127E52B7E00FC5090 /* BottomSheetViewController.swift */; };
@@ -787,7 +783,6 @@
 		32A9F9B82710D98F004BB00B /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = id; path = id.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		32C231752735E6F700D03ABF /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-br.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		32C4695B27A4EFFA00EC5AB9 /* cs */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = cs; path = cs.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		32C83FB6268FA44F00BEB4F5 /* FeedPermissionDeniedController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPermissionDeniedController.swift; sourceTree = "<group>"; };
 		32C83FB8268FC8FE00BEB4F5 /* NewChatPermissionDeniedController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewChatPermissionDeniedController.swift; sourceTree = "<group>"; };
 		32C83FBC268FD6B000BEB4F5 /* NewGroupMembersPermissionDeniedController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGroupMembersPermissionDeniedController.swift; sourceTree = "<group>"; };
 		32C83FBE268FDC7D00BEB4F5 /* UpdateContactsPermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateContactsPermissionView.swift; sourceTree = "<group>"; };
@@ -874,7 +869,6 @@
 		6857271A27344159006DAE0A /* pl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pl; path = pl.lproj/Localizable.strings; sourceTree = "<group>"; };
 		685B76BF24E262AF00BF666A /* MentionInputTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MentionInputTests.swift; sourceTree = "<group>"; };
 		685B76CB24E4A37600BF666A /* FloatingMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingMenu.swift; sourceTree = "<group>"; };
-		68610B8E27A12DD3007019F4 /* ChatCallCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatCallCell.swift; sourceTree = "<group>"; };
 		6861957528C6CCDA00B4AFDB /* MessageCellViewDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCellViewDocument.swift; sourceTree = "<group>"; };
 		68629293265C660D00C54367 /* FeedPermissionAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPermissionAlert.swift; sourceTree = "<group>"; };
 		686292AD265DD2D000C54367 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -1021,7 +1015,6 @@
 		6ACF5AE927B6D060003B7B3C /* busycalltone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = busycalltone.mp3; sourceTree = "<group>"; };
 		6ACF5AEF27B7070E003B7B3C /* reconnectingcalltone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = reconnectingcalltone.mp3; sourceTree = "<group>"; };
 		6AF7594C26F2BB110087078A /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		761442C4245D32C200DD9D1A /* UIDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIDevice.swift; path = HalloApp/Components/Extensions/UIDevice.swift; sourceTree = SOURCE_ROOT; };
 		761442C8245D4DE500DD9D1A /* UIButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIButton.swift; path = HalloApp/Components/Extensions/UIButton.swift; sourceTree = SOURCE_ROOT; };
 		761B3956241D815800858251 /* SyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncManager.swift; sourceTree = "<group>"; };
 		761B3961241D9C4D00858251 /* SyncSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncSession.swift; sourceTree = "<group>"; };
@@ -1215,7 +1208,6 @@
 		EA039C6226C49BC4002CC4CF /* EditGroupDescViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditGroupDescViewController.swift; sourceTree = "<group>"; };
 		EA0B9916249C1FFB00B05094 /* Character.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Character.swift; sourceTree = "<group>"; };
 		EA0B9918249C205E00B05094 /* String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
-		EA0C315623EB97C800016EDB /* PostComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostComposerView.swift; sourceTree = "<group>"; };
 		EA0D20142368B04B008B8289 /* FeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedData.swift; sourceTree = "<group>"; };
 		EA1CEF5D2617964C00BC0C79 /* GroupInvitePreviewViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInvitePreviewViewController.swift; sourceTree = "<group>"; };
 		EA27790825B91E58009CA884 /* PrivacyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyViewController.swift; sourceTree = "<group>"; };
@@ -1298,12 +1290,12 @@
 		EECB00AF286E2396003996B3 /* LocationSharingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSharingViewController.swift; sourceTree = "<group>"; };
 		EECB00B3286E454F003996B3 /* LocationListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationListViewController.swift; sourceTree = "<group>"; };
 		EECC0A9028791CF700F5AFFF /* Combine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Combine.swift; sourceTree = "<group>"; };
+		F402E9F42AC36335008EBDB9 /* UIButtonConfiguration+HalloApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIButtonConfiguration+HalloApp.swift"; sourceTree = "<group>"; };
 		F404FC372810B135008313FF /* Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F404FC382810B135008313FF /* CoreCommon.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CoreCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F4063F2E276836F50068B9ED /* ShareButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareButton.swift; sourceTree = "<group>"; };
 		F408E27A281B0BDE00A49B29 /* MigrationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationViewController.swift; sourceTree = "<group>"; };
 		F40F7C6A274C8158008144DE /* PostAudioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostAudioView.swift; sourceTree = "<group>"; };
-		F40F7C8627570707008144DE /* AudioPostComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPostComposer.swift; sourceTree = "<group>"; };
 		F4197B40291DD84C004811C7 /* SnapchatShareProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SnapchatShareProvider.swift; sourceTree = "<group>"; };
 		F41F82962798D2AC0021BF40 /* GroupInviteSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInviteSheetViewController.swift; sourceTree = "<group>"; };
 		F41FAA4127E52B7E00FC5090 /* BottomSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomSheetViewController.swift; sourceTree = "<group>"; };
@@ -2246,7 +2238,6 @@
 				76271381252D247700389FBC /* Post */,
 				7653F2F9255DB4E7001CC946 /* FeedCollectionViewController.swift */,
 				76A92443244E659600794859 /* FeedViewController.swift */,
-				32C83FB6268FA44F00BEB4F5 /* FeedPermissionDeniedController.swift */,
 				E5981A48266032250014FFC9 /* FeedPermissionExplanationAlert.swift */,
 				A13C928B28D8D3A40096CE00 /* AllowContactsPermissionCollectionViewHeader.swift */,
 				E5B9EAB7265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift */,
@@ -2283,7 +2274,6 @@
 				EA388C5B2520EB9500DEAB53 /* Banner.swift */,
 				EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */,
 				322DDDE42739A2A6006BE1E0 /* ChatLinkPreviewView.swift */,
-				68610B8E27A12DD3007019F4 /* ChatCallCell.swift */,
 				32151C1C28207B330057D794 /* ChatViewControllerNew.swift */,
 				326A757C28400B500058DFAA /* BlockedContactSheetViewController.swift */,
 				F8F5ED78284E17760094CB17 /* ChatMediaListViewController.swift */,
@@ -2306,7 +2296,6 @@
 				F8E605492671F6A700DDEB2A /* MediaEdit.swift */,
 				F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */,
 				F88E5C94275A14D500290A89 /* MediaPickerPreview.swift */,
-				EA0C315623EB97C800016EDB /* PostComposerView.swift */,
 				681E0DA924C8E0190073A03E /* NewPostViewController.swift */,
 				5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */,
 				A1562B1528D0EA350082F1E5 /* Camera */,
@@ -2316,7 +2305,6 @@
 				F850677926A7FDDF00A120EC /* AudioView.swift */,
 				F89589552732A58300874054 /* ChangeDestinationViewController.swift */,
 				F40F7C6A274C8158008144DE /* PostAudioView.swift */,
-				F40F7C8627570707008144DE /* AudioPostComposer.swift */,
 				F4063F2E276836F50068B9ED /* ShareButton.swift */,
 				F825BC912863867B00BB85A0 /* ComposerViewController.swift */,
 				F8C54719289BDB73009D942B /* MediaReorderViewContoller.swift */,
@@ -2496,7 +2484,6 @@
 				EA0B9918249C205E00B05094 /* String.swift */,
 				F8E6DCDE271EB06F005EECC5 /* TimeInterval.swift */,
 				761442C8245D4DE500DD9D1A /* UIButton.swift */,
-				761442C4245D32C200DD9D1A /* UIDevice.swift */,
 				762EDBDA244E344300986617 /* UIFont.swift */,
 				764D5AEB248F0F3B009295F3 /* UINavigationBar.swift */,
 				76407DF7245CA3F00031F96A /* UIViewController.swift */,
@@ -2506,6 +2493,7 @@
 				A16297F1289C6EFF0081C0AA /* NSAttributedString.swift */,
 				A16117C728E246820034F382 /* CMDeviceMotion.swift */,
 				A163A2572AAF74B700501DE3 /* UILayoutPriority.swift */,
+				F402E9F42AC36335008EBDB9 /* UIButtonConfiguration+HalloApp.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -3258,15 +3246,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				761442C5245D32C200DD9D1A /* UIDevice.swift in Sources */,
 				F470251027ED31A6008CD37F /* URLRouter.swift in Sources */,
 				3245AF16284F23B30036CB8E /* MessageMediaView.swift in Sources */,
 				A163A2582AAF74B700501DE3 /* UILayoutPriority.swift in Sources */,
 				F84DF6852851E4FF00BEC721 /* MediaListAnimator.swift in Sources */,
 				A1FF1ED528BE78D40057FC27 /* PermissionsViewController.swift in Sources */,
+				F402E9F52AC36335008EBDB9 /* UIButtonConfiguration+HalloApp.swift in Sources */,
 				5B493BCC27FF316500FDEA0D /* ChunkedMediaResourceLoaderDelegate.swift in Sources */,
 				EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */,
-				F40F7C8727570707008144DE /* AudioPostComposer.swift in Sources */,
 				EA52EB18245A012700FB03F6 /* NewChatViewController.swift in Sources */,
 				6829F78324CFA41F00207F6B /* FeedMention+CoreDataProperties.swift in Sources */,
 				A1CD44852924027200623FF6 /* MomentComposerTransitions.swift in Sources */,
@@ -3371,7 +3358,6 @@
 				A11272EA2856C5930009EBD7 /* NewMomentViewController.swift in Sources */,
 				A163A2542AAF745900501DE3 /* FriendCollectionViewCell.swift in Sources */,
 				76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */,
-				32C83FB7268FA44F00BEB4F5 /* FeedPermissionDeniedController.swift in Sources */,
 				F4EFF9132AA7F46500F09C54 /* PhotoPermissionsHelper.swift in Sources */,
 				F45D9F792825DF62005BAD9D /* GroupGridCollectionViewCell.swift in Sources */,
 				327AB839272C8356001C0E00 /* ChatLinkPreview+CoreDataProperties copy.swift in Sources */,
@@ -3417,7 +3403,6 @@
 				EAD476D324588E0000EF8591 /* ChatMediaSlider.swift in Sources */,
 				F8606DD1257E7340006CD1A6 /* MediaExplorerVideoCell.swift in Sources */,
 				F4F157DA276AA39F002FDB9E /* DeleteAccountPhoneNumberTextField.swift in Sources */,
-				68610B8F27A12DD3007019F4 /* ChatCallCell.swift in Sources */,
 				32F7C4FC283C48C600AA2ECB /* MessageChatHeaderView.swift in Sources */,
 				F8FDA7AC26F84F0700D8B839 /* AudioRecorderTimeView.swift in Sources */,
 				6ABBB20A272D9B19007A595D /* CallManager.swift in Sources */,
@@ -3548,7 +3533,6 @@
 				F41F82972798D2AC0021BF40 /* GroupInviteSheetViewController.swift in Sources */,
 				F8C5471A289BDB73009D942B /* MediaReorderViewContoller.swift in Sources */,
 				F82EFC2828657987007B45CF /* SwipeToExitGestureRecognizer.swift in Sources */,
-				EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */,
 				A16E2B752ABA560F003C3F85 /* ListBackground.swift in Sources */,
 				F878427C24F6C0FB0040B723 /* MediaAlbumsViewController.swift in Sources */,
 				F4EFF9172AA9262B00F09C54 /* LocationPermissionsMonitor.swift in Sources */,

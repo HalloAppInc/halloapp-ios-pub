@@ -46,12 +46,14 @@ class UnknownContactSheetViewController: UIViewController, UIViewControllerTrans
         return label
     }()
     
-    private lazy var acceptMessageButton: CapsuleButton = {
-        let button = CapsuleButton()
-        button.setTitle(Localizations.unknownContactAcceptToMessage, for: .normal)
-        button.setBackgroundColor(.primaryBlue, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        button.setTitleColor(.white, for: .normal)
+    private lazy var acceptMessageButton: UIButton = {
+        var acceptMessageButtonConfiguration: UIButton.Configuration = .filledCapsule(backgroundColor: .primaryBlue)
+        acceptMessageButtonConfiguration.attributedTitle = .init(Localizations.unknownContactAcceptToMessage, 
+                                                                 attributes: .init([.font: UIFont.systemFont(ofSize: 17, weight: .semibold)]))
+        acceptMessageButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 11, leading: 20, bottom: 13, trailing: 20)
+
+        let button = UIButton()
+        button.configuration = acceptMessageButtonConfiguration
         button.addTarget(self, action: #selector(pushedAcceptMessage), for: .touchUpInside)
         
         return button
@@ -76,13 +78,16 @@ class UnknownContactSheetViewController: UIViewController, UIViewControllerTrans
         return view
     }()
     
-    private lazy var addContactButton: CapsuleButton = {
-        let button = CapsuleButton()
+    private lazy var addContactButton: UIButton = {
+        var addContactButtonConfiguration: UIButton.Configuration = .filledCapsule(backgroundColor: .primaryWhiteBlack)
+        addContactButtonConfiguration.attributedTitle = .init(Localizations.addToContactBook,
+                                                                 attributes: .init([.font: UIFont.systemFont(ofSize: 17, weight: .medium)]))
+        addContactButtonConfiguration.baseForegroundColor = .primaryBlue
+        addContactButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 11, leading: 20, bottom: 13, trailing: 20)
+
+        let button = UIButton()
+        button.configuration = addContactButtonConfiguration
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setTitle(Localizations.addToContactBook, for: .normal)
-        button.setTitleColor(.primaryBlue, for: .normal)
-        button.setBackgroundColor(.primaryWhiteBlack, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 17, weight: .medium)
         button.addTarget(self, action: #selector(pushedAddContact), for: .touchUpInside)
         
         return button
@@ -106,16 +111,16 @@ class UnknownContactSheetViewController: UIViewController, UIViewControllerTrans
         return view
     }()
     
-    private lazy var blockButton: CapsuleButton = {
-        let button = CapsuleButton()
+    private lazy var blockButton: UIButton = {
+        var blockButtonConfiguration: UIButton.Configuration = .filledCapsule(backgroundColor: .primaryWhiteBlack)
+        blockButtonConfiguration.attributedTitle = .init(Localizations.blockButton,
+                                                                 attributes: .init([.font: UIFont.systemFont(ofSize: 17, weight: .medium)]))
+        blockButtonConfiguration.baseForegroundColor = .red
+        blockButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 11, leading: 20, bottom: 13, trailing: 20)
+
+        let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setTitle(Localizations.blockButton, for: .normal)
-        button.setTitleColor(.red, for: .normal)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.titleLabel?.font = .systemFont(ofSize: 17, weight: .medium)
         button.addTarget(self, action: #selector(pushedBlock), for: .touchUpInside)
-        button.setBackgroundColor(.primaryWhiteBlack, for: .normal)
-        
         return button
     }()
     
@@ -194,32 +199,6 @@ extension UnknownContactSheetViewController {
     @objc
     private func pushedCancel(_ button: UIButton) {
         cancelAction?()
-    }
-}
-
-// MARK: - capsule button implementation
-
-public class CapsuleButton: UIButton {
-    private static var insets: UIEdgeInsets {
-        return UIEdgeInsets(top: 11, left: 20, bottom: 13, right: 20)
-    }
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        contentEdgeInsets = Self.insets
-        
-        layer.masksToBounds = true
-        layer.cornerCurve = .continuous
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("Capsule button coder init not implemented...")
-    }
-    
-    public override func layoutSubviews() {
-        super.layoutSubviews()
-        
-        layer.cornerRadius = bounds.height / 2
     }
 }
 

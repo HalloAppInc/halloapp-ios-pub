@@ -539,11 +539,18 @@ class FriendInviteCollectionViewCell: BaseFriendCollectionViewCell {
     }()
 
     private let inviteButton: UIButton = {
-        let button = RoundedRectButton()
+        var inviteButtonConfiguration: UIButton.Configuration = .filledCapsule(backgroundColor: .primaryBlue)
+        inviteButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 13, bottom: 8, trailing: 13)
+        inviteButtonConfiguration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributeContainer in
+            var updatedAttributeContainer = attributeContainer
+            updatedAttributeContainer.font = .scaledSystemFont(ofSize: 14, weight: .medium)
+            return updatedAttributeContainer
+        }
+
+        let button = UIButton(type: .system)
+        button.configuration = inviteButtonConfiguration
+        button.setTitle(Localizations.buttonInvite, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.titleLabel?.font = .scaledSystemFont(ofSize: 14, weight: .medium)
-        button.contentEdgeInsets = .init(top: 8, left: 13, bottom: 8, right: 13)
-        button.backgroundTintColor = .primaryBlue
         return button
     }()
 
@@ -587,8 +594,6 @@ class FriendInviteCollectionViewCell: BaseFriendCollectionViewCell {
             numberOfContactsLabel.topAnchor.constraint(equalTo: phoneNumberLabel.bottomAnchor, constant: 3),
             numberOfContactsLabel.bottomAnchor.constraint(equalTo: container.bottomAnchor),
         ])
-
-        inviteButton.setTitle(Localizations.buttonInvite, for: .normal)
     }
 
     required init(coder: NSCoder) {

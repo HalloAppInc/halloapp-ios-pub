@@ -163,20 +163,21 @@ class MomentView: UIView {
         return view
     }()
     
-    private lazy var actionButton: RoundedRectButton = {
-        let button = RoundedRectButton()
+    private lazy var actionButton: UIButton = {
+        var actionButtonConfiguration: UIButton.Configuration = .filledCapsule(backgroundColor: .systemBlue)
+        actionButtonConfiguration.baseForegroundColor = .white
+        actionButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 17, bottom: 10, trailing: 17)
+        actionButtonConfiguration.imagePadding = 4
+        actionButtonConfiguration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributeContainer in
+            var updatedAttributeContainer = attributeContainer
+            updatedAttributeContainer.font = .gothamFont(forTextStyle: .title3, pointSizeChange: -2, weight: .medium, maximumPointSize: 30)
+            return updatedAttributeContainer
+        }
+
+        let button = UIButton()
+        button.configuration = actionButtonConfiguration
         button.setTitle(Localizations.view, for: .normal)
         button.overrideUserInterfaceStyle = .dark
-        button.backgroundTintColor = .systemBlue
-        button.tintColor = .white
-
-        button.titleLabel?.font = .gothamFont(forTextStyle: .title3, pointSizeChange: -2, weight: .medium, maximumPointSize: 30)
-
-        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 17, bottom: 10, right: 17)
-        let imageEdgeInset: CGFloat = effectiveUserInterfaceLayoutDirection == .leftToRight ? -4 : 4
-        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: imageEdgeInset, bottom: 0, right: -imageEdgeInset)
-        button.layer.allowsEdgeAntialiasing = true
-        button.layer.cornerCurve = .circular
 
         button.addTarget(self, action: #selector(actionButtonPushed), for: .touchUpInside)
         return button

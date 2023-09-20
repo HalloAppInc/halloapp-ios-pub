@@ -1383,10 +1383,14 @@ fileprivate class QuotedItemPanel: UIView, InputContextPanel {
     }()
 
     private(set) lazy var closeButton: UIButton = {
+        var closeButtonConfiguration = UIButton.Configuration.plain()
+        closeButtonConfiguration.baseForegroundColor = .systemGray
+        closeButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 0, bottom: 0, trailing: 10)
+        closeButtonConfiguration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 12)
+
         let button = UIButton(type: .custom)
+        button.configuration = closeButtonConfiguration
         button.setImage(UIImage(systemName: "xmark"), for: .normal)
-        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 0, bottom: 0, right: 10)
-        button.tintColor = UIColor.systemGray
         button.setContentHuggingPriority(.required, for: .horizontal)
 
         return button

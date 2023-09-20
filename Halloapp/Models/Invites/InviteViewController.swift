@@ -435,8 +435,9 @@ final class InviteCellView: UIView {
         inviteButton.isHidden = !canInvite
 
         let haveInvitedBefore = !visitedActions.isEmpty
-        inviteButton.setBackgroundColor(haveInvitedBefore ? .systemGray : .primaryBlue, for: .normal)
-        
+        inviteButton.configuration = haveInvitedBefore ? inviteButtonInvitedConfiguration : inviteButtonConfiguration
+        inviteButton.setTitle(Localizations.buttonInvite, for: .normal)
+
         inviteButton.configureWithMenu {
             HAMenu {
                 HAMenuButton(title: Localizations.appNameSMS) {
@@ -462,7 +463,7 @@ final class InviteCellView: UIView {
         let view = UIStackView(arrangedSubviews: [ contactInfoPanel, inviteButton ])
         view.axis = .horizontal
         view.alignment = .center
-        view.distribution = .fill
+        view.distribution = .equalSpacing
         view.spacing = 5
 
         view.layoutMargins = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
@@ -499,14 +500,24 @@ final class InviteCellView: UIView {
         return label
     }()
 
-    private let inviteButton: CapsuleButton = {
-        let button = CapsuleButton(type: .system)
-        button.setTitle(Localizations.buttonInvite, for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        
-        button.clipsToBounds = true
+    private lazy var inviteButtonConfiguration: UIButton.Configuration = {
+        var inviteButtonConfiguration = UIButton.Configuration.filled()
+        inviteButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 7, leading: 16, bottom: 9, trailing: 16)
+        inviteButtonConfiguration.cornerStyle = .capsule
+        inviteButtonConfiguration.baseForegroundColor = .white
+        inviteButtonConfiguration.baseBackgroundColor = .primaryBlue
+        return inviteButtonConfiguration
+    }()
+
+    private lazy var inviteButtonInvitedConfiguration: UIButton.Configuration = {
+        var inviteButtonInvitedConfiguration = inviteButtonConfiguration
+        inviteButtonInvitedConfiguration.baseBackgroundColor = .systemGray
+        return inviteButtonInvitedConfiguration
+    }()
+
+    private lazy var inviteButton: UIButton = {
+        let button = UIButton(type: .system)
         button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        button.contentEdgeInsets = UIEdgeInsets(top: 7, left: 16, bottom: 9, right: 16)
         button.titleLabel?.adjustsFontSizeToFitWidth = true
         button.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .medium)
         button.titleLabel?.minimumScaleFactor = 0.5
@@ -518,16 +529,6 @@ final class InviteCellView: UIView {
         cell.nameLabel.text = " "
         cell.subtitleLabel.text = " \n \n "
         return cell
-    }
-}
-
-extension InviteCellView {
-    private final class CapsuleButton: UIButton {
-        override func layoutSubviews() {
-            super.layoutSubviews()
-            layer.cornerRadius = min(bounds.width, bounds.height) / 2.0
-            layer.cornerCurve = .continuous
-        }
     }
 }
 

@@ -110,21 +110,29 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         errorLabel.font = .systemFont(forTextStyle: .footnote, maximumPointSize: Constants.MaxFontPointSize - 14)
         errorLabel.numberOfLines = 0
 
+        var buttonConfiguration: UIButton.Configuration = .plain()
+        buttonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
+        buttonConfiguration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributeContainer in
+            var updatedAttributeContainer = attributeContainer
+            updatedAttributeContainer.font = .systemFont(forTextStyle: .footnote, maximumPointSize: Constants.MaxFontPointSize - 10)
+            return updatedAttributeContainer
+        }
+
+        buttonRetryCodeRequest.configuration = buttonConfiguration
         buttonRetryCodeRequest.setTitle(Localizations.registrationCodeResend, for: .normal)
-        buttonRetryCodeRequest.titleLabel?.font = .systemFont(forTextStyle: .footnote, maximumPointSize: Constants.MaxFontPointSize - 10)
-        buttonRetryCodeRequest.setTitleColor(.secondaryLabel, for: .normal)
+        buttonRetryCodeRequest.setTitleColor(.systemBlue, for: .normal)
+        buttonRetryCodeRequest.setTitleColor(.secondaryLabel, for: .disabled)
         buttonRetryCodeRequest.translatesAutoresizingMaskIntoConstraints = false
         buttonRetryCodeRequest.addTarget(self, action: #selector(didTapResendCode), for: .touchUpInside)
         buttonRetryCodeRequest.setContentCompressionResistancePriority(.required, for: .vertical)
-        buttonRetryCodeRequest.contentEdgeInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
 
+        buttonRetryCodeByVoiceRequest.configuration = buttonConfiguration
         buttonRetryCodeByVoiceRequest.setTitle(Localizations.registrationCodeResendByVoice, for: .normal)
-        buttonRetryCodeByVoiceRequest.titleLabel?.font = .systemFont(forTextStyle: .footnote, maximumPointSize: Constants.MaxFontPointSize - 10)
-        buttonRetryCodeByVoiceRequest.setTitleColor(.secondaryLabel, for: .normal)
+        buttonRetryCodeByVoiceRequest.setTitleColor(.systemBlue, for: .normal)
+        buttonRetryCodeByVoiceRequest.setTitleColor(.secondaryLabel, for: .disabled)
         buttonRetryCodeByVoiceRequest.translatesAutoresizingMaskIntoConstraints = false
         buttonRetryCodeByVoiceRequest.addTarget(self, action: #selector(didTapResendCodeByVoice), for: .touchUpInside)
         buttonRetryCodeByVoiceRequest.setContentCompressionResistancePriority(.required, for: .vertical)
-        buttonRetryCodeByVoiceRequest.contentEdgeInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
 
         // Progress indicator
         progressBar.progressTintColor = .systemBlue
@@ -193,22 +201,18 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
             let minutes: Int = (retryDelayInSeconds / 60) % 60
             buttonRetryCodeRequest.setTitle(Localizations.registrationCodeResend + " \(String(format: "%02d:%02d", minutes, seconds))", for: .normal)
             buttonRetryCodeRequest.isEnabled = false
-            buttonRetryCodeRequest.setTitleColor(.secondaryLabel, for: .normal)
             // Voice Row
             buttonRetryCodeByVoiceRequest.setTitle(Localizations.registrationCodeResendByVoice + " \(String(format: "%02d:%02d", minutes, seconds))", for: .normal)
             buttonRetryCodeByVoiceRequest.isEnabled = false
-            buttonRetryCodeByVoiceRequest.setTitleColor(.secondaryLabel, for: .normal)
             retryDelayInSeconds -= 1
         }
         if (retryDelayInSeconds <= 0) {
             sMSTimer.invalidate()
             buttonRetryCodeRequest.setTitle(Localizations.registrationCodeResend, for: .normal)
             buttonRetryCodeRequest.isEnabled = true
-            buttonRetryCodeRequest.setTitleColor(.systemBlue, for: .normal)
             // Voice Row
             buttonRetryCodeByVoiceRequest.setTitle(Localizations.registrationCodeResendByVoice, for: .normal)
             buttonRetryCodeByVoiceRequest.isEnabled = true
-            buttonRetryCodeByVoiceRequest.setTitleColor(.systemBlue, for: .normal)
         }
     }
 

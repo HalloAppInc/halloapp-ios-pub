@@ -1241,13 +1241,6 @@ extension ChatViewControllerNew: ChatTitleViewDelegate {
     }
 }
 
-// MARK: ChatCallView Delegates
-extension ChatViewControllerNew: ChatCallViewDelegate {
-    func chatCallView(_ callView: ChatCallView, didTapCallButtonWithData callData: ChatCallData) {
-        startCallIfPossible(with: callData.userID, type: callData.type)
-    }
-}
-
 // MARK: - content input view delegate methods
 extension ChatViewControllerNew: ContentInputDelegate {
     func inputView(_ inputView: ContentInputView, possibleMentionsFor input: String) -> [MentionableUser] {
@@ -1483,40 +1476,6 @@ extension ChatViewControllerNew: CameraViewControllerDelegate {
         viewController.dismiss(animated: true) { [weak self] in
             self?.presentComposerViewController(media: [media])
         }
-    }
-}
-
-// MARK: PostComposerView Delegates
-extension ChatViewControllerNew: PostComposerViewDelegate {
-    func composerDidTapLinkPreview(controller: PostComposerViewController, url: URL) {
-        URLRouter.shared.handleOrOpen(url: url)
-    }
-
-    func composerDidTapShare(controller: PostComposerViewController,
-                            destination: ShareDestination,
-                            mentionText: MentionText,
-                                  media: [PendingMedia],
-                        linkPreviewData: LinkPreviewData? = nil,
-                       linkPreviewMedia: PendingMedia? = nil) {
-
-        sendMessage(text: mentionText.trimmed().collapsedText, media: media, files: [], linkPreviewData: linkPreviewData, linkPreviewMedia: linkPreviewMedia)
-        view.window?.rootViewController?.dismiss(animated: true, completion: nil)
-    }
-
-    func composerDidTapBack(controller: PostComposerViewController, destination: ShareDestination, media: [PendingMedia], voiceNote: PendingMedia?) {
-        controller.dismiss(animated: false)
-
-        let presentedVC = self.presentedViewController
-
-        if let viewControllers = (presentedVC as? UINavigationController)?.viewControllers {
-            if let mediaPickerController = viewControllers.last as? MediaPickerViewController {
-                mediaPickerController.reset(destination: nil, selected: media)
-            }
-        }
-    }
-
-    func willDismissWithInput(mentionInput: MentionInput) {
-
     }
 }
 
@@ -2124,10 +2083,13 @@ fileprivate class QuotedItemPanel: UIView, InputContextPanel {
     }()
 
     private(set) lazy var closeButton: UIButton = {
+        var closeButtonConfiguration: UIButton.Configuration = .plain()
+        closeButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 0, bottom: 0, trailing: 10)
+        closeButtonConfiguration.baseForegroundColor = .systemGray
+
         let button = UIButton(type: .custom)
+        button.configuration = closeButtonConfiguration
         button.setImage(UIImage(systemName: "xmark"), for: .normal)
-        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 0, bottom: 0, right: 10)
-        button.tintColor = UIColor.systemGray
         button.setContentHuggingPriority(.required, for: .horizontal)
 
         return button

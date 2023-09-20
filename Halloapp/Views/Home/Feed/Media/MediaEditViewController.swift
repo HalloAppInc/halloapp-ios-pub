@@ -192,18 +192,22 @@ class MediaEditViewController: UIViewController {
     }()
 
     private lazy var doneButton: UIButton = {
-        let doneButton = UIButton()
-        doneButton.translatesAutoresizingMaskIntoConstraints = false
-        doneButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
-        doneButton.setTitle(Localizations.buttonDone, for: .normal)
-        doneButton.setTitleColor(.white, for: .normal)
-        doneButton.setTitleColor(.white.withAlphaComponent(0.6), for: .highlighted)
-        doneButton.setBackgroundColor(.primaryBlue, for: .normal)
-        doneButton.contentEdgeInsets = UIEdgeInsets(top: 0, left: 40, bottom: 1, right: 40)
-        doneButton.layer.cornerRadius = 22
-        doneButton.layer.masksToBounds = true
-        doneButton.addTarget(self, action: #selector(doneAction), for: .touchUpInside)
+        var doneButtonConfiguration: UIButton.Configuration = .filled()
+        doneButtonConfiguration.baseBackgroundColor = .primaryBlue
+        doneButtonConfiguration.baseForegroundColor = .white
+        doneButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 40, bottom: 1, trailing: 40)
+        doneButtonConfiguration.cornerStyle = .capsule
+        doneButtonConfiguration.title = Localizations.buttonDone
+        doneButtonConfiguration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributeContainer in
+            var updatedAttributeContainer = attributeContainer
+            updatedAttributeContainer.font = .systemFont(ofSize: 17, weight: .semibold)
+            return updatedAttributeContainer
+        }
 
+        let doneButton = UIButton(type: .system)
+        doneButton.configuration = doneButtonConfiguration
+        doneButton.translatesAutoresizingMaskIntoConstraints = false
+        doneButton.addTarget(self, action: #selector(doneAction), for: .touchUpInside)
         doneButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
 
         return doneButton

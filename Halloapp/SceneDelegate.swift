@@ -326,7 +326,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
             URLRouter.shared.handle(url: incomingURL)
 
         // TODO: Do we need to use this intent to pop up people for share-intents? maybe?
-        case "INStartAudioCallIntent", "INStartCallIntent", "INStartVideoCallIntent":
+        case "INStartCallIntent":
             // We always try to fetch the contactIdentifier first.
             // Because user could be trying to make the call using siri (or) native-contacts app (or) native-calls app.
             // We lookup the contact and its userID to start call.
@@ -358,7 +358,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
             }
 
             let callType: CallType
-            if userActivity.activityType == "INStartVideoCallIntent" {
+            if (userActivity.interaction?.intent as? INStartCallIntent)?.callCapability == .videoCall {
                 callType = .video
             } else {
                 callType = .audio
@@ -581,12 +581,6 @@ protocol SupportedStartCallIntent {
 }
 
 extension INStartCallIntent: SupportedStartCallIntent {}
-
-// TODO: ios complains that this was deprecated: but this is the intent that ios invokes our app with.
-// weird: why they do it - did not find much online for this as of now?
-// We anyways made sure to support both for now.
-extension INStartAudioCallIntent: SupportedStartCallIntent {}
-extension INStartVideoCallIntent: SupportedStartCallIntent {}
 
 extension NSUserActivity {
 

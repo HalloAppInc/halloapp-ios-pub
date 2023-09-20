@@ -28,25 +28,34 @@ class GroupGridProgressView: UIView {
     var deleteAction: (() -> Void)?
 
     private let cancelButton: UIButton = {
+        var cancelButtonConfiguration = UIButton.Configuration.plain()
+        cancelButtonConfiguration.baseForegroundColor = .white
+        cancelButtonConfiguration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)
+
         let cancelButton = UIButton(type: .system)
-        cancelButton.setImage(UIImage(systemName: "xmark")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)), for: .normal)
-        cancelButton.tintColor = .white
+        cancelButton.configuration = cancelButtonConfiguration
+        cancelButton.setImage(UIImage(systemName: "xmark"), for: .normal)
         return cancelButton
     }()
 
     private let retryButton: UIButton = {
-        let retryIcon = UIImage(systemName: "arrow.clockwise")
+        var retryButtonConfiguration = UIButton.Configuration.plain()
+        retryButtonConfiguration.baseForegroundColor = .white
+        retryButtonConfiguration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)
+
         let retryButton = UIButton(type: .system)
-        retryButton.imageEdgeInsets = UIEdgeInsets(top: -2, left: 0, bottom: 2, right: 0)
-        retryButton.setImage(retryIcon?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)), for: .normal)
-        retryButton.tintColor = .white
+        retryButton.configuration = retryButtonConfiguration
+        retryButton.setImage(UIImage(systemName: "arrow.clockwise"), for: .normal)
         return retryButton
     }()
 
     private let deleteButton: UIButton = {
-        let deleteButton = RoundedRectButton()
-        deleteButton.backgroundTintColor = .lavaOrange
-        deleteButton.tintColor = .white
+        var deleteButtonConfiguration = UIButton.Configuration.filledCapsule()
+        deleteButtonConfiguration.baseForegroundColor = .white
+        deleteButtonConfiguration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 12, weight: .bold)
+
+        let deleteButton = UIButton(type: .system)
+        deleteButton.configuration = deleteButtonConfiguration
         deleteButton.setImage(UIImage(systemName: "trash.fill"), for: .normal)
         return deleteButton
     }()

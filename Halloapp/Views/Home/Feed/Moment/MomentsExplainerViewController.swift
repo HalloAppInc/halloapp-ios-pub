@@ -45,18 +45,22 @@ class MomentsExplainerViewController: UIViewController, UIViewControllerTransiti
     }()
 
     private lazy var actionButton: UIButton = {
+        var actionButtonConfiguration: UIButton.Configuration = .filled()
+        actionButtonConfiguration.background.cornerRadius = 12
+        actionButtonConfiguration.baseBackgroundColor = .systemBlue
+        actionButtonConfiguration.baseForegroundColor = .white
+        actionButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 15, leading: 20, bottom: 15, trailing: 10)
+        actionButtonConfiguration.cornerStyle = .fixed
+        actionButtonConfiguration.title = Localizations.tryMoments
+        actionButtonConfiguration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributeContainer in
+            var updatedAttributedContainer = attributeContainer
+            updatedAttributedContainer.font = .systemFont(ofSize: 18, weight: .medium)
+            return updatedAttributedContainer
+        }
+
         let button = UIButton(type: .system)
-        button.contentEdgeInsets = UIEdgeInsets(top: 15, left: 10, bottom: 15, right: 10)
-        button.setBackgroundColor(.systemBlue, for: .normal)
-
-        button.setTitleColor(.white, for: .normal)
-        button.setTitle(Localizations.tryMoments, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 18, weight: .medium)
+        button.configuration = actionButtonConfiguration
         button.addTarget(self, action: #selector(closeButtonPushed), for: .touchUpInside)
-
-        button.layer.masksToBounds = true
-        button.layer.cornerRadius = 12
-        button.layer.cornerCurve = .continuous
 
         return button
     }()

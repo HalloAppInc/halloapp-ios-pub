@@ -54,16 +54,28 @@ class LocationSharingViewController: UIViewController {
         return bar
     }()
     
-    private lazy var userTrackingButton: RoundButton = {
-        let button = RoundButton(type: .system)
+    private lazy var userTrackingButton: UIButton = {
+        var userTrackingButtonConfiguration: UIButton.Configuration = .filled()
+        userTrackingButtonConfiguration.background.strokeColor = .lightGray.withAlphaComponent(0.5)
+        userTrackingButtonConfiguration.background.strokeWidth = 1.0 / UIScreen.main.scale
+        userTrackingButtonConfiguration.baseBackgroundColor = .secondarySystemGroupedBackground
+        userTrackingButtonConfiguration.baseForegroundColor = UIColor(white: 0.2, alpha: 1.0)
+        userTrackingButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 13, leading: 12, bottom: 11, trailing: 12)
+        userTrackingButtonConfiguration.cornerStyle = .capsule
+        userTrackingButtonConfiguration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 17)
+
+        let button = UIButton(type: .system)
+        button.configuration = userTrackingButtonConfiguration
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowRadius = 20
+        button.layer.shadowOffset = CGSize(width: 0, height: 10)
+        button.layer.shadowOpacity = 0.2
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundColor = .secondarySystemGroupedBackground
-        button.setPreferredSymbolConfiguration(.init(pointSize: 22), forImageIn: .normal)
-        button.contentEdgeInsets = UIEdgeInsets(top: 13, left: 12, bottom: 11, right: 12)
         button.addTarget(self, action: #selector(userTrackingButtonTapped), for: .touchUpInside)
+
         return button
     }()
-    
+
     // Safe area will be insetted to include bottom bar's height, so we constrain top of the bar to bottom of safe area.
     private lazy var bottomBarTopConstraint: NSLayoutConstraint = bottomBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 8)
     
@@ -324,6 +336,7 @@ class LocationSharingViewController: UIViewController {
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        userTrackingButton.layer.shadowPath = UIBezierPath(roundedRect: userTrackingButton.bounds, cornerRadius: userTrackingButton.bounds.height / 2).cgPath
         self.additionalSafeAreaInsets.bottom = bottomBar.frame.height + 16
     }
     
@@ -517,28 +530,6 @@ extension LocationSharingViewController {
             searchTextField.sendActions(for: .editingChanged)
             return false
         }
-    }
-}
-
-fileprivate class RoundButton: UIButton {
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        layer.borderColor = UIColor.lightGray.withAlphaComponent(0.5).cgColor
-        layer.borderWidth = 1.0 / UIScreen.main.scale
-        layer.shadowColor = UIColor.black.withAlphaComponent(0.2).cgColor
-        layer.shadowRadius = 20
-        layer.shadowOffset = CGSize(width: 0, height: 10)
-        layer.shadowOpacity = 1
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("Circle button coder init not implemented...")
-    }
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        layer.cornerRadius = bounds.height / 2
-        layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius).cgPath
     }
 }
 

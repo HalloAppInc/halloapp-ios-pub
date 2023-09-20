@@ -34,10 +34,22 @@ class FriendMigrationInfoViewController: UIViewController {
     }()
 
     private let continueButton: UIButton = {
+        var continueButtonConfiguration: UIButton.Configuration = .filled()
+        continueButtonConfiguration.background.cornerRadius = 10
+        continueButtonConfiguration.baseBackgroundColor = .primaryBlue
+        continueButtonConfiguration.baseForegroundColor = .white
+        continueButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 14, leading: 0, bottom: 14, trailing: 0)
+        continueButtonConfiguration.cornerStyle = .fixed
+        continueButtonConfiguration.title = Localizations.buttonContinue
+        continueButtonConfiguration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributesContainer in
+            var updatedAttributesContainer = attributesContainer
+            updatedAttributesContainer.font = .scaledSystemFont(ofSize: 17, weight: .semibold)
+            return updatedAttributesContainer
+        }
+
         let button = UIButton()
+        button.configuration = continueButtonConfiguration
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.contentEdgeInsets = .init(top: 14, left: 0, bottom: 14, right: 0)
-        button.titleLabel?.font = .scaledSystemFont(ofSize: 17, weight: .semibold)
         return button
     }()
 
@@ -112,13 +124,6 @@ class FriendMigrationInfoViewController: UIViewController {
 
         titleLabel.text = Localizations.friendMigrationTitle
         messageLabel.text = Localizations.friendMigrationMessage
-
-        continueButton.setTitle(Localizations.buttonContinue, for: .normal)
-        continueButton.setBackgroundColor(.primaryBlue, for: .normal)
-        continueButton.setTitleColor(.white, for: .normal)
-
-        continueButton.layer.cornerRadius = 10
-        continueButton.layer.masksToBounds = true
 
         continueButton.addTarget(self, action: #selector(continuePushed), for: .touchUpInside)
     }

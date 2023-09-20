@@ -1704,7 +1704,7 @@ class ChatData: NSObject, ObservableObject {
     
     private func isAtChatListViewTop() -> Bool {
         guard
-            let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first,
+            let keyWindow = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).flatMap(\.windows).first(where: { $0.isKeyWindow }),
             let tabController = keyWindow.rootViewController?.children.first as? UITabBarController,
             tabController.selectedIndex == HomeViewController.TabBarSelection.chat.index,
             let chatNavigationController = tabController.selectedViewController as? UINavigationController,
@@ -3772,7 +3772,7 @@ extension ChatData {
     }
 
     func isCallViewControllerActive() -> Bool {
-        guard let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow }),
+        guard let window = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).flatMap(\.windows).first(where: { $0.isKeyWindow }),
               let rootViewController = window.rootViewController else {
             return false
         }

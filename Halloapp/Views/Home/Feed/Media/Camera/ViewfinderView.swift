@@ -298,15 +298,17 @@ class ViewfinderContainer: UIView, CameraPresetConfigurable {
         return view
     }()
 
-    private lazy var changeLayoutButton: OverlayButton = {
-        let button = OverlayButton(type: .system)
-        let configuration = UIImage.SymbolConfiguration(pointSize: 14, weight: .regular)
-        let image = UIImage(systemName: "square.split.1x2.fill", withConfiguration: configuration)?
-            .withRenderingMode(.alwaysOriginal)
-            .withTintColor(.white)
+    private lazy var changeLayoutButton: UIButton = {
+        var changeLayoutButtonConfiguration: UIButton.Configuration = .plain()
+        changeLayoutButtonConfiguration.background.visualEffect = UIBlurEffect(style: .systemMaterialDark)
+        changeLayoutButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
+        changeLayoutButtonConfiguration.cornerStyle = .capsule
+        changeLayoutButtonConfiguration.image = UIImage(systemName: "square.split.1x2.fill")
+        changeLayoutButtonConfiguration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 14, weight: .regular)
 
+        let button = UIButton(type: .system)
+        button.configuration = changeLayoutButtonConfiguration
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(image, for: .normal)
         button.addTarget(self, action: #selector(prepareFeedbackGenerator), for: .touchDown)
         button.addTarget(self, action: #selector(changeLayoutButtonPushed), for: .touchUpInside)
         return button
@@ -722,47 +724,6 @@ class ViewfinderContainer: UIView, CameraPresetConfigurable {
 
         changeLayoutButton.isHidden = isHidden
         changeLayoutButton.transform = transform
-    }
-}
-
-// MARK: -
-
-fileprivate class OverlayButton: UIButton {
-
-    private lazy var blurView: UIVisualEffectView = {
-        let view = UIVisualEffectView(effect: UIBlurEffect(style: .systemMaterialDark))
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.layer.masksToBounds = true
-        view.isUserInteractionEnabled = false
-        return view
-    }()
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-
-        insertSubview(blurView, at: 0)
-        NSLayoutConstraint.activate([
-            blurView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            blurView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            blurView.topAnchor.constraint(equalTo: topAnchor),
-            blurView.bottomAnchor.constraint(equalTo: bottomAnchor),
-        ])
-
-        contentEdgeInsets = .init(top: 8, left: 8, bottom: 8, right: 8)
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("OverlayButton coder init not implemented...")
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-
-        blurView.layer.cornerRadius = min(blurView.bounds.width, blurView.bounds.height) / 2
-
-        if subviews.first !== blurView {
-            sendSubviewToBack(blurView)
-        }
     }
 }
 

@@ -615,10 +615,13 @@ public class CoreChatData {
             let name = UserProfile.find(with: toUserId, in: context)?.displayName ?? ""
             let recipient = INSpeakableString(spokenPhrase: name)
             let sendMessageIntent = INSendMessageIntent(recipients: nil,
+                                                        outgoingMessageType: .outgoingMessageText,
                                                         content: nil,
                                                         speakableGroupName: recipient,
                                                         conversationIdentifier: ConversationID(id: toUserId, type: .chat).description,
-                                                        serviceName: nil, sender: nil)
+                                                        serviceName: nil, 
+                                                        sender: nil,
+                                                        attachments: nil)
 
             let potentialUserAvatar = AppContext.shared.avatarStore.userAvatar(forUserId: toUserId).image
             guard let defaultAvatar = UIImage(named: "AvatarUser") else { return }
@@ -1932,7 +1935,7 @@ extension CoreChatData {
         // Else - log and return
 
         mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
-            var isFriend = UserProfile.find(with: fromUserID, in: managedObjectContext)?.friendshipStatus ?? .none == .friends
+            let isFriend = UserProfile.find(with: fromUserID, in: managedObjectContext)?.friendshipStatus ?? .none == .friends
 
             guard isFriend else {
                 DDLogInfo("ChatData/processGroupFeedHistory/\(groupID)/sendingAdmin is not friend - ignore historyResend stanza")

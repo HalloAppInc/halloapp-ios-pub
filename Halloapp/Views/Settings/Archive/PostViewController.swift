@@ -18,31 +18,26 @@ class PostViewController: UIViewController, ShareMenuPresenter, UIViewController
     private let showFooter: Bool
     private var currentMediaIndex = 0
 
-    private lazy var backBtn: UIView = {
-        let background = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.1)
-        background.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.7)
-        background.translatesAutoresizingMaskIntoConstraints = false
-        background.layer.masksToBounds = true
-        background.layer.cornerRadius = 22
+    private lazy var backBtn: UIButton = {
+        var backButtonConfiguration: UIButton.Configuration = .plain()
+        backButtonConfiguration.background.backgroundColor = .black.withAlphaComponent(0.7)
+        backButtonConfiguration.background.visualEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        backButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: -1, bottom: 0, trailing: 0)
+        backButtonConfiguration.cornerStyle = .capsule
+        backButtonConfiguration.baseForegroundColor = .white
+        backButtonConfiguration.image = UIImage(named: "NavbarBack")?.withRenderingMode(.alwaysTemplate)
 
-        let button = UIButton(type: .custom)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(backAction), for: [.touchUpInside, .touchUpOutside])
-        button.setImage(UIImage(named: "NavbarBack")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: -1, bottom: 0, right: 0)
+        let backButton = UIButton(type: .custom)
+        backButton.configuration = backButtonConfiguration
+        backButton.addTarget(self, action: #selector(backAction), for: .touchUpInside)
+        backButton.translatesAutoresizingMaskIntoConstraints = false
 
-        let container = UIView()
-        container.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            backButton.widthAnchor.constraint(equalToConstant: 44),
+            backButton.heightAnchor.constraint(equalToConstant: 44),
+        ])
 
-        container.addSubview(background)
-        container.addSubview(button)
-
-        container.widthAnchor.constraint(equalToConstant: 44).isActive = true
-        container.heightAnchor.constraint(equalToConstant: 44).isActive = true
-        background.constrain(to: container)
-        button.constrain(to: container)
-
-        return container
+        return backButton
     }()
 
     private lazy var backgroundView: UIView = {

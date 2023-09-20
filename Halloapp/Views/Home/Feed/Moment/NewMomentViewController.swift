@@ -338,10 +338,12 @@ extension NewMomentViewController {
         label.textAlignment = .center
         label.text = prompt
 
-        let button = CapsuleButton()
-        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 30, bottom: 10, right: 30)
-        button.setBackgroundColor(.systemBlue, for: .normal)
-        button.setTitle(Localizations.buttonOK, for: .normal)
+        var buttonConfiguration: UIButton.Configuration = .filledCapsule(backgroundColor: .systemBlue)
+        buttonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 30, bottom: 10, trailing: 30)
+        buttonConfiguration.title = Localizations.buttonOK
+
+        let button = UIButton()
+        button.configuration = buttonConfiguration
 
         let stack = UIStackView(arrangedSubviews: [label, button])
         stack.translatesAutoresizingMaskIntoConstraints = false

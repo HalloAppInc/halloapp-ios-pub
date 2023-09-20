@@ -761,12 +761,12 @@ final class FeedItemFooterView: UIView, FeedItemFooterProtocol {
 
         override init(frame: CGRect) {
             super.init(frame: frame)
-            self.setupView()
+            setupView()
         }
 
         required init?(coder: NSCoder) {
             super.init(coder: coder)
-            self.setupView()
+            setupView()
         }
 
         var badge: BadgeState = .hidden {
@@ -791,20 +791,19 @@ final class FeedItemFooterView: UIView, FeedItemFooterProtocol {
         private let badgeView = CircleView(frame: CGRect(origin: .zero, size: CGSize(width: 7, height: 7)))
 
         private func setupView() {
-            self.addSubview(badgeView)
+            addSubview(badgeView)
         }
 
         override func layoutSubviews() {
             super.layoutSubviews()
 
-            guard let titleLabel = self.titleLabel else { return }
+            guard let titleLabel else { return }
 
             let spacing: CGFloat = 6
-            let spacingToCenter = spacing + badgeView.bounds.width/2
-            let badgeCenterX: CGFloat = self.effectiveUserInterfaceLayoutDirection == .leftToRight ? titleLabel.frame.maxX + spacingToCenter : titleLabel.frame.minX - spacingToCenter
-            self.badgeView.center = self.badgeView.alignedCenter(from: CGPoint(x: badgeCenterX, y: titleLabel.frame.midY))
+            let spacingToCenter = spacing + badgeView.bounds.width / 2
+            let badgeCenterX = effectiveUserInterfaceLayoutDirection == .leftToRight ? titleLabel.frame.maxX + spacingToCenter : titleLabel.frame.minX - spacingToCenter
+            badgeView.center = badgeView.alignedCenter(from: CGPoint(x: badgeCenterX, y: titleLabel.frame.midY))
         }
-
     }
 
     private enum SenderCategory {
@@ -843,16 +842,12 @@ final class FeedItemFooterView: UIView, FeedItemFooterProtocol {
 
     lazy var commentButton: ButtonWithBadge = {
         let button = ButtonWithBadge(type: .system)
-        setupButton(button)
+        var buttonConfiguration = FeedItemFooterReactionView.buttonConfiguration()
+        buttonConfiguration.contentInsets.leading = 20
+        button.configuration = buttonConfiguration
         button.setTitle(Localizations.feedComment, for: .normal)
         button.setImage(UIImage(named: "FeedPostComment"), for: .normal)
         button.addTarget(self, action: #selector(commentButtonAction), for: .touchUpInside)
-
-        if effectiveUserInterfaceLayoutDirection == .leftToRight {
-            button.contentEdgeInsets.left = 20
-        } else {
-            button.contentEdgeInsets.right = 20
-        }
         button.contentHorizontalAlignment = .leading
         return button
     }()
@@ -861,15 +856,11 @@ final class FeedItemFooterView: UIView, FeedItemFooterProtocol {
     lazy var messageButton: UIButton = {
         let stringMessage = NSLocalizedString("feedpost.button.reply", value: "Reply Privately", comment: "Button under someoneelse's post. Verb.")
         let button = UIButton(type: .system)
-        setupButton(button, spacing: 6)
+        var buttonConfiguration = FeedItemFooterReactionView.buttonConfiguration(spacing: 6)
+        buttonConfiguration.contentInsets.leading = 20
+        button.configuration = buttonConfiguration
         button.setTitle(stringMessage, for: .normal)
         button.setImage(UIImage(named: "FeedPostReply"), for: .normal)
-
-        if effectiveUserInterfaceLayoutDirection == .leftToRight {
-            button.contentEdgeInsets.right = 20
-        } else {
-            button.contentEdgeInsets.left = 20
-        }
         button.contentHorizontalAlignment = .trailing
         return button
     }()
@@ -892,15 +883,15 @@ final class FeedItemFooterView: UIView, FeedItemFooterProtocol {
 
     lazy var shareButton: UIButton = {
         let shareButton = UIButton(type: .system)
-        setupButton(shareButton)
+        var buttonConfiguration = FeedItemFooterReactionView.buttonConfiguration()
+        buttonConfiguration.contentInsets.top -= 1
+        buttonConfiguration.contentInsets.bottom += 1
+        shareButton.configuration = buttonConfiguration
         shareButton.addTarget(self, action: #selector(shareButtonAction), for: .touchUpInside)
         let shareIcon = UIImage(systemName: "square.and.arrow.up")?
             .withConfiguration(UIImage.SymbolConfiguration(pointSize: 12, weight: .semibold))
         shareButton.setImage(shareIcon, for: .normal)
         shareButton.setTitle(Localizations.buttonShare, for: .normal)
-        // Slightly adjust image vertical alignment
-        shareButton.imageEdgeInsets.top = -1
-        shareButton.imageEdgeInsets.bottom = 1
         return shareButton
     }()
 
@@ -939,21 +930,6 @@ final class FeedItemFooterView: UIView, FeedItemFooterProtocol {
             shareButton.leadingAnchor.constraint(greaterThanOrEqualTo: commentButton.trailingAnchor, constant: 4),
             shareButton.trailingAnchor.constraint(lessThanOrEqualTo: facePileView.leadingAnchor, constant: -24),
         ])
-    }
-
-    private func setupButton(_ button: UIButton, spacing: CGFloat = 4) {
-        // Gotham Medium, 15 pt (Subhead)
-        let font = UIFont.gothamFont(forTextStyle: .footnote, weight: .medium, maximumPointSize: 18)
-        button.imageView?.tintColor = .label.withAlphaComponent(0.75)
-        button.titleLabel?.font = font
-        button.titleLabel?.adjustsFontForContentSizeCategory = true
-        button.titleLabel?.lineBreakMode = .byWordWrapping
-        button.contentEdgeInsets.top = 15
-        button.contentEdgeInsets.bottom = 9
-        let isLTR = effectiveUserInterfaceLayoutDirection == .leftToRight
-        let adjustedSpacing = isLTR ? spacing : -spacing
-        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: adjustedSpacing / 2, bottom: 0, right: -adjustedSpacing / 2)
-        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -adjustedSpacing / 2, bottom: 0, right: adjustedSpacing / 2)
     }
 
     private class func senderCategory(for post: FeedPostDisplayable) -> SenderCategory {
@@ -1170,7 +1146,6 @@ final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
         private let badgeOutlineView = CircleView(frame: CGRect(origin: .zero, size: CGSize(width: 12, height: 12)))
         private let numberView: UILabel = {
             let label = UILabel()
-            label.translatesAutoresizingMaskIntoConstraints = false
             label.textColor = .white
             label.textAlignment = .center
             label.font = .boldSystemFont(ofSize: 13)
@@ -1178,17 +1153,16 @@ final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
         }()
 
         private func setupView() {
-            badgeOutlineView.fillColor = UIColor.messageFooterBackground
-            self.addSubview(badgeOutlineView)
+            badgeOutlineView.fillColor = .messageFooterBackground
+            badgeOutlineView.layer.zPosition = 100
+            addSubview(badgeOutlineView)
 
             badgeView.fillColor = .systemGray4
-            self.addSubview(badgeView)
+            badgeView.layer.zPosition = 101
+            addSubview(badgeView)
+            numberView.layer.zPosition = 102
+            addSubview(numberView)
 
-            self.addSubview(numberView)
-
-            if let imageView = imageView {
-                numberView.constrain(to: imageView)
-            }
             configure(state: .noComments)
         }
 
@@ -1223,10 +1197,14 @@ final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
         override func layoutSubviews() {
             super.layoutSubviews()
             
-            guard let imageView = self.imageView else { return }
-            self.badgeView.center = self.badgeView.alignedCenter(from: CGPoint(x: imageView.frame.maxX * 7 / 8, y: imageView.frame.maxY * 16 / 20))
-            self.badgeOutlineView.center = self.badgeView.alignedCenter(from: CGPoint(x: imageView.frame.maxX * 7 / 8, y: imageView.frame.maxY * 16 / 20))
-            self.numberView.center = self.numberView.alignedCenter(from: CGPoint(x: imageView.frame.midX, y: imageView.frame.midY - 1))
+            guard let imageView else {
+                return
+            }
+
+            numberView.frame = imageView.frame
+            badgeView.center = badgeView.alignedCenter(from: CGPoint(x: imageView.frame.maxX * 7 / 8, y: imageView.frame.maxY * 16 / 20))
+            badgeOutlineView.center = badgeView.alignedCenter(from: CGPoint(x: imageView.frame.maxX * 7 / 8, y: imageView.frame.maxY * 16 / 20))
+            numberView.center = numberView.alignedCenter(from: CGPoint(x: imageView.frame.midX, y: imageView.frame.midY - 1))
         }
 
     }
@@ -1268,7 +1246,7 @@ final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
 
     lazy var commentButton: CommentButton = {
         let button = CommentButton(type: .system)
-        setupButton(button)
+        button.configuration = Self.buttonConfiguration(baseTextStyle: .subheadline)
         button.setTitle(Localizations.feedComments, for: .normal)
         button.contentHorizontalAlignment = .leading
         button.addTarget(self, action: #selector(commentButtonAction), for: .touchUpInside)
@@ -1356,7 +1334,7 @@ final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
         shareButtonCenterXConstraint.priority = .defaultLow
 
         NSLayoutConstraint.activate([
-            commentButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 15),
+            commentButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 13),
             commentButton.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 3),
             commentButton.heightAnchor.constraint(equalTo: heightAnchor),
 
@@ -1365,19 +1343,18 @@ final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
         ])
     }
 
-    private func setupButton(_ button: UIButton, spacing: CGFloat = 4) {
-        // Gotham Medium, 15 pt (Subhead)
-        let font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium, maximumPointSize: 18)
-        button.setTitleColor(.label.withAlphaComponent(0.75), for: .normal)
-        button.titleLabel?.font = font
-        button.titleLabel?.adjustsFontForContentSizeCategory = true
-        button.titleLabel?.lineBreakMode = .byWordWrapping
-        button.contentEdgeInsets.top = 15
-        button.contentEdgeInsets.bottom = 9
-        let isLTR = effectiveUserInterfaceLayoutDirection == .leftToRight
-        let adjustedSpacing = isLTR ? spacing : -spacing
-        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: adjustedSpacing / 2, bottom: 0, right: -adjustedSpacing / 2)
-        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -adjustedSpacing / 2, bottom: 0, right: adjustedSpacing / 2)
+    fileprivate static func buttonConfiguration(spacing: CGFloat = 4, baseTextStyle: UIFont.TextStyle = .footnote) -> UIButton.Configuration {
+        var buttonConfiguration = UIButton.Configuration.plain()
+        buttonConfiguration.baseForegroundColor = .label.withAlphaComponent(0.75)
+        buttonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 15, leading: 0, bottom: 9, trailing: 0)
+        buttonConfiguration.imagePadding = spacing
+        buttonConfiguration.titleLineBreakMode = .byWordWrapping
+        buttonConfiguration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributeContainer in
+            var updatedAttributeContainer = attributeContainer
+            updatedAttributeContainer.font = .gothamFont(forTextStyle: baseTextStyle, weight: .medium, maximumPointSize: 18)
+            return updatedAttributeContainer
+        }
+        return buttonConfiguration
     }
 
     private class func senderCategory(for post: FeedPostDisplayable) -> SenderCategory {

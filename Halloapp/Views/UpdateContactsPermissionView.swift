@@ -30,15 +30,12 @@ class UpdateContactsPermissionView: UIView {
         label.textAlignment = .center
         label.textColor = .secondaryLabel
         
+        var settingsButtonConfiguration: UIButton.Configuration = .filledCapsule(backgroundColor: .systemBlue)
+        settingsButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 18, bottom: 10, trailing: 18)
+        settingsButtonConfiguration.title = Localizations.buttonGoToSettings
+
         let settingsButton = UIButton()
-        settingsButton.layer.masksToBounds = true
-        settingsButton.setTitle(Localizations.buttonGoToSettings, for: .normal)
-        settingsButton.setBackgroundColor(.systemBlue, for: .normal)
-        settingsButton.setBackgroundColor(UIColor.systemBlue.withAlphaComponent(0.5), for: .highlighted)
-        settingsButton.setBackgroundColor(.systemGray4, for: .disabled)
-        settingsButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 38).isActive = true
-        settingsButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 18, bottom: 10, right: 18)
-        settingsButton.layer.cornerRadius = 19
+        settingsButton.configuration = settingsButtonConfiguration
         settingsButton.addTarget(self, action: #selector(didTapOpenSettings), for: .touchUpInside)
 
         let learnMoreButton = UIButton()

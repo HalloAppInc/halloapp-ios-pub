@@ -397,10 +397,13 @@ private final class ProfileHeaderView: UIView {
     }()
 
     private(set) lazy var favoriteButton: LargeHitButton = {
+        var favoriteButtonConfiguration = UIButton.Configuration.plain()
+        favoriteButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 2, trailing: 0)
+
         let button = LargeHitButton(type: .system)
         button.targetIncrease = 7
+        button.configuration = favoriteButtonConfiguration
         button.setImage(UIImage(named: "PrivacySettingFavoritesWithBackground")?.withRenderingMode(.alwaysOriginal), for: .normal)
-        button.contentEdgeInsets.bottom = 2
         // TODO: add functionality
         button.isUserInteractionEnabled = false
         return button

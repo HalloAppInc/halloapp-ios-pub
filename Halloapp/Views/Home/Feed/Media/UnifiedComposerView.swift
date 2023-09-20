@@ -79,19 +79,20 @@ class UnifiedComposerView: UIStackView {
     private lazy var mediaPickerButtonView: UIView = {
         let mediaPickerButtonView = UIView()
 
+        var mediaPickerButtonConfiguration: UIButton.Configuration = .plain()
+        mediaPickerButtonConfiguration.baseForegroundColor = .primaryBlue
+        mediaPickerButtonConfiguration.image = UIImage(named: "icon_add_photo")
+        mediaPickerButtonConfiguration.title = Localizations.addMedia
+        mediaPickerButtonConfiguration.imagePadding = 4
+        mediaPickerButtonConfiguration.imagePlacement = .top
+
         let mediaPickerButton = UIButton(type: .system)
+        mediaPickerButton.configuration = mediaPickerButtonConfiguration
         mediaPickerButton.addTarget(self, action: #selector(openMediaPickerAction), for: .touchUpInside)
-        mediaPickerButton.setImage(UIImage(named: "icon_add_photo"), for: .normal)
-        mediaPickerButton.setTitle(Localizations.addMedia, for: .normal)
-        mediaPickerButton.tintColor = .primaryBlue
         mediaPickerButton.setContentHuggingPriority(.defaultHigh, for: .vertical)
 
         let imageSize = mediaPickerButton.imageView?.intrinsicContentSize ?? .zero
         let titleSize = mediaPickerButton.titleLabel?.intrinsicContentSize ?? .zero
-
-        mediaPickerButton.imageEdgeInsets = UIEdgeInsets(top: -titleSize.height - 4, left: 0, bottom: 0, right: -titleSize.width)
-        mediaPickerButton.titleEdgeInsets = UIEdgeInsets(top: 0, left: -imageSize.width, bottom: -imageSize.height - 4, right: 0)
-        mediaPickerButton.contentEdgeInsets = UIEdgeInsets(top: imageSize.height , left: 0, bottom: titleSize.height, right: 0)
 
         mediaPickerButton.translatesAutoresizingMaskIntoConstraints = false
         mediaPickerButtonView.addSubview(mediaPickerButton)

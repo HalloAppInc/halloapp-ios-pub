@@ -23,8 +23,7 @@ private extension Localizations {
 }
 
 class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetchedResultsControllerDelegate {
-
-    private let bottomSafeAreaHeight = UIApplication.shared.windows[0].safeAreaInsets.bottom
+    private static let cellReuseIdentifier = "NotificationsTableViewCell"
 
     private var dataSource: UITableViewDiffableDataSource<ActivityCenterSection, ActivityCenterItem>!
     private lazy var tableView: UITableView = UITableView()
@@ -127,7 +126,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
             let cell: UITableViewCell
 
             switch notification.content {
-            case .incomingFriendNotification(let activity):
+            case .incomingFriendNotification:
                 cell = tableView.dequeueReusableCell(withIdentifier: FriendNotificationTableViewCell.reuseIdentifier, for: indexPath)
                 guard let cell = cell as? FriendNotificationTableViewCell else {
                     break
@@ -442,7 +441,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
             do {
                 try await MainAppContext.shared.userProfileData.acceptFriend(userID: activity.userID)
             } catch {
-                makeDataSnapshot()
+                updateUI()
                 let alert = UIAlertController(title: nil, message: Localizations.genericError, preferredStyle: .alert)
                 present(alert, animated: true)
             }
@@ -462,7 +461,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
             do {
                 try await MainAppContext.shared.userProfileData.ignoreRequest(userID: activity.userID)
             } catch {
-                makeDataSnapshot()
+                updateUI()
                 let alert = UIAlertController(title: nil, message: Localizations.genericError, preferredStyle: .alert)
                 present(alert, animated: true)
             }

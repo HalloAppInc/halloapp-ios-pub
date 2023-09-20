@@ -46,7 +46,7 @@ public class CountObserver<T: NSManagedObject>: NSObject, NSFetchedResultsContro
     }
 }
 
-public class CountPublisher<T: NSManagedObject>: Publisher {
+public class CountPublisher<CountPublisherModel: NSManagedObject>: Publisher {
 
     public typealias Output = Int
     public typealias Failure = Never
@@ -84,6 +84,6 @@ public class CountPublisher<T: NSManagedObject>: Publisher {
     }
 
     public func receive<S>(subscriber: S) where S : Subscriber, Never == S.Failure, Int == S.Input {
-        subscriber.receive(subscription: CountSubscription(subscriber: subscriber, countObserver: CountObserver<T>(context: context, predicate: predicate)))
+        subscriber.receive(subscription: CountSubscription(subscriber: subscriber, countObserver: CountObserver<CountPublisherModel>(context: context, predicate: predicate)))
     }
 }

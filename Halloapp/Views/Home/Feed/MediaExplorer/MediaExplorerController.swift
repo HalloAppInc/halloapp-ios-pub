@@ -68,70 +68,70 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     }
 
     private lazy var backBtn: UIView = {
+        var backButtonConfiguration: UIButton.Configuration = .plain()
+        backButtonConfiguration.background.backgroundColor = .black.withAlphaComponent(0.7)
+        backButtonConfiguration.background.visualEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        backButtonConfiguration.baseForegroundColor = .white
+        backButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: -1, bottom: 0, trailing: 0)
+        backButtonConfiguration.cornerStyle = .capsule
+        backButtonConfiguration.image = UIImage(named: "NavbarBack")?.withRenderingMode(.alwaysTemplate)
+
         let backBtn = LargeHitButton(type: .custom)
+        backBtn.configuration = backButtonConfiguration
         backBtn.targetIncrease = 16
-        backBtn.contentEdgeInsets = UIEdgeInsets(top: 0, left: -1, bottom: 0, right: 0)
         backBtn.addTarget(self, action: #selector(backAction), for: [.touchUpInside, .touchUpOutside])
-        backBtn.setImage(UIImage(named: "NavbarBack")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
         backBtn.translatesAutoresizingMaskIntoConstraints = false
 
-        let container = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.1)
-        container.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.7)
-        container.translatesAutoresizingMaskIntoConstraints = false
-        container.layer.masksToBounds = true
-        container.layer.cornerRadius = 22
+        NSLayoutConstraint.activate([
+            backBtn.widthAnchor.constraint(equalToConstant: 44),
+            backBtn.heightAnchor.constraint(equalToConstant: 44),
+        ])
 
-        container.widthAnchor.constraint(equalToConstant: 44).isActive = true
-        container.heightAnchor.constraint(equalToConstant: 44).isActive = true
-
-        container.contentView.addSubview(backBtn)
-        backBtn.constrain(to: container)
-
-        return container
+        return backBtn
     }()
 
     private lazy var shareBtn: UIView = {
+        var shareButtonConfiguration: UIButton.Configuration = .plain()
+        shareButtonConfiguration.background.backgroundColor = .black.withAlphaComponent(0.7)
+        shareButtonConfiguration.background.visualEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        shareButtonConfiguration.baseForegroundColor = .white
+        shareButtonConfiguration.cornerStyle = .capsule
+        shareButtonConfiguration.image = UIImage(named: "Download")?.withRenderingMode(.alwaysTemplate)
+
         let shareBtn = LargeHitButton(type: .custom)
+        shareBtn.configuration = shareButtonConfiguration
         shareBtn.targetIncrease = 16
         shareBtn.addTarget(self, action: #selector(shareButtonPressed), for: [.touchUpInside, .touchUpOutside])
-        shareBtn.setImage(UIImage(named: "Download")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
         shareBtn.translatesAutoresizingMaskIntoConstraints = false
 
-        let container = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.1)
-        container.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.7)
-        container.translatesAutoresizingMaskIntoConstraints = false
-        container.layer.masksToBounds = true
-        container.layer.cornerRadius = 22
+        NSLayoutConstraint.activate([
+            shareBtn.widthAnchor.constraint(equalToConstant: 44),
+            shareBtn.heightAnchor.constraint(equalToConstant: 44),
+        ])
 
-        container.widthAnchor.constraint(equalToConstant: 44).isActive = true
-        container.heightAnchor.constraint(equalToConstant: 44).isActive = true
-
-        container.contentView.addSubview(shareBtn)
-        shareBtn.constrain(to: container)
-
-        return container
+        return shareBtn
     }()
 
     private lazy var slideshowButton: UIView = {
-        let shareBtn = LargeHitButton(type: .custom)
-        shareBtn.targetIncrease = 16
-        shareBtn.addTarget(self, action: #selector(openSlideshow), for: [.touchUpInside])
-        shareBtn.setImage(UIImage(systemName: "play.rectangle.fill"), for: .normal)
-        shareBtn.translatesAutoresizingMaskIntoConstraints = false
+        var slideshowButtonConfiguration: UIButton.Configuration = .plain()
+        slideshowButtonConfiguration.background.backgroundColor = .black.withAlphaComponent(0.7)
+        slideshowButtonConfiguration.background.visualEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        slideshowButtonConfiguration.baseForegroundColor = .white
+        slideshowButtonConfiguration.cornerStyle = .capsule
+        slideshowButtonConfiguration.image = UIImage(systemName: "play.rectangle.fill")?.withRenderingMode(.alwaysTemplate)
 
-        let container = BlurView(effect: UIBlurEffect(style: .systemUltraThinMaterial), intensity: 0.1)
-        container.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.7)
-        container.translatesAutoresizingMaskIntoConstraints = false
-        container.layer.masksToBounds = true
-        container.layer.cornerRadius = 22
+        let slideshowButton = LargeHitButton(type: .custom)
+        slideshowButton.configuration = slideshowButtonConfiguration
+        slideshowButton.targetIncrease = 16
+        slideshowButton.addTarget(self, action: #selector(openSlideshow), for: [.touchUpInside])
+        slideshowButton.translatesAutoresizingMaskIntoConstraints = false
 
-        container.widthAnchor.constraint(equalToConstant: 44).isActive = true
-        container.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        NSLayoutConstraint.activate([
+            slideshowButton.widthAnchor.constraint(equalToConstant: 44),
+            slideshowButton.heightAnchor.constraint(equalToConstant: 44),
+        ])
 
-        container.contentView.addSubview(shareBtn)
-        shareBtn.constrain(to: container)
-
-        return container
+        return slideshowButton
     }()
 
     @objc private func openSlideshow() {
