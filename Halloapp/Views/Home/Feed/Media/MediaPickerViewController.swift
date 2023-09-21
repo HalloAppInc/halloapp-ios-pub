@@ -175,33 +175,28 @@ class MediaPickerViewController: UIViewController {
     }()
 
     private lazy var nextButton: UIButton = {
-        let iconConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .bold)
-        let icon = UIImage(systemName: "chevron.left", withConfiguration: iconConfig)?
-                    .withTintColor(.white, renderingMode: .alwaysOriginal)
-                    .imageFlippedForRightToLeftLayoutDirection()
-
-        let attributedTitle = NSAttributedString(string: Localizations.buttonNext,
-                                                 attributes: [.kern: 0.5, .foregroundColor: UIColor.white])
-        let disabledAttributedTitle = NSAttributedString(string: Localizations.buttonNext,
-                                                         attributes: [.kern: 0.5, .foregroundColor: UIColor.white])
-
-        let button = RoundedRectButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        // Attributed strings do not respect button title colors
-        button.setAttributedTitle(attributedTitle, for: .normal)
-        button.setAttributedTitle(disabledAttributedTitle, for: .disabled)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
-        button.setImage(icon, for: .normal)
-        button.contentEdgeInsets = UIEdgeInsets(top: -1.5, left: 32, bottom: 0, right: 38)
-
-        // keep image on the right & tappable
-        if case .rightToLeft = view.effectiveUserInterfaceLayoutDirection {
-            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -12, bottom: 0, right: 12)
-            button.semanticContentAttribute = .forceLeftToRight
-        } else {
-            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: -12)
-            button.semanticContentAttribute = .forceRightToLeft
+        var nextButtonConfiguration = UIButton.Configuration.filled()
+        nextButtonConfiguration.baseBackgroundColor = .lavaOrange
+        nextButtonConfiguration.baseForegroundColor = .white
+        nextButtonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: -1.5, leading: 32, bottom: 0, trailing: 38)
+        nextButtonConfiguration.cornerStyle = .capsule
+        nextButtonConfiguration.imagePadding = 12
+        nextButtonConfiguration.imagePlacement = .trailing
+        nextButtonConfiguration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 12, weight: .bold)
+        nextButtonConfiguration.titleAlignment = .leading
+        nextButtonConfiguration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributeContainer in
+            var updatedAttributeContainer = attributeContainer
+            updatedAttributeContainer.font = .systemFont(ofSize: 17, weight: .semibold)
+            updatedAttributeContainer.kern = 0.5
+            updatedAttributeContainer.foregroundColor = .white
+            return updatedAttributeContainer
         }
+
+        let button = UIButton(type: .system)
+        button.configuration = nextButtonConfiguration
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(UIImage(systemName: "chevron.forward"), for: .normal)
+        button.setTitle(Localizations.buttonNext, for: .normal)
 
         NSLayoutConstraint.activate([
             button.heightAnchor.constraint(equalToConstant: 44),
@@ -214,54 +209,31 @@ class MediaPickerViewController: UIViewController {
     }()
 
     private lazy var albumsButton: UIButton = {
-        let iconConfig = UIImage.SymbolConfiguration(pointSize: 9, weight: .bold)
-        let icon = UIImage(systemName: "chevron.down", withConfiguration: iconConfig)?
-                    .withTintColor(.white, renderingMode: .alwaysOriginal)
+        var albumsButtonBackgroundConfiguration = UIBackgroundConfiguration.clear()
+        albumsButtonBackgroundConfiguration.visualEffect = UIBlurEffect(style: .systemMaterial)
 
-        class GradientButton: UIButton {
-            override class var layerClass: AnyClass {
-                CAGradientLayer.self
-            }
-
-            override func layoutSubviews() {
-                super.layoutSubviews()
-                layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius).cgPath
-            }
+        var albumsButtonConfiguration = UIButton.Configuration.filled()
+        albumsButtonConfiguration.background = albumsButtonBackgroundConfiguration
+        albumsButtonConfiguration.baseBackgroundColor = .primaryWhiteBlack.withAlphaComponent(0.5)
+        albumsButtonConfiguration.baseForegroundColor = .primaryBlackWhite
+        albumsButtonConfiguration.cornerStyle = .capsule
+        albumsButtonConfiguration.imagePlacement = .trailing
+        albumsButtonConfiguration.imagePadding = 8
+        albumsButtonConfiguration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 9, weight: .bold)
+        albumsButtonConfiguration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributeContainer in
+            var updatedAttributes = attributeContainer
+            updatedAttributes.font = .systemFont(ofSize: 14, weight: .medium)
+            return updatedAttributes
         }
 
-        let button = GradientButton(type: .system)
+        let button = UIButton(type: .system)
+        button.configuration = albumsButtonConfiguration
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.titleLabel?.font = .systemFont(ofSize: 14, weight: .medium)
-        button.setTitleColor(.white, for: .normal)
-        button.setImage(icon, for: .normal)
-        button.layer.cornerRadius = 15
-        button.layer.masksToBounds = true
-        button.layer.shadowColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.4).cgColor
-        button.layer.shadowOpacity = 1
+        button.setImage(UIImage(systemName: "chevron.down"), for: .normal)
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOpacity = 0.5
         button.layer.shadowRadius = 10
         button.layer.shadowOffset = CGSize(width: 0, height: 1)
-
-        if let background = button.layer as? CAGradientLayer {
-            background.colors = [
-              UIColor(red: 0.15, green: 0.15, blue: 0.15, alpha: 1).cgColor,
-              UIColor(red: 0.108, green: 0.108, blue: 0.108, alpha: 1).cgColor
-            ]
-            background.locations = [0, 1]
-            background.startPoint = CGPoint(x: 0.25, y: 0.5)
-            background.endPoint = CGPoint(x: 0.75, y: 0.5)
-        }
-
-        // keep image on the right & tappable
-        if case .rightToLeft = view.effectiveUserInterfaceLayoutDirection {
-            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -8, bottom: 0, right: 0)
-            button.semanticContentAttribute = .forceLeftToRight
-        } else {
-            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
-            button.semanticContentAttribute = .forceRightToLeft
-        }
-
-        button.contentEdgeInsets = UIEdgeInsets(top: 6, left: 24, bottom: 7, right: 28)
-        
         button.addTarget(self, action: #selector(openAlbumsAction), for: .touchUpInside)
 
         return button
@@ -443,7 +415,8 @@ class MediaPickerViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
 
-        collectionView.contentInset.top = albumsButton.isHidden ? 0 : albumsButton.convert(albumsButton.bounds, to: view).maxY - view.safeAreaInsets.top + 12
+        albumsButton.layer.shadowPath = UIBezierPath(roundedRect: albumsButton.bounds,
+                                                     cornerRadius: min(albumsButton.bounds.width, albumsButton.bounds.height) * 0.5).cgPath
     }
 
     override func viewWillAppear(_ animated: Bool) {
