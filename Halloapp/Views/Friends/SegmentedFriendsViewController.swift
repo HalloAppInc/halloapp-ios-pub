@@ -11,12 +11,12 @@ import CoreCommon
 
 extension SegmentedFriendsViewController {
 
-    private enum State {
+    enum State {
         case requests
         case friends
         case search
 
-        static var segmentedCases: [Self] {
+        fileprivate static var segmentedCases: [Self] {
             [.requests, .friends]
         }
     }
@@ -62,6 +62,15 @@ class SegmentedFriendsViewController: UIViewController {
         return searchBar
     }()
 
+    init(initialState: State = .requests) {
+        state = initialState
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init(coder: NSCoder) {
+        fatalError("SegmentedFriendsViewController coder init not implemented...")
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .feedBackground
@@ -96,12 +105,12 @@ class SegmentedFriendsViewController: UIViewController {
         }
 
         segmentedControl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
-        segmentedControl.selectedSegmentIndex = 0
+        segmentedControl.selectedSegmentIndex = State.segmentedCases.firstIndex(of: state) ?? 0
 
         navigationController?.navigationBar.tintColor = .primaryBlue
         searchBar.delegate = self
 
-        state = .requests
+        stateChanged()
     }
 
     @objc

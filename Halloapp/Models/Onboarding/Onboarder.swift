@@ -38,6 +38,8 @@ protocol Onboarder: OnboardingModel {
     static var doesRequireOnboarding: Bool { get }
 }
 
+// MARK: - Default implementations
+
 extension Onboarder {
 
     func nextViewController() -> UIViewController? {
@@ -47,5 +49,46 @@ extension Onboarder {
         }
 
         return viewController(for: next)
+    }
+}
+
+extension OnboardingModel {
+
+    var name: String? {
+        nil
+    }
+
+    var username: String? {
+        nil
+    }
+
+    var contactsSyncProgress: AsyncStream<Double> {
+        .init {
+            $0.finish()
+        }
+    }
+
+    var hasContactsPermission: Bool {
+        false
+    }
+
+    var friendSuggestions: [UserID] {
+        []
+    }
+
+    func set(countryCode: String, nationalNumber: String) {
+
+    }
+
+    func requestVerificationCode(byVoice: Bool) async throws -> TimeInterval {
+        .zero
+    }
+
+    func confirmVerificationCode(_ verificationCode: String, pushOS: String?) async throws {
+
+    }
+
+    func requestContactsPermission() async -> Bool {
+        false
     }
 }

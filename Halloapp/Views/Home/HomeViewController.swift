@@ -218,6 +218,23 @@ class HomeViewController: UITabBarController {
         }
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        if FriendsOnboarder.doesRequireOnboarding {
+            let onboarder = FriendsOnboarder { [weak self] in
+                self?.dismiss(animated: true)
+            }
+
+            if let viewController = onboarder.nextViewController() {
+                let navigationController = UINavigationController(rootViewController: viewController)
+                navigationController.modalPresentationStyle = .fullScreen
+
+                present(navigationController, animated: true)
+            }
+        }
+    }
+
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
