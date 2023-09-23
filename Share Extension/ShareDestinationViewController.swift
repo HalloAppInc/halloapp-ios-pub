@@ -19,7 +19,7 @@ private extension Localizations {
     }
 
     static var home: String {
-        NSLocalizedString("share.destination.home", value: "My Contacts", comment: "Share on the home feed label with all my contacts")
+        NSLocalizedString("share.destination.home", value: "My Friends", comment: "Share on the home feed label with all my friends")
     }
 
     static var contacts: String {

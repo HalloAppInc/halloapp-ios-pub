@@ -292,7 +292,7 @@ fileprivate class ContactsViewCell: UICollectionViewCell {
     }
 
     public func configure(count: Int) {
-        titleView.text = Localizations.contactsShare + " (\(count))"
+        titleView.text = Localizations.friendsShare + " (\(count))"
     }
 }
 
@@ -473,8 +473,8 @@ fileprivate class InvitesView: UICollectionReusableView {
     }
 }
 
-private extension Localizations {
-    static var contactsShare: String {
-        NSLocalizedString("composer.destination.contactsShare", value: "My Contacts", comment: "Share to all contacts")
+extension Localizations {
+    static var friendsShare: String {
+        NSLocalizedString("composer.destination.friendsShare", value: "My Friends", comment: "Share to all friends")
     }
 }

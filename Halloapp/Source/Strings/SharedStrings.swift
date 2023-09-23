@@ -157,8 +157,8 @@ extension Localizations {
 
     static var feedPrivacyShareWithAllContacts: String {
         return NSLocalizedString("feed.privacy.descr.all",
-                                 value: "Share with all my contacts",
-                                 comment: "Describes what 'All Contacts' feed privacy setting means.")
+                                 value: "Share with all my friends",
+                                 comment: "Describes what 'All Friends' feed privacy setting means.")
     }
 
     static var feedPrivacyShareWithContactsExcept: String {
@@ -169,8 +169,8 @@ extension Localizations {
 
     static var feedPrivacyShareWithSelected: String {
         return NSLocalizedString("feed.privacy.descr.only",
-                                 value: "Only share with selected contacts",
-                                 comment: "Describes what 'All Contacts' feed privacy setting means.")
+                                 value: "Only share with selected friends",
+                                 comment: "Describes what 'Favorites' feed privacy setting means.")
     }
 
     // MARK: Screen Titles

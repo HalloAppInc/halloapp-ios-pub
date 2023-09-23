@@ -181,7 +181,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
                 switch privacyListType {
                 case .all:
                     cell.configure(
-                        title: PrivacyList.name(forPrivacyListType: .all),
+                        title: Localizations.friendsShare,
                         subtitle: Localizations.feedPrivacyShareWithAllContacts,
                         privacyListType: .all,
                         isSelected: isSelected)

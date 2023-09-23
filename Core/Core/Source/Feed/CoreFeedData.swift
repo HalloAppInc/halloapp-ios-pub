@@ -248,19 +248,19 @@ open class CoreFeedData: NSObject {
 
             switch destination {
             case .feed(let privacyListType):
-                guard let postAudience = try? AppContext.shared.privacySettings.feedAudience(for: privacyListType) else {
+                guard let audienceType = AudienceType(rawValue: privacyListType.rawValue),
+                      let postAudience = UserProfile.users(in: privacyListType, in: managedObjectContext) else {
                     let error = PostError.missingFeedAudience
                     didCreatePost?(.failure(error))
                     didBeginUpload?(.failure(error))
                     return
                 }
-
                 let feedPostInfo = ContentPublishInfo(context: managedObjectContext)
-                let receipts = postAudience.userIds.reduce(into: [UserID : Receipt]()) { (receipts, userId) in
-                    receipts[userId] = Receipt()
+                let receipts = postAudience.reduce(into: [UserID : Receipt]()) { (receipts, profile) in
+                    receipts[profile.id] = Receipt()
                 }
                 feedPostInfo.receipts = receipts
-                feedPostInfo.audienceType = postAudience.audienceType
+                feedPostInfo.audienceType = audienceType
                 feedPost.info = feedPostInfo
             case .group(let groupId, _, _):
                 guard let chatGroup = self.chatData.chatGroup(groupId: groupId, in: managedObjectContext) else {
@@ -783,11 +783,9 @@ open class CoreFeedData: NSObject {
         var receipts = [FeedPostReceipt]()
 
         let fetchReceipts: (NSManagedObjectContext) -> Void = { managedObjectContext in
-            let contacts = self.contactStore.contacts(withUserIds: Array(seenReceipts.keys), in: managedObjectContext)
-            let contactsMap = contacts.reduce(into: [UserID: ABContact]()) { (map, contact) in
-                if let userID = contact.userId {
-                    map[userID] = contact
-                }
+            let profiles = UserProfile.find(with: Array(seenReceipts.keys), in: managedObjectContext)
+            let profilesMap = profiles.reduce(into: [UserID: UserProfile]()) { (map, profile) in
+                map[profile.id] = profile
             }
             let reactions: [UserID: String] = Dictionary(
                 feedPost.reactions?.compactMap { ($0.fromUserID, $0.emoji) } ?? [],
@@ -796,19 +794,15 @@ open class CoreFeedData: NSObject {
             for (userId, receipt) in seenReceipts {
                 guard let seenDate = receipt.seenDate else { continue }
 
-                var contactName: String?, phoneNumber: String?
-                if let contact = contactsMap[userId] {
-                    contactName = contact.fullName
-                    phoneNumber = contact.phoneNumber?.formattedPhoneNumber
-                }
-                if contactName == nil {
-                    contactName = UserProfile.find(with: userId, in: managedObjectContext)?.displayName
+                var profileName: String?
+                if let profile = profilesMap[userId] {
+                    profileName = profile.name
                 }
 
                 receipts.append(FeedPostReceipt(userId: userId,
                                                   type: .seen,
-                                           contactName: contactName,
-                                           phoneNumber: phoneNumber,
+                                           contactName: profileName,
+                                           phoneNumber: nil,
                                              timestamp: seenDate,
                                         savedTimestamp: receipt.savedDate,
                                    screenshotTimestamp: receipt.screenshotDate,
@@ -819,9 +813,9 @@ open class CoreFeedData: NSObject {
 
         // Optimization: if we're on the main thread, attempt to use the view context. This prevents us from being blocked by lengthy contact sync operations.
         if Thread.isMainThread {
-            fetchReceipts(contactStore.viewContext)
+            fetchReceipts(AppContext.shared.mainDataStore.viewContext)
         } else {
-            contactStore.performOnBackgroundContextAndWait(fetchReceipts)
+            AppContext.shared.mainDataStore.performOnBackgroundContextAndWait(fetchReceipts)
         }
 
         return receipts

@@ -24,4 +24,19 @@ extension UserProfile {
 
         return map
     }
+
+    public class func users(in privacyList: PrivacyListType, in context: NSManagedObjectContext) -> [UserProfile]? {
+        // TODO: migrate away from all of the PrivacyList stuff
+        let predicate: NSPredicate
+        switch privacyList {
+        case .all:
+            predicate = NSPredicate(format: "friendshipStatusValue == %d", UserProfile.FriendshipStatus.friends.rawValue)
+        case .whitelist:
+            predicate = NSPredicate(format: "friendshipStatusValue == %d AND isFavorite == YES", UserProfile.FriendshipStatus.friends.rawValue)
+        default:
+            return nil
+        }
+
+        return find(predicate: predicate, in: context)
+    }
 }
