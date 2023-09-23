@@ -169,20 +169,8 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate {
     }
     
     private func openFavorites() {
-        guard ContactStore.contactsAccessAuthorized else {
-            let vc = PrivacyPermissionDeniedController()
-            present(UINavigationController(rootViewController: vc), animated: true)
-            return
-        }
-        
-        let vc = ContactSelectionViewController.forPrivacyList(MainAppContext.shared.privacySettings.whitelist,
-                                                           in: MainAppContext.shared.privacySettings,
-                                                setActiveType: true,
-                                                   doneAction: { [weak self] in self?.dismiss(animated: true) },
-                                                dismissAction: nil)
-        
-        let nc = UINavigationController(rootViewController: vc)
-        present(nc, animated: true)
+        let viewController = FriendSelectionViewController(model: FavoritesSelectionModel())
+        present(viewController, animated: true)
     }
     
     private func openSettings() {
