@@ -728,6 +728,45 @@ open class ContactStore {
     }
 }
 
+// MARK: - Migration
+
+extension ContactStore {
+
+    public func nameInfoForMigration() -> [UserID: String] {
+        var result = [UserID: String]()
+        viewContext.performAndWait {
+            for contact in allRegisteredContacts(sorted: false, in: viewContext) {
+                guard let userID = contact.userId else {
+                    continue
+                }
+                result[userID] = contact.fullName ?? ""
+            }
+
+            for pushName in allPushNames(in: viewContext) {
+                guard let userID = pushName.userId, result[userID] == nil else {
+                    continue
+                }
+                result[userID] = pushName.name ?? ""
+            }
+        }
+
+        return result
+    }
+
+    private func allPushNames(in context: NSManagedObjectContext) -> [PushName] {
+        let request = PushName.fetchRequest()
+
+        do {
+            let pushNames = try context.fetch(request)
+            return pushNames
+        } catch {
+            DDLogError("ContactStore/allPushNames/fetch failed with error \(String(describing: error))")
+        }
+
+        return []
+    }
+}
+
 public extension Localizations {
     static var userYouCapitalized: String {
         NSLocalizedString("user.you.capitalized", value: "You", comment: "Capitalized reference to the user, second person pronoun")

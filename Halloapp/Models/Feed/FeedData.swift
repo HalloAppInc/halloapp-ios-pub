@@ -329,6 +329,43 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    // MARK: Friendship migration
+
+    func migrateFeedPostsToProfiles() throws {
+        try mainDataStore.saveSeriallyOnBackgroundContextAndWait { context in
+            DDLogInfo("FeedData/migrateFeedPostsToProfiles/begin")
+            connectPostsToProfiles(context)
+            DDLogInfo("FeedData/migrateFeedPostsToProfiles/finished")
+        }
+    }
+
+    private func connectPostsToProfiles(_ context: NSManagedObjectContext) {
+        let predicate = NSPredicate(format: "user == nil")
+        let posts = feedPosts(predicate: predicate, in: context)
+
+        posts.forEach { $0.user = UserProfile.findOrCreate(with: $0.userID, in: context) }
+    }
+
+    func migrateCommentsToProfiles() throws {
+        try mainDataStore.saveSeriallyOnBackgroundContextAndWait { context in
+            DDLogInfo("FeedData/migrateCommentsToProfiles/begin")
+            connectCommentsToProfiles(context)
+            DDLogInfo("FeedData/migrateCommentsToProfiles/finished")
+        }
+    }
+
+    private func connectCommentsToProfiles(_ context: NSManagedObjectContext) {
+        let request = FeedPostComment.fetchRequest()
+        request.predicate = NSPredicate(format: "user == nil")
+
+        do {
+            let comments = try context.fetch(request)
+            comments.forEach { $0.user = UserProfile.findOrCreate(with: $0.userID, in: context) }
+        } catch {
+            DDLogError("FeedData/connectCommentsToProfiles/fetch failed with error \(String(describing: error))")
+        }
+    }
+
     // MARK: Fetched Results Controller
 
     private func processUnsupportedItems() {

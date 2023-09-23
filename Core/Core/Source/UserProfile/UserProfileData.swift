@@ -221,10 +221,7 @@ public class UserProfileData: NSObject {
             service.friendList(action: type, cursor: cursor) { result in
                 switch result {
                 case .success(let response):
-                    let userProfiles = response.profiles
-                        .filter { $0.hasUserProfile }
-                        .map { $0.userProfile }
-
+                    let userProfiles = response.profiles.map { $0.userProfile }
                     continuation.resume(returning: (profiles: userProfiles, cursor: response.cursor))
                 case .failure(let error):
                     continuation.resume(throwing: error)
@@ -243,6 +240,49 @@ public class UserProfileData: NSObject {
             let userProfile = UserProfile.findOrCreate(with: userID, in: context)
             userProfile.name = name
             userProfile.username = username
+        }
+    }
+}
+
+// MARK: - Migration
+
+extension UserProfileData {
+
+    public func migrateRegisteredContacts(_ contactInfo: [UserID: String]) throws {
+        try mainDataStore.saveSeriallyOnBackgroundContextAndWait { context in
+            DDLogInfo("UserProfileData/migrateRegisteredContacts/begin")
+            for (id, name) in contactInfo {
+                migrateRegisteredContact(id, name, in: context)
+            }
+            DDLogInfo("UserProfileData/migrateRegisteredContacts/finished")
+        }
+    }
+
+    private func migrateRegisteredContact(_ id: UserID, _ name: String, in context: NSManagedObjectContext) {
+        let profile = UserProfile.findOrCreate(with: id, in: context)
+
+        if profile.name.isEmpty {
+            profile.name = name
+        }
+    }
+
+    public func migrateFavorites(_ favorites: [UserID]) throws {
+        try mainDataStore.saveSeriallyOnBackgroundContextAndWait { context in
+            DDLogInfo("UserProfileData/migrateFavorites/begin")
+            UserProfile.findOrCreate(with: favorites, in: context).forEach {
+                $0.isFavorite = true
+            }
+            DDLogInfo("UserProfileData/migrateFavorites/finished")
+        }
+    }
+
+    public func migrateAvatarIDs(_ avatarIDs: [UserID: AvatarID]) throws {
+        try mainDataStore.saveSeriallyOnBackgroundContextAndWait { context in
+            DDLogInfo("UserProfileData/migrate avatars/begin")
+            UserProfile.findOrCreate(with: Array(avatarIDs.keys), in: context).forEach {
+                $0.avatarID = avatarIDs[$0.id]
+            }
+            DDLogInfo("UserProfileData/migrate avatars/finished")
         }
     }
 }

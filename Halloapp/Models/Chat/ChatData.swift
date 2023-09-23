@@ -711,6 +711,23 @@ class ChatData: ObservableObject {
         }
     }
 
+    // MARK: Friendship migration
+
+    func migrateMessagesToProfiles() throws {
+        try mainDataStore.saveSeriallyOnBackgroundContextAndWait { context in
+            DDLogInfo("ChatData/migrateMessagesToProfiles/begin")
+            connectMessagesToProfiles(context)
+            DDLogInfo("ChatData/migrateMessagesToProfiles/finished")
+        }
+    }
+
+    private func connectMessagesToProfiles(_ context: NSManagedObjectContext) {
+        let predicate = NSPredicate(format: "user == nil")
+        let messages = chatMessages(predicate: predicate, in: context)
+
+        messages.forEach { $0.user = UserProfile.findOrCreate(with: $0.fromUserID, in: context) }
+    }
+
     public func recordNewChatEvent(userID: UserID, type: ChatEventType) {
         mainDataStore.saveSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }

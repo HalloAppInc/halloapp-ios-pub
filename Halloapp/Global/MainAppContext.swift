@@ -23,6 +23,7 @@ class MainAppContext: AppContext {
     private static let cryptoStatsDatabaseFilenameLegacy = "cryptoStats.sqlite"
     private static let uploadDatabaseFilenameLegacy = "upload.sqlite"
     private static let userDefaultsAppVersion = "com.halloapp.app.version"
+    private static let friendshipMigrationCompletionKey = "migration.friendship.completed"
 
     // MARK: Global objects
     private(set) var feedData: FeedData!
@@ -182,17 +183,24 @@ class MainAppContext: AppContext {
         // CoreData migrations (moving feed/chat to MainDataStore)
         let shouldMigrateFeedData = self.shouldMigrateFeedData
         let shouldMigrateChatData = self.shouldMigrateChatData
+        let shouldMigrateToFriends = self.shouldMigrateToFriends
 
-        if shouldMigrateFeedData || shouldMigrateChatData {
+        if shouldMigrateFeedData || shouldMigrateChatData || shouldMigrateToFriends {
             self.migrationInProgress.send(true)
-            DispatchQueue.main.async {
+            DispatchQueue.global(qos: .userInitiated).async {
                 if shouldMigrateFeedData {
                     self.migrateFeedData()
                 }
                 if shouldMigrateChatData {
                     self.migrateChatData()
                 }
-                self.migrationInProgress.send(false)
+                if shouldMigrateToFriends {
+                    self.migrateToFriends()
+                }
+                
+                DispatchQueue.main.async {
+                    self.migrationInProgress.send(false)
+                }
 
                 self.performAppUpdateMigrationIfNecessary()
                 self.migrateUploadDataIfNecessary()
@@ -341,6 +349,49 @@ class MainAppContext: AppContext {
         } catch {
             errorLogger?.logError(error)
             DDLogError("MainAppContext/migrateChatData/failed [\(error)]")
+        }
+    }
+
+    var shouldMigrateToFriends: Bool {
+        !Self.userDefaultsForAppGroup.bool(forKey: Self.friendshipMigrationCompletionKey)
+        && userData.isLoggedIn
+        && userData.username.isEmpty
+    }
+
+    private func migrateToFriends() {
+        DDLogInfo("MainAppContext/migrateToFriends/starting")
+        do {
+            var nameInfo = [UserID: String]()
+            autoreleasepool {
+                // registered contacts and pushnames will become profiles
+                nameInfo = contactStore.nameInfoForMigration()
+            }
+            try autoreleasepool {
+                try userProfileData.migrateRegisteredContacts(nameInfo)
+            }
+            try autoreleasepool {
+                let userIDs = Set(nameInfo.keys)
+                let avatarIDs = avatarStore.avatarIDs(forUserIDs: userIDs)
+                try userProfileData.migrateAvatarIDs(avatarIDs)
+            }
+            try autoreleasepool {
+                let favorites = privacySettings.whitelist.userIds
+                try userProfileData.migrateFavorites(favorites)
+            }
+            try autoreleasepool {
+                try feedData.migrateFeedPostsToProfiles()
+            }
+            try autoreleasepool {
+                try feedData.migrateCommentsToProfiles()
+            }
+            try autoreleasepool {
+                try chatData.migrateMessagesToProfiles()
+            }
+            Self.userDefaultsForAppGroup.set(true, forKey: Self.friendshipMigrationCompletionKey)
+            DDLogInfo("MainAppContext/migrateToFriends/finished successfully")
+        } catch {
+            errorLogger?.logError(error)
+            DDLogError("MainAppContext/migrateToFriends/failed [\(String(describing: error))]")
         }
     }
 
