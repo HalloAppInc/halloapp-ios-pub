@@ -124,14 +124,18 @@ struct ActivityCenterItem: Hashable {
         let authorRange = (result.string as NSString).range(of: "<$author$>")
         if authorRange.location != NSNotFound {
             let authorUserID = MainAppContext.shared.feedData.feedPost(with: notifications[0].postID, in: MainAppContext.shared.feedData.viewContext)?.userId
-            let authorName = MainAppContext.shared.contactStore.fullName(for: authorUserID ?? "", in: contactsViewContext)
+            let authorName = authorUserID.flatMap {
+                UserProfile.find(with: $0, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName
+            } ?? ""
             let author = NSAttributedString(string: authorName, attributes: [ .font: boldFont ])
             result.replaceCharacters(in: authorRange, with: author)
         }
 
         let commenterRange = (result.string as NSString).range(of: "<$user$>")
         if commenterRange.location != NSNotFound {
-            let commenterName = MainAppContext.shared.contactStore.fullName(for: notifications.first?.userID ?? "", in: contactsViewContext)
+            let commenterName = notifications.first.flatMap {
+                UserProfile.find(with: $0.userID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName
+            } ?? ""
             let commenter = NSAttributedString(string: commenterName, attributes: [ .font: boldFont ])
             result.replaceCharacters(in: commenterRange, with: commenter)
         }

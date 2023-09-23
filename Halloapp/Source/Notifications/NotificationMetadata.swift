@@ -634,16 +634,13 @@ class NotificationMetadata: Codable {
 
         // Collect names for batching.
         contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-            for moment in moments.reversed() {
-                guard let name = contactStore.fullNameIfAvailable(for: moment.userId, ownName: nil, in: managedObjectContext),
-                      !name.isEmpty else
-                {
-                    continue
+            contactNames = moments.lazy.reversed()
+                .compactMap { UserProfile.find(with: $0.userId, in: managedObjectContext)?.displayName }
+                .filter { !$0.isEmpty }
+                .reduce(into: Set<String>()) {
+                    $0.insert($1)
                 }
-                if !contactNames.contains(name) {
-                    contactNames.append(name)
-                }
-            }
+                .map { $0 }
         }
 
         // Populate the batched notification title, subtitle and body.
@@ -682,8 +679,8 @@ class NotificationMetadata: Codable {
         // "Contact @ Group" for group feed posts / comments and group chat messages.
 
         var contactName: String?
-        contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-            contactName = contactStore.fullNameIfAvailable(for: fromId, ownName: nil, in: managedObjectContext) ?? self.pushName
+        AppContext.shared.mainDataStore.performOnBackgroundContextAndWait { context in
+            contactName = UserProfile.find(with: fromId, in: context)?.displayName ?? self.pushName
         }
 
         title = [contactName, groupName].compactMap({ $0 }).joined(separator: " @ ")
@@ -839,7 +836,7 @@ class NotificationMetadata: Codable {
 
     func populateMissedVoiceCallContent(contactStore: ContactStore) {
         contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-            self.title = contactStore.fullNameIfAvailable(for: fromId, ownName: nil, showPushNumber: true, in: managedObjectContext) ?? Localizations.unknownContact
+            self.title = UserProfile.find(with: fromId, in: managedObjectContext)?.displayName ?? Localizations.unknownContact
         }
 
         body = Localizations.newMissedVoiceCallNotificationBody
@@ -847,14 +844,14 @@ class NotificationMetadata: Codable {
 
     func populateMissedVideoCallContent(contactStore: ContactStore) {
         contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-            self.title = contactStore.fullNameIfAvailable(for: fromId, ownName: nil, showPushNumber: true, in: managedObjectContext) ?? Localizations.unknownContact
+            self.title = UserProfile.find(with: fromId, in: managedObjectContext)?.displayName ?? Localizations.unknownContact
         }
         body = Localizations.newMissedVideoCallNotificationBody
     }
 
     func populateScreenshotContent(contactStore: ContactStore) {
         contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-            let name = contactStore.fullNameIfAvailable(for: fromId, ownName: nil, in: managedObjectContext) ?? Localizations.unknownContact
+            let name = UserProfile.find(with: fromId, in: managedObjectContext)?.displayName ?? Localizations.unknownContact
             self.title = ""
             self.body = String(format: Localizations.momentScreenshotNotificationTitle, name)
         }

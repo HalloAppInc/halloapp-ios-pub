@@ -9,7 +9,7 @@
 
 import Foundation
 import CoreData
-
+import CoreCommon
 
 extension UserProfile {
 
@@ -32,4 +32,15 @@ extension UserProfile {
 
 extension UserProfile: Identifiable {
 
+}
+
+extension UserProfile {
+
+    public var displayName: String {
+        guard id != AppContext.shared.userData.userId else {
+            return Localizations.meCapitalized
+        }
+
+        return name
+    }
 }

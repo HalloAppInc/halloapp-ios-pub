@@ -140,8 +140,7 @@ extension FeedPost: FeedPostDisplayable {
     }
 
     var posterFullName: String {
-        return MainAppContext.shared.contactStore.fullName(for: userID,
-                                                           in: MainAppContext.shared.contactStore.viewContext)
+        user.name
     }
 
     var uploadProgressPublisher: AnyPublisher<Float, Never> {

@@ -653,7 +653,7 @@ private extension ContactTableViewCell {
         options.insert(.hasCheckmark)
         options.insert(.useBlueCheckmark)
 
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
+        nameLabel.text = UserProfile.find(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName
 
         if userID == MainAppContext.shared.userData.userId {
             subtitleLabel.text = MainAppContext.shared.userData.formattedPhoneNumber

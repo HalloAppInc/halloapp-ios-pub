@@ -978,8 +978,8 @@ extension FeedCollectionViewController {
                 description = Localizations.favoritesDescriptionOwn
             } else {
                 let format = Localizations.favoritesDescriptionNotOwn
-                let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-                description = String(format: format, MainAppContext.shared.contactStore.fullName(for: feedPost.userId, in: contactsViewContext))
+                let name = feedPost.user.displayName
+                description = String(format: format, name)
             }
            let alert = UIAlertController(title: Localizations.favoritesTitle, message: description, preferredStyle: .alert)
             alert.view.tintColor = .primaryBlue
@@ -1126,7 +1126,7 @@ extension FeedCollectionViewController {
     }
 
     private func handleReportPost(_ post: FeedPost) {
-        let name = MainAppContext.shared.contactStore.fullName(for: post.userId, in: MainAppContext.shared.contactStore.viewContext)
+        let name = post.user.displayName
         let title = Localizations.reportPost
         let message = String(format: Localizations.reportPostMessage, name)
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)

@@ -802,7 +802,7 @@ open class CoreFeedData: NSObject {
                     phoneNumber = contact.phoneNumber?.formattedPhoneNumber
                 }
                 if contactName == nil {
-                    contactName = self.contactStore.fullName(for: userId, in: managedObjectContext)
+                    contactName = UserProfile.find(with: userId, in: managedObjectContext)?.displayName
                 }
 
                 receipts.append(FeedPostReceipt(userId: userId,

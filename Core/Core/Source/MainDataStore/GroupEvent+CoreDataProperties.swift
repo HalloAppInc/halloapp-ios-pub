@@ -97,12 +97,13 @@ public extension GroupEvent {
                 return .you
             }
 
-            var name = ""
-            AppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-                name = AppContext.shared.contactStore.fullName(for: userId, in: managedObjectContext)
+            let name = managedObjectContext.flatMap { context in
+                context.performAndWait {
+                    UserProfile.findOrCreate(with: userId, in: context).displayName
+                }
             }
 
-            return .other(name)
+            return .other(name ?? "")
         }
     }
 
@@ -113,12 +114,11 @@ public extension GroupEvent {
                 return Localizations.userYou
             }
 
-            var name = ""
-            AppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-                name = AppContext.shared.contactStore.fullName(for: userId, in: managedObjectContext)
+            return managedObjectContext.flatMap { context in
+                context.performAndWait {
+                    UserProfile.findOrCreate(with: userId, in: context).displayName
+                }
             }
-
-            return name
         }
     }
 

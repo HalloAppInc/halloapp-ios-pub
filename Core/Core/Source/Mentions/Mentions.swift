@@ -39,7 +39,7 @@ public final class Mentions {
             }
         }
 
-        return AppContext.shared.contactStore.fullNames(forUserIds: allContactIDs)
+        return UserProfile.names(from: allContactIDs, in: AppContext.shared.mainDataStore.viewContext)
             .map { MentionableUser(userID: $0.key, fullName: $0.value) }
             .sorted { m1, m2 in m1.fullName < m2.fullName }
     }

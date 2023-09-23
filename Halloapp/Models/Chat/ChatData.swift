@@ -448,12 +448,15 @@ class ChatData: ObservableObject {
         cancellableSet.insert(contactStore.didDiscoverNewUsers.sink { [weak self] (userIDs) in
             DDLogInfo("ChatData/sink/didDiscoverNewUsers/count: \(userIDs.count)")
 
-            contactStore.performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
-                var contactsDict = [UserID:String]()
-                userIDs.forEach {
-                    contactsDict[$0] = contactStore.fullName(for: $0, in: managedObjectContext)
+            mainDataStore.performSeriallyOnBackgroundContext { context in
+                guard let self else {
+                    return
                 }
-                self?.updateThreadsWithDiscoveredUsers(for: contactsDict)
+
+                let dict = userIDs.reduce(into: [UserID: String]()) {
+                    $0[$1] = UserProfile.find(with: $1, in: context)?.displayName ?? ""
+                }
+                self.updateThreadsWithDiscoveredUsers(for: dict)
             }
         })
 
@@ -1009,11 +1012,7 @@ class ChatData: ObservableObject {
                 thread.isNew = true
             } else {
                 DDLogInfo("ChatData/updateThreadWithInvitedUserPreview/new thread, userID: /\(userID)")
-
-                var fullName = ""
-                MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in
-                    fullName = MainAppContext.shared.contactStore.fullName(for: userID, in: contactsManagedObjectContext)
-                }
+                let fullName = UserProfile.find(with: userID, in: managedObjectContext)?.name ?? ""
 
                 let chatThread = ChatThread(context: managedObjectContext)
                 chatThread.title = fullName
@@ -1984,7 +1983,7 @@ extension ChatData {
         case .groupChat:
             chatStateList = chatStateInfoList.filter { $0.threadType == .groupChat && $0.threadID == id && $0.from == fromUserID}
             if let fromUserID = fromUserID {
-                let name = MainAppContext.shared.contactStore.fullName(for: fromUserID, in: MainAppContext.shared.contactStore.viewContext)
+                let name = UserProfile.find(with: fromUserID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
                 typingStr = Localizations.userChatTyping(name: name)
             }
         }
@@ -3479,10 +3478,11 @@ extension ChatData {
         } else {
             commonReaction.timestamp = Date()
         }
-        
+
+        let fromUserID = commonReaction.fromUserID
         var fromUserName = ""
-        MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in
-            fromUserName = MainAppContext.shared.contactStore.fullName(for: commonReaction.fromUserID, in: contactsManagedObjectContext)
+        mainDataStore.performOnBackgroundContextAndWait { context in
+            fromUserName = UserProfile.find(with: fromUserID, in: context)?.displayName ?? ""
         }
         var reactionText = String(format: Localizations.chatListUserReactedMessage, fromUserName, commonReaction.emoji)
         if let message = commonReaction.message {
@@ -3729,10 +3729,11 @@ extension ChatData {
             commonReaction.incomingStatus = .retracted
 
             self.deleteReaction(commonReaction: commonReaction)
-            
+
+            let fromUserID = commonReaction.fromUserID
             var fromUserName = ""
-            MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in
-                fromUserName = MainAppContext.shared.contactStore.fullName(for: commonReaction.fromUserID, in: contactsManagedObjectContext)
+            mainDataStore.performOnBackgroundContextAndWait { context in
+                fromUserName = UserProfile.find(with: fromUserID, in: context)?.displayName ?? ""
             }
             var reactionText = String(format: Localizations.chatListUserDeletedReactionMessage, fromUserName, commonReaction.emoji)
             if let message = commonReaction.message {
@@ -3953,7 +3954,7 @@ extension ChatData {
         let userID = xmppChatMessage.fromUserId
         let messageID = xmppChatMessage.id
         
-        let name = contactStore.fullName(for: userID, in: contactStore.viewContext)
+        let name = UserProfile.find(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName
         var groupName: String? = nil
         if let groupId = xmppChatMessage.chatMessageRecipient.toGroupId {
             groupName = chatGroup(groupId: groupId, in: viewContext)?.name
@@ -4942,7 +4943,7 @@ extension ChatData {
         guard let userID = xmppGroup.sender else { return }
         guard let messageID = xmppGroup.messageId else { return }
         let groupName = xmppGroup.name
-        let name = contactStore.fullName(for: userID, in: contactStore.viewContext)
+        let name = UserProfile.find(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
 
         let title = "\(name) @ \(groupName)"
         let body = Localizations.groupsAddNotificationBody

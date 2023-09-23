@@ -424,10 +424,10 @@ final class CallManager: NSObject, CXProviderDelegate {
     }
 
     public func peerName(for peerUserID: UserID) -> String {
-        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+        let viewContext = MainAppContext.shared.mainDataStore.viewContext
         var peerName: String = Localizations.unknownContact
-        contactsViewContext.performAndWait {
-            peerName = MainAppContext.shared.contactStore.fullNameIfAvailable(for: peerUserID, ownName: nil, showPushNumber: true, in: contactsViewContext) ?? Localizations.unknownContact
+        viewContext.performAndWait {
+            peerName = UserProfile.find(with: peerUserID, in: viewContext)?.displayName ?? Localizations.unknownContact
         }
         return peerName
     }

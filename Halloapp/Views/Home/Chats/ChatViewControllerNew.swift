@@ -339,7 +339,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                 case .chatEvent(let chatEventData):
                     guard let self = self, let chatEvent = self.chatEventFetchedResultsController?.optionalObjectfor(at: chatEventData.indexPath) as? ChatEvent else { break }
                     if (chatEvent.type == .whisperKeysChange || chatEvent.type == .blocked || chatEvent.type == .unblocked), let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChatViewControllerNew.messageCellViewEventReuseIdentifier, for: indexPath) as? MessageCellViewEvent {
-                        let fullname = MainAppContext.shared.contactStore.fullName(for: chatEvent.userID, in: MainAppContext.shared.contactStore.viewContext)
+                        let fullname = UserProfile.findOrCreate(with: chatEvent.userID, in: AppContext.shared.mainDataStore.viewContext).displayName
                         switch chatEvent.type {
                         case .whisperKeysChange:
                             cell.configure(chatLogEventType: .whisperKeysChange, userID: chatEvent.userID)
@@ -585,7 +585,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
     init(for fromUserId: String, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0) {
         let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-        DDLogDebug("ChatViewControllerNew/init/\(fromUserId) [\(MainAppContext.shared.contactStore.fullName(for: fromUserId, in: contactsViewContext))]/feedpostId: \(feedPostId ?? "")/feedPostMediaIndex: \(feedPostMediaIndex)")
+        DDLogDebug("ChatViewControllerNew/init/\(fromUserId) [\(UserProfile.findOrCreate(with: fromUserId, in: AppContext.shared.mainDataStore.viewContext).displayName)]/feedpostId: \(feedPostId ?? "")/feedPostMediaIndex: \(feedPostMediaIndex)")
         self.fromUserId = fromUserId
         self.feedPostId = feedPostId
         self.feedPostMediaIndex = feedPostMediaIndex
@@ -1185,7 +1185,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             self.dismiss(animated: true)
             guard let userID = self.fromUserId else { return }
             let viewContext = MainAppContext.shared.contactStore.viewContext
-            let blockMessage = Localizations.blockMessage(username: MainAppContext.shared.contactStore.fullName(for: userID, in: viewContext))
+            let blockMessage = Localizations.blockMessage(username: UserProfile.findOrCreate(with: userID, in: MainAppContext.shared.mainDataStore.viewContext).displayName)
 
             let alert = UIAlertController(title: nil, message: blockMessage, preferredStyle: .actionSheet)
             let button = UIAlertAction(title: Localizations.blockButton, style: .destructive) { [weak self] _ in
@@ -1702,11 +1702,14 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
 
             present(controller, animated: true)
         } else if message.orderedMedia.count > 1 {
-            guard let userID = fromUserId else { return }
-            let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-            let controller = ChatMediaListViewController(name: MainAppContext.shared.contactStore.fullName(for: userID, in: contactsViewContext), message: message, index: index)
-            controller.animatorDelegate = self
+            guard let fromUserId else {
+                return
+            }
+            let controller = ChatMediaListViewController(name: UserProfile.findOrCreate(with: fromUserId, in: MainAppContext.shared.mainDataStore.viewContext).displayName,
+                                                         message: message,
+                                                         index: index)
 
+            controller.animatorDelegate = self
             present(controller.withNavigationController(), animated: true)
         }
     }
@@ -2087,7 +2090,7 @@ fileprivate class QuotedItemPanel: UIView, InputContextPanel {
             return
         }
 
-        quoteFeedPanelNameLabel.text = MainAppContext.shared.contactStore.fullName(for: postInfo.userID, in: MainAppContext.shared.contactStore.viewContext)
+        quoteFeedPanelNameLabel.text = UserProfile.find(with: postInfo.userID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName
         let ham = HAMarkdown(font: UIFont.preferredFont(forTextStyle: .subheadline), color: UIColor.secondaryLabel)
         quoteFeedPanelTextLabel.attributedText = ham.parse(postInfo.text)
 

@@ -317,7 +317,7 @@ class QuotedMessageCellView: UIView {
     }
 
     private func setNameLabel(for userID: String, userColorAssignment: UIColor? = nil) {
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
+        nameLabel.text = UserProfile.findOrCreate(with: userID, in: AppContext.shared.mainDataStore.viewContext).displayName
         if let userColorAssignment = userColorAssignment {
             nameLabel.textColor = userColorAssignment.withAlphaComponent(0.8)
         }

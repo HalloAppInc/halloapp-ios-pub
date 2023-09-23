@@ -887,7 +887,7 @@ public final class WebClientManager {
     // MARK: DisplayInfo
 
     func userDisplayInfo(for userIDs: Set<UserID>) -> [Web_UserDisplayInfo] {
-        let contactNames = AppContext.shared.contactStore.fullNames(forUserIds: userIDs)
+        let contactNames = UserProfile.names(from: userIDs, in: dataStore.viewContext)
         let avatarIDs = AppContext.shared.avatarStore.avatarIDs(forUserIDs: userIDs)
 
         return userIDs.compactMap {

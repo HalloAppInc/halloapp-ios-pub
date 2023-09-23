@@ -25,12 +25,15 @@ extension Mentions {
             contactSet.insert(post.userId)
         } else {
             // If user is the post owner: we can mention everyone in the post audience since they should be able to see our post.
-            // Fallback to all contacts if audience is nil.
+            // Fallback to all friends if audience is nil.
             if let audience = post.audience {
                 contactSet.formUnion(audience.userIds)
             } else {
-                MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-                    contactSet.formUnion(MainAppContext.shared.contactStore.allRegisteredContactIDs(in: managedObjectContext))
+                MainAppContext.shared.mainDataStore.performOnBackgroundContextAndWait { managedObjectContext in
+                    let predicate = NSPredicate(format: "friendshipStatusValue == %d", UserProfile.FriendshipStatus.friends.rawValue)
+                    let friends = UserProfile.find(predicate: predicate, in: managedObjectContext)
+
+                    contactSet.formUnion(friends.map { $0.id })
                 }
             }
         }
@@ -47,7 +50,7 @@ extension Mentions {
         // Disallow self mentions
         contactSet.remove(MainAppContext.shared.userData.userId)
 
-        let fullNames = MainAppContext.shared.contactStore.fullNames(forUserIds: contactSet)
+        let fullNames = UserProfile.names(from: contactSet, in: managedObjectContext)
 
         return fullNames
             .map { MentionableUser(userID: $0.key, fullName: $0.value) }
@@ -58,7 +61,7 @@ extension Mentions {
         guard let members = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: managedObjectContext)?.members else { return [] }
         var contactSet = Set(members.map { $0.userID })
         contactSet.remove(MainAppContext.shared.userData.userId)
-        let fullNames = MainAppContext.shared.contactStore.fullNames(forUserIds: contactSet)
+        let fullNames = UserProfile.names(from: contactSet, in: managedObjectContext)
         return fullNames
             .map { MentionableUser(userID: $0.key, fullName: $0.value) }
             .sorted { m1, m2 in m1.fullName < m2.fullName }

@@ -151,7 +151,7 @@ class ChatTitleView: UIView {
     }
     
     private func setNameLabel(for userID: UserID) {
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
+        nameLabel.text = UserProfile.findOrCreate(with: userID, in: MainAppContext.shared.mainDataStore.viewContext).displayName
     }
 
     private func setNameLabel(groupId: GroupID) {

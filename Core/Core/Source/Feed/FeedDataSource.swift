@@ -420,7 +420,7 @@ public extension FeedDataSource {
         fetchRequest.predicate = NSPredicate(format: "(groupID == nil || statusValue != %d) && (expiration >= now() || expiration == nil) && fromExternalShare == NO",
                                              FeedPost.Status.retracted.rawValue)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
-        fetchRequest.relationshipKeyPathsForPrefetching = ["mentions", "media", "linkPreviews"]
+        fetchRequest.relationshipKeyPathsForPrefetching = ["user", "mentions", "media", "linkPreviews"]
         return fetchRequest
     }
 

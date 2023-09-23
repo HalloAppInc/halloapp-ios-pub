@@ -414,7 +414,7 @@ extension GroupsInCommonViewController: UISearchResultsUpdating {
             if ($0.type == .groupFeed || $0.type == .groupChat) {
                 titleText = $0.title
             } else {
-                titleText = MainAppContext.shared.contactStore.fullName(for: $0.userID ?? "", in: MainAppContext.shared.contactStore.viewContext)
+                titleText = UserProfile.find(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName
             }
 
             guard let title = titleText else { return false }

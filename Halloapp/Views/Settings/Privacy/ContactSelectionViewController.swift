@@ -721,7 +721,7 @@ class ContactSelectionManager {
                     searchTokens: $0.searchTokens)
             }
         let unknownUserIDs = initialSelection.subtracting(uniqueUserIDs)
-        let namesForUnknownContacts = MainAppContext.shared.contactStore.fullNames(forUserIds: unknownUserIDs)
+        let namesForUnknownContacts = UserProfile.names(from: unknownUserIDs, in: MainAppContext.shared.mainDataStore.viewContext)
         allContacts += unknownUserIDs.map {
             SelectableContact(userID: $0, name: namesForUnknownContacts[$0] ?? Localizations.unknownContact)
         }

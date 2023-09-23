@@ -43,7 +43,7 @@ class ContentTextView: UITextView {
         get { return MentionText(expandedText: text, mentionRanges: mentions) }
         set {
             let textAndMentions = newValue.expandedTextAndMentions {
-                MainAppContext.shared.contactStore.fullName(for: $0, in: MainAppContext.shared.contactStore.viewContext)
+                UserProfile.find(with: $0, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName ?? Localizations.unknownContact
             }
             
             text = textAndMentions.text.string

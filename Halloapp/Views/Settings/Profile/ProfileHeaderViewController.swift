@@ -90,7 +90,7 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
     func configureOrRefresh(userID: UserID) {
         headerView.userID = userID
         headerView.avatarViewButton.avatarView.configure(with: userID, using: MainAppContext.shared.avatarStore)
-        headerView.name = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
+        headerView.name = UserProfile.find(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName
 
         let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID, in: MainAppContext.shared.contactStore.viewContext)
 

@@ -75,7 +75,7 @@ private class ReactionTableViewCell: ContactTableViewCell {
 
         contactImage.configure(with: reaction.fromUserID, using: avatarStore)
 
-        nameLabel.text = contactStore.fullName(for: reaction.fromUserID, in: contactStore.viewContext)
+        nameLabel.text = UserProfile.findOrCreate(with: reaction.fromUserID, in: MainAppContext.shared.mainDataStore.viewContext).displayName
         accessoryLabel.text = reaction.emoji
     }
 }
@@ -296,7 +296,7 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         case .receipt(let receipt):
             guard receipt.type != .placeholder else { break }
             let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-            let contactName = MainAppContext.shared.contactStore.fullName(for: receipt.userId, in: contactsViewContext)
+            let contactName = UserProfile.findOrCreate(with: receipt.userId, in: MainAppContext.shared.mainDataStore.viewContext).displayName
             let isUserAContact = MainAppContext.shared.contactStore.isContactInAddressBook(userId: receipt.userId, in: contactsViewContext)
 
             let actionSheet = UIAlertController(title: contactName, message: nil, preferredStyle: .actionSheet)

@@ -344,9 +344,7 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         uploadProgressCancellables.removeAll()
 
         let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-        nameLabel.text = MainAppContext.shared.contactStore.fullNameIfAvailable(for: post.userID,
-                                                                                ownName: Localizations.meCapitalized,
-                                                                                in: contactsViewContext) ?? Localizations.unknownContact
+        nameLabel.text = post.user.displayName
 
         progressView.cancelAction = { MainAppContext.shared.feedData.cancelMediaUpload(postId: postID) }
         progressView.deleteAction = { MainAppContext.shared.feedData.deleteUnsentPost(postID: postID) }

@@ -181,7 +181,7 @@ class MessageCommentHeaderView: UICollectionReusableView {
     func configure(withPost feedPost: FeedPost) {
         self.feedPost = feedPost
         // Contact name
-        contactNameLabel.text = MainAppContext.shared.contactStore.fullName(for: feedPost.userId, in: MainAppContext.shared.contactStore.viewContext)
+        contactNameLabel.text = feedPost.user.displayName
         // Timestamp
         timestampLabel.text = feedPost.timestamp.feedTimestamp()
         // Avatar

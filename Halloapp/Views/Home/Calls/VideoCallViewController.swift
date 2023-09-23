@@ -65,9 +65,8 @@ class VideoCallViewController: CallViewController {
     }()
 
     private lazy var peerNameLabel: UILabel = {
-        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
         let peerNameLabel = UILabel()
-        peerNameLabel.text = MainAppContext.shared.contactStore.fullName(for: peerUserID, showPushNumber: true, in: contactsViewContext)
+        peerNameLabel.text = UserProfile.find(with: peerUserID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName
         peerNameLabel.font = .systemFont(ofSize: 30)
         peerNameLabel.textColor = .white
         peerNameLabel.adjustsFontSizeToFitWidth = true

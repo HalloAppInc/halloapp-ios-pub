@@ -319,7 +319,7 @@ class AudioCallViewController: CallViewController {
 
         // Text Label
         let peerNameLabel = UILabel()
-        peerNameLabel.text = MainAppContext.shared.contactStore.fullName(for: peerUserID, showPushNumber: true, in: MainAppContext.shared.contactStore.viewContext)
+        peerNameLabel.text = UserProfile.find(with: peerUserID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName
         peerNameLabel.font = .systemFont(ofSize: 30)
         peerNameLabel.textColor = .white
         peerNameLabel.adjustsFontSizeToFitWidth = true

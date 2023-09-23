@@ -122,10 +122,10 @@ extension UserActionHandler where Self: UIViewController {
     
     private func verifySafetyNumber(userID: UserID, contactData: SafetyNumberData, bundle: UserKeyBundle) {
         let current = SafetyNumberData(userID: MainAppContext.shared.userData.userId, identityKey: bundle.identityPublicKey)
-        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
+        let name = UserProfile.find(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
         let vc = SafetyNumberViewController(currentUser: current,
                                                 contact: contactData,
-                                            contactName: MainAppContext.shared.contactStore.fullName(for: userID, in: contactsViewContext),
+                                            contactName: name,
                                           dismissAction: { [weak self] in
             self?.dismiss(animated: true)
         })
@@ -146,8 +146,8 @@ extension UserActionHandler where Self: UIViewController {
             return MainAppContext.shared.privacySettings.block(userID: userID)
         }
 
-        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-        let blockMessage = Localizations.blockMessage(username: MainAppContext.shared.contactStore.fullName(for: userID, in: contactsViewContext))
+        let name = UserProfile.find(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
+        let blockMessage = Localizations.blockMessage(username: name)
         let alert = UIAlertController(title: nil, message: blockMessage, preferredStyle: .actionSheet)
         let blockButon = UIAlertAction(title: Localizations.blockButton, style: .destructive) { _ in
             MainAppContext.shared.privacySettings.block(userID: userID)
@@ -161,8 +161,8 @@ extension UserActionHandler where Self: UIViewController {
     }
     
     private func unblock(userID: UserID) {
-        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-        let unblockMessage = Localizations.unBlockMessage(username: MainAppContext.shared.contactStore.fullName(for: userID, in: contactsViewContext))
+        let name = UserProfile.find(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
+        let unblockMessage = Localizations.unBlockMessage(username: name)
         let alert = UIAlertController(title: nil, message: unblockMessage, preferredStyle: .actionSheet)
         let unblockButton = UIAlertAction(title: Localizations.unBlockButton, style: .default) { _ in
             MainAppContext.shared.privacySettings.unblock(userID: userID)
@@ -176,7 +176,7 @@ extension UserActionHandler where Self: UIViewController {
     }
 
     private func report(userID: UserID) {
-        let name = MainAppContext.shared.contactStore.fullName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
+        let name = UserProfile.find(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
         let title = String(format: Localizations.reportUserTitle, name)
         let message = String(format: Localizations.reportUserMessage, name)
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)

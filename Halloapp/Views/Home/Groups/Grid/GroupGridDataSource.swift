@@ -163,7 +163,7 @@ class GroupGridDataSource: NSObject {
             } else {
                 let memberUserIDs = MainAppContext.shared.chatData.chatGroupMemberUserIDs(groupID: group.id,
                                                                                           in: MainAppContext.shared.chatData.viewContext)
-                let matchingMemberUserIDs = MainAppContext.shared.contactStore.fullNames(forUserIds: Set(memberUserIDs))
+                let matchingMemberUserIDs = UserProfile.names(from: Set(memberUserIDs), in: MainAppContext.shared.mainDataStore.viewContext)
                     .filter { $0.value.localizedCaseInsensitiveContains(searchText) }
                     .map { $0.key }
 

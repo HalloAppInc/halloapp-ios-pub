@@ -260,8 +260,8 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
     }
 
     private func sortByFullName(this: GroupMember, that: GroupMember) -> Bool {
-        let thisName = MainAppContext.shared.contactStore.fullName(for: this.userID, in: MainAppContext.shared.contactStore.viewContext)
-        let thatName = MainAppContext.shared.contactStore.fullName(for: that.userID, in: MainAppContext.shared.contactStore.viewContext)
+        let thisName = UserProfile.find(with: this.userID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
+        let thatName = UserProfile.find(with: that.userID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
         return thisName < thatName
     }
 
@@ -701,7 +701,7 @@ extension GroupInfoViewController: UITableViewDelegate {
                     return deselectRow()
                 }
 
-                let userName = MainAppContext.shared.contactStore.fullName(for: memberUserID, in: MainAppContext.shared.contactStore.viewContext)
+                let userName = UserProfile.find(with: memberUserID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName
                 let contactsViewContext = MainAppContext.shared.contactStore.viewContext
                 let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: memberUserID, in: contactsViewContext)
                 let selectedMembers = [memberUserID]
@@ -1256,7 +1256,7 @@ private extension ContactTableViewCell {
     func configure(groupID: GroupID, memberUserID: UserID) {
         contactImage.configure(with: memberUserID, using: MainAppContext.shared.avatarStore)
         nameLabel.font = UIFont.systemFont(forTextStyle: .body, maximumPointSize: Constants.MaxFontPointSize)
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: memberUserID, in: MainAppContext.shared.contactStore.viewContext)
+        nameLabel.text = UserProfile.find(with: memberUserID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName
         if let member = MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: memberUserID, in: MainAppContext.shared.chatData.viewContext) {
             accessoryLabel.text = member.type == .admin ? Localizations.chatGroupInfoAdminLabel : ""
         }

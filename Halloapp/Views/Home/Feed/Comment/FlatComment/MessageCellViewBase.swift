@@ -413,8 +413,8 @@ class MessageCellViewBase: UICollectionViewCell {
         contentView.addGestureRecognizer(longPressGesture)
         let listReactions = UITapGestureRecognizer(target: self, action: #selector(showReactionList(_:)))
         reactionBubble.addGestureRecognizer(listReactions)
-        if let userId = feedPostComment?.userId, !isOwnMessage {
-            nameLabel.text =  MainAppContext.shared.contactStore.fullName(for: userId, in: MainAppContext.shared.contactStore.viewContext)
+        if !isOwnMessage {
+            nameLabel.text = comment.user.displayName
         }
         if let feedPostComment = feedPostComment {
             // track changes to reactions for feedPostComment
@@ -446,7 +446,7 @@ class MessageCellViewBase: UICollectionViewCell {
             setMessageOutgoingStatus()
         }
         if let chatMessage = chatMessage, chatMessage.chatMessageRecipient.chatType == .groupChat {
-            nameLabel.text =  MainAppContext.shared.contactStore.fullName(for: chatMessage.fromUserId, in: MainAppContext.shared.contactStore.viewContext)
+            nameLabel.text =  chatMessage.user.displayName
             nameLabel.textColor = userColorAssignment
             nameRow.isHidden = false
         }

@@ -280,7 +280,7 @@ class CommentView: UIView {
             let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
             let nameFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
             let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-            let contactName = MainAppContext.shared.contactStore.fullName(for: feedPostComment.userId, in: contactsViewContext)
+            let contactName = feedPostComment.user.displayName
             let attributedText = NSMutableAttributedString(string: contactName,
                                                            attributes: [NSAttributedString.Key.userMention: feedPostComment.userId,
                                                                         NSAttributedString.Key.font: nameFont])
@@ -359,7 +359,7 @@ class CommentView: UIView {
 
         } else if feedPostComment.isWaiting  {
             let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-            let contactName = MainAppContext.shared.contactStore.fullName(for: feedPostComment.userId, in: contactsViewContext)
+            let contactName = feedPostComment.user.displayName
             let attributedText = NSMutableAttributedString(string: contactName,
                                                            attributes: [NSAttributedString.Key.userMention: feedPostComment.userId,
                                                                         NSAttributedString.Key.font: nameFont])
@@ -369,7 +369,7 @@ class CommentView: UIView {
         } else {
             // No media, set name and append text to name label
             let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-            let contactName = MainAppContext.shared.contactStore.fullName(for: feedPostComment.userId, in: contactsViewContext)
+            let contactName = feedPostComment.user.displayName
             let attributedText = NSMutableAttributedString(string: contactName,
                                                            attributes: [NSAttributedString.Key.userMention: feedPostComment.userId,
                                                                         NSAttributedString.Key.font: nameFont])
@@ -404,7 +404,7 @@ class CommentView: UIView {
         let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
         let nameFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
         let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-        let contactName = MainAppContext.shared.contactStore.fullName(for: feedPostComment.userId, in: contactsViewContext)
+        let contactName = feedPostComment.user.displayName
         let attributedText = NSMutableAttributedString(string: contactName,
                                                        attributes: [NSAttributedString.Key.userMention: feedPostComment.userId,
                                                                     NSAttributedString.Key.font: nameFont])
@@ -671,7 +671,7 @@ class CommentsTableHeaderView: UIView {
 
         // Contact name
         let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-        contactNameLabel.text = MainAppContext.shared.contactStore.fullName(for: feedPost.userId, in: contactsViewContext)
+        contactNameLabel.text = feedPost.user.displayName
 
         let viewContext = MainAppContext.shared.chatData.viewContext
 
