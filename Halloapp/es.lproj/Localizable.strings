@@ -61,6 +61,9 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Comprueba si tienes conexión a Internet y vuelve a intentarlo.";
 
+/* Indicating all pending friend requests. */
+"all.requests" = "Todas las solicitudes";
+
 /* Title of the activity tab when contacts permissions aren't given. */
 "allow.contacts.for.activity" = "Para recibir actualizaciones de tus amigos, permite el acceso a tus contactos.";
 
@@ -631,6 +634,9 @@
 /* Show the user that the title is tappable */
 "composer.subtitle.cta" = "Toca para cambiar";
 
+/* Title of a button to confirm a friend request. */
+"confirm.title" = "Confirmar";
+
 /* No comment provided by engineer. */
 "CONNECTION" = "CONEXIÓN";
 
@@ -898,8 +904,20 @@
 /* Explains that as more contacts join the app, they will appear in this list automatically. */
 "fellow.contacts.will.arrive" = "Tus contactos telefónicos que se registren con HalloApp aparecerán aquí automáticamente.";
 
+/* Title of a header that appears before a list of contacts that can be invited to register. */
+"friend.invite.header.title" = "¿A quién más quieres ver aquí?";
+
+/* Indicating friend requests */
+"friend.requests" = "Solicitud de amigo(a)";
+
+/* Indicating suggested friends. */
+"friend.suggestions" = "Sugerencias de amigo(a)";
+
 /* Disclaimer telling users that their posts can be seen by their friends. */
 "friends.privacy.disclaimer" = "Las personas que agregaste podrán ver tus publicaciones compartidas con todos los amigos de HalloApp.";
+
+/* Indicating the user's friends. */
+"friends.title" = "Amistades";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Agrega la descripción del grupo";
@@ -1456,6 +1474,9 @@
 /* Title for alert that pops up when user attempts to save an empty contact list */
 "no.contact.selected" = "No has seleccionado contacto";
 
+/* Displayed when the user's friends list is empty. */
+"no.friends.message" = "Aún no estás conectado con nadie en HalloApp";
+
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Ya no formas parte de este grupo";
 
@@ -1605,6 +1626,27 @@
 
 /* fallback title for suggested photo album */
 "photoSuggestions.album.title" = "Sugerido";
+
+/* Button to link to settings to enable location permission for HalloApp */
+"photosuggestions.cta.alwaysonlocation.action" = "Permitir acceso a la ubicación";
+
+/* explanation of why we want always location access */
+"photosuggestions.cta.alwaysonlocation.subtitle" = "HalloApp te notificará de nuevos Magic Posts cuando hagas fotos y dejes una ubicación";
+
+/* title for explanation of why we want always location access */
+"photosuggestions.cta.alwaysonlocation.title" = "Permite que HalloApp acceda a la Ubicación para ser notificado de nuevos Magic Posts";
+
+/* Button to link to settings to enable location permission for Photos app */
+"photosuggestions.cta.photolocation.action" = "Permitir en Configuración";
+
+/* explanation for why we need to turn on location access for photos */
+"photosuggestions.cta.photolocation.subtitle1" = "Permite el acceso a la ubicación para la app de cámara y mejorar Magic Posts. HalloApp usa los metadatos de ubicación de tus fotos para ayudar a ordenarlas y nombrarlas.";
+
+/* instructions for enabling location access for photos app. maintain '*' to indicate bold text. */
+"photosuggestions.cta.photolocation.subtitle2" = "Para permitir el acceso a la ubicación, ve a: *Configuración* > *Privacidad y seguridad* > *Servicios de localización* > *Cámara*";
+
+/* title for explanation of why we want location access for photos app */
+"photosuggestions.cta.photolocation.title" = "Permitir el acceso a la ubicación para la app Fotos";
 
 /* Button to allow access to photos */
 "photosuggestions.emptystate.photopermission.action" = "Activar";
@@ -1873,6 +1915,9 @@
 /* Message shown to the user once they have successfully registered. */
 "registration.you.are.in" = "¡Ya estás en la app!";
 
+/* Title of a button to remove a friend. */
+"remove.friend" = "Eliminar amigo(a)";
+
 /* Text for the action of removing a contact from the user's favorites list (title case). */
 "remove.from.favorites.title" = "Remover de favoritos";
 
@@ -1915,6 +1960,12 @@
 /* Title of the dialog that appears when reporting a user. */
 "report.user.title" = "Reportar a %@";
 
+/* Format string to display how many incoming friend requests there are. */
+"requests.received" = "Solicitudes recibidas (%d)";
+
+/* Indicating the user's friend requests. */
+"requests.title" = "Solicitudes";
+
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Para verificar la seguridad de tu conexión con %@, comprueba que los números anteriores coinciden con los que aparecen en su dispositivo, o escanea el código QR de su teléfono.";
 
@@ -1938,6 +1989,12 @@
 
 /* Title of a button that displays all results. */
 "see.all" = "Ver todo";
+
+/* Title of a button that shows all friend requests. */
+"see.all.requests" = "Ver todas las solicitudes";
+
+/* Title of a button that shows sent friend requests. */
+"see.sent.requests" = "Solicitudes enviadas";
 
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Por favor, selecciona al menos un contacto.";
@@ -2220,6 +2277,9 @@
 
 /* Row in Settings screen */
 "title.storage" = "Almacenamiento";
+
+/* Tab for suggestions tab in main interface */
+"title.suggestions" = "Sugerencias";
 
 /* Title for the screen with information about who saw your moment. */
 "title.your.moment" = "Visto por";

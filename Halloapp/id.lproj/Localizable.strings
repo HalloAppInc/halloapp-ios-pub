@@ -61,6 +61,9 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Pastikan Anda memiliki sambungan internet, lalu coba lagi.";
 
+/* Indicating all pending friend requests. */
+"all.requests" = "Semua Permintaan";
+
 /* Title of the activity tab when contacts permissions aren't given. */
 "allow.contacts.for.activity" = "Agar mendapat kabar terbaru dari teman Anda, beri akses ke kontak.";
 
@@ -520,6 +523,9 @@
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Dengan menghapus chat ini, Anda akan menghapus riwayat chat dan konten dari perangkat Anda.";
 
+/* Prompts the user to choose a photo. */
+"choose.photo" = "Pilih Foto";
+
 /* Title for the button in comment deletion confirmation prompt. */
 "comment.delete.action" = "Hapus Komentar";
 
@@ -627,6 +633,9 @@
 
 /* Show the user that the title is tappable */
 "composer.subtitle.cta" = "Ketuk untuk mengubah";
+
+/* Title of a button to confirm a friend request. */
+"confirm.title" = "Konfirmasi";
 
 /* No comment provided by engineer. */
 "CONNECTION" = "SAMBUNGAN";
@@ -894,6 +903,18 @@
 
 /* Explains that as more contacts join the app, they will appear in this list automatically. */
 "fellow.contacts.will.arrive" = "Kontak ponsel Anda yang terdaftar dengan HalloApp akan otomatis muncul di sini.";
+
+/* Title of a header that appears before a list of contacts that can be invited to register. */
+"friend.invite.header.title" = "Siapa lagi yang ingin Anda lihat di sini?";
+
+/* Indicating friend requests */
+"friend.requests" = "Permintaan Pertemanan";
+
+/* Indicating suggested friends. */
+"friend.suggestions" = "Usulan Pertemanan";
+
+/* Disclaimer telling users that their posts can be seen by their friends. */
+"friends.privacy.disclaimer" = "Orang-orang yang Anda tambahkan akan bisa melihat postingan yang dibagikan kepada semua teman di  HalloApp.";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Tambahkan deskripsi grup";
@@ -1213,6 +1234,9 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Perbarui aplikasi.";
 
+/* Shown to the user when suggestions are being loaded. */
+"loading.suggestions" = "Memuat Usulan";
+
 /* Title to indicate that a fetch operation is in progress. */
 "locating.title" = "Mencari";
 
@@ -1435,6 +1459,9 @@
 /* Header that appears above unread messages in the chats view. */
 "n.unread.messages.title" = "n.unread.messages.title";
 
+/* Indicates the user's name. */
+"name.title" = "Nama";
+
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
 "new.group.members.empty.placeholder" = "Kontak Anda yang menggunakan HalloApp akan muncul di sini";
 
@@ -1443,6 +1470,9 @@
 
 /* Title for alert that pops up when user attempts to save an empty contact list */
 "no.contact.selected" = "Tidak ada kontak yang dipilih";
+
+/* Displayed when the user's friends list is empty. */
+"no.friends.message" = "Anda belum terhubung dengan siapa pun di HalloApp";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Anda tidak lagi di grup ini";
@@ -1590,6 +1620,27 @@
 
 /* button to launch photo and video library */
 "photo.and.video.library" = "Perpustakaan Foto & Video";
+
+/* fallback title for suggested photo album */
+"photoSuggestions.album.title" = "Diusulkan";
+
+/* Button to link to settings to enable location permission for HalloApp */
+"photosuggestions.cta.alwaysonlocation.action" = "Beri lokasi akses";
+
+/* Button to link to settings to enable location permission for Photos app */
+"photosuggestions.cta.photolocation.action" = "Akses Pengaturan";
+
+/* title for explanation of why we want location access for photos app */
+"photosuggestions.cta.photolocation.title" = "Beri Lokasi akses di aplikasi Foto";
+
+/* Button to allow access to photos */
+"photosuggestions.emptystate.photopermission.action" = "Beri akses";
+
+/* explanation for photo suggestions */
+"photosuggestions.explainer.subtitle" = "Ketika Anda baru selesai memotret, kami memilah foto-foto terbaik ke dalam sebuah draf postingan, sehingga siap diposting jika berkenan.";
+
+/* title for photo suggestions section */
+"photosuggestionsheader.title" = "Usulan postingan baru";
 
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Berikan akses Pengaturan";
@@ -1843,6 +1894,9 @@
 /* Message shown to the user once they have successfully registered. */
 "registration.you.are.in" = "Berhasil!";
 
+/* Title of a button to remove a friend. */
+"remove.friend" = "Hapus Teman";
+
 /* Text for the action of removing a contact from the user's favorites list (title case). */
 "remove.from.favorites.title" = "Hapus dari Favorit";
 
@@ -1885,6 +1939,9 @@
 /* Title of the dialog that appears when reporting a user. */
 "report.user.title" = "Laporkan %@";
 
+/* Format string to display how many incoming friend requests there are. */
+"requests.received" = "(%d) Permintaan Diterima";
+
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Untuk memverifikasi keamanan hubungan Anda dengan %@, pastikan angka di atas sama dengan yang ditampilkan di perangkat mereka, atau pindai kode QR di ponsel mereka.";
 
@@ -1906,8 +1963,20 @@
 /* Title that indicates that someone took a screenshot. */
 "screenshot.title" = "Tangkapan Layar";
 
+/* Title of a button that displays all results. */
+"see.all" = "Lihat Semua";
+
+/* Title of a button that shows all friend requests. */
+"see.all.requests" = "Lihat Semua Permintaan";
+
+/* Title of a button that shows sent friend requests. */
+"see.sent.requests" = "Permintaan Dikirim";
+
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Silakan pilih setidaknya satu kontak.";
+
+/* Prompts the user to choose their username. */
+"select.username.prompt" = "Ketik nama Anda dan pilih username";
 
 /* Indicates that an item is in the process of being sent. */
 "sending.title" = "Mengirim";
@@ -2074,6 +2143,12 @@
 /* Text placed on the blurred overlay of someone else's moment. */
 "shared.moment" = "Momen %@";
 
+/* title of album suggestion with location */
+"sharedalbums.albumsuggestioncell.titleformat.location" = "%1$d foto diambil di %2$@";
+
+/* title of album suggestion without location */
+"sharedalbums.albumsuggestioncell.titleformat.nolocation" = "%d galeri foto";
+
 /* Title for sharing to instagram stories */
 "shareprovider.instagramstories.title" = "Instagram Story";
 
@@ -2236,6 +2311,9 @@
 /* Button to start voice call. Should be translated as verb. */
 "user.voice.call" = "Panggil";
 
+/* Indicates the user's username. */
+"username.title" = "Username";
+
 /* No comment provided by engineer. */
 "VIDEO" = "VIDEO";
 
@@ -2244,6 +2322,15 @@
 
 /* Text that indicates a view action. */
 "view.title" = "Lihat";
+
+/* Body of notification that a user has a new sharing suggestion. '6 photos' */
+"visitTracker.notification.body.nolocation" = "%ld foto";
+
+/* Body of notification that a user has a new sharing suggestion. '6 photos from Terun' */
+"visitTracker.notification.body.withlocation" = "%1$ld foto dari %2$@";
+
+/* Title of notification that a user has a new sharing suggestion */
+"visitTracker.notification.title" = "Usulan Rekomendasi Baru";
 
 /* Moment deletion confirmation. Displays as action sheet title. */
 "your.moment.delete.confirmation" = "Hapus momen ini? Tindakan ini tidak dapat diurungkan.";

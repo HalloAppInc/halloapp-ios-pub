@@ -212,9 +212,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>Anda terhubung dengan %d orang di HalloApp</string>
+			<string>%d orang dari daftar kontak Anda ada di HalloApp. Tambahkan sebagai teman?</string>
 			<key>zero</key>
-			<string>Anda belum terhubung dengan siapa pun di HalloApp</string>
+			<string>Tak seorang pun dari daftar kontak Anda ada di HalloApp</string>
 		</dict>
 	</dict>
 	<key>n.invites.count</key>

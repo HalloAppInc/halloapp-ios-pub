@@ -355,13 +355,13 @@
 			<key>many</key>
 			<string>%d people from your contacts are on HalloApp. Add them as friends?</string>
 			<key>one</key>
-			<string>Você está conectado a %d pessoa no HalloApp</string>
+			<string>1 pessoa dos seus contatos está no HalloApp. Adicioná-los como amigos?</string>
 			<key>other</key>
-			<string>Você está conectado a %d pessoas no HalloApp</string>
+			<string>%d pessoas dos seus contatos estão no HalloApp. Adicioná-los como amigos?</string>
 			<key>two</key>
 			<string>%d people from your contacts are on HalloApp. Add them as friends?</string>
 			<key>zero</key>
-			<string>Você ainda não está conectado a ninguém no HalloApp</string>
+			<string>Nenhum dos seus contatos está no HalloApp</string>
 		</dict>
 	</dict>
 	<key>n.invites.count</key>

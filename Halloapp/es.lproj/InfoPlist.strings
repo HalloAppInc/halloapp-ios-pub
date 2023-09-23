@@ -7,6 +7,12 @@
 /* Privacy - Contacts Usage Description */
 "NSContactsUsageDescription" = "Para compartir y ver las publicaciones de tus amigos y familiares, permite que HalloApp cargue tus contactos en sus servidores.";
 
+/* Privacy - Location Always and When In Use Usage Description */
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Esto nos permite seguir las visitas (TODO)";
+
+/* Privacy - Location Always Usage Description */
+"NSLocationAlwaysUsageDescription" = "Esto nos permite seguir las visitas (TODO)";
+
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "Esto te permite enviar tu ubicación actual o lugares cercanos en comentarios y chats.";
 

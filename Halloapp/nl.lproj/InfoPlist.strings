@@ -7,6 +7,12 @@
 /* Privacy - Contacts Usage Description */
 "NSContactsUsageDescription" = "Om posts te delen en te zien van je vrienden en familie, sta HalloApp toe om je contacten te uploaden naar de servers.";
 
+/* Privacy - Location Always and When In Use Usage Description */
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Dit zorgt ervoor dat je je huidige locatie of plaatsen in de buurt kunt verzenden in reacties en chats en dat we je nieuwe fotosuggesties kunnen geven.";
+
+/* Privacy - Location Always Usage Description */
+"NSLocationAlwaysUsageDescription" = "Dit zorgt ervoor dat je je huidige locatie of plaatsen in de buurt kunt verzenden in reacties en chats en dat we je nieuwe fotosuggesties kunnen geven.";
+
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "Dit zorgt ervoor dat je je huidige locatie of plaatsen in de buurt kunt verzenden in reacties en chats.";
 

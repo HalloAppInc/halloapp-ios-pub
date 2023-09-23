@@ -61,6 +61,9 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Controleer of je internetverbinding hebt en probeer het opnieuw.";
 
+/* Indicating all pending friend requests. */
+"all.requests" = "Alle verzoeken";
+
 /* Title of the activity tab when contacts permissions aren't given. */
 "allow.contacts.for.activity" = "Om updates van je vrienden te ontvangen, sta toegang tot je contacten toe.";
 
@@ -631,6 +634,9 @@
 /* Show the user that the title is tappable */
 "composer.subtitle.cta" = "Tik om te wijzigen";
 
+/* Title of a button to confirm a friend request. */
+"confirm.title" = "Bevestigen";
+
 /* No comment provided by engineer. */
 "CONNECTION" = "VERBINDING";
 
@@ -898,8 +904,20 @@
 /* Explains that as more contacts join the app, they will appear in this list automatically. */
 "fellow.contacts.will.arrive" = "Je telefooncontacten die zich registreren op HalloApp verschijnen hier automatisch.";
 
+/* Title of a header that appears before a list of contacts that can be invited to register. */
+"friend.invite.header.title" = "Wie wil je hier nog meer zien?";
+
+/* Indicating friend requests */
+"friend.requests" = "Vriendschapsverzoeken";
+
+/* Indicating suggested friends. */
+"friend.suggestions" = "Vriendsuggesties";
+
 /* Disclaimer telling users that their posts can be seen by their friends. */
 "friends.privacy.disclaimer" = "Mensen die je hebt toegevoegd kunnen je posts zien die je met al je HalloApp-vrienden deelt.";
+
+/* Indicating the user's friends. */
+"friends.title" = "Vrienden";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Groepsomschrijving toevoegen";
@@ -1456,6 +1474,9 @@
 /* Title for alert that pops up when user attempts to save an empty contact list */
 "no.contact.selected" = "Geen contact geselecteerd";
 
+/* Displayed when the user's friends list is empty. */
+"no.friends.message" = "Je bent nog met niemand verbonden op HalloApp";
+
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Je bent geen deelnemer meer van deze groep";
 
@@ -1605,6 +1626,27 @@
 
 /* fallback title for suggested photo album */
 "photoSuggestions.album.title" = "Voorgesteld";
+
+/* Button to link to settings to enable location permission for HalloApp */
+"photosuggestions.cta.alwaysonlocation.action" = "Toestaan in Instellingen";
+
+/* explanation of why we want always location access */
+"photosuggestions.cta.alwaysonlocation.subtitle" = "Wanneer je nieuwe foto's neemt, maken we een concept-post van je beste shots, zodat je die kunt plaatsen als je dat wilt.";
+
+/* title for explanation of why we want always location access */
+"photosuggestions.cta.alwaysonlocation.title" = "Geef HalloApp toegang tot je locatie om Magische Posts te kunnen gebruiken";
+
+/* Button to link to settings to enable location permission for Photos app */
+"photosuggestions.cta.photolocation.action" = "Open Instellingen";
+
+/* explanation for why we need to turn on location access for photos */
+"photosuggestions.cta.photolocation.subtitle1" = "Sta locatietoegang voor de Camera-app toe voor betere Magische Posts. HalloApp gebruikt de locatie-metadata van je foto's om je te helpen deze te sorteren en een naam te geven.";
+
+/* instructions for enabling location access for photos app. maintain '*' to indicate bold text. */
+"photosuggestions.cta.photolocation.subtitle2" = "Om locatietoegang toe te staan, ga naar: *Instellingen* > *Privacy & beveiliging* > *Locatievoorzieningen* > *Camera*";
+
+/* title for explanation of why we want location access for photos app */
+"photosuggestions.cta.photolocation.title" = "Sta locatietoegang voor de Camera-app toe";
 
 /* Button to allow access to photos */
 "photosuggestions.emptystate.photopermission.action" = "Inschakelen";
@@ -1873,6 +1915,9 @@
 /* Message shown to the user once they have successfully registered. */
 "registration.you.are.in" = "Je bent binnen!";
 
+/* Title of a button to remove a friend. */
+"remove.friend" = "Vriend verwijderen";
+
 /* Text for the action of removing a contact from the user's favorites list (title case). */
 "remove.from.favorites.title" = "Verwijderen uit Favorieten";
 
@@ -1915,6 +1960,12 @@
 /* Title of the dialog that appears when reporting a user. */
 "report.user.title" = "%@ Rapporteren";
 
+/* Format string to display how many incoming friend requests there are. */
+"requests.received" = "Verzoeken ontvangen (%d)";
+
+/* Indicating the user's friend requests. */
+"requests.title" = "Verzoeken";
+
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Om de beveiliging van je verbinding met %@ te verifiëren, controleer of bovenstaande nummers overeenkomen met die op het andere apparaat of scan de QR-code op de andere telefoon.";
 
@@ -1938,6 +1989,12 @@
 
 /* Title of a button that displays all results. */
 "see.all" = "Toon Alles";
+
+/* Title of a button that shows all friend requests. */
+"see.all.requests" = "Alle verzoeken weergeven";
+
+/* Title of a button that shows sent friend requests. */
+"see.sent.requests" = "Verzonden verzoeken";
 
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Selecteer ten minste één contact.";
@@ -2111,7 +2168,7 @@
 "shared.moment" = "Moment van %@";
 
 /* title of album suggestion with location */
-"sharedalbums.albumsuggestioncell.titleformat.location" = "%1$d foto's gemaakt @%2$@";
+"sharedalbums.albumsuggestioncell.titleformat.location" = "%1$d foto's gemaakt in de buurt van %2$@";
 
 /* title of album suggestion without location */
 "sharedalbums.albumsuggestioncell.titleformat.nolocation" = "%d foto's gemaakt";
@@ -2220,6 +2277,9 @@
 
 /* Row in Settings screen */
 "title.storage" = "Opslag";
+
+/* Tab for suggestions tab in main interface */
+"title.suggestions" = "Magische Post";
 
 /* Title for the screen with information about who saw your moment. */
 "title.your.moment" = "Gezien Door";

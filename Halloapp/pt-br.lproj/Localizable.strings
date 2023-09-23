@@ -61,6 +61,9 @@
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Por favor, verifique se você tem conectividade com a internet, e tente novamente.";
 
+/* Indicating all pending friend requests. */
+"all.requests" = "Todas as solicitações";
+
 /* Title of the activity tab when contacts permissions aren't given. */
 "allow.contacts.for.activity" = "Para receber atualizações de seus amigos, permita o acesso aos contatos.";
 
@@ -631,6 +634,9 @@
 /* Show the user that the title is tappable */
 "composer.subtitle.cta" = "Clique para mudar";
 
+/* Title of a button to confirm a friend request. */
+"confirm.title" = "Confirmar";
+
 /* No comment provided by engineer. */
 "CONNECTION" = "CONEXÃO";
 
@@ -898,8 +904,20 @@
 /* Explains that as more contacts join the app, they will appear in this list automatically. */
 "fellow.contacts.will.arrive" = "Seus contatos telefônicos que se registrarem no HalloApp aparecerão aqui automaticamente.";
 
+/* Title of a header that appears before a list of contacts that can be invited to register. */
+"friend.invite.header.title" = "Quem mais você quer ver aqui?";
+
+/* Indicating friend requests */
+"friend.requests" = "Solicitação de amizade";
+
+/* Indicating suggested friends. */
+"friend.suggestions" = "Sugestões de amigos";
+
 /* Disclaimer telling users that their posts can be seen by their friends. */
 "friends.privacy.disclaimer" = "As pessoas que você adicionou poderão ver suas postagens compartilhadas com todos os amigos do HalloApp.";
+
+/* Indicating the user's friends. */
+"friends.title" = "Amigos";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Adicionar descrição do grupo";
@@ -1456,6 +1474,9 @@
 /* Title for alert that pops up when user attempts to save an empty contact list */
 "no.contact.selected" = "Nenhum contato selecionado";
 
+/* Displayed when the user's friends list is empty. */
+"no.friends.message" = "Você ainda não está conectado a ninguém no HalloApp";
+
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Você não está mais neste grupo";
 
@@ -1605,6 +1626,33 @@
 
 /* fallback title for suggested photo album */
 "photoSuggestions.album.title" = "Sugerido";
+
+/* Button to link to settings to enable location permission for HalloApp */
+"photosuggestions.cta.alwaysonlocation.action" = "Permitir acesso à localização";
+
+/* explanation of why we want always location access */
+"photosuggestions.cta.alwaysonlocation.subtitle" = "HalloApp irá notificá-lo sobre novos Magic Posts quando você tirar fotos e sair de um local";
+
+/* title for explanation of why we want always location access */
+"photosuggestions.cta.alwaysonlocation.title" = "Permitir que HalloApp acesse o local para ser notificado sobre novos Magic Posts";
+
+/* Button to link to settings to enable location permission for Photos app */
+"photosuggestions.cta.photolocation.action" = "Permitir nas configurações";
+
+/* title for explanation of why we want location access for photos app */
+"photosuggestions.cta.photolocation.title" = "Permitir acesso à localização para o aplicativo Fotos";
+
+/* Button to allow access to photos */
+"photosuggestions.emptystate.photopermission.action" = "Habilitar";
+
+/* Explanatory text on empty state view */
+"photosuggestions.emptystate.photopermission.title" = "Permitir acesso total às fotos para usar Magic Posts";
+
+/* explanation for photo suggestions */
+"photosuggestions.explainer.subtitle" = "Quando você tira novas fotos, nós encontramos as melhores fotos e as organizamos em um rascunho de postagem, para que esteja pronto para você se desejar postar.";
+
+/* title for explanation of photo suggestions */
+"photosuggestions.explainer.title" = "Experimente postagens mágicas";
 
 /* title for photo suggestions section */
 "photosuggestionsheader.title" = "Sugestões de novas postagens";
@@ -1861,6 +1909,9 @@
 /* Message shown to the user once they have successfully registered. */
 "registration.you.are.in" = "Você está dentro!";
 
+/* Title of a button to remove a friend. */
+"remove.friend" = "Remover Amigo";
+
 /* Text for the action of removing a contact from the user's favorites list (title case). */
 "remove.from.favorites.title" = "Remover dos favoritos";
 
@@ -1903,6 +1954,12 @@
 /* Title of the dialog that appears when reporting a user. */
 "report.user.title" = "Denunciar %@";
 
+/* Format string to display how many incoming friend requests there are. */
+"requests.received" = "Solicitações recebidas (%d)";
+
+/* Indicating the user's friend requests. */
+"requests.title" = "Solicitações";
+
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Para verificar a segurança da sua conexão com %@, confira se os números acima correspondem aos mostrados no dispositivo da pessoa, ou escaneie o código QR no telefone da pessoa.";
 
@@ -1926,6 +1983,12 @@
 
 /* Title of a button that displays all results. */
 "see.all" = "Ver todos";
+
+/* Title of a button that shows all friend requests. */
+"see.all.requests" = "Ver todas as solicitações";
+
+/* Title of a button that shows sent friend requests. */
+"see.sent.requests" = "Solicitações enviadas";
 
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Por favor selecione pelo menos um contato.";
@@ -2099,7 +2162,7 @@
 "shared.moment" = "Momento de %@";
 
 /* title of album suggestion with location */
-"sharedalbums.albumsuggestioncell.titleformat.location" = "%1$d fotos tiradas @%2$@";
+"sharedalbums.albumsuggestioncell.titleformat.location" = "%1$d fotos tiradas em @%2$@";
 
 /* title of album suggestion without location */
 "sharedalbums.albumsuggestioncell.titleformat.nolocation" = "%d fotos tiradas";
@@ -2208,6 +2271,9 @@
 
 /* Row in Settings screen */
 "title.storage" = "Armazenamento";
+
+/* Tab for suggestions tab in main interface */
+"title.suggestions" = "Postagem Mágica";
 
 /* Title for the screen with information about who saw your moment. */
 "title.your.moment" = "Visto por";
