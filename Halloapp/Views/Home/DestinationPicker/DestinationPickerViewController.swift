@@ -73,16 +73,17 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         return fetchedResultsController
     }()
     
-    private lazy var contactsFetchedResultsController: NSFetchedResultsController<ABContact> = {
-        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "userId != nil")
-        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]
-        contactsFetchedResultsController = NSFetchedResultsController<ABContact>(fetchRequest: fetchRequest,
-             managedObjectContext: MainAppContext.shared.contactStore.viewContext,
-             sectionNameKeyPath: nil,
-             cacheName: nil)
-        contactsFetchedResultsController.delegate = self
-        return contactsFetchedResultsController
+    private lazy var friendsFetchedResultsController: NSFetchedResultsController<UserProfile> = {
+        let fetchRequest = UserProfile.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "friendshipStatusValue == %d", UserProfile.FriendshipStatus.friends.rawValue)
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \UserProfile.name, ascending: true)]
+
+        let controller = NSFetchedResultsController(fetchRequest: fetchRequest,
+                                                    managedObjectContext: MainAppContext.shared.mainDataStore.viewContext,
+                                                    sectionNameKeyPath: nil,
+                                                    cacheName: nil)
+        controller.delegate = self
+        return controller
     }()
 
     private lazy var collectionView: UICollectionView = {
@@ -195,7 +196,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
                 }
             case .group(let groupID, _, let name):
                 cell.configureGroup(groupID, name: name, isSelected: isSelected)
-            case .contact(let userID, let name, let phone):
+            case .user(let userID, let name, let phone):
                 cell.configureUser(userID, name: name, phone: phone, isSelected: isSelected)
             }
             return cell
@@ -361,7 +362,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         ])
 
         try? recentFetchedResultsController.performFetch()
-        try? contactsFetchedResultsController.performFetch()
+        try? friendsFetchedResultsController.performFetch()
         frequentlyContactedDataSource.performFetch()
 
         updateData()
@@ -374,24 +375,21 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
     private func updateData(searchString: String? = nil) {
         var snapshot = NSDiffableDataSourceSnapshot<DestinationSection, DestinationPickerDestination>()
         var recentItems = recentFetchedResultsController.fetchedObjects ?? []
-        var contacts = contactsFetchedResultsController.fetchedObjects ?? []
-        contacts = ABContact.contactsWithUniquePhoneNumbers(allContacts: contacts)
+        var friends = friendsFetchedResultsController.fetchedObjects ?? []
 
-        var phoneNumbers: [String: String] = [:]
-        for contact in contacts {
-            guard let userID = contact.userId else { continue }
-            phoneNumbers[userID] = contact.phoneNumber
+        let usernames = friends.reduce(into: [UserID: String]()) {
+            $0[$1.id] = $1.username
         }
-        
+
         if let searchString = searchString?.trimmingCharacters(in: CharacterSet.whitespaces).lowercased(), !searchString.isEmpty {
             let searchItems = searchString.components(separatedBy: " ")
 
             recentItems = recentItems.filter { item in
                 if let userID = item.userID, let name = item.title?.lowercased() {
-                    let number = phoneNumbers[userID] ?? ""
+                    let username = usernames[userID] ?? ""
 
                     for term in searchItems {
-                        if name.contains(term) || number.contains(term) {
+                        if name.contains(term) || username.contains(term) {
                             return true
                         }
                     }
@@ -421,9 +419,9 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
                 let frequentlyContactedDestinations = frequentlyContactedDataSource.subject.value.prefix(4)
                     .compactMap { frequentlyContactedEntity -> DestinationPickerDestination? in
                         switch frequentlyContactedEntity {
-                        case .user(userID: let contactID):
-                            if let contact = MainAppContext.shared.contactStore.contact(withUserId: contactID, in: MainAppContext.shared.contactStore.viewContext) {
-                                return DestinationPickerDestination(section: .frequentlyContacted, shareDestination: .contact(id: contactID, name: contact.fullName, phone: contact.phoneNumber))
+                        case .user(userID: let userID):
+                            if let user = friends.first(where: { $0.id == userID }) {
+                                return DestinationPickerDestination(section: .frequentlyContacted, shareDestination: .user(id: userID, name: user.name, username: user.username))
                             }
                         case .chatGroup(groupID: let groupID):
                             if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupID, in: MainAppContext.shared.chatData.viewContext) {
@@ -445,7 +443,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
 
             for item in recentItems {
                 if let userID = item.userID, let name = item.title {
-                    let destination: ShareDestination = .contact(id: userID, name: name, phone: phoneNumbers[userID])
+                    let destination: ShareDestination = .user(id: userID, name: name, username: usernames[userID])
                     snapshot.appendItems([DestinationPickerDestination(section: .recent, shareDestination: destination)], toSection: .recent)
                 } else if let groupID = item.groupID, let title = item.title {
                     let destination: ShareDestination = .group(id: groupID, type: item.type, name: title)

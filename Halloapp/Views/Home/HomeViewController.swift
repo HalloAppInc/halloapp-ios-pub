@@ -607,7 +607,7 @@ extension HomeViewController: CameraPostViewControllerDelegate {
         case (.group(_, let firstType, _), .group(_, let secondType, _)) where firstType == .groupChat && secondType == .groupChat:
             // at least two group chat messages; go to chat list
             index = TabBarSelection.chat.index
-        case (.group(_, let type, _), .contact(_, _, _)) where type == .groupChat:
+        case (.group(_, let type, _), .user(_, _, _)) where type == .groupChat:
             // one group chat and at least one one-on-one chat; go to chat list
             index = TabBarSelection.chat.index
         case (.group(_, let type, _), _) where type == .groupChat:
@@ -615,10 +615,10 @@ extension HomeViewController: CameraPostViewControllerDelegate {
             index = TabBarSelection.chat.index
             shouldNavigateToThread = true
 
-        case (.contact(_, _, _), .contact(_, _, _)):
+        case (.user(_, _, _), .user(_, _, _)):
             // at least two one-on-one messages; go to chat list
             index = TabBarSelection.chat.index
-        case (.contact(_, _, _), _):
+        case (.user(_, _, _), _):
             // only one one-on-one message; go to the thread
             index = TabBarSelection.chat.index
             shouldNavigateToThread = true

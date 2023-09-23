@@ -62,7 +62,7 @@ class ComposerDestinationRowView: UICollectionView {
                 cell.configure(groupId: groupId, title: title)
 
                 return cell
-            case .contact(let userId, let title, _):
+            case .user(let userId, let title, _):
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ItemViewCell.reuseIdentifier, for: indexPath) as? ItemViewCell else {
                     return nil
                 }
@@ -135,13 +135,9 @@ class ComposerDestinationRowView: UICollectionView {
         let groupDesinations = groups
             .sorted { $0.name < $1.name }
             .map { ShareDestination.destination(from: $0) }
-        let contactDestinations = contacts
-            .sorted { $0.fullName ?? "" < $1.fullName ?? "" }
-            .compactMap { ShareDestination.destination(from: $0) }
 
         var items: [ShareDestination] = [.feed(.all)]
         items.append(contentsOf: groupDesinations)
-        items.append(contentsOf: contactDestinations)
 
         var snapshot = NSDiffableDataSourceSnapshot<Int, ShareDestination>()
         snapshot.appendSections([0])

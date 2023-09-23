@@ -53,7 +53,7 @@ class PostComposerViewConfiguration: ObservableObject {
             return .userPost(destination)
         case .group(_, _, _):
             return .groupPost(destination)
-        case .contact(_, _, _):
+        case .user(_, _, _):
             return .message(destination)
         }
     }
@@ -486,7 +486,7 @@ class PostComposerViewController: UIViewController {
         customNavigationContentTopConstraint?.isActive = true
 
         switch configuration.destination {
-        case .contact:
+        case .user:
             titleLabel.text = Localizations.newMessageTitle
         default:
             titleLabel.text = configuration.isOnboarding ? Localizations.onboardingFirstPostTitle : Localizations.newPostTitle
@@ -545,7 +545,7 @@ class PostComposerViewController: UIViewController {
     }
 
     @objc private func changeDestinationAction() {
-        if case .contact = configuration.destination {
+        if case .user = configuration.destination {
             return
         }
 
@@ -604,7 +604,7 @@ class PostComposerViewController: UIViewController {
 
             changeDestinationIconConstraint?.constant = 19
             changeDestinationLabel.text = name
-        case .contact(_, let name, _):
+        case .user(_, let name, _):
             changeDestinationIcon.isHidden = true
             if let name = name {
                 changeDestinationLabel.text = Localizations.newMessageSubtitle(recipient: name)
@@ -912,7 +912,7 @@ fileprivate struct PostComposerView: View {
         switch configuration.destination {
         case .feed, .group:
             return true
-        case .contact:
+        case .user:
             return false
         }
     }
@@ -1019,7 +1019,7 @@ fileprivate struct PostComposerView: View {
         switch configuration.destination {
         case .feed, .group:
             return true
-        case .contact:
+        case .user:
             return false
         }
     }
@@ -1447,7 +1447,7 @@ fileprivate struct TextView: UIViewRepresentable {
                 return Mentions.mentionableUsersForNewPost(privacyListType: privacyListType)
             case .group(let groupID, _, _):
                 return Mentions.mentionableUsers(forGroupID: groupID, in: MainAppContext.shared.feedData.viewContext)
-            case .contact:
+            case .user:
                 return []
             }
         }

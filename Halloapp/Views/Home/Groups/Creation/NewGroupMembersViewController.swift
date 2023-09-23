@@ -16,7 +16,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
 
     let cellReuseIdentifier = "NewGroupMembersViewCell"
     
-    private var fetchedResultsController: NSFetchedResultsController<ABContact>?
+    private var fetchedResultsController: NSFetchedResultsController<UserProfile>?
 
     private var searchController: UISearchController!
 
@@ -33,8 +33,8 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         }
     }
 
-    private var filteredContacts: [ABContact] = []
-    
+    private var filteredContacts: [UserProfile] = []
+
     private var trackedContacts: [String:TrackedContact] = [:]
 
     private var selectedMembers: [UserID] = [] {
@@ -313,13 +313,13 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
 
     // MARK: Customization
 
-    public var fetchRequest: NSFetchRequest<ABContact> {
+    public var fetchRequest: NSFetchRequest<UserProfile> {
         get {
-            let fetchRequest = NSFetchRequest<ABContact>(entityName: "ABContact")
+            let fetchRequest = UserProfile.fetchRequest()
             fetchRequest.sortDescriptors = [
-                NSSortDescriptor(keyPath: \ABContact.fullName, ascending: true)
+                NSSortDescriptor(keyPath: \UserProfile.name, ascending: true)
             ]
-            fetchRequest.predicate = NSPredicate(format: "userId != nil AND userId != %@", MainAppContext.shared.userData.userId)
+            fetchRequest.predicate = NSPredicate(format: "friendshipStatusValue == %d AND id != %@", UserProfile.FriendshipStatus.friends.rawValue, MainAppContext.shared.userData.userId)
             return fetchRequest
         }
     }
@@ -340,10 +340,11 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         }
     }
 
-    private func newFetchedResultsController() -> NSFetchedResultsController<ABContact> {
+    private func newFetchedResultsController() -> NSFetchedResultsController<UserProfile> {
         // Setup fetched results controller the old way because it allows granular control over UI update operations.
-        let fetchedResultsController = NSFetchedResultsController<ABContact>(fetchRequest: self.fetchRequest, managedObjectContext: AppContext.shared.contactStore.viewContext,
-                                                                            sectionNameKeyPath: nil, cacheName: nil)
+        let fetchedResultsController = NSFetchedResultsController(fetchRequest: self.fetchRequest, 
+                                                                  managedObjectContext: AppContext.shared.mainDataStore.viewContext,
+                                                                  sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController.delegate = self
         return fetchedResultsController
     }
@@ -494,60 +495,39 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
         }
         let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
 
-        let abContact: ABContact?
-        
+        let friend: UserProfile?
+
         if isFiltering {
-            abContact = filteredContacts[indexPath.row]
+            friend = filteredContacts[indexPath.row]
         } else {
-            abContact = fetchedResultsController?.object(at: indexPath)
+            friend = fetchedResultsController?.object(at: indexPath)
         }
 
-        if let abContact = abContact {
-            if let userId = abContact.userId {
-                cell.configure(with: userId)
-                let isSelected = selectedMembers.contains(userId)
-                cell.setContact(selected: isSelected, animated: false) // animation flickers if true due to too many reloads
-            }
+        if let friend {
+            cell.configure(with: friend.id)
+            let isSelected = selectedMembers.contains(friend.id)
+            cell.setContact(selected: isSelected, animated: false) // animation flickers if true due to too many reloads
         }
 
         return cell
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        if isZeroZone, isNewCreationFlow { return UITableView.automaticDimension }
-
-        var contact: ABContact?
-
-        if isFiltering {
-            contact = filteredContacts[indexPath.row]
-        } else {
-            contact = fetchedResultsController?.object(at: indexPath)
-        }
-        if let contact = contact, self.isDuplicate(contact) {
-            return 0
-        }
-        
-        guard contact?.userId != nil else { return 0 }
-
         return UITableView.automaticDimension
     }
 
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         if isZeroZone, isNewCreationFlow { return }
 
-        var contact: ABContact?
+        var friend: UserProfile?
 
         if isFiltering {
-            contact = filteredContacts[indexPath.row]
+            friend = filteredContacts[indexPath.row]
         } else {
-            contact = fetchedResultsController?.object(at: indexPath)
-        }
-        if let contact = contact, self.isDuplicate(contact) {
-            cell.isHidden = true
+            friend = fetchedResultsController?.object(at: indexPath)
         }
 
-        guard let userId = contact?.userId else { return }
-        if currentMembers.contains(userId) {
+        if let friend, currentMembers.contains(friend.id) {
             if let contactCell = cell as? ContactTableViewCell {
                 contactCell.setContact(selected: true, animated: true)
                 contactCell.isUserInteractionEnabled = false
@@ -558,18 +538,19 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if isZeroZone, isNewCreationFlow { return }
         guard let cell = tableView.cellForRow(at: indexPath) as? ContactTableViewCell else { return }
-        let abContact: ABContact?
+        let profile: UserProfile?
         if isFiltering {
-            abContact = filteredContacts[indexPath.row]
+            profile = filteredContacts[indexPath.row]
         } else {
-            abContact = fetchedResultsController?.object(at: indexPath)
+            profile = fetchedResultsController?.object(at: indexPath)
         }
 
-        guard let contact = abContact else { return }
+        guard let profile else {
+            return
+        }
 
         var isSelected = false
-        guard let userId = contact.userId else { return }
-        if !selectedMembers.contains(userId) {
+        if !selectedMembers.contains(profile.id) {
             var totalMembers = currentMembers.count + selectedMembers.count
             if isNewCreationFlow {
                 totalMembers += 1 // count yourself also if this is a new creation flow
@@ -580,12 +561,12 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
                 self.present(alert, animated: true)
                 return
             }
-            selectedMembers.append(userId)
-            groupMemberAvatars.insert(with: [userId])
+            selectedMembers.append(profile.id)
+            groupMemberAvatars.insert(with: [profile.id])
             isSelected = true
         } else {
-            selectedMembers.removeAll(where: {$0 == userId})
-            groupMemberAvatars.removeUser(userId)
+            selectedMembers.removeAll(where: {$0 == profile.id})
+            groupMemberAvatars.removeUser(profile.id)
         }
         cell.setContact(selected: isSelected, animated: true)
         tableView.deselectRow(at: indexPath, animated: true)
@@ -615,7 +596,7 @@ extension NewGroupMembersViewController: UISearchResultsUpdating {
         let searchItems = strippedString.components(separatedBy: " ")
 
         let andPredicates: [NSPredicate] = searchItems.map { (searchString) in
-            NSComparisonPredicate(leftExpression: NSExpression(forKeyPath: "searchTokens"),
+            NSComparisonPredicate(leftExpression: NSExpression(forKeyPath: "searchItems"),
                                   rightExpression: NSExpression(forConstantValue: searchString),
                                   modifier: .any,
                                   type: .contains,
@@ -653,16 +634,10 @@ private extension ContactTableViewCell {
         options.insert(.hasCheckmark)
         options.insert(.useBlueCheckmark)
 
-        nameLabel.text = UserProfile.find(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName
+        let profile = UserProfile.find(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)
+        nameLabel.text = profile?.name
+        subtitleLabel.text = profile?.username
 
-        if userID == MainAppContext.shared.userData.userId {
-            subtitleLabel.text = MainAppContext.shared.userData.formattedPhoneNumber
-        } else {
-            let abContacts = MainAppContext.shared.contactStore.contacts(withUserIds: [userID], in: MainAppContext.shared.contactStore.viewContext)
-            if let contact = abContacts.first {
-                subtitleLabel.text = contact.phoneNumber
-            }
-        }
         contactImage.configure(with: userID, using: MainAppContext.shared.avatarStore)
     }
 

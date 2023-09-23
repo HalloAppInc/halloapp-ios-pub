@@ -260,7 +260,7 @@ final class NewPostViewController: UINavigationController {
                 default:
                     break
                 }
-            case .contact:
+            case .user:
                 postProperties[.destinationNumContacts] = (postProperties[.destinationNumContacts] as? Int ?? 0) + 1
             case .group:
                 postProperties[.destinationNumGroups] = (postProperties[.destinationNumGroups] as? Int ?? 0) + 1
@@ -270,7 +270,7 @@ final class NewPostViewController: UINavigationController {
 
         for destination in destinations {
             switch destination {
-            case .contact(let userId, _, _):
+            case .user(let userId, _, _):
                 sendChatMessage(
                     chatMessageRecipient: .oneToOneChat(toUserId: userId, fromUserId: AppContext.shared.userData.userId),
                     text: text,

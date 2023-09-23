@@ -21,15 +21,14 @@ public typealias FeedPostID = String
 public enum ShareDestination: Hashable, Equatable {
     case feed(PrivacyListType)
     case group(id: GroupID, type: GroupType, name: String)
-    case contact(id: UserID, name: String?, phone: String?)
+    case user(id: UserID, name: String?, username: String?)
 
     public static func destination(from group: Group) -> ShareDestination {
         return .group(id: group.id, type: group.type, name: group.name)
     }
 
-    public static func destination(from contact: ABContact) -> ShareDestination? {
-        guard let userId = contact.userId else { return nil }
-        return .contact(id: userId, name: contact.fullName, phone: contact.phoneNumber)
+    public static func destination(from user: UserProfile) -> ShareDestination {
+        .user(id: user.id, name: user.name, username: user.username)
     }
 
     public var name: String? {
@@ -38,7 +37,7 @@ public enum ShareDestination: Hashable, Equatable {
             return nil
         case .group(_, _, let name):
             return name
-        case .contact(_, let name, _):
+        case .user(_, let name, _):
             return name
         }
     }
@@ -49,11 +48,11 @@ public enum ShareDestination: Hashable, Equatable {
             switch (lhs, rhs) {
             case (.feed(_), .group(_, _, _)):
                 return true
-            case (.feed(_), .contact(_, _, _)):
+            case (.feed(_), .user(_, _, _)):
                 return true
             case (.group(_, let lhsType, _), .group(_, let rhsType, _)) where lhsType == .groupFeed && rhsType == .groupChat:
                 return true
-            case (.group(_, _, _), .contact(_, _, _)):
+            case (.group(_, _, _), .user(_, _, _)):
                 return true
 
             default:

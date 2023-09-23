@@ -11,16 +11,27 @@ import CoreCommon
 import CoreData
 import UIKit
 
+extension UserProfile: IndexableContact, SearchableContact {
+
+    var collationName: String {
+        name
+    }
+
+    var searchTokens: [String] {
+        searchItems
+    }
+}
+
 protocol NewChatViewControllerDelegate: AnyObject {
     func newChatViewController(_ newChatViewController: NewChatViewController, didSelect userId: UserID)
     func newChatViewController(_ newChatViewController: NewChatViewController, didSelectGroup groupId: GroupID)
 }
 
-class NewChatTableViewController: ContactPickerViewController<ABContact> {
+class NewChatTableViewController: ContactPickerViewController<UserProfile> {
 
     // MARK: ContactPickerViewController
 
-    override func configure(cell: ContactTableViewCell, with contact: ABContact) {
+    override func configure(cell: ContactTableViewCell, with contact: UserProfile) {
         cell.configure(with: contact)
     }
 
@@ -33,14 +44,12 @@ class NewChatTableViewController: ContactPickerViewController<ABContact> {
     // MARK: UITableViewDelegate
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let contact = dataSource.itemIdentifier(for: indexPath),
-              let userId = contact.userId else
-        {
+        guard let contact = dataSource.itemIdentifier(for: indexPath) else {
             tableView.deselectRow(at: indexPath, animated: true)
             return
         }
 
-        didSelectContact(with: userId)
+        didSelectContact(with: contact.id)
     }
 
 }
@@ -49,7 +58,7 @@ class NewChatViewController: NewChatTableViewController {
 
     weak var delegate: NewChatViewControllerDelegate?
 
-    private var fetchedResultsController: NSFetchedResultsController<ABContact>!
+    private var fetchedResultsController: NSFetchedResultsController<UserProfile>!
 
     init(delegate: NewChatViewControllerDelegate) {
         self.delegate = delegate
@@ -70,13 +79,13 @@ class NewChatViewController: NewChatTableViewController {
 
         tableView.backgroundColor = .feedBackground
         
-        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "userId != nil")
-        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]
-        fetchedResultsController = NSFetchedResultsController<ABContact>(fetchRequest: fetchRequest,
-                                                                         managedObjectContext: AppContext.shared.contactStore.viewContext,
-                                                                         sectionNameKeyPath: nil,
-                                                                         cacheName: nil)
+        let fetchRequest = UserProfile.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "friendshipStatusValue == %d", UserProfile.FriendshipStatus.friends.rawValue)
+        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \UserProfile.name, ascending: true) ]
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest,
+                                                              managedObjectContext: AppContext.shared.mainDataStore.viewContext,
+                                                              sectionNameKeyPath: nil,
+                                                              cacheName: nil)
         fetchedResultsController.delegate = self
         do {
             try fetchedResultsController.performFetch()
@@ -117,7 +126,7 @@ class NewChatViewController: NewChatTableViewController {
     }
     // MARK: ContactPickerViewController
 
-    override func makeSearchResultsController() -> ContactPickerViewController<ABContact> {
+    override func makeSearchResultsController() -> ContactPickerViewController<UserProfile> {
         return NewChatSearchResultsController(delegate: self)
     }
 
@@ -141,8 +150,7 @@ class NewChatViewController: NewChatTableViewController {
 
     private func reloadContacts() {
         let allContacts = fetchedResultsController.fetchedObjects ?? []
-        let uniqueContacts = ABContact.contactsWithUniquePhoneNumbers(allContacts: allContacts)
-        set(displayContacts: uniqueContacts, searchableContacts: allContacts)
+        set(displayContacts: allContacts, searchableContacts: allContacts)
     }
 
     // MARK: NewChatTableViewController
@@ -215,6 +223,13 @@ private extension ContactTableViewCell {
         if let userId = abContact.userId {
             contactImage.configure(with: userId, using: MainAppContext.shared.avatarStore)
         }
+    }
+
+    func configure(with profile: UserProfile) {
+        nameLabel.text = profile.name
+        subtitleLabel.text = profile.username
+
+        contactImage.configure(with: profile.id, using: MainAppContext.shared.avatarStore)
     }
 }
 

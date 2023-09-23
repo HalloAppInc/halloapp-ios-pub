@@ -154,10 +154,12 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     private var transitionSnapshot: UIView?
 
     private lazy var fromUserDestination: ShareDestination? = {
-        guard let fromUserId = fromUserId else { return nil }
-        guard let contact = MainAppContext.shared.contactStore.contact(withUserId: fromUserId, in: MainAppContext.shared.contactStore.viewContext) else { return nil }
+        guard let fromUserId,
+              let user = UserProfile.find(with: fromUserId, in: MainAppContext.shared.mainDataStore.viewContext) else {
+            return nil
+        }
 
-        return ShareDestination.destination(from: contact)
+        return ShareDestination.destination(from: user)
     }()
 
     private var cancellableSet: Set<AnyCancellable> = []
@@ -1844,7 +1846,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
             var toChatGroupIDs: [String] = []
             for selectedDestination in destinations {
                 switch selectedDestination {
-                case .contact(id: let id, name: _, phone: _):
+                case .user(id: let id, name: _, username: _):
                     toUserIds.append(id)
                 case .group(id: let id, _, _):
                     toChatGroupIDs.append(id)

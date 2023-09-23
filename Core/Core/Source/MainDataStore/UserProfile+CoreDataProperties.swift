@@ -28,6 +28,10 @@ extension UserProfile {
     @NSManaged public var posts: Set<FeedPost>
     @NSManaged public var comments: Set<FeedPostComment>
     @NSManaged public var messages: Set<ChatMessage>
+
+    @objc public var searchItems: [String] {
+        [name, username]
+    }
 }
 
 extension UserProfile: Identifiable {

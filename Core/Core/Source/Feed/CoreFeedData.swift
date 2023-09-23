@@ -277,7 +277,7 @@ open class CoreFeedData: NSObject {
                 feedPostInfo.receipts = receipts
                 feedPostInfo.audienceType = .group
                 feedPost.info = feedPostInfo
-            case .contact:
+            case .user:
                 // ChatData is responsible for this case
                 break
             }

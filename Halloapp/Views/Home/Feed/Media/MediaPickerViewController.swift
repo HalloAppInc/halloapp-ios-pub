@@ -95,7 +95,7 @@ struct MediaPickerConfig {
             return .feed
         case .group:
             return .group(destination: destination)
-        case .contact:
+        case .user:
             return .chat(destination: destination)
         }
     }

@@ -1589,7 +1589,7 @@ extension GroupChatViewController: MessageViewChatDelegate, ReactionViewControll
             var toChatGroupIDs: [String] = []
             for selectedDestination in destinations {
                 switch selectedDestination {
-                case .contact(id: let id, name: _, phone: _):
+                case .user(id: let id, name: _, username: _):
                     toUserIds.append(id)
                 case .group(id: let id, _, _):
                     toChatGroupIDs.append(id)

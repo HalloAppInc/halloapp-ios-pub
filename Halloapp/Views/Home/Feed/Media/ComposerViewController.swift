@@ -40,7 +40,7 @@ struct ComposerConfig {
             return .userPost(destination: destination)
         case .group:
             return .groupPost(destination: destination)
-        case .contact:
+        case .user:
             return .message(destination: destination)
         }
     }
@@ -451,7 +451,7 @@ class ComposerViewController: UIViewController {
             leftContentInset = 30
             rightContentInset = 36
             horizontalImageInset = 12
-        } else if case .contact(_, _, _) = config.destination {
+        } else if case .user(_, _, _) = config.destination {
             icon = nil
             title = Localizations.buttonSend
             leftContentInset = 16
@@ -1325,7 +1325,7 @@ extension ComposerViewController {
             mentionableUsers = Mentions.mentionableUsersForNewPost(privacyListType: privacyListType)
         case .group(let id, _, _):
             mentionableUsers = Mentions.mentionableUsers(forGroupID: id, in: MainAppContext.shared.feedData.viewContext)
-        case .contact:
+        case .user:
             mentionableUsers = []
         }
 

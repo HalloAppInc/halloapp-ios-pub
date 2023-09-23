@@ -612,7 +612,7 @@ extension ChatListViewController: UIViewControllerHandleShareDestination {
                 vc.chatViewControllerDelegate = self
                 viewController = vc
             }
-        case .contact(id: let id, _, _):
+        case .user(id: let id, _, _):
             let vc = ChatViewControllerNew(for: id)
             vc.chatViewControllerDelegate = self
             viewController = vc

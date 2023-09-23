@@ -236,7 +236,7 @@ class ExistingNetworkViewController: UIViewController, UserActionHandler {
             }
 
             for destination in destinations {
-                if case let .contact(userID, _, _) = destination {
+                if case let .user(userID, _, _) = destination {
                     self.sendChat(to: userID, with: result)
                 } else {
                     self.createPost(for: destination, with: result)
