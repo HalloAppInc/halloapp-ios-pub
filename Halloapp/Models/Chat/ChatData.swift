@@ -4678,7 +4678,7 @@ extension ChatData {
                 contactNames[inboundMember.userId] = name
             }
         }
-        self.contactStore.addPushNames(contactNames)
+        UserProfile.updateNames(with: contactNames)
         // Saving push names early on will help us show push names for events/content from these users.
 
         switch xmppGroup.action {

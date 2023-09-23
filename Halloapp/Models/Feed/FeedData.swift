@@ -1646,7 +1646,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         if !contactNames.isEmpty {
-            contactStore.addPushNames(contactNames)
+            UserProfile.updateNames(with: contactNames)
         }
 
         DDLogInfo("FeedData/processIncomingFeedItems/feedPosts: \(feedPosts.count)/comments: \(comments.count)/reactions: \(reactions.count)")
@@ -4244,7 +4244,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     }
 
                     if !isContact {
-                        self.contactStore.addPushNames([userID: externalSharePostContainer.name])
+                        UserProfile.updateNames(with: [userID: externalSharePostContainer.name])
                         if !externalSharePostContainer.avatarID.isEmpty {
                             MainAppContext.shared.avatarStore.addAvatar(id: externalSharePostContainer.avatarID, for: userID)
                         }

@@ -423,7 +423,7 @@ class HomeViewController: UITabBarController {
                     dict[userID] = pushName
                 }
                 if !pushNames.isEmpty {
-                    MainAppContext.shared.contactStore.addPushNames(pushNames)
+                    UserProfile.updateNames(with: pushNames)
                 }
 
                 let viewContext = MainAppContext.shared.chatData.viewContext

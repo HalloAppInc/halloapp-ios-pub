@@ -277,7 +277,7 @@ class SyncManager {
                     dict[userID] = pushName
                 }
             }
-            contactStore.addPushNames(pushNames)
+            UserProfile.updateNames(with: pushNames)
 
             let contactsWithAvatars = contacts.filter { $0.avatarid != nil }
             let avatarDict = contactsWithAvatars.reduce(into: [UserID: AvatarID]()) { (dict, contact) in

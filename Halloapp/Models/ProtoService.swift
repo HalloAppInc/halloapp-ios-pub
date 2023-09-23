@@ -585,7 +585,7 @@ final class ProtoService: ProtoServiceCore {
             hasAckBeenDelegated = true
         case .groupChatStanza(let serverGroupChatStanza):
             if !serverGroupChatStanza.senderName.isEmpty {
-                MainAppContext.shared.contactStore.addPushNames([ UserID(msg.fromUid) : serverGroupChatStanza.senderName ])
+                UserProfile.updateNames(with: [UserID(msg.fromUid): serverGroupChatStanza.senderName])
             }
             if !serverGroupChatStanza.senderPhone.isEmpty {
                 MainAppContext.shared.contactStore.addPushNumbers([ UserID(msg.fromUid) : serverGroupChatStanza.senderPhone ])
@@ -668,7 +668,7 @@ final class ProtoService: ProtoServiceCore {
             }
         case .chatStanza(let serverChat):
             if !serverChat.senderName.isEmpty {
-                MainAppContext.shared.contactStore.addPushNames([ UserID(msg.fromUid) : serverChat.senderName ])
+                UserProfile.updateNames(with: [UserID(msg.fromUid): serverChat.senderName])
             }
             if !serverChat.senderPhone.isEmpty {
                 MainAppContext.shared.contactStore.addPushNumbers([ UserID(msg.fromUid) : serverChat.senderPhone ])
@@ -1252,7 +1252,7 @@ final class ProtoService: ProtoServiceCore {
         case .name(let pbName):
             if !pbName.name.isEmpty {
                 // TODO: Is this necessary? Should we clear push name if name is empty?
-                MainAppContext.shared.contactStore.addPushNames([ UserID(pbName.uid): pbName.name ])
+                UserProfile.updateNames(with: [UserID(msg.fromUid): pbName.name])
             }
         case .requestLogs(_):
             DDLogInfo("proto/didReceive/\(msg.id)/request logs")

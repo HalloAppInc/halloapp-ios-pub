@@ -38,39 +38,6 @@ extension UserProfile {
     }
 }
 
-// MARK: - Updates
-
-extension UserProfile {
-
-    public func update(with serverProfile: Server_HalloappUserProfile) {
-        id = String(serverProfile.uid)
-
-        if serverProfile.username != username {
-            username = serverProfile.username
-        }
-
-        if serverProfile.name != name {
-            name = serverProfile.name
-        }
-
-        if serverProfile.avatarID != avatarID {
-            avatarID = serverProfile.avatarID
-            AppContext.shared.avatarStore.addAvatar(id: serverProfile.avatarID, for: id)
-        }
-
-        let serverStatus = serverProfile.status.userProfileFriendshipStatus
-        if serverStatus != friendshipStatus {
-            friendshipStatus = serverStatus
-        }
-
-        if serverProfile.blocked != isBlocked {
-            isBlocked = serverProfile.blocked
-        }
-    }
-}
-
-// MARK: -
-
 extension Server_FriendshipStatus {
 
     public var userProfileFriendshipStatus: UserProfile.FriendshipStatus {

@@ -944,7 +944,7 @@ public class CoreChatData {
             }
 
             if !contactNames.isEmpty {
-                self.contactStore.addPushNames(contactNames)
+                UserProfile.updateNames(with: contactNames)
             }
 
         }, performAfterSave: {
@@ -2118,7 +2118,7 @@ extension CoreChatData {
                 contactNames[inboundMember.userId] = name
             }
         }
-        self.contactStore.addPushNames(contactNames)
+        UserProfile.updateNames(with: contactNames)
         // Saving push names early on will help us show push names for events/content from these users.
 
         switch xmppGroup.action {
@@ -2184,7 +2184,7 @@ extension CoreChatData {
         }
 
         if !contactNames.isEmpty {
-            contactStore.addPushNames(contactNames)
+            UserProfile.updateNames(with: contactNames)
         }
         if recordEvent {
             recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
@@ -2206,7 +2206,7 @@ extension CoreChatData {
                 contactNames[xmppGroupMember.userId] = name
             }
             if !contactNames.isEmpty {
-                contactStore.addPushNames(contactNames)
+                UserProfile.updateNames(with: contactNames)
             }
 
             processGroupAddMemberAction(chatGroup: group, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
@@ -2270,7 +2270,7 @@ extension CoreChatData {
                 contactNames[xmppGroupMember.userId] = name
             }
             if !contactNames.isEmpty {
-                contactStore.addPushNames(contactNames)
+                UserProfile.updateNames(with: contactNames)
             }
 
             switch xmppGroupMember.action {

@@ -144,6 +144,7 @@
 		A1513DE02A82C4CA000CA8F4 /* UserProfile+Fetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1513DDF2A82C4CA000CA8F4 /* UserProfile+Fetch.swift */; };
 		A1513DE22A82CE34000CA8F4 /* UserData+Updates.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1513DE12A82CE34000CA8F4 /* UserData+Updates.swift */; };
 		A16FF6732AB1127B00E0882A /* UserProfile+Convenience.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16FF6722AB1127B00E0882A /* UserProfile+Convenience.swift */; };
+		A1E5262B2AB2AE3800523D6F /* UserProfile+Updates.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1E5262A2AB2AE3800523D6F /* UserProfile+Updates.swift */; };
 		EAAE7B3924DCDEBB00946B77 /* KeyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B3824DCDEBB00946B77 /* KeyStore.swift */; };
 		EB3CB4A82888746800249238 /* CommonReaction+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3CB4A72888746800249238 /* CommonReaction+CoreDataClass.swift */; };
 		EB3CB4AA288874B300249238 /* CommonReaction+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3CB4A9288874B300249238 /* CommonReaction+CoreDataProperties.swift */; };
@@ -319,6 +320,7 @@
 		A1513DDF2A82C4CA000CA8F4 /* UserProfile+Fetch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserProfile+Fetch.swift"; sourceTree = "<group>"; };
 		A1513DE12A82CE34000CA8F4 /* UserData+Updates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserData+Updates.swift"; sourceTree = "<group>"; };
 		A16FF6722AB1127B00E0882A /* UserProfile+Convenience.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserProfile+Convenience.swift"; sourceTree = "<group>"; };
+		A1E5262A2AB2AE3800523D6F /* UserProfile+Updates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserProfile+Updates.swift"; sourceTree = "<group>"; };
 		EAAE7B3824DCDEBB00946B77 /* KeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyStore.swift; sourceTree = "<group>"; };
 		EB3CB4A72888746800249238 /* CommonReaction+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CommonReaction+CoreDataClass.swift"; sourceTree = "<group>"; };
 		EB3CB4A9288874B300249238 /* CommonReaction+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CommonReaction+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -752,6 +754,7 @@
 				A1513DDD2A82BF52000CA8F4 /* UserProfileData.swift */,
 				A1513DDF2A82C4CA000CA8F4 /* UserProfile+Fetch.swift */,
 				A16FF6722AB1127B00E0882A /* UserProfile+Convenience.swift */,
+				A1E5262A2AB2AE3800523D6F /* UserProfile+Updates.swift */,
 			);
 			path = UserProfile;
 			sourceTree = "<group>";
@@ -1055,6 +1058,7 @@
 				A133A1062A79AA440078E06B /* UserProfile+CoreDataProperties.swift in Sources */,
 				68A64E8224D22E5500F40F1F /* NSRange.swift in Sources */,
 				76C7429624A155E900C7D945 /* FeedDownloadManager.swift in Sources */,
+				A1E5262B2AB2AE3800523D6F /* UserProfile+Updates.swift in Sources */,
 				A1513DE22A82CE34000CA8F4 /* UserData+Updates.swift in Sources */,
 				249028A024C5DFDE0019C4D5 /* Media+CoreDataClass.swift in Sources */,
 				6832F50324FEE9CB00A9C202 /* CoreService.swift in Sources */,

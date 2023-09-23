@@ -746,11 +746,11 @@ class NotificationMetadata: Codable {
     }
 
     func checkAndSavePushName(for fromUserID: UserID, with pushName: String?, to contactStore: ContactStore = AppContext.shared.contactStore) {
-        if let name = pushName, !name.isEmpty {
-            var contactNames = [UserID:String]()
-            contactNames[fromUserID] = pushName
-            contactStore.addPushNames(contactNames)
+        guard let pushName, !pushName.isEmpty else {
+            return
         }
+
+        UserProfile.updateNames(with: [fromUserID: pushName])
     }
 
     func populateChatBody(from chatContent: ChatContent, contactStore: ContactStore) {
