@@ -33,6 +33,9 @@ extension UserProfile {
         }
 
         set {
+            if isFavorite, newValue != .friends {
+                isFavorite = false
+            }
             friendshipStatusValue = newValue.rawValue
         }
     }

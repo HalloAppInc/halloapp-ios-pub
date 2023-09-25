@@ -35,7 +35,14 @@ extension UserProfileData: HalloUserProfileDelegate {
         }
 
         mainDataStore.saveSeriallyOnBackgroundContext { context in
-            UserProfile.findOrCreate(with: userID, in: context).update(with: serverProfile)
+            let profile = UserProfile.findOrCreate(with: userID, in: context)
+            let currentFriendshipStatus = profile.friendshipStatus
+            profile.update(with: serverProfile)
+
+            if case .friends = currentFriendshipStatus, currentFriendshipStatus != profile.friendshipStatus {
+                // no longer friends, remove content
+                UserProfile.removeContent(for: userID, in: context, options: .unfriended)
+            }
 
         } completion: { result in
             switch result {

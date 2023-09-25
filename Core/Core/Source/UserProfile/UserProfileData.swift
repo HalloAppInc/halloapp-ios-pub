@@ -64,8 +64,7 @@ public class UserProfileData: NSObject {
         let updatedProfile = try await perform(action: .removeFriend, for: userID)
         try await perform { context in
             UserProfile.findOrCreate(with: userID, in: context).update(with: updatedProfile)
-
-            // TODO: delete content from unfriended user
+            UserProfile.removeContent(for: userID, in: context, options: .unfriended)
         }
     }
 
@@ -94,8 +93,7 @@ public class UserProfileData: NSObject {
         let updatedProfile = try await perform(action: .block, for: userID)
         try await perform { context in
             UserProfile.findOrCreate(with: userID, in: context).update(with: updatedProfile)
-
-            // TODO: delete content from blocked user
+            UserProfile.removeContent(for: userID, in: context, options: .blocked)
         }
     }
 
