@@ -177,8 +177,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         setupFetchedResultsController()
         reloadData(animated: false)
 
-        showInviteViewControllerIfNeeded()
-
         // watch for any changes in the iOS address book (name changes, deletions) and reflect it immediately,
         // especially in cases where the user is on the chats list screen and doing changes in the address book at the same time
         // note: iOS sometimes sends out notifications for address book changes even when there isn't any and also sometimes multiple
@@ -291,31 +289,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         let button = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(openComposeChatAction))
         return button
     }()
-
-    // MARK: NUX
-
-    private func showInviteViewControllerIfNeeded() {
-        let isZeroZone = MainAppContext.shared.nux.state == .zeroZone
-        // check if list is empty since someone could've messaged the user
-        let isEmpty = (fetchedResultsController?.sections?.first?.numberOfObjects ?? 0) == 0
-        guard isZeroZone, isEmpty, ContactStore.contactsAccessAuthorized else {
-            return
-        }
-
-        InviteManager.shared.requestInvitesIfNecessary()
-        let inviteVC = InviteViewController(manager: InviteManager.shared, showDividers: false, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
-        inviteVC.view.frame = self.view.bounds
-        view.addSubview(inviteVC.view)
-        inviteVC.view.tag = 1000
-        inviteVC.view.translatesAutoresizingMaskIntoConstraints = false
-        inviteVC.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
-        inviteVC.view.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
-        inviteVC.view.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
-        inviteVC.view.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-
-        addChild(inviteVC)
-        inviteVC.didMove(toParent: self)
-    }
 
     private lazy var overlayContainer: OverlayContainer = {
         let overlayContainer = OverlayContainer()

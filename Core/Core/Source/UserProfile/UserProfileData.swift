@@ -20,7 +20,13 @@ public class UserProfileData: NSObject {
     public let userData: UserData
     public let userDefaults: UserDefaults
 
+    @UserDefault(key: "friendshipsSyncDateKey")
+    private static var lastFriendshipSyncDate: TimeInterval = .zero
+
+    // MARK: Publishers
+
     private var cancellables: Set<AnyCancellable> = []
+    private let _completedInitialFriendSyncPublisher = PassthroughSubject<Void, Never>()
 
     public init(dataStore: MainDataStore, service: CoreService, avatarStore: AvatarStore, userData: UserData, userDefaults: UserDefaults) {
         self.mainDataStore = dataStore
@@ -42,6 +48,10 @@ public class UserProfileData: NSObject {
                 self?.syncUserProfile()
             }
             .store(in: &cancellables)
+    }
+
+    public var completedInitialFriendSyncPublisher: AnyPublisher<Void, Never> {
+        _completedInitialFriendSyncPublisher.eraseToAnyPublisher()
     }
 
     // MARK: Actions
@@ -142,10 +152,11 @@ public class UserProfileData: NSObject {
     // MARK: Sync
 
     private func syncFriendshipsIfNeeded() {
-        let key = "friendshipsSyncDateKey"
-        let lastSyncTime = Date(timeIntervalSince1970: userDefaults.double(forKey: key))
+        let lastSyncInterval = Self.lastFriendshipSyncDate
+        let lastSyncDate = Date(timeIntervalSince1970: lastSyncInterval)
+        let hasCompletedInitialSync = lastSyncInterval != .zero
 
-        guard lastSyncTime < Date(timeIntervalSinceNow: -ServerProperties.relationshipSyncFrequency) else {
+        guard lastSyncDate < Date(timeIntervalSinceNow: -ServerProperties.relationshipSyncFrequency) else {
             DDLogInfo("UserProfileData/syncFriendshipsIfNeeded/skipping sync")
             return
         }
@@ -170,7 +181,10 @@ public class UserProfileData: NSObject {
                 }
             }
 
-            userDefaults.set(Date().timeIntervalSince1970, forKey: key)
+            Self.lastFriendshipSyncDate = Date().timeIntervalSince1970
+            if !hasCompletedInitialSync {
+                _completedInitialFriendSyncPublisher.send()
+            }
         }
     }
 
@@ -287,6 +301,32 @@ extension UserProfileData {
                 $0.avatarID = avatarIDs[$0.id]
             }
             DDLogInfo("UserProfileData/migrate avatars/finished")
+        }
+    }
+}
+
+// MARK: - UserDefault
+
+@propertyWrapper
+fileprivate struct UserDefault<T> {
+
+    let key: String
+    let defaultValue: T
+    private let userDefaults: UserDefaults
+
+    init(wrappedValue: T, key: String) {
+        self.defaultValue = wrappedValue
+        self.key = key
+        self.userDefaults = AppContext.shared.userDefaults
+    }
+
+    var wrappedValue: T {
+        get {
+            userDefaults.value(forKey: key) as? T ?? defaultValue
+        }
+
+        set {
+            userDefaults.setValue(newValue, forKey: key)
         }
     }
 }

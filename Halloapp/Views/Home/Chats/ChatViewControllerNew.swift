@@ -115,8 +115,9 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     weak var chatViewControllerDelegate: ChatViewControllerDelegate?
     var previousChatSenderInfo: [ChatMessageID: Bool] = [:]
 
+    private let profile: UserProfile
     /// The `userID` of the user the client is receiving messages from
-    private var fromUserId: String?
+    private var fromUserId: UserID?
     private var feedPostId: FeedPostID?
     private var feedPostMediaIndex: Int32 = 0
 
@@ -124,7 +125,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     private var chatReplyMessageSenderID: String?
     private var chatReplyMessageMediaIndex: Int32 = 0
     private var firstActionHappened = false
-    private var hasShownAddToContact = false
     private var isFirstLaunch = true
     // This variable is used to determine if the unread banner is visible, if so update its count when the ChatThread unreadCount is updated
     private var unreadMessagesHeaderVisible = false
@@ -480,10 +480,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                 }
             }
         }
-        // Add event - tap to add to contact book
-        if shouldShowAddToContactBookCell() {
-            messageRows.append(MessageRow.addToContactBook)
-        }
         // Sort all messages by timestamp
         messageRows = messageRows.sorted {
             ($0.timestamp ?? .distantFuture) < ($1.timestamp ?? .distantFuture)
@@ -555,20 +551,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         return true
     }
 
-    private func shouldShowAddToContactBookCell() -> Bool {
-        guard let userID = fromUserId else { return false }
-        // if contact is already in address book
-        if MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID, in: MainAppContext.shared.contactStore.viewContext) { return false }
-        // if contact is blocked
-         if MainAppContext.shared.privacySettings.blocked.userIds.contains(userID) { return false }
-        // If we do not have contacts's push number
-        if MainAppContext.shared.contactStore.pushNumber(userID) == nil { return false }
-
-        DDLogInfo("ChatViewControllerNew/shouldShowAddToContactBookCell/will show AddToContactBookCell for user: \(userID) ")
-        return true
-
-    }
-
     private func computePreviousChatSenderInfo(previousChatMessageData: ChatMessageData?, messageRow: MessageRow) -> ChatMessageData? {
         switch messageRow {
         case .chatMessage(let currentChatMessage):
@@ -583,13 +565,13 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         }
     }
 
-    init(for fromUserId: String, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0) {
-        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-        DDLogDebug("ChatViewControllerNew/init/\(fromUserId) [\(UserProfile.findOrCreate(with: fromUserId, in: AppContext.shared.mainDataStore.viewContext).displayName)]/feedpostId: \(feedPostId ?? "")/feedPostMediaIndex: \(feedPostMediaIndex)")
+    init(for fromUserId: UserID, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0) {
+        self.profile = UserProfile.findOrCreate(with: fromUserId, in: AppContext.shared.mainDataStore.viewContext)
         self.fromUserId = fromUserId
         self.feedPostId = feedPostId
         self.feedPostMediaIndex = feedPostMediaIndex
 
+        DDLogDebug("ChatViewControllerNew/init/\(fromUserId) [\(profile.displayName)]/feedpostId: \(feedPostId ?? "")/feedPostMediaIndex: \(feedPostMediaIndex)")
         super.init(nibName: nil, bundle: nil)
         self.hidesBottomBarWhenPushed = true
     }
@@ -678,32 +660,12 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             }
         )
 
-        cancellableSet.insert(
-            MainAppContext.shared.didPrivacySettingChange.sink { [weak self] (userID) in
-                DDLogInfo("ChatViewControllerNew/didPrivacySettingChange/update header")
-                guard let self = self else { return }
-                guard userID == self.fromUserId else { return }
-                DispatchQueue.main.async { [weak self] in
-                    self?.setupOrRefreshHeaderAndFooter()
-                }
+        profile.publisher(for: \.isBlocked)
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.setupOrRefreshHeaderAndFooter()
             }
-        )
-
-        // Update name in title view if we just discovered this new user.
-        cancellableSet.insert(
-            MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] (newUserIDs) in
-                DDLogInfo("ChatViewControllerNew/didDiscoverNewUsers/update name if necessary")
-                guard let self = self else { return }
-                guard let userID = self.fromUserId else { return }
-                DispatchQueue.main.async { [weak self] in
-                    guard let self = self else { return }
-                    if newUserIDs.contains(userID) {
-                        self.titleView.refreshName(for: userID)
-                        self.updateCollectionViewData()
-                    }
-                }
-            }
-        )
+            .store(in: &cancellableSet)
         
         configureTitleViewWithTypingIndicator()
         loadChatDraft(id: fromUserId)
@@ -1011,7 +973,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
     override var canBecomeFirstResponder: Bool {
         get {
-            return true
+            return profile.friendshipStatus == .friends
         }
     }
 
@@ -1118,30 +1080,8 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     }
 
     private func setupOrRefreshHeaderAndFooter() {
-        guard let userID = fromUserId else { return }
-        let isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(userID)
-        if isUserBlocked {
+        if profile.isBlocked {
             present(blockedContactSheet, animated: true)
-            return
-        }
-        let isUserInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID, in: MainAppContext.shared.contactStore.viewContext)
-        let isPushNumberMessagingAccepted = MainAppContext.shared.contactStore.isPushNumberMessagingAccepted(userID: userID)
-        let haveMessagedBefore = MainAppContext.shared.chatData.haveMessagedBefore(userID: userID, in: MainAppContext.shared.chatData.viewContext)
-        let haveReceivedMessagesBefore = MainAppContext.shared.chatData.haveReceivedMessagesBefore(userID: userID, in: MainAppContext.shared.chatData.viewContext)
-
-        let pushNumberExist = MainAppContext.shared.contactStore.pushNumber(userID) != nil
-        let showUnknownContactActionBanner = !isUserBlocked &&
-                                             !isUserInAddressBook &&
-                                             !isPushNumberMessagingAccepted &&
-                                             !haveMessagedBefore &&
-                                             pushNumberExist &&
-                                             haveReceivedMessagesBefore
-
-        if showUnknownContactActionBanner {
-            DDLogInfo("ChatViewControllerNew/setupOrRefreshHeaderAndFooter/will show Unknown Contact Action Banner")
-            present(unknownContactSheet, animated: true)
-        } else {
-            DDLogInfo("ChatViewControllerNew/setupOrRefreshHeaderAndFooter/ user: \(userID) isUserBlocked: \(isUserBlocked) isUserInAddressBook: \(isUserInAddressBook) isPushNumberMessagingAccepted: \(isPushNumberMessagingAccepted) haveMessagedBefore: \(haveMessagedBefore) pushNumberExist:\(pushNumberExist) haveReceivedMessagesBefore: \(haveReceivedMessagesBefore)")
         }
     }
 
@@ -1156,53 +1096,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             privacySettings.unblock(userID: userID)
         }
 
-        sheet.cancelAction = { [weak self] in
-            self?.dismiss(animated: true)
-            self?.navigationController?.popViewController(animated: true)
-        }
-
-        return sheet
-    }()
-
-    private lazy var unknownContactSheet: UnknownContactSheetViewController = {
-        let sheet = UnknownContactSheetViewController()
-
-        sheet.acceptAction = { [weak self] in
-            guard let self = self else { return }
-            self.dismiss(animated: true)
-            guard let userID = self.fromUserId else { return }
-            MainAppContext.shared.contactStore.setIsMessagingAccepted(userID: userID, isMessagingAccepted: true)
-        }
-
-        sheet.addContactAction = { [weak self] in
-            guard let self = self else { return }
-            self.dismiss(animated: true)
-            guard let userID = self.fromUserId else { return }
-            MainAppContext.shared.contactStore.addUserToAddressBook(userID: userID, presentingVC: self)
-        }
-
-        sheet.blockAction = { [weak self] in
-            guard let self = self else { return }
-            self.dismiss(animated: true)
-            guard let userID = self.fromUserId else { return }
-            let viewContext = MainAppContext.shared.contactStore.viewContext
-            let blockMessage = Localizations.blockMessage(username: UserProfile.findOrCreate(with: userID, in: MainAppContext.shared.mainDataStore.viewContext).displayName)
-
-            let alert = UIAlertController(title: nil, message: blockMessage, preferredStyle: .actionSheet)
-            let button = UIAlertAction(title: Localizations.blockButton, style: .destructive) { [weak self] _ in
-                guard let self = self else { return }
-                let privacySettings = MainAppContext.shared.privacySettings
-                guard let blockedList = privacySettings.blocked else { return }
-                privacySettings.block(userID: userID)
-            }
-            alert.addAction(button)
-
-            let cancel = UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil)
-            alert.addAction(cancel)
-
-            self.present(alert, animated: true)
-        }
-        
         sheet.cancelAction = { [weak self] in
             self?.dismiss(animated: true)
             self?.navigationController?.popViewController(animated: true)

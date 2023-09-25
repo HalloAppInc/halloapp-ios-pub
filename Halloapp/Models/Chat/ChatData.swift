@@ -29,7 +29,7 @@ public enum UserPresenceType: Int16 {
     case away = 2
 }
 
-class ChatData: ObservableObject {
+class ChatData: NSObject, ObservableObject {
 
     public var currentPage: Int = 0
 
@@ -60,11 +60,20 @@ class ChatData: ObservableObject {
         return CountController(fetchRequest: fetchRequest, managedObjectContext: mainDataStore.viewContext)
     }()
 
+    private lazy var friendResultsController: NSFetchedResultsController<UserProfile> = {
+        let request = UserProfile.fetchRequest()
+        request.propertiesToFetch = ["id", "name"]
+        request.predicate = NSPredicate(format: "friendshipStatusValue == %d", UserProfile.FriendshipStatus.friends.rawValue)
+        request.sortDescriptors = []
+        return .init(fetchRequest: request, managedObjectContext: mainDataStore.viewContext, sectionNameKeyPath: nil, cacheName: nil)
+    }()
+
     private let userData: UserData
     private let mainDataStore: MainDataStore
     private let contactStore: ContactStoreMain
     private var service: HalloService
     private let coreChatData: CoreChatData
+    private let userProfileData: UserProfileData
     private let mediaUploader: MediaUploader
 
     private var currentlySubscribedUsers: [UserID] = []
@@ -100,14 +109,16 @@ class ChatData: ObservableObject {
     
     private var cancellableSet: Set<AnyCancellable> = []
     
-    init(service: HalloService, contactStore: ContactStoreMain, mainDataStore: MainDataStore, userData: UserData, coreChatData: CoreChatData) {
+    init(service: HalloService, contactStore: ContactStoreMain, mainDataStore: MainDataStore, userData: UserData, coreChatData: CoreChatData, userProfileData: UserProfileData) {
         self.service = service
         self.contactStore = contactStore
         self.userData = userData
         self.mainDataStore = mainDataStore
         self.coreChatData = coreChatData
+        self.userProfileData = userProfileData
         self.mediaUploader = MediaUploader(service: service)
 
+        super.init()
         self.service.chatDelegate = self
         
         cancellableSet.insert(
@@ -438,27 +449,12 @@ class ChatData: ObservableObject {
             }
         )
 
-        cancellableSet.insert(contactStore.didCompleteInitialSync.sink { [weak self] in
-            DDLogInfo("ChatData/sink/didCompleteInitialSync")
-            DispatchQueue.main.async { [weak self] in
-                self?.populateThreadsWithInitialRegisteredContacts()
+        userProfileData.completedInitialFriendSyncPublisher
+            .sink { [weak self] in
+                DDLogInfo("ChatData/completedInitialFriendSync")
+                self?.populateThreadsWithFriends()
             }
-        })
-
-        cancellableSet.insert(contactStore.didDiscoverNewUsers.sink { [weak self] (userIDs) in
-            DDLogInfo("ChatData/sink/didDiscoverNewUsers/count: \(userIDs.count)")
-
-            mainDataStore.performSeriallyOnBackgroundContext { context in
-                guard let self else {
-                    return
-                }
-
-                let dict = userIDs.reduce(into: [UserID: String]()) {
-                    $0[$1] = UserProfile.find(with: $1, in: context)?.displayName ?? ""
-                }
-                self.updateThreadsWithDiscoveredUsers(for: dict)
-            }
-        })
+            .store(in: &cancellableSet)
 
         cancellableSet.insert(
             userData.didLogIn.sink {
@@ -466,6 +462,13 @@ class ChatData: ObservableObject {
                 shouldGetGroupsList = true
             }
         )
+
+        do {
+            friendResultsController.delegate = self
+            try friendResultsController.performFetch()
+        } catch {
+            DDLogError("ChatData/init/friendResultsController fetch failed \(String(describing: error))")
+        }
 
         DispatchQueue.main.async {
             self.cleanUpOldUploadData()
@@ -942,36 +945,30 @@ class ChatData: ObservableObject {
     }
 
     // should be called just once, when user have their contacts synced for the very first time
-    func populateThreadsWithInitialRegisteredContacts() {
-        MainAppContext.shared.contactStore.performSeriallyOnBackgroundContext { [weak self] contactsManagedObjectContext in
-            guard let self = self else { return }
+    func populateThreadsWithFriends() {
+        mainDataStore.saveSeriallyOnBackgroundContext { context in
+            let friends = UserProfile.find(predicate: .init(format: "friendshipStatusValue == %d", UserProfile.FriendshipStatus.friends.rawValue), in: context)
+            let names = friends.reduce(into: [:]) { $0[$1.id] = $1.name }
+            DDLogInfo("ChatData/populateThreadsWithFriends [\(friends.count)] friends")
 
-            let contacts = MainAppContext.shared.contactStore.allRegisteredContacts(sorted: true, in: contactsManagedObjectContext)
-            DDLogInfo("ChatData/populateThreadsWithInitialRegisteredContacts/num contacts: \(contacts.count)")
-            var userIDs = [UserID:String]()
-            contacts.forEach {
-                guard let userID = $0.userId else { return }
-                userIDs[userID] = $0.fullName
+            if friends.isEmpty {
+                return
             }
-            guard !userIDs.isEmpty else { return }
 
-            self.performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
-                guard let self = self else { return }
-                for (userId, fullName) in userIDs {
-                    guard self.chatThread(type: ChatType.oneToOne, id: userId, in: managedObjectContext) == nil else { continue }
-                    DDLogInfo("ChatData/populateThreadsWithInitialRegisteredContacts/contact/\(userId)")
-
-                    // these chat threads will have no timestamps and be sorted alphabetically below ones that do
-                    let chatThread = ChatThread(context: managedObjectContext)
-                    chatThread.title = fullName
-                    chatThread.userID = userId
-                    chatThread.lastMsgUserId = userId
-                    chatThread.lastMsgText = nil
-                    chatThread.unreadCount = 0
-                    chatThread.isNew = false
-                    chatThread.type = .oneToOne
+            for (userID, name) in names {
+                guard self.chatThread(type: .oneToOne, id: userID, in: context) == nil else {
+                    continue
                 }
-                self.save(managedObjectContext)
+
+                DDLogInfo("ChatData/populateThreadsWithFriends/creating thread for [\(userID)]")
+                let thread = ChatThread(context: context)
+                thread.title = name
+                thread.userID = userID
+                thread.lastMsgUserId = userID
+                thread.lastMsgText = nil
+                thread.unreadCount = 0
+                thread.isNew = false
+                thread.type = .oneToOne
             }
         }
     }
@@ -3175,6 +3172,25 @@ extension ChatData {
         }
     }
     
+}
+
+// MARK: - ChatData + NSFetchedResultsControllerDelegate
+
+extension ChatData: NSFetchedResultsControllerDelegate {
+
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        switch (controller, type) {
+        case (friendResultsController, .insert):
+            guard let profile = anObject as? UserProfile else {
+                break
+            }
+            DDLogInfo("ChatData/controllerDidChangeContent/new friend [\(profile.id)]")
+            self.updateThreadsWithDiscoveredUsers(for: [profile.id: profile.name])
+
+        default:
+            break
+        }
+    }
 }
 
 extension ChatData {

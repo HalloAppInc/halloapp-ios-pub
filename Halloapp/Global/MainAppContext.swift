@@ -139,7 +139,7 @@ class MainAppContext: AppContext {
 
         service.userProfileDelegate = userProfileData
         feedData = FeedData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData, coreFeedData: coreFeedData, mediaUploader: mediaUploader)
-        chatData = ChatData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData, coreChatData: coreChatData)
+        chatData = ChatData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData, coreChatData: coreChatData, userProfileData: userProfileData)
         syncManager = SyncManager(contactStore: contactStore, service: service, userData: userData)
         
         privacySettingsImpl = PrivacySettings(contactStore: contactStore, service: service)

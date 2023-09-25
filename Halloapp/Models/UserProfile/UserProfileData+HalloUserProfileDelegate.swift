@@ -22,7 +22,6 @@ extension UserProfileData: HalloUserProfileDelegate {
             // TODO
             break
         case .friendNotice:
-            // TODO
             break
         case .incomingFriendRequest:
             // TODO
