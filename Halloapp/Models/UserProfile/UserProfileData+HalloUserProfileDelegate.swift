@@ -27,6 +27,9 @@ extension UserProfileData: HalloUserProfileDelegate {
         case .incomingFriendRequest:
             // TODO
             break
+        case .deleteNotice:
+            // TODO
+            break
         case .UNRECOGNIZED:
             DDLogError("UserProfileData/unrecognized update type")
         }

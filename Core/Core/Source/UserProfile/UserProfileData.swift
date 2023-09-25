@@ -206,7 +206,12 @@ public class UserProfileData: NSObject {
             case .getOutgoingPending:
                 resetFriendStatus(profileStatus: .outgoingPending)
 
+            case .getBlocked:
+                break
+
             case .getSuggestions:
+                break
+            case .syncAll:
                 break
             case .UNRECOGNIZED(_):
                 break
