@@ -1419,6 +1419,9 @@ final class ProtoService: ProtoServiceCore {
         case .halloappProfileUpdate(let profileUpdate):
             hasAckBeenDelegated = true
             userProfileDelegate?.halloService(self, didReceiveProfileUpdate: profileUpdate, ack: ack)
+        case .friendListRequest(_):
+            // TODO
+            break
         case .publicFeedUpdate(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .aiImage(_):

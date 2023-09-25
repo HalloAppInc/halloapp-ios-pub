@@ -6314,6 +6314,14 @@ public struct Server_Msg {
     set {_uniqueStorage()._payload = .album(newValue)}
   }
 
+  public var friendListRequest: Server_FriendListRequest {
+    get {
+      if case .friendListRequest(let v)? = _storage._payload {return v}
+      return Server_FriendListRequest()
+    }
+    set {_uniqueStorage()._payload = .friendListRequest(newValue)}
+  }
+
   public var retryCount: Int32 {
     get {return _storage._retryCount}
     set {_uniqueStorage()._retryCount = newValue}
@@ -6385,6 +6393,7 @@ public struct Server_Msg {
     case aiImage(Server_AiImage)
     case halloappProfileUpdate(Server_HalloappProfileUpdate)
     case album(Server_Album)
+    case friendListRequest(Server_FriendListRequest)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Msg.OneOf_Payload, rhs: Server_Msg.OneOf_Payload) -> Bool {
@@ -6598,6 +6607,10 @@ public struct Server_Msg {
       }()
       case (.album, .album): return {
         guard case .album(let l) = lhs, case .album(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.friendListRequest, .friendListRequest): return {
+        guard case .friendListRequest(let l) = lhs, case .friendListRequest(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -19775,6 +19788,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     56: .standard(proto: "ai_image"),
     57: .standard(proto: "halloapp_profile_update"),
     58: .same(proto: "album"),
+    59: .standard(proto: "friend_list_request"),
     21: .standard(proto: "retry_count"),
     25: .standard(proto: "rerequest_count"),
   ]
@@ -20500,6 +20514,19 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
             _storage._payload = .album(v)
           }
         }()
+        case 59: try {
+          var v: Server_FriendListRequest?
+          var hadOneofValue = false
+          if let current = _storage._payload {
+            hadOneofValue = true
+            if case .friendListRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._payload = .friendListRequest(v)
+          }
+        }()
         default: break
         }
       }
@@ -20744,6 +20771,10 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       case .album?: try {
         guard case .album(let v)? = _storage._payload else { preconditionFailure() }
         try visitor.visitSingularMessageField(value: v, fieldNumber: 58)
+      }()
+      case .friendListRequest?: try {
+        guard case .friendListRequest(let v)? = _storage._payload else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 59)
       }()
       default: break
       }
