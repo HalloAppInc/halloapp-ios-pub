@@ -11538,6 +11538,9 @@ public struct Server_HalloappProfileUpdate {
 
     /// When the uid sends me a friend request.
     case incomingFriendRequest // = 2
+
+    /// When the uid deletes their account
+    case deleteNotice // = 3
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -11549,6 +11552,7 @@ public struct Server_HalloappProfileUpdate {
       case 0: self = .normal
       case 1: self = .friendNotice
       case 2: self = .incomingFriendRequest
+      case 3: self = .deleteNotice
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -11558,6 +11562,7 @@ public struct Server_HalloappProfileUpdate {
       case .normal: return 0
       case .friendNotice: return 1
       case .incomingFriendRequest: return 2
+      case .deleteNotice: return 3
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -11577,6 +11582,7 @@ extension Server_HalloappProfileUpdate.TypeEnum: CaseIterable {
     .normal,
     .friendNotice,
     .incomingFriendRequest,
+    .deleteNotice,
   ]
 }
 
@@ -11788,6 +11794,12 @@ public struct Server_FriendListRequest {
 
     /// Fetch all friend suggestions from the user.
     case getSuggestions // = 3
+
+    /// Fetch blocked users of this user.
+    case getBlocked // = 4
+
+    /// Set by server_only. Clients should sync all their lists with the server.
+    case syncAll // = 5
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -11800,6 +11812,8 @@ public struct Server_FriendListRequest {
       case 1: self = .getIncomingPending
       case 2: self = .getOutgoingPending
       case 3: self = .getSuggestions
+      case 4: self = .getBlocked
+      case 5: self = .syncAll
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -11810,6 +11824,8 @@ public struct Server_FriendListRequest {
       case .getIncomingPending: return 1
       case .getOutgoingPending: return 2
       case .getSuggestions: return 3
+      case .getBlocked: return 4
+      case .syncAll: return 5
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -11828,6 +11844,8 @@ extension Server_FriendListRequest.Action: CaseIterable {
     .getIncomingPending,
     .getOutgoingPending,
     .getSuggestions,
+    .getBlocked,
+    .syncAll,
   ]
 }
 
@@ -25626,6 +25644,7 @@ extension Server_HalloappProfileUpdate.TypeEnum: SwiftProtobuf._ProtoNameProvidi
     0: .same(proto: "NORMAL"),
     1: .same(proto: "FRIEND_NOTICE"),
     2: .same(proto: "INCOMING_FRIEND_REQUEST"),
+    3: .same(proto: "DELETE_NOTICE"),
   ]
 }
 
@@ -25850,6 +25869,8 @@ extension Server_FriendListRequest.Action: SwiftProtobuf._ProtoNameProviding {
     1: .same(proto: "GET_INCOMING_PENDING"),
     2: .same(proto: "GET_OUTGOING_PENDING"),
     3: .same(proto: "GET_SUGGESTIONS"),
+    4: .same(proto: "GET_BLOCKED"),
+    5: .same(proto: "SYNC_ALL"),
   ]
 }
 
@@ -26155,4 +26176,3 @@ extension Server_ReverseGeocodeResult.Reason: SwiftProtobuf._ProtoNameProviding 
     2: .same(proto: "INVALID_LAT_LONG"),
   ]
 }
-
