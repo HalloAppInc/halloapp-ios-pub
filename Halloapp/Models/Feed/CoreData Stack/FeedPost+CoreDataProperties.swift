@@ -20,8 +20,8 @@ extension FeedPost {
 
     var externalShareDescription: String {
         var mentionText: String?
-        MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-            mentionText = MainAppContext.shared.contactStore.textWithMentions(rawText, mentions: orderedMentions, in: managedObjectContext)?.string
+        if let managedObjectContext {
+            mentionText = UserProfile.text(with: orderedMentions, collapsedText: rawText, in: managedObjectContext)?.string
         }
 
         if let mentionText = mentionText, !mentionText.isEmpty {

@@ -57,8 +57,7 @@ class ExternalSharePreviewImageGenerator {
             mediaImage = nil
         }
 
-        let contactStore = MainAppContext.shared.contactStore
-        let text = contactStore.textWithMentions(post.rawText, mentions: post.orderedMentions, in: contactStore.viewContext)?.string
+        let text = UserProfile.text(with: post.orderedMentions, collapsedText: post.rawText, in: MainAppContext.shared.mainDataStore.viewContext)?.string
 
         let viewToRender: UIView
         if let mediaImage {

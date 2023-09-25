@@ -67,17 +67,12 @@ extension FeedNotification {
 
     var textWithMentions: NSAttributedString? {
         get {
-            let orderedMentions = mentions?.sorted(by: { $0.index < $1.index }) ?? []
-
-            var textWithMentions: NSAttributedString?
-            MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-                textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
-                    text,
-                    mentions: orderedMentions,
-                    in: managedObjectContext)
+            guard let managedObjectContext else {
+                return nil
             }
 
-            return textWithMentions
+            let orderedMentions = mentions?.sorted(by: { $0.index < $1.index }) ?? []
+            return UserProfile.text(with: orderedMentions, collapsedText: text, in: managedObjectContext)
         }
     }
 

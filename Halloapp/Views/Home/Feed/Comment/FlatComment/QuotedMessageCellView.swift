@@ -324,22 +324,21 @@ class QuotedMessageCellView: UIView {
     }
 
     private func configureText(text: String, mentions: [MentionData]) {
-        if !text.isEmpty  {
-            let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
-                text,
-                mentions: mentions,
-                in: MainAppContext.shared.contactStore.viewContext)
-
-            let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
-            let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 3)
-            let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
-            if let attrText = textWithMentions?.with(font: font, color: .label) {
-                let ham = HAMarkdown(font: font, color: UIColor.chatTime)
-                textLabel.attributedText = ham.parse(attrText).applyingFontForMentions(boldFont)
-            }
-            hasText = true
+        guard !text.isEmpty else {
             return
         }
+
+        let textWithMentions = UserProfile.text(with: mentions,
+                                                collapsedText: text,
+                                                in: MainAppContext.shared.mainDataStore.viewContext)
+        let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
+        let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 3)
+        let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
+        if let attrText = textWithMentions?.with(font: font, color: .label) {
+            let ham = HAMarkdown(font: font, color: UIColor.chatTime)
+            textLabel.attributedText = ham.parse(attrText).applyingFontForMentions(boldFont)
+        }
+        hasText = true
     }
 
     private func configureMedia(media: Set<CommonMedia>?) {

@@ -343,7 +343,6 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
         uploadProgressCancellables.forEach { $0.cancel() }
         uploadProgressCancellables.removeAll()
 
-        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
         nameLabel.text = post.user.displayName
 
         progressView.cancelAction = { MainAppContext.shared.feedData.cancelMediaUpload(postId: postID) }
@@ -491,9 +490,9 @@ class GroupGridCollectionViewCell: UICollectionViewCell {
                                                               attributes: [.font: baseFont.withItalicsIfAvailable, .foregroundColor: textColor])
                 textLabelMinimumScaleFactor = 0
             } else {
-                let mentionText = MainAppContext.shared.contactStore.textWithMentions(post.rawText,
-                                                                                      mentions: post.orderedMentions,
-                                                                                      in: MainAppContext.shared.contactStore.viewContext)
+                let mentionText = UserProfile.text(with: post.orderedMentions,
+                                                   collapsedText: post.rawText,
+                                                   in: MainAppContext.shared.mainDataStore.viewContext)
                 let mentionFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
                 let attributedText = mentionText.flatMap {
                     HAMarkdown(font: baseFont, color: textColor)

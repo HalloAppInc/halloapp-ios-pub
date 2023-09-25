@@ -605,19 +605,14 @@ class NotificationMetadata: Codable {
         return ListFormatter.localizedString(byJoining: strings)
     }
 
-    func getMentionNames(contactStore: ContactStore, mentions: [FeedMentionProtocol] = []) -> ((UserID) -> String) {
-        // Add mention names if any in the payload to contactStore and then return dictionary.
-        mentions.forEach{
-            checkAndSavePushName(for: $0.userID, with: $0.name, to: contactStore)
+    func getMentionNames(in context: NSManagedObjectContext, mentions: [FeedMentionProtocol] = []) -> ((UserID) -> String) {
+        // Add mention names if any in the payload and then return dictionary.
+        mentions.forEach {
+            UserProfile.findOrCreate(with: $0.userID, in: context).name = $0.name
         }
 
         let mentionNameProvider: (UserID) -> String = { [self] userID in
-            let pushNameForMention = (userID == fromId) ? pushName : nil
-
-            var name: String?
-            contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-                name = contactStore.mentionNameIfAvailable(for: userID, pushName: pushNameForMention, in: managedObjectContext)
-            }
+            let name = UserProfile.find(with: userID, in: context)?.name
 
             return name ?? Localizations.unknownContact
         }
@@ -625,27 +620,23 @@ class NotificationMetadata: Codable {
         return mentionNameProvider
     }
 
-    func populateContent(using moments: [PostData], contactStore: ContactStore) -> Bool {
-        guard contentType == .feedPost, moments.count > 0, let context = momentContext else {
+    func populateContent(using moments: [PostData], in context: NSManagedObjectContext) -> Bool {
+        guard contentType == .feedPost, moments.count > 0, let momentContext else {
             return false
         }
 
-        var contactNames = [String]()
-
         // Collect names for batching.
-        contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-            contactNames = moments.lazy.reversed()
-                .compactMap { UserProfile.find(with: $0.userId, in: managedObjectContext)?.displayName }
-                .filter { !$0.isEmpty }
-                .reduce(into: Set<String>()) {
-                    $0.insert($1)
-                }
-                .map { $0 }
-        }
+        let contactNames = moments.lazy.reversed()
+            .compactMap { UserProfile.find(with: $0.userId, in: context)?.displayName }
+            .filter { !$0.isEmpty }
+            .reduce(into: Set<String>()) {
+                $0.insert($1)
+            }
+            .map { $0 }
 
         // Populate the batched notification title, subtitle and body.
 
-        switch (context, contactNames.count) {
+        switch (momentContext, contactNames.count) {
         case (.normal, 1):
             body = String(format: Localizations.oneNewMomentNotificationTitle, contactNames[0])
         case (.normal, 2):
@@ -672,30 +663,26 @@ class NotificationMetadata: Codable {
         return true
     }
 
-    func populateContent(contactStore: ContactStore) -> Bool {
+    func populateContent(in context: NSManagedObjectContext) -> Bool {
 
         // Title:
         // "Contact" for feed posts / comments and 1-1 chat messages.
         // "Contact @ Group" for group feed posts / comments and group chat messages.
 
-        var contactName: String?
-        AppContext.shared.mainDataStore.performOnBackgroundContextAndWait { context in
-            contactName = UserProfile.find(with: fromId, in: context)?.displayName ?? self.pushName
-        }
-
+        let contactName = UserProfile.find(with: fromId, in: context)?.name ?? self.pushName
         title = [contactName, groupName].compactMap({ $0 }).joined(separator: " @ ")
 
         // Save push name for contact
-        checkAndSavePushName(for: fromId, with: pushName, to: contactStore)
+        checkAndSavePushName(for: fromId, with: pushName)
 
         switch contentType {
 
         // Post on user feed
         case .feedPost:
-            populateFeedPostBody(from: postData(), contactStore: contactStore)
+            populateFeedPostBody(from: postData(), in: context)
         // Comment on user feed
         case .feedComment:
-            populateFeedCommentBody(from: commentData(), contactStore: contactStore)
+            populateFeedCommentBody(from: commentData(), in: context)
         // Post on group feed
         case .groupFeedPost:
             body = String(format: Localizations.newPostNotificationBody)
@@ -712,8 +699,8 @@ class NotificationMetadata: Codable {
         case .newFriend, .newInvitee, .newContact:
             // Look up contact using phone number as the user ID probably hasn't synced yet
             var contactName: String?
-            contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-                contactName = contactStore.fullNameIfAvailable(forNormalizedPhone: normalizedPhone!, ownName: nil, in: managedObjectContext)
+            AppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
+                contactName = AppContext.shared.contactStore.fullNameIfAvailable(forNormalizedPhone: normalizedPhone!, ownName: nil, in: managedObjectContext)
             }
 
             title = ""
@@ -733,7 +720,7 @@ class NotificationMetadata: Codable {
             body = Localizations.groupsAddNotificationBody
 
         case .screenshot:
-            populateScreenshotContent(contactStore: contactStore)
+            populateScreenshotContent(in: context)
 
         case .dailyMoment:
             title = Localizations.dailyMomentNotificationTitle
@@ -745,7 +732,7 @@ class NotificationMetadata: Codable {
         return true
     }
 
-    func checkAndSavePushName(for fromUserID: UserID, with pushName: String?, to contactStore: ContactStore = AppContext.shared.contactStore) {
+    func checkAndSavePushName(for fromUserID: UserID, with pushName: String?) {
         guard let pushName, !pushName.isEmpty else {
             return
         }
@@ -753,8 +740,8 @@ class NotificationMetadata: Codable {
         UserProfile.updateNames(with: [fromUserID: pushName])
     }
 
-    func populateChatBody(from chatContent: ChatContent, contactStore: ContactStore) {
-        guard let text = Self.bodyText(from: chatContent, contactStore: contactStore) else {
+    func populateChatBody(from chatContent: ChatContent, in context: NSManagedObjectContext) {
+        guard let text = Self.bodyText(from: chatContent, in: context) else {
             return
         }
         let ham = HAMarkdown(font: .systemFont(ofSize: 17), color: .label)
@@ -762,9 +749,9 @@ class NotificationMetadata: Codable {
         body = bodyText
     }
 
-    func populateFeedPostBody(from postData: PostData?, contactStore: ContactStore) {
+    func populateFeedPostBody(from postData: PostData?, in context: NSManagedObjectContext) {
         let mentions: [FeedMentionProtocol] = postData?.orderedMentions ?? []
-        let mentionNameProvider = getMentionNames(contactStore: contactStore, mentions: mentions)
+        let mentionNameProvider = getMentionNames(in: context, mentions: mentions)
         let newPostString = Localizations.newPostNotificationBody
         switch postData?.content {
         case .text(let mentionText, _):
@@ -798,9 +785,9 @@ class NotificationMetadata: Codable {
         }
     }
 
-    func populateFeedCommentBody(from commentData: CommentData?, contactStore: ContactStore) {
+    func populateFeedCommentBody(from commentData: CommentData?, in context: NSManagedObjectContext) {
         let mentions: [FeedMentionProtocol] = commentData?.orderedMentions ?? []
-        let mentionNameProvider = getMentionNames(contactStore: contactStore, mentions: mentions)
+        let mentionNameProvider = getMentionNames(in: context, mentions: mentions)
         let newCommentString = Localizations.newCommentNotificationBody
 
         switch commentData?.content {
@@ -834,36 +821,26 @@ class NotificationMetadata: Codable {
         }
     }
 
-    func populateMissedVoiceCallContent(contactStore: ContactStore) {
-        contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-            self.title = UserProfile.find(with: fromId, in: managedObjectContext)?.displayName ?? Localizations.unknownContact
-        }
-
+    func populateMissedVoiceCallContent(in context: NSManagedObjectContext) {
+        title = UserProfile.find(with: fromId, in: context)?.displayName ?? Localizations.unknownContact
         body = Localizations.newMissedVoiceCallNotificationBody
     }
 
-    func populateMissedVideoCallContent(contactStore: ContactStore) {
-        contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-            self.title = UserProfile.find(with: fromId, in: managedObjectContext)?.displayName ?? Localizations.unknownContact
-        }
+    func populateMissedVideoCallContent(in context: NSManagedObjectContext) {
+        title = UserProfile.find(with: fromId, in: context)?.displayName ?? Localizations.unknownContact
         body = Localizations.newMissedVideoCallNotificationBody
     }
 
-    func populateScreenshotContent(contactStore: ContactStore) {
-        contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-            let name = UserProfile.find(with: fromId, in: managedObjectContext)?.displayName ?? Localizations.unknownContact
-            self.title = ""
-            self.body = String(format: Localizations.momentScreenshotNotificationTitle, name)
-        }
+    func populateScreenshotContent(in context: NSManagedObjectContext) {
+        let name = UserProfile.find(with: fromId, in: context)?.displayName ?? Localizations.unknownContact
+        self.title = ""
+        self.body = String(format: Localizations.momentScreenshotNotificationTitle, name)
     }
 
-    static func bodyText(from chatContent: ChatContent, contactStore: ContactStore) -> String? {
+    static func bodyText(from chatContent: ChatContent, in context: NSManagedObjectContext) -> String? {
         switch chatContent {
         case .text(let mentionText, _):
-            let attributedBody = AppContext.shared.contactStore.textWithMentions(
-                mentionText.collapsedText,
-                mentions: mentionText.orderedMentions,
-                in: AppContext.shared.contactStore.viewContext)
+            let attributedBody = UserProfile.text(with: mentionText.orderedMentions, collapsedText: mentionText.collapsedText, in: context)
             return attributedBody?.string ?? mentionText.collapsedText
         case .album(let mentionText, let media):
             guard !mentionText.collapsedText.isEmpty else {
@@ -873,10 +850,7 @@ class NotificationMetadata: Codable {
                 guard let firstMedia = media.first else { return nil }
                 return Self.mediaIcon(NotificationMediaType(commonMediaType: firstMedia.mediaType))
             }()
-            let attributedBody = AppContext.shared.contactStore.textWithMentions(
-                mentionText.collapsedText,
-                mentions: mentionText.orderedMentions,
-                in: AppContext.shared.contactStore.viewContext)
+            let attributedBody = UserProfile.text(with: mentionText.orderedMentions, collapsedText: mentionText.collapsedText, in: context)
             return [mediaIcon, attributedBody?.string ?? mentionText.collapsedText].compactMap { $0 }.joined(separator: " ")
         case .voiceNote(_):
             return Localizations.newAudioNoteNotificationBody
@@ -912,9 +886,9 @@ class NotificationMetadata: Codable {
         UserDefaults.standard.removeObject(forKey: Self.userDefaultsKeyRawData)
     }
 
-    public static func extractMomentNotification(for metadata: NotificationMetadata, using moments: [PostData]) -> UNMutableNotificationContent {
+    public static func extractMomentNotification(for metadata: NotificationMetadata, using moments: [PostData], in context: NSManagedObjectContext) -> UNMutableNotificationContent {
         let notificationContent = UNMutableNotificationContent()
-        notificationContent.populateMoments(from: metadata, using: moments, contactStore: AppContext.shared.contactStore)
+        notificationContent.populateMoments(from: metadata, using: moments, in: context)
         notificationContent.badge = AppContext.shared.applicationIconBadgeNumber as NSNumber?
         notificationContent.sound = UNNotificationSound.default
         notificationContent.userInfo[NotificationMetadata.contentTypeKey] = metadata.contentType.rawValue

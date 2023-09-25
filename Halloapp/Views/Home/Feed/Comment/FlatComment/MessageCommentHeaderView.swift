@@ -229,11 +229,9 @@ class MessageCommentHeaderView: UICollectionReusableView {
         let cryptoResultString: String = FeedItemContentView.obtainCryptoResultString(for: feedPost.id)
         let postTextWithCryptoResult = (feedPost.rawText ?? "") + cryptoResultString
         if !postTextWithCryptoResult.isEmpty {
-            let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
-                postTextWithCryptoResult,
-                mentions: feedPost.orderedMentions,
-                in: MainAppContext.shared.contactStore.viewContext)
-
+            let textWithMentions = UserProfile.text(with: feedPost.orderedMentions,
+                                                    collapsedText: postTextWithCryptoResult,
+                                                    in: MainAppContext.shared.mainDataStore.viewContext)
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
             let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
             let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)

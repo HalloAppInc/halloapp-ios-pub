@@ -632,8 +632,9 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         if let feedPostId = feedPostId {
             DDLogInfo("ChatViewControllerNew/loading feed post context")
             if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext) {
-                let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-                let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.rawText, mentions: feedPost.orderedMentions, in: contactsViewContext)
+                let mentionText = UserProfile.text(with: feedPost.orderedMentions,
+                                                   collapsedText: feedPost.rawText,
+                                                   in: MainAppContext.shared.mainDataStore.viewContext)
                 if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }), let mediaType = CommonMediaType(rawValue: mediaItem.type.rawValue) {
                     
                     let mediaUrl = mediaItem.mediaURL ?? MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
@@ -1273,8 +1274,9 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             return reply
         } else if let feedPostId = self.feedPostId {
             if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId, in: MainAppContext.shared.feedData.viewContext) {
-                let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-                let mentionText = MainAppContext.shared.contactStore.textWithMentions(feedPost.rawText, mentions: feedPost.orderedMentions, in: contactsViewContext)
+                let mentionText = UserProfile.text(with: feedPost.orderedMentions,
+                                                   collapsedText: feedPost.rawText,
+                                                   in: MainAppContext.shared.mainDataStore.viewContext)
                 if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }) {
                     let mediaType = mediaItem.type
                     let mediaUrl = mediaItem.mediaURL ?? MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)

@@ -10,6 +10,7 @@ import CocoaLumberjackSwift
 import Core
 import CoreCommon
 import UserNotifications
+import CoreData
 
 private extension UNNotificationRequest {
 
@@ -42,9 +43,9 @@ private extension UNNotificationRequest {
 
 extension UNMutableNotificationContent {
 
-    func populateMoments(from metadata: NotificationMetadata, using moments: [PostData], contactStore: ContactStore) {
+    func populateMoments(from metadata: NotificationMetadata, using moments: [PostData], in context: NSManagedObjectContext) {
         // populate title and body if metadata has more information - else dont modify the fields.
-        if metadata.populateContent(using: moments, contactStore: contactStore) {
+        if metadata.populateContent(using: moments, in: context) {
             title = metadata.title
             subtitle = metadata.subtitle
             body = metadata.body
@@ -56,9 +57,9 @@ extension UNMutableNotificationContent {
         }
     }
 
-    func populate(from metadata: NotificationMetadata, contactStore: ContactStore) {
+    func populate(from metadata: NotificationMetadata, in context: NSManagedObjectContext) {
         // populate title and body if metadata has more information - else dont modify the fields.
-        if metadata.populateContent(contactStore: contactStore) {
+        if metadata.populateContent(in: context) {
             title = metadata.title
             subtitle = metadata.subtitle
             body = metadata.body
@@ -70,16 +71,16 @@ extension UNMutableNotificationContent {
         }
     }
 
-    func populateChatBody(from chatContent: ChatContent, using metadata: NotificationMetadata, contactStore: ContactStore) {
-        metadata.populateChatBody(from: chatContent, contactStore: contactStore)
+    func populateChatBody(from chatContent: ChatContent, using metadata: NotificationMetadata, in context: NSManagedObjectContext) {
+        metadata.populateChatBody(from: chatContent, in: context)
         body = metadata.body
         // encode and store metadata - this will be used to handle user response on the notification.
         userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
         DDLogInfo("UNExtensions/populateChatBody updated content")
     }
 
-    func populateFeedPostBody(from postData: PostData, using metadata: NotificationMetadata, contactStore: ContactStore) {
-        metadata.populateFeedPostBody(from: postData, contactStore: contactStore)
+    func populateFeedPostBody(from postData: PostData, using metadata: NotificationMetadata, in context: NSManagedObjectContext) {
+        metadata.populateFeedPostBody(from: postData, in: context)
         subtitle = metadata.subtitle
         body = metadata.body
         // encode and store metadata - this will be used to handle user response on the notification.
@@ -87,19 +88,19 @@ extension UNMutableNotificationContent {
         DDLogInfo("UNExtensions/populateFeedPostBody updated content")
     }
 
-    func populateFeedCommentBody(from commentData: CommentData, using metadata: NotificationMetadata, contactStore: ContactStore) {
-        metadata.populateFeedCommentBody(from: commentData, contactStore: contactStore)
+    func populateFeedCommentBody(from commentData: CommentData, using metadata: NotificationMetadata, in context: NSManagedObjectContext) {
+        metadata.populateFeedCommentBody(from: commentData, in: context)
         body = metadata.body
         // encode and store metadata - this will be used to handle user response on the notification.
         userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
         DDLogInfo("UNExtensions/populateFeedCommentBody updated content")
     }
 
-    func populateMissedCallBody(using metadata: NotificationMetadata, contactStore: ContactStore) {
+    func populateMissedCallBody(using metadata: NotificationMetadata, in context: NSManagedObjectContext) {
         if metadata.contentType == .missedVideoCall {
-            metadata.populateMissedVideoCallContent(contactStore: contactStore)
+            metadata.populateMissedVideoCallContent(in: context)
         } else {
-            metadata.populateMissedVoiceCallContent(contactStore: contactStore)
+            metadata.populateMissedVoiceCallContent(in: context)
         }
         title = metadata.title
         body = metadata.body
@@ -108,8 +109,8 @@ extension UNMutableNotificationContent {
         DDLogInfo("UNExtensions/populateMissedCallBody")
     }
 
-    func populateScreenshotBody(using metadata: NotificationMetadata, contactStore: ContactStore) {
-        metadata.populateScreenshotContent(contactStore: contactStore)
+    func populateScreenshotBody(using metadata: NotificationMetadata, in context: NSManagedObjectContext) {
+        metadata.populateScreenshotContent(in: context)
         title = metadata.title
         body = metadata.body
         userInfo[NotificationMetadata.contentTypeKey] = metadata.contentType.rawValue

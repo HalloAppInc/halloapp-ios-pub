@@ -311,11 +311,9 @@ class MessageCellViewBase: UICollectionViewCell {
     func configureText(text: String?, cryptoResultString: String, mentions: [MentionData]) {
         if let messageText = text, !messageText.isEmpty  {
             textLabel.isHidden = false
-            let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
-                messageText +  cryptoResultString,
-                mentions: mentions,
-                in: MainAppContext.shared.contactStore.viewContext)
-
+            let textWithMentions = UserProfile.text(with: mentions,
+                                                    collapsedText: messageText + cryptoResultString,
+                                                    in: MainAppContext.shared.mainDataStore.viewContext)
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
             var font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + 1)
             if messageText.count <= 3, messageText.containsOnlyEmoji {

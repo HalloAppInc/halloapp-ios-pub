@@ -3964,10 +3964,9 @@ extension ChatData {
         let attributedBody = NSMutableAttributedString(string: "", attributes: [ .font: UIFont.TextStyle.subheadline ])
         switch xmppChatMessage.content {
         case .text(let mentionText, _):
-            if let body = MainAppContext.shared.contactStore.textWithMentions(
-                mentionText.collapsedText,
-                mentions: mentionText.orderedMentions,
-                in: MainAppContext.shared.contactStore.viewContext) {
+            if let body = UserProfile.text(with: mentionText.orderedMentions,
+                                           collapsedText: mentionText.collapsedText,
+                                           in: MainAppContext.shared.mainDataStore.viewContext) {
                 attributedBody.append(body)
             }
             
@@ -3984,10 +3983,9 @@ extension ChatData {
             if let mediaStr = mediaStr {
                 attributedBody.append(NSAttributedString(string: mediaStr))
             }
-            if let body = MainAppContext.shared.contactStore.textWithMentions(
-                mentionText.collapsedText,
-                mentions: mentionText.orderedMentions,
-                in: MainAppContext.shared.contactStore.viewContext) {
+            if let body = UserProfile.text(with: mentionText.orderedMentions,
+                                           collapsedText: mentionText.collapsedText,
+                                           in: MainAppContext.shared.mainDataStore.viewContext) {
                 attributedBody.append(body)
             }
         case .voiceNote(_):

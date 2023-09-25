@@ -242,6 +242,7 @@ public class UserProfileData: NSObject {
         let username = userData.username
 
         mainDataStore.saveSeriallyOnBackgroundContext { context in
+            DDLogInfo("UserProfileData/saveAfterSync/\(name) \(username)")
             let userProfile = UserProfile.findOrCreate(with: userID, in: context)
             userProfile.name = name
             userProfile.username = username

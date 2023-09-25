@@ -332,11 +332,9 @@ class CommentView: UIView {
 
             // Text below media
             if !feedPostCommentText.isEmpty {
-                let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
-                    feedPostCommentText,
-                    mentions: feedPostComment.mentions,
-                    in: MainAppContext.shared.contactStore.viewContext)
-
+                let textWithMentions = UserProfile.text(with: feedPostComment.mentions,
+                                                        collapsedText: feedPostCommentText,
+                                                        in: MainAppContext.shared.mainDataStore.viewContext)
                 let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
                 let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
                 let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
@@ -375,10 +373,11 @@ class CommentView: UIView {
                                                                         NSAttributedString.Key.font: nameFont])
 
             attributedText.append(NSAttributedString(string: " "))
+            let commentText = UserProfile.text(with: feedPostComment.mentions,
+                                               collapsedText: feedPostCommentText,
+                                               in: MainAppContext.shared.mainDataStore.viewContext)
 
-            if let commentText = MainAppContext.shared.contactStore.textWithMentions(feedPostCommentText, mentions: feedPostComment.mentions, in: contactsViewContext),
-                !feedPostComment.isRetracted
-            {
+            if !feedPostComment.isRetracted, let commentText {
                 let ham = HAMarkdown(font: baseFont, color: .label)
                 let attrStr = ham.parse(commentText.with(font: baseFont))
                 attributedText.append(attrStr.applyingFontForMentions(nameFont))
@@ -415,11 +414,9 @@ class CommentView: UIView {
 
     func configureTextCommentLabel(feedPostComment: FeedPostComment) {
         if !feedPostComment.rawText.isEmpty {
-            let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
-                feedPostComment.rawText,
-                mentions: feedPostComment.mentions,
-                in: MainAppContext.shared.contactStore.viewContext)
-
+            let textWithMentions = UserProfile.text(with: feedPostComment.mentions, 
+                                                    collapsedText: feedPostComment.rawText,
+                                                    in: MainAppContext.shared.mainDataStore.viewContext)
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
             let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
             let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
@@ -739,10 +736,9 @@ class CommentsTableHeaderView: UIView {
             vStack.insertArrangedSubview(textLabel, at: vStack.arrangedSubviews.count - 1)
 
         } else if !postTextWithCryptoResult.isEmpty {
-            let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
-                postTextWithCryptoResult,
-                mentions: feedPost.orderedMentions,
-                in: MainAppContext.shared.contactStore.viewContext)
+            let textWithMentions = UserProfile.text(with: feedPost.orderedMentions,
+                                                    collapsedText: postTextWithCryptoResult,
+                                                    in: MainAppContext.shared.mainDataStore.viewContext)
             let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
             if let attrText = textWithMentions?.with(font: font, color: .label) {
                 let ham = HAMarkdown(font: font, color: .label)

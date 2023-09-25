@@ -1550,10 +1550,9 @@ extension GroupChatViewController: MessageViewChatDelegate, ReactionViewControll
 
         if let mediaItem = chatMessage.media?.first(where: { $0.order == chatReplyMessageMediaIndex }) {
             let mediaUrl = mediaItem.mediaURL ?? MainAppContext.chatMediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
-            let mentionText = MainAppContext.shared.contactStore.textWithMentions(
-                chatMessage.mentionText.collapsedText,
-                mentions: chatMessage.mentionText.orderedMentions,
-                in: MainAppContext.shared.contactStore.viewContext)
+            let mentionText = UserProfile.text(with: chatMessage.orderedMentions,
+                                               collapsedText: chatMessage.mentionText.collapsedText,
+                                               in: MainAppContext.shared.mainDataStore.viewContext)
             let info = QuotedItemPanel.PostInfo(userID: userID,
                                                 text: mentionText?.string ?? "",
                                             mediaType: mediaItem.type,
@@ -1563,10 +1562,9 @@ extension GroupChatViewController: MessageViewChatDelegate, ReactionViewControll
             panel.postInfo = info
             contentInputView.display(context: panel)
         } else {
-            let mentionText = MainAppContext.shared.contactStore.textWithMentions(
-                chatMessage.mentionText.collapsedText,
-                mentions: chatMessage.mentionText.orderedMentions,
-                in: MainAppContext.shared.contactStore.viewContext)
+            let mentionText = UserProfile.text(with: chatMessage.orderedMentions,
+                                               collapsedText: chatMessage.mentionText.collapsedText,
+                                               in: MainAppContext.shared.mainDataStore.viewContext)
             let info = QuotedItemPanel.PostInfo(userID: userID,
                                                 text: mentionText?.string ?? "",
                                             mediaType: nil,

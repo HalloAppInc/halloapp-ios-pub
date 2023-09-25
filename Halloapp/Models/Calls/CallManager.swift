@@ -811,7 +811,7 @@ final class CallManager: NSObject, CXProviderDelegate {
                                             pushName: peerName)
         AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: metadata.identifier) {
             let notificationContent = UNMutableNotificationContent()
-            notificationContent.populateMissedCallBody(using: metadata, contactStore: MainAppContext.shared.contactStore)
+            notificationContent.populateMissedCallBody(using: metadata, in: MainAppContext.shared.mainDataStore.viewContext)
             let request = UNNotificationRequest(identifier: metadata.identifier, content: notificationContent, trigger: nil)
             let notificationCenter = UNUserNotificationCenter.current()
             notificationCenter.add(request, withCompletionHandler: nil)

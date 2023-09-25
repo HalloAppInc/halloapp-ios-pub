@@ -148,9 +148,9 @@ struct ActivityCenterItem: Hashable {
 
     private static func image(for postID: FeedPostID) -> UIImage? {
         guard let feedPost = MainAppContext.shared.feedData.feedPost(with: postID, in: MainAppContext.shared.feedData.viewContext),
-              let postText = MainAppContext.shared.contactStore.textWithMentions(feedPost.rawText ?? "",
-                                                                                 mentions: feedPost.orderedMentions,
-                                                                                 in: MainAppContext.shared.contactStore.viewContext) else {
+              let postText = UserProfile.text(with: feedPost.orderedMentions, 
+                                              collapsedText: feedPost.rawText ?? "",
+                                              in: MainAppContext.shared.mainDataStore.viewContext) else {
             return nil
         }
 
@@ -193,10 +193,11 @@ extension FeedActivity {
 
     var textWithMentions: NSAttributedString? {
         get {
-            return MainAppContext.shared.contactStore.textWithMentions(
-                rawText,
-                mentions: orderedMentions,
-                in: MainAppContext.shared.contactStore.viewContext)
+            guard let managedObjectContext else {
+                return nil
+            }
+
+            return UserProfile.text(with: orderedMentions, collapsedText: rawText, in: managedObjectContext)
         }
     }
 

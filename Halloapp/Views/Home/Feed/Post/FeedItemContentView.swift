@@ -234,11 +234,9 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             showTextContentView = true
             let defaultNumberOfLines = media.isEmpty ? 10 : 3
             let numberOfLinesToShow = displayData?.textNumberOfLines ?? defaultNumberOfLines
-
-            let postText = MainAppContext.shared.contactStore.textWithMentions(
-                postTextWithCryptoResult,
-                mentions: post.orderedMentions,
-                in: MainAppContext.shared.contactStore.viewContext)
+            let postText = UserProfile.text(with: post.orderedMentions,
+                                            collapsedText: postTextWithCryptoResult,
+                                            in: MainAppContext.shared.mainDataStore.viewContext)
             // With media or > 180 chars long: System 16 pt (Body - 1)
             // Text-only under 180 chars long: System 20 pt (Body + 3)
             let postFont: UIFont = {

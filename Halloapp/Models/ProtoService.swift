@@ -1515,7 +1515,7 @@ final class ProtoService: ProtoServiceCore {
 
         AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: metadata.identifier) {
             let notification = UNMutableNotificationContent()
-            notification.populate(from: metadata, contactStore: MainAppContext.shared.contactStore)
+            notification.populate(from: metadata, in: MainAppContext.shared.mainDataStore.viewContext)
             notifications.append(notification)
 
             let notificationCenter = UNUserNotificationCenter.current()

@@ -686,16 +686,16 @@ final class NotificationProtoService: ProtoServiceCore {
                         if post.isMoment {
                             self.updateMomentNotifications(checkForDuplicates: true)
                         } else {
-                            _ = self.extractAndHoldNotificationContent(for: metadata, using: postData)
+                            _ = self.extractAndHoldNotificationContent(for: metadata, using: postData, in: context)
                         }
                         let downloadTask = self.startDownloading(media: firstMediaItem)
                         downloadTask?.feedMediaObjectId = firstMediaItem.objectID
                     }  else if let firstMediaItem = post.linkPreviews?.first?.media?.first {
-                        _ = self.extractAndHoldNotificationContent(for: metadata, using: postData)
+                        _ = self.extractAndHoldNotificationContent(for: metadata, using: postData, in: context)
                         let downloadTask = self.startDownloading(media: firstMediaItem)
                         downloadTask?.feedMediaObjectId = firstMediaItem.objectID
                     } else {
-                        let notificationContent = self.extractAndHoldNotificationContent(for: metadata, using: postData)
+                        let notificationContent = self.extractAndHoldNotificationContent(for: metadata, using: postData, in: context)
                         self.presentNotification(for: metadata.identifier, with: notificationContent)
                     }
                 }
@@ -969,6 +969,8 @@ final class NotificationProtoService: ProtoServiceCore {
             } else {
                 DDLogError("NotificationExtension/decryptAndProcessChat/could not report result, messageId: \(messageId)")
             }
+
+            DDLogInfo("NotificationExtension/decryptAndProcessChat/Moving on!")
             self.processChat(chatContent: content, chatType: serverChatStanza.chatType, failure: decryptionFailure, metadata: metadata)
         }
     }
@@ -1090,7 +1092,7 @@ final class NotificationProtoService: ProtoServiceCore {
                     DDLogInfo("NotificationExtension/processGroupChat/ignore notifications for reactionId: \(messageId)")
                     return
                 }
-                let notificationContent = self.extractAndHoldNotificationContent(for: metadata, using: chatContent)
+                let notificationContent = self.extractAndHoldNotificationContent(for: metadata, using: chatContent, in: context)
                 self.presentNotification(for: metadata.identifier, with: notificationContent)
                 return
             default:
@@ -1101,7 +1103,7 @@ final class NotificationProtoService: ProtoServiceCore {
                 return
             }
 
-            let notificationContent = self.extractAndHoldNotificationContent(for: metadata, using: chatContent)
+            let notificationContent = self.extractAndHoldNotificationContent(for: metadata, using: chatContent, in: context)
             if let firstOrderedMediaItem = chatMessage.orderedMedia.first,
                let firstMediaItem = chatMessage.media?.filter({ $0.id == firstOrderedMediaItem.id }).first {
                 let downloadTask = self.startDownloading(media: firstMediaItem)
@@ -1179,7 +1181,7 @@ final class NotificationProtoService: ProtoServiceCore {
         mainDataStore.performSeriallyOnBackgroundContext { context in
             switch chatContent {
             case .reaction(_):
-                let notificationContent = self.extractAndHoldNotificationContent(for: metadata, using: chatContent)
+                let notificationContent = self.extractAndHoldNotificationContent(for: metadata, using: chatContent, in: context)
                 self.presentNotification(for: metadata.identifier, with: notificationContent)
                 return
             default:
@@ -1190,7 +1192,7 @@ final class NotificationProtoService: ProtoServiceCore {
                 return
             }
 
-            let notificationContent = self.extractAndHoldNotificationContent(for: metadata, using: chatContent)
+            let notificationContent = self.extractAndHoldNotificationContent(for: metadata, using: chatContent, in: context)
             if let firstOrderedMediaItem = chatMessage.orderedMedia.first,
                let firstMediaItem = chatMessage.media?.filter({ $0.id == firstOrderedMediaItem.id }).first {
                 let downloadTask = self.startDownloading(media: firstMediaItem)
@@ -1286,7 +1288,7 @@ final class NotificationProtoService: ProtoServiceCore {
         runIfNotificationWasNotPresented(for: metadata.identifier) { [self] in
             Analytics.log(event: .notificationReceived, properties: [.notificationType: metadata.contentType.rawValue])
             let notificationContent = UNMutableNotificationContent()
-            notificationContent.populateScreenshotBody(using: metadata, contactStore: AppExtensionContext.shared.contactStore)
+            notificationContent.populateScreenshotBody(using: metadata, in: AppExtensionContext.shared.mainDataStore.viewContext)
             notificationContent.sound = .default
             self.pendingNotificationContent[metadata.identifier] = notificationContent
 
@@ -1299,10 +1301,10 @@ final class NotificationProtoService: ProtoServiceCore {
 
     // MARK: Present or Update Notifications
 
-    private func extractAndHoldNotificationContent(for metadata: NotificationMetadata, using postData: PostData) -> UNMutableNotificationContent {
+    private func extractAndHoldNotificationContent(for metadata: NotificationMetadata, using postData: PostData, in context: NSManagedObjectContext) -> UNMutableNotificationContent {
         let notificationContent = UNMutableNotificationContent()
-        notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
-        notificationContent.populateFeedPostBody(from: postData, using: metadata, contactStore: AppExtensionContext.shared.contactStore)
+        notificationContent.populate(from: metadata, in: context)
+        notificationContent.populateFeedPostBody(from: postData, using: metadata, in: context)
         notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
         notificationContent.sound = UNNotificationSound.default
         notificationContent.userInfo[NotificationMetadata.contentTypeKey] = metadata.contentType.rawValue
@@ -1311,10 +1313,10 @@ final class NotificationProtoService: ProtoServiceCore {
         return notificationContent
     }
 
-    private func extractAndHoldNotificationContent(for metadata: NotificationMetadata, using chatContent: ChatContent) -> UNMutableNotificationContent {
+    private func extractAndHoldNotificationContent(for metadata: NotificationMetadata, using chatContent: ChatContent, in context: NSManagedObjectContext) -> UNMutableNotificationContent {
         let notificationContent = UNMutableNotificationContent()
-        notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
-        notificationContent.populateChatBody(from: chatContent, using: metadata, contactStore: AppExtensionContext.shared.contactStore)
+        notificationContent.populate(from: metadata, in: context)
+        notificationContent.populateChatBody(from: chatContent, using: metadata, in: context)
         notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
         notificationContent.sound = UNNotificationSound.default
         notificationContent.userInfo[NotificationMetadata.contentTypeKey] = metadata.contentType.rawValue
@@ -1329,7 +1331,7 @@ final class NotificationProtoService: ProtoServiceCore {
             Analytics.log(event: .notificationReceived, properties: [.notificationType: metadata.contentType.rawValue])
             DDLogDebug("ProtoService/presentNotification")
             let notificationContent = UNMutableNotificationContent()
-            notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
+            notificationContent.populate(from: metadata, in: AppExtensionContext.shared.mainDataStore.viewContext)
             notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
             notificationContent.sound = UNNotificationSound.default
             notificationContent.userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
@@ -1346,7 +1348,7 @@ final class NotificationProtoService: ProtoServiceCore {
             Analytics.log(event: .notificationReceived, properties: [.notificationType: metadata.contentType.rawValue])
             DDLogDebug("ProtoService/presentNotification")
             let notificationContent = UNMutableNotificationContent()
-            notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
+            notificationContent.populate(from: metadata, in: AppExtensionContext.shared.mainDataStore.viewContext)
             notificationContent.sound = UNNotificationSound.default
             notificationContent.userInfo[NotificationMetadata.userDefaultsKeyRawData] = metadata.rawData
             self.pendingNotificationContent[metadata.identifier] = notificationContent
@@ -1439,8 +1441,8 @@ final class NotificationProtoService: ProtoServiceCore {
                 Analytics.log(event: .notificationReceived, properties: [.notificationType: metadata.contentType.rawValue])
                 DDLogDebug("ProtoService/presentCommentNotification")
                 let notificationContent = UNMutableNotificationContent()
-                notificationContent.populate(from: metadata, contactStore: AppExtensionContext.shared.contactStore)
-                notificationContent.populateFeedCommentBody(from: commentData, using: metadata, contactStore: AppExtensionContext.shared.contactStore)
+                notificationContent.populate(from: metadata, in: AppExtensionContext.shared.mainDataStore.viewContext)
+                notificationContent.populateFeedCommentBody(from: commentData, using: metadata, in: AppExtensionContext.shared.mainDataStore.viewContext)
                 notificationContent.badge = AppExtensionContext.shared.applicationIconBadgeNumber as NSNumber?
                 notificationContent.sound = UNNotificationSound.default
                 metadata.data = try? commentData.clientContainer.serializedData()
@@ -1479,12 +1481,12 @@ final class NotificationProtoService: ProtoServiceCore {
             }
 
             DDLogInfo("ProtoService/updateMomentNotifications/count: normal: \(normalMoments.count) unlocked: \(unlockedMoments.count)")
-            self.batchMomentNotifications(for: .normal, moments: normalMoments, checkForDuplicates: checkForDuplicates)
-            self.batchMomentNotifications(for: .unlock, moments: unlockedMoments, checkForDuplicates: checkForDuplicates)
+            self.batchMomentNotifications(for: .normal, moments: normalMoments, checkForDuplicates: checkForDuplicates, in: managedObjectContext)
+            self.batchMomentNotifications(for: .unlock, moments: unlockedMoments, checkForDuplicates: checkForDuplicates, in: managedObjectContext)
         }
     }
 
-    private func batchMomentNotifications(for context: NotificationMetadata.MomentType, moments: [FeedPost], checkForDuplicates: Bool) {
+    private func batchMomentNotifications(for momentType: NotificationMetadata.MomentType, moments: [FeedPost], checkForDuplicates: Bool, in context: NSManagedObjectContext) {
         guard
             let firstMoment = moments.first,
             let lastMoment = moments.last
@@ -1506,14 +1508,14 @@ final class NotificationProtoService: ProtoServiceCore {
                                                 data: try lastMoment.postData.clientContainer.serializedData(),
                                                 messageId: nil,
                                                 pushName: nil)
-            metadata.momentContext = context
+            metadata.momentContext = momentType
             let momentsPostData = moments.map { $0.postData }
-            let content = NotificationMetadata.extractMomentNotification(for: metadata, using: momentsPostData)
+            let content = NotificationMetadata.extractMomentNotification(for: metadata, using: momentsPostData, in: context)
             metadata.momentNotificationText = content.body
 
             // Dont update the notification if nothing changed about moments.
             let notificationCenter = UNUserNotificationCenter.current()
-            notificationCenter.getMomentNotification(for: context) { oldMetadata in
+            notificationCenter.getMomentNotification(for: momentType) { oldMetadata in
                 // Check from userId for moments and the notification text displayed
                 if oldMetadata?.momentNotificationText == metadata.momentNotificationText,
                    oldMetadata?.fromId == metadata.fromId {
@@ -1613,6 +1615,7 @@ final class NotificationProtoService: ProtoServiceCore {
 
 extension NotificationProtoService {
 
+    /// - note: `completion` is called on the main queue.
     public func runIfNotificationWasNotPresented(for identifier: String, completion: @escaping () -> Void) {
         AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: identifier, completion: completion)
     }

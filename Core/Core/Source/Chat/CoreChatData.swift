@@ -466,12 +466,9 @@ public class CoreChatData {
             }
         }
 
+        let mentionText = UserProfile.text(with: chatMessage.orderedMentions, collapsedText: chatMessage.rawText, in: context)
         chatThread.lastMsgId = chatMessage.id
         chatThread.lastMsgUserId = chatMessage.fromUserId
-        var mentionText: NSAttributedString?
-        contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in
-            mentionText = contactStore.textWithMentions(chatMessage.rawText, mentions: chatMessage.orderedMentions, in: contactsManagedObjectContext)
-        }
         chatThread.lastMsgText = mentionText?.string
         chatThread.lastMsgMediaType = lastMsgMediaType
         if isIncomingMsg {
@@ -784,10 +781,7 @@ public class CoreChatData {
             return
         }
 
-        var mentionText: NSAttributedString?
-        contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in
-            mentionText = contactStore.textWithMentions(groupFeedPost.rawText, mentions: groupFeedPost.orderedMentions, in: contactsManagedObjectContext)
-        }
+        let mentionText = UserProfile.text(with: groupFeedPost.orderedMentions, collapsedText: groupFeedPost.rawText, in: managedObjectContext)
 
         // Update Chat Thread
         if let chatThread = chatThread(type: .groupFeed, id: groupID, in: managedObjectContext) {
@@ -1488,10 +1482,8 @@ public class CoreChatData {
                     chatThread.lastMsgTimestamp = chatMessage.timestamp
                     chatThread.lastMsgId = chatMessage.id
                     chatThread.lastMsgUserId = chatMessage.fromUserId
-                    var mentionText: NSAttributedString?
-                    self.contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in
-                        mentionText = self.contactStore.textWithMentions(chatMessage.rawText, mentions: chatMessage.orderedMentions, in: contactsManagedObjectContext)
-                    }
+                    let mentionText = UserProfile.text(with: chatMessage.orderedMentions, collapsedText: chatMessage.rawText, in: context)
+
                     chatThread.lastMsgText = mentionText?.string
                     chatThread.lastMsgMediaType = lastMsgMediaType
                     chatThread.lastMsgStatus = .none
@@ -1514,10 +1506,8 @@ public class CoreChatData {
                     }
                     chatThread.lastMsgId = chatMessage.id
                     chatThread.lastMsgUserId = chatMessage.fromUserId
-                    var mentionText: NSAttributedString?
-                    self.contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in
-                        mentionText = self.contactStore.textWithMentions(chatMessage.rawText, mentions: chatMessage.orderedMentions, in: contactsManagedObjectContext)
-                    }
+                    let mentionText = UserProfile.text(with: chatMessage.orderedMentions, collapsedText: chatMessage.rawText, in: context)
+
                     chatThread.lastMsgText = mentionText?.string
                     chatThread.lastMsgMediaType = lastMsgMediaType
                     chatThread.lastMsgStatus = .none

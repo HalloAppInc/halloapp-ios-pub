@@ -21,14 +21,14 @@ final class NotificationRequest {
             let notificationContent = UNMutableNotificationContent()
             // populate only fills the fallback text for chat messages: so we need to explicitly fill chat body as well.
             // TODO(murali@): need to clean this call further.
-            notificationContent.populate(from: metadata, contactStore: MainAppContext.shared.contactStore)
+            notificationContent.populate(from: metadata, in: MainAppContext.shared.mainDataStore.viewContext)
             switch metadata.contentType {
             case .chatMessage:
                 guard let clientChatContainer = metadata.protoContainer?.chatContainer else {
                     DDLogError("NotificationRequest/createAndShow/clientChatContainer is empty")
                     break
                 }
-                notificationContent.populateChatBody(from: clientChatContainer.chatContent, using: metadata, contactStore: MainAppContext.shared.contactStore)
+                notificationContent.populateChatBody(from: clientChatContainer.chatContent, using: metadata, in: MainAppContext.shared.mainDataStore.viewContext)
             case .groupFeedPost:
                 guard let postData = metadata.postData() else {
                     DDLogError("NotificationRequest/createAndShow/postData is empty")
@@ -38,7 +38,7 @@ final class NotificationRequest {
                     DDLogInfo("NotificationRequest/createAndShow/postData - skip due to userPreferences")
                     return
                 }
-                notificationContent.populateFeedPostBody(from: postData, using: metadata, contactStore: MainAppContext.shared.contactStore)
+                notificationContent.populateFeedPostBody(from: postData, using: metadata, in: MainAppContext.shared.mainDataStore.viewContext)
             case .groupFeedComment:
                 guard let commentData = metadata.commentData() else {
                     DDLogError("NotificationRequest/createAndShow/commentData is empty")
@@ -48,7 +48,7 @@ final class NotificationRequest {
                     DDLogInfo("NotificationRequest/createAndShow/commentData - skip due to userPreferences")
                     return
                 }
-                notificationContent.populateFeedCommentBody(from: commentData, using: metadata, contactStore: MainAppContext.shared.contactStore)
+                notificationContent.populateFeedCommentBody(from: commentData, using: metadata, in: MainAppContext.shared.mainDataStore.viewContext)
             case .feedPost:
                 guard NotificationSettings.current.isPostsEnabled else {
                     DDLogInfo("NotificationRequest/createAndShow/postData - skip due to userPreferences")
@@ -64,7 +64,7 @@ final class NotificationRequest {
                     DDLogError("NotificationRequest/createAndShow/clientChatContainer is empty")
                     break
                 }
-                notificationContent.populateChatBody(from: clientChatContainer.chatContent, using: metadata, contactStore: MainAppContext.shared.contactStore)
+                notificationContent.populateChatBody(from: clientChatContainer.chatContent, using: metadata, in: MainAppContext.shared.mainDataStore.viewContext)
             default:
                 break
             }
@@ -100,12 +100,12 @@ final class NotificationRequest {
             }
 
             DDLogInfo("NotificationRequest/updateMomentNotifications/count: normal: \(normalMoments.count) unlocked: \(unlockedMoments.count)")
-            batchMomentNotifications(for: .normal, moments: normalMoments)
-            batchMomentNotifications(for: .unlock, moments: unlockedMoments)
+            batchMomentNotifications(for: .normal, moments: normalMoments, in: managedObjectContext)
+            batchMomentNotifications(for: .unlock, moments: unlockedMoments, in: managedObjectContext)
         }
     }
 
-    private static func batchMomentNotifications(for context: NotificationMetadata.MomentType, moments: [FeedPost]) {
+    private static func batchMomentNotifications(for momentType: NotificationMetadata.MomentType, moments: [FeedPost], in context: NSManagedObjectContext) {
         guard
             let firstMoment = moments.first,
             let lastMoment = moments.last
@@ -127,15 +127,15 @@ final class NotificationRequest {
                                                 data: try lastMoment.postData.clientContainer.serializedData(),
                                                 messageId: nil,
                                                 pushName: nil)
-            metadata.momentContext = context
+            metadata.momentContext = momentType
             let momentsPostData = moments.map { $0.postData }
-            let content = NotificationMetadata.extractMomentNotification(for: metadata, using: momentsPostData)
+            let content = NotificationMetadata.extractMomentNotification(for: metadata, using: momentsPostData, in: context)
             metadata.momentNotificationText = content.body
             let sound = moments.count < 2 ? UNNotificationSound.default : nil
 
             // Dont update the notification if nothing changed about moments.
             let notificationCenter = UNUserNotificationCenter.current()
-            notificationCenter.getMomentNotification(for: context) { oldMetadata in
+            notificationCenter.getMomentNotification(for: momentType) { oldMetadata in
                 // Check count and from userId for moments.
                 if oldMetadata?.momentNotificationText == metadata.momentNotificationText,
                    oldMetadata?.fromId == metadata.fromId {
