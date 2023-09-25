@@ -174,8 +174,8 @@ extension Localizations {
         NSLocalizedString("user.option.unblock", value: "Unblock", comment: "Option when user taps more on profile page")
     }
     
-    static var userOptionCopyPhoneNumber: String {
-        NSLocalizedString("user.option.copy.phone.number", value: "Copy Phone Number", comment: "Option when User clicks on the phone number on profile page and this can let the user copy the phone number")
+    static var userOptionCopyUsername: String {
+        NSLocalizedString("user.option.copy.username", value: "Copy Username", comment: "Option when User clicks on the username on profile page and this can let the user copy the username")
     }
     
     static func blockMessage(username: String) -> String {

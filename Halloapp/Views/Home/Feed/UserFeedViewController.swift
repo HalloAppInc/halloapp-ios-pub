@@ -36,7 +36,14 @@ class UserFeedViewController: FeedCollectionViewController {
     init(userId: UserID, showHeader: Bool = true) {
         self.userId = userId
         self.isUserBlocked = false
-        headerViewController = showHeader ? ProfileHeaderViewController() : nil
+        
+        if showHeader {
+            let configuration: ProfileHeaderViewController.Configuration = userId == MainAppContext.shared.userData.userId ? .ownProfile : .default
+            headerViewController = ProfileHeaderViewController(configuration: configuration)
+        } else {
+            headerViewController = nil
+        }
+
         super.init(title: nil, fetchRequest: FeedDataSource.userFeedRequest(userID: userId))
     }
 
@@ -58,58 +65,33 @@ class UserFeedViewController: FeedCollectionViewController {
         }
     }
 
-    private lazy var exchangeNumbersView: UIView = {
-        let image = UIImage(named: "FeedExchangeNumbers")?.withRenderingMode(.alwaysTemplate)
-        let imageView = UIImageView(image: image)
-        imageView.tintColor = UIColor.label.withAlphaComponent(0.2)
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.numberOfLines = 0
-        label.text = Localizations.exchangePhoneNumbersToConnect
-        label.textAlignment = .center
-        label.textColor = .secondaryLabel
-
-        let stackView = UIStackView(arrangedSubviews: [imageView, label])
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.axis = .vertical
-        stackView.alignment = .center
-        stackView.spacing = 12
-
-        return stackView
-    }()
-
     // MARK: View Controller
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        installExchangeNumbersView()
+        let profile = UserProfile.findOrCreate(with: userId, in: MainAppContext.shared.mainDataStore.viewContext)
 
-        isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(userId)
+        let namePublisher = profile.publisher(for: \.name).map { _ in }.dropFirst().eraseToAnyPublisher()
+        let usernamePublisher = profile.publisher(for: \.username).map { _ in }.dropFirst().eraseToAnyPublisher()
+        let statusPublisher = profile.publisher(for: \.friendshipStatusValue).map { _ in }.dropFirst().eraseToAnyPublisher()
 
-        if !isOwnFeed {
-            // need to refresh when user is not in address book but gets added via the More menu
-            MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] (newUserIDs) in
-                guard let self = self else { return }
-                if newUserIDs.contains(self.userId) {
-                    self.headerViewController?.configureOrRefresh(userID: self.userId)
-                    self.collectionView.reloadData()
-                    self.updateExchangeNumbersView(isFeedEmpty: self.collectionView.numberOfItems(inSection: 0) == 0)
-                    self.setupMoreButton()
+        Publishers.Merge3(namePublisher, usernamePublisher, statusPublisher)
+            .sink { [weak self] in
+                guard let self else {
+                    return
                 }
-            }.store(in: &cancellables)
-            
-            MainAppContext.shared.didPrivacySettingChange.sink { [weak self] changedID in
-                // update views if block setting changed
-                if changedID == self?.userId {
-                    self?.isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(changedID)
-                    self?.headerViewController?.configureOrRefresh(userID: changedID)
-                    self?.setupMoreButton()
-                }
-            }.store(in: &cancellables)
+
+                self.setupMoreButton()
+                self.viewIfLoaded?.setNeedsLayout()
+            }
+            .store(in: &cancellables)
+
+        if isOwnFeed {
+            title = Localizations.titleMyPosts
         }
+
+        headerViewController?.configure(with: profile)
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -122,19 +104,6 @@ class UserFeedViewController: FeedCollectionViewController {
         super.setupCollectionView()
         
         headerViewController?.delegate = self
-        if isOwnFeed {
-            title = Localizations.titleMyPosts
-
-            headerViewController?.isEditingAllowed = true
-            cancellables.insert(MainAppContext.shared.userData.userNamePublisher.sink(receiveValue: { [weak self] (userName) in
-                guard let self = self else { return }
-                self.headerViewController?.configureForCurrentUser(withName: userName)
-                self.viewIfLoaded?.setNeedsLayout()
-            }))
-        } else {
-            headerViewController?.configureOrRefresh(userID: userId)
-            setupMoreButton()
-        }
 
         collectionViewDataSource?.supplementaryViewProvider = { [weak self] (collectionView, kind, path) -> UICollectionReusableView? in
             guard let self = self else {
@@ -157,20 +126,6 @@ class UserFeedViewController: FeedCollectionViewController {
         return true
     }
 
-    private func installExchangeNumbersView() {
-        view.addSubview(exchangeNumbersView)
-
-        exchangeNumbersView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.6).isActive = true
-        exchangeNumbersView.constrain([.centerX, .centerY], to: view)
-    }
-
-    private func updateExchangeNumbersView(isFeedEmpty: Bool) {
-        let viewContext = MainAppContext.shared.contactStore.viewContext
-        let isKnownContact = MainAppContext.shared.contactStore.contact(withUserId: userId, in: viewContext) != nil
-
-        exchangeNumbersView.isHidden = !isFeedEmpty || isKnownContact || isOwnFeed
-    }
-
     private var isOwnFeed: Bool {
         return MainAppContext.shared.userData.userId == userId
     }
@@ -179,12 +134,6 @@ class UserFeedViewController: FeedCollectionViewController {
 
     override func shouldOpenFeed(for userId: UserID) -> Bool {
         return userId != self.userId
-    }
-
-    override func willUpdate(with items: [FeedDisplayItem]) {
-        super.willUpdate(with: items)
-
-        updateExchangeNumbersView(isFeedEmpty: items.isEmpty)
     }
 
     // MARK: Collection View Header
@@ -214,8 +163,7 @@ class UserFeedViewController: FeedCollectionViewController {
         super.scrollViewDidScroll(scrollView)
 
         guard
-            let header = headerViewController,
-            !header.isEditingAllowed
+            let header = headerViewController
         else {
             return
         }

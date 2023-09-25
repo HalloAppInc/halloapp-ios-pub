@@ -294,6 +294,7 @@
 		A16E2B792ABA5753003C3F85 /* FavoritesSelectionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16E2B782ABA5753003C3F85 /* FavoritesSelectionModel.swift */; };
 		A16E2B7B2ABA57ED003C3F85 /* Avatar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16E2B7A2ABA57ED003C3F85 /* Avatar.swift */; };
 		A16E2B7E2ABCAAD5003C3F85 /* UIViewController+UserActionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16E2B7D2ABCAAD5003C3F85 /* UIViewController+UserActionHandler.swift */; };
+		A16E2B802ABCC93F003C3F85 /* ProfileFriendshipToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16E2B7F2ABCC93F003C3F85 /* ProfileFriendshipToggle.swift */; };
 		A17B5129284FD48600B75405 /* CameraSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17B5128284FD48600B75405 /* CameraSessionManager.swift */; };
 		A17CEAD12AAA2D4200FCCECD /* FriendsDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17CEAD02AAA2D4200FCCECD /* FriendsDataSource.swift */; };
 		A17CEAD32AAA2D5200FCCECD /* FriendsPublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17CEAD22AAA2D5200FCCECD /* FriendsPublisher.swift */; };
@@ -1143,6 +1144,7 @@
 		A16E2B782ABA5753003C3F85 /* FavoritesSelectionModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesSelectionModel.swift; sourceTree = "<group>"; };
 		A16E2B7A2ABA57ED003C3F85 /* Avatar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Avatar.swift; sourceTree = "<group>"; };
 		A16E2B7D2ABCAAD5003C3F85 /* UIViewController+UserActionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+UserActionHandler.swift"; sourceTree = "<group>"; };
+		A16E2B7F2ABCC93F003C3F85 /* ProfileFriendshipToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileFriendshipToggle.swift; sourceTree = "<group>"; };
 		A17B5128284FD48600B75405 /* CameraSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraSessionManager.swift; sourceTree = "<group>"; };
 		A17CEAD02AAA2D4200FCCECD /* FriendsDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsDataSource.swift; sourceTree = "<group>"; };
 		A17CEAD22AAA2D5200FCCECD /* FriendsPublisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsPublisher.swift; sourceTree = "<group>"; };
@@ -2166,6 +2168,7 @@
 				A15E6C772809FA1B008CAEA0 /* ProfileViewController.swift */,
 				A15E6C7F280DD778008CAEA0 /* FeedArchiveViewController.swift */,
 				76E00DF324FEC2FC00E06252 /* ProfileHeaderViewController.swift */,
+				A16E2B7F2ABCC93F003C3F85 /* ProfileFriendshipToggle.swift */,
 				769CD3AB255CDB8D006F21BB /* NameEditViewController.swift */,
 				68B5C22C264C6F3F004C7939 /* SafetyNumberViewController.swift */,
 				68B5C231264DC710004C7939 /* QRCodeScannerViewController.swift */,
@@ -3400,6 +3403,7 @@
 				A17B5129284FD48600B75405 /* CameraSessionManager.swift in Sources */,
 				32C83FC42690463C00BEB4F5 /* PrivacyPermissionDeniedController.swift in Sources */,
 				7653F2FA255DB4E7001CC946 /* FeedCollectionViewController.swift in Sources */,
+				A16E2B802ABCC93F003C3F85 /* ProfileFriendshipToggle.swift in Sources */,
 				F408E27B281B0BDE00A49B29 /* MigrationViewController.swift in Sources */,
 				3295A55B28808EC1007642B5 /* DestinationPickerViewController.swift in Sources */,
 				EEB3393428860FE0001760F6 /* AnnotationView.swift in Sources */,

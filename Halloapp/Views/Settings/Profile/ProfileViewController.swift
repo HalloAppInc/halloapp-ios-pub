@@ -243,7 +243,6 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate {
         if let profileHeader = (header as? CollectionProfileHeader)?.header {
             addChild(profileHeader)
             profileHeader.didMove(toParent: self)
-            profileHeader.isEditingAllowed = true
         }
 
         return header
@@ -259,7 +258,9 @@ fileprivate class CollectionProfileHeader: UICollectionReusableView {
     static let reuseIdentifier = "profileHeader"
     private var cancellable: AnyCancellable?
 
-    private(set) lazy var header: ProfileHeaderViewController = ProfileHeaderViewController()
+    let header: ProfileHeaderViewController = {
+        ProfileHeaderViewController(configuration: .ownProfileEditable)
+    }()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -270,7 +271,6 @@ fileprivate class CollectionProfileHeader: UICollectionReusableView {
 
         header.view.translatesAutoresizingMaskIntoConstraints = false
         header.view.backgroundColor = .feedPostBackground
-        header.changeAvatarHeight(to: 145)
 
         addSubview(header.view)
         addSubview(line)
@@ -286,10 +286,7 @@ fileprivate class CollectionProfileHeader: UICollectionReusableView {
             line.heightAnchor.constraint(equalToConstant: 1.0 / UIScreen.main.scale)
         ])
 
-        cancellable = MainAppContext.shared.userData.userNamePublisher.receive(on: DispatchQueue.main).sink { [weak self] userName in
-            self?.header.configureForCurrentUser(withName: userName)
-            self?.setNeedsLayout()
-        }
+        header.configureForOwnProfile()
 
         let mask = CACornerMask([.layerMinXMinYCorner, .layerMaxXMinYCorner])
         header.view.layer.cornerRadius = InsetCollectionView.cornerRadius
