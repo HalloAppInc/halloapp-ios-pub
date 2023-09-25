@@ -1419,9 +1419,14 @@ final class ProtoService: ProtoServiceCore {
         case .halloappProfileUpdate(let profileUpdate):
             hasAckBeenDelegated = true
             userProfileDelegate?.halloService(self, didReceiveProfileUpdate: profileUpdate, ack: ack)
-        case .friendListRequest(_):
-            // TODO
-            break
+        case .friendListRequest(let friendListRequest):
+            guard case .syncAll = friendListRequest.action else {
+                DDLogError("proto/didReceive/\(msg.id)/friendList/incorrect list type")
+                break
+            }
+
+            hasAckBeenDelegated = true
+            userProfileDelegate?.halloServiceDidReceiveFriendListSyncRequest(self, ack: ack)
         case .publicFeedUpdate(_):
             DDLogError("proto/didReceive/\(msg.id)/error unsupported-payload [\(payload)]")
         case .aiImage(_):

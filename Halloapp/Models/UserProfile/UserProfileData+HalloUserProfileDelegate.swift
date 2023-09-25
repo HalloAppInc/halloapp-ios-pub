@@ -52,4 +52,11 @@ extension UserProfileData: HalloUserProfileDelegate {
             }
         }
     }
+
+    func halloServiceDidReceiveFriendListSyncRequest(_ halloService: HalloService, ack: (() -> Void)?) {
+        DDLogInfo("UserProfileData/didReceiveFriendListSyncRequest")
+        Task {
+            await syncFriendships()
+        }
+    }
 }

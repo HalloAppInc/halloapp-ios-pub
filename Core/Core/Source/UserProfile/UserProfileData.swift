@@ -161,31 +161,42 @@ public class UserProfileData: NSObject {
             return
         }
 
-        let listTypes: [Server_FriendListRequest.Action] = [.getFriends, .getOutgoingPending, .getIncomingPending]
-
         Task {
-            for type in listTypes {
-                var profiles = [Server_HalloappUserProfile]()
-                var cursor = ""
-
-                repeat {
-                    let friendList = try await friendshipList(for: type, cursor: cursor)
-                    profiles.append(contentsOf: friendList.profiles)
-                    cursor = friendList.cursor
-                } while !cursor.isEmpty
-
-                do {
-                    try await processFriendshipList(type: type, serverProfiles: profiles)
-                } catch {
-                    DDLogError("UserProfileData/syncFriendshipsIfNeeded/failed with error \(String(describing: error))")
-                }
-            }
-
-            Self.lastFriendshipSyncDate = Date().timeIntervalSince1970
+            await syncFriendships()
             if !hasCompletedInitialSync {
                 _completedInitialFriendSyncPublisher.send()
             }
         }
+    }
+
+    public func syncFriendships() async {
+        DDLogInfo("UserProfileData/syncFriendships/start")
+        let listTypes: [Server_FriendListRequest.Action] = [.getFriends, .getOutgoingPending, .getIncomingPending, .getBlocked]
+
+        for type in listTypes {
+            var profiles = [Server_HalloappUserProfile]()
+            var cursor = ""
+
+            repeat {
+                do {
+                    let friendList = try await friendshipList(for: type, cursor: cursor)
+                    profiles.append(contentsOf: friendList.profiles)
+                    cursor = friendList.cursor
+                } catch {
+                    DDLogError("UserProfileData/syncFriendships/failed to fetch list \(String(describing: error))")
+                    return
+                }
+            } while !cursor.isEmpty
+
+            do {
+                try await processFriendshipList(type: type, serverProfiles: profiles)
+            } catch {
+                DDLogError("UserProfileData/syncFriendshipsIfNeeded/failed with error \(String(describing: error))")
+            }
+        }
+
+        DDLogInfo("UserProfileData/syncFriendships/finished")
+        Self.lastFriendshipSyncDate = Date().timeIntervalSince1970
     }
 
     private func processFriendshipList(type: Server_FriendListRequest.Action, serverProfiles: [Server_HalloappUserProfile]) async throws {
@@ -219,7 +230,8 @@ public class UserProfileData: NSObject {
                 resetFriendStatus(profileStatus: .outgoingPending)
 
             case .getBlocked:
-                break
+                let predicate = NSPredicate(format: "NOT id in %@ AND isBlocked == YES")
+                UserProfile.find(predicate: predicate, in: context).forEach { $0.isBlocked = false }
 
             case .getSuggestions:
                 break

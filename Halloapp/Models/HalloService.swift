@@ -159,4 +159,5 @@ protocol HalloCallDelegate: AnyObject {
 
 protocol HalloUserProfileDelegate: AnyObject {
     func halloService(_ halloService: HalloService, didReceiveProfileUpdate profileUpdate: Server_HalloappProfileUpdate, ack: (() -> Void)?)
+    func halloServiceDidReceiveFriendListSyncRequest(_ halloService: HalloService, ack: (() -> Void)?)
 }
