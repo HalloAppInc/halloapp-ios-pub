@@ -285,6 +285,19 @@ open class MainDataStore {
         }
     }
 
+    public final func saveSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) async throws {
+        try await withCheckedThrowingContinuation { continuation in
+            saveSeriallyOnBackgroundContext(block) { result in
+                switch result {
+                case .success:
+                    continuation.resume()
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+
     // MARK: Metadata
     /**
      - returns:

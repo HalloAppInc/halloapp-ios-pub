@@ -1056,8 +1056,10 @@ extension FlatCommentsViewController: ExpandableTextViewDelegate, UserActionHand
         collectionView.collectionViewLayout.invalidateLayout()
     }
     
-    func textView(_ textView: ExpandableTextView, didSelectAction action: UserAction) {
-        handle(action: action)
+    func textView(_ textView: ExpandableTextView, didSelectAction action: UserAction, for userID: UserID) {
+        Task {
+            try await handle(action, for: userID)
+        }
     }
     
     func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange, interaction: UITextItemInteraction) -> Bool {

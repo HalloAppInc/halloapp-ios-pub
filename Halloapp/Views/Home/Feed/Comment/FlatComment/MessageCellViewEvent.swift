@@ -17,16 +17,11 @@ public enum ChatLogEventType: Int16 {
     case unblocked = 3
 }
 
-protocol MessageChatEventViewDelegate: AnyObject {
-    func messageChatHeaderViewAddToContacts(_ messageCellViewEvent: MessageCellViewEvent)
-}
-
 class MessageCellViewEvent: UICollectionViewCell {
     static var elementKind: String {
         return String(describing: MessageCellViewEvent.self)
     }
 
-    weak var delegate: MessageChatEventViewDelegate?
     var eventType: ChatLogEventType?
 
     var messageLabel: UILabel = {
@@ -60,7 +55,6 @@ class MessageCellViewEvent: UICollectionViewCell {
 
         view.insertSubview(subView, at: 0)
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onTapEvent)))
         return view
     }()
 
@@ -103,16 +97,6 @@ class MessageCellViewEvent: UICollectionViewCell {
     func configure(groupEvent: GroupEvent) {
         if let text = groupEvent.text {
             messageLabel.text = text
-        }
-    }
-
-    @objc private func onTapEvent() {
-        guard let delegate = delegate else { return }
-        switch eventType {
-        case .addToAddressBook:
-            delegate.messageChatHeaderViewAddToContacts(self)
-        default:
-            break
         }
     }
 }

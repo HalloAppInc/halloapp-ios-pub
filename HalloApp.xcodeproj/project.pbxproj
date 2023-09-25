@@ -293,6 +293,7 @@
 		A16E2B772ABA56A7003C3F85 /* FriendSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16E2B762ABA56A6003C3F85 /* FriendSelection.swift */; };
 		A16E2B792ABA5753003C3F85 /* FavoritesSelectionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16E2B782ABA5753003C3F85 /* FavoritesSelectionModel.swift */; };
 		A16E2B7B2ABA57ED003C3F85 /* Avatar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16E2B7A2ABA57ED003C3F85 /* Avatar.swift */; };
+		A16E2B7E2ABCAAD5003C3F85 /* UIViewController+UserActionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16E2B7D2ABCAAD5003C3F85 /* UIViewController+UserActionHandler.swift */; };
 		A17B5129284FD48600B75405 /* CameraSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17B5128284FD48600B75405 /* CameraSessionManager.swift */; };
 		A17CEAD12AAA2D4200FCCECD /* FriendsDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17CEAD02AAA2D4200FCCECD /* FriendsDataSource.swift */; };
 		A17CEAD32AAA2D5200FCCECD /* FriendsPublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17CEAD22AAA2D5200FCCECD /* FriendsPublisher.swift */; };
@@ -1112,7 +1113,7 @@
 		A104661629145F7700BF7AC7 /* CameraViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraViewModel.swift; sourceTree = "<group>"; };
 		A10466182915A3D600BF7AC7 /* CameraPresetPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPresetPicker.swift; sourceTree = "<group>"; };
 		A104661C291844A200BF7AC7 /* ViewfinderLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewfinderLayout.swift; sourceTree = "<group>"; };
-		A111BDFB27C96D9100E5DB4E /* UserActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserActions.swift; path = Halloapp/Views/Home/UserActions.swift; sourceTree = SOURCE_ROOT; };
+		A111BDFB27C96D9100E5DB4E /* UserActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserActions.swift; sourceTree = "<group>"; };
 		A11272E92856C5930009EBD7 /* NewMomentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewMomentViewController.swift; sourceTree = "<group>"; };
 		A11272EB2856E47B0009EBD7 /* MomentComposerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentComposerViewController.swift; sourceTree = "<group>"; };
 		A11BA85328C0236D0077F86A /* RegistrationSplashScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationSplashScreenViewController.swift; sourceTree = "<group>"; };
@@ -1141,6 +1142,7 @@
 		A16E2B762ABA56A6003C3F85 /* FriendSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendSelection.swift; sourceTree = "<group>"; };
 		A16E2B782ABA5753003C3F85 /* FavoritesSelectionModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesSelectionModel.swift; sourceTree = "<group>"; };
 		A16E2B7A2ABA57ED003C3F85 /* Avatar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Avatar.swift; sourceTree = "<group>"; };
+		A16E2B7D2ABCAAD5003C3F85 /* UIViewController+UserActionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+UserActionHandler.swift"; sourceTree = "<group>"; };
 		A17B5128284FD48600B75405 /* CameraSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraSessionManager.swift; sourceTree = "<group>"; };
 		A17CEAD02AAA2D4200FCCECD /* FriendsDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsDataSource.swift; sourceTree = "<group>"; };
 		A17CEAD22AAA2D5200FCCECD /* FriendsPublisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsPublisher.swift; sourceTree = "<group>"; };
@@ -1996,6 +1998,15 @@
 			path = "View Modifiers";
 			sourceTree = "<group>";
 		};
+		A16E2B7C2ABCAAA7003C3F85 /* UserActions */ = {
+			isa = PBXGroup;
+			children = (
+				A111BDFB27C96D9100E5DB4E /* UserActions.swift */,
+				A16E2B7D2ABCAAD5003C3F85 /* UIViewController+UserActionHandler.swift */,
+			);
+			path = UserActions;
+			sourceTree = "<group>";
+		};
 		A17CEACF2AAA2D3000FCCECD /* Friends */ = {
 			isa = PBXGroup;
 			children = (
@@ -2242,7 +2253,6 @@
 				6829F78624D0A62800207F6B /* UserFeedViewController.swift */,
 				EA73DF3F25E88D9B0070875D /* NewPostsIndicator.swift */,
 				68629293265C660D00C54367 /* FeedPermissionAlert.swift */,
-				A111BDFB27C96D9100E5DB4E /* UserActions.swift */,
 				F4D88F6A27D9873E00D706DA /* Toast.swift */,
 				F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */,
 				F41FAA5127E54F2800FC5090 /* FeedPostMenuViewController.swift */,
@@ -2430,6 +2440,7 @@
 		EA880C3B2368EE53008965CF /* Home */ = {
 			isa = PBXGroup;
 			children = (
+				A16E2B7C2ABCAAA7003C3F85 /* UserActions */,
 				6ABBB20B272DA241007A595D /* Calls */,
 				EA38843423A15C9D00E8BF92 /* Feed */,
 				EA27792825BA3FEA009CA884 /* Groups */,
@@ -3614,6 +3625,7 @@
 				3283296E27DC0BA7003AD019 /* MessageCellViewQuoted.swift in Sources */,
 				A111BDFC27C96D9100E5DB4E /* UserActions.swift in Sources */,
 				68CCE7AD275FDE8200C39B70 /* RootViewController.swift in Sources */,
+				A16E2B7E2ABCAAD5003C3F85 /* UIViewController+UserActionHandler.swift in Sources */,
 				762EDBDD244E5A7800986617 /* HomeViewController.swift in Sources */,
 				764AB41A24A6A48400D4E354 /* PrivacyRequests.swift in Sources */,
 				A1FF1ED328BE76560057FC27 /* OnboardingManager.swift in Sources */,

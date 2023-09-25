@@ -31,7 +31,7 @@ class FeedPostView: UIView {
     var cancelSendingAction: (() -> ())?
     var retrySendingAction: (() -> ())?
     var deleteAction: (() -> ())?
-    var contextAction: ((UserAction) -> ())?
+    var contextAction: ((UserAction, UserID) -> ())?
     var shareAction: (() -> ())?
     var reactAction: (() -> ())?
 
@@ -279,8 +279,8 @@ class FeedPostView: UIView {
 }
 
 extension FeedPostView: ExpandableTextViewDelegate {
-    func textView(_ textView: ExpandableTextView, didSelectAction action: UserAction) {
-        contextAction?(action)
+    func textView(_ textView: ExpandableTextView, didSelectAction action: UserAction, for userID: UserID) {
+        contextAction?(action, userID)
     }
     
     func textView(_ textView: ExpandableTextView, didRequestHandleMention userID: UserID) {

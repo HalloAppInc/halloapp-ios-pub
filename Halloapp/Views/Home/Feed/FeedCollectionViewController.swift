@@ -1003,8 +1003,8 @@ extension FeedCollectionViewController {
             guard let self = self else { return }
             self.retrySending(postId: postId)
         }
-        cell.contextAction = { [weak self] action in
-            self?.handle(action: action)
+        cell.contextAction = { [weak self] action, userID in
+            Task { try await self?.handle(action, for: userID) }
         }
         cell.shareAction = { [weak self] in
             guard let self = self else {

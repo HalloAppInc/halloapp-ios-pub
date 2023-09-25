@@ -139,7 +139,9 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
     
     @objc func unblockButtonTappedprofile() {
         guard let userID = headerView.userID else { return }
-        handle(action: .unblock(userID))
+        Task {
+            try await handle(.unblock, for: userID)
+        }
     }
     
     // MARK: Profile Name Editing
@@ -222,17 +224,23 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
 
     @objc private func openChatView() {
         guard let userID = headerView.userID else { return }
-        handle(action: .message(userID))
+        Task {
+            try await handle(.message, for: userID)
+        }
     }
 
     @objc private func audioCallButtonTapped() {
         guard let userID = headerView.userID else { return }
-        handle(action: .call(userID, .audio))
+        Task {
+            try await handle(.call(type: .audio), for: userID)
+        }
     }
 
     @objc private func videoCallButtonTapped() {
         guard let userID = headerView.userID else { return }
-        handle(action: .call(userID, .video))
+        Task {
+            try await handle(.call(type: .video), for: userID)
+        }
     }
 
     private func presentPhotoPicker() {

@@ -135,8 +135,6 @@ class ExistingNetworkViewController: UIViewController, UserActionHandler {
             collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             collectionView.bottomAnchor.constraint(equalTo: bottomStack.topAnchor),
         ])
-
-        buildCollectionView()
     }
 
     override func viewDidLayoutSubviews() {
@@ -150,22 +148,6 @@ class ExistingNetworkViewController: UIViewController, UserActionHandler {
         } else {
             collectionView.contentInset.top = 0
         }
-    }
-
-    private func buildCollectionView() {
-        collectionView.apply(InsetCollectionView.Collection {
-            InsetCollectionView.Section {
-
-                for id in fellowUserIDs {
-                    InsetCollectionView.Item(style: .user(id: id, menu: {
-                        HAMenu.menu(for: id,
-                                options: [.viewProfile, .safetyNumber, .favorite, .block],
-                                handler: { [weak self] in self?.handle(action: $0) })
-                    }))
-                }
-            }
-        }
-        .separators())
     }
 
     private func supplementaryViewProvider(_ collectionView: UICollectionView, elementKind: String, indexPath: IndexPath) -> UICollectionReusableView {

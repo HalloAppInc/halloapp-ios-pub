@@ -444,9 +444,11 @@ class MomentViewController: UIViewController, UIViewControllerMediaSaving, Share
         }
     }
 
-    private func forward(action: UserAction) {
+    private func forward(action: UserAction, userID: UserID) {
         dismissAll(animated: true) { [delegate] in
-            delegate?.handle(action: action)
+            Task {
+                try await delegate?.handle(action, for: userID)
+            }
         }
     }
 
@@ -483,7 +485,7 @@ class MomentViewController: UIViewController, UIViewControllerMediaSaving, Share
     }
 
     private func showUser() {
-        forward(action: .viewProfile(post.userID))
+        forward(action: .viewProfile, userID: post.userID)
     }
 
     private func sendSeenReceiptIfReady() {
@@ -601,11 +603,11 @@ extension MomentViewController: PostDashboardViewControllerDelegate, UserActionH
     func postDashboardViewController(didRequestPerformAction action: PostDashboardViewController.UserAction) {
         switch action {
         case .profile(let id):
-            forward(action: .viewProfile(id))
+            forward(action: .viewProfile, userID: id)
         case .message(let id, _):
-            forward(action: .message(id))
+            forward(action: .message, userID: id)
         case .blacklist(let id):
-            handle(action: .block(id))
+            Task { try await handle(.block, for: id) }
         }
     }
 }

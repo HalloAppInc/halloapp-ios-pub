@@ -251,8 +251,8 @@ extension PostViewController: UserActionHandler {
             return self?.moreMenu() ?? []
         }
         
-        postView.contextAction = { [weak self] action in
-            self?.handle(action: action)
+        postView.contextAction = { [weak self] action, userID in
+            Task { try await self?.handle(action, for: userID) }
         }
 
         postView.shareAction = { [weak self] in

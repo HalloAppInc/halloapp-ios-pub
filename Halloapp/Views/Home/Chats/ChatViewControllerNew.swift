@@ -352,7 +352,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                         default:
                             break
                         }
-                        cell.delegate = self
                         return cell
                     }
                 case .chatCall(let callData):
@@ -366,7 +365,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                         if let fromUserId = self?.fromUserId {
                             cell.configure(chatLogEventType: .addToAddressBook, userID: fromUserId)
                         }
-                        cell.delegate = self
                         return cell
                     }
                 case .unreadCountHeader(let unreadCount):
@@ -2250,13 +2248,6 @@ extension ChatViewControllerNew: MessageChatHeaderViewDelegate {
     func messageChatHeaderViewOpenEncryptionBlog(_ messageChatHeaderView: MessageChatHeaderView) {
         let viewController = SFSafariViewController(url: URL(string: "https://halloapp.com/blog/encrypted-chat")!)
         present(viewController, animated: true)
-    }
-}
-
-extension ChatViewControllerNew: MessageChatEventViewDelegate, UserActionHandler {
-    func messageChatHeaderViewAddToContacts(_ messageCellViewEvent: MessageCellViewEvent) {
-        guard let fromUserId = fromUserId else { return }
-        handle(action: .addContact(fromUserId))
     }
 }
 

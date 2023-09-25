@@ -167,11 +167,11 @@ extension Localizations {
     // MARK: User
     
     static var userOptionBlock: String {
-        NSLocalizedString("user.option.block", value: "Block on HalloApp", comment: "Option when user taps more on profile page")
+        NSLocalizedString("user.option.block", value: "Block", comment: "Option when user taps more on profile page")
     }
     
     static var userOptionUnblock: String {
-        NSLocalizedString("user.option.unblock", value: "Unblock on HalloApp", comment: "Option when user taps more on profile page")
+        NSLocalizedString("user.option.unblock", value: "Unblock", comment: "Option when user taps more on profile page")
     }
     
     static var userOptionCopyPhoneNumber: String {
