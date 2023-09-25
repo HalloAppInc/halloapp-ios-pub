@@ -289,8 +289,8 @@ class HomeViewController: UITabBarController {
             controller.title = Localizations.titleSuggestions
 
             let navigationController = UINavigationController(rootViewController: controller)
-            navigationController.tabBarItem.image = UIImage(named: "TabBarMagicPosts")
-            navigationController.tabBarItem.selectedImage = UIImage(named: "TabBarMagicPostsActive")
+            navigationController.tabBarItem.image = UIImage(named: "TabBarMagicPosts")?.withTintColor(.tabBar, renderingMode: .alwaysOriginal)
+            navigationController.tabBarItem.selectedImage = UIImage(named: "TabBarMagicPostsActive")?.withRenderingMode(.alwaysTemplate)
             navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
             return navigationController
         } else {
