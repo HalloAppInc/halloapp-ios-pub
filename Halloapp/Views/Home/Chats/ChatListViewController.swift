@@ -71,27 +71,9 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        if let height = layoutHeight, height != view.bounds.height {
-            // Search bar can become misaligned if view height changes (e.g., because bar appears for active call)
-            resetSearchBarIfActive()
-        }
-        layoutHeight = view.bounds.height
-    }
-
-    private var layoutHeight: CGFloat?
-
-    private func resetSearchBarIfActive() {
-        if searchController.isActive {
-            let searchText = searchController.searchBar.text
-            searchController.isActive = false
-            searchController.isActive = true
-            searchController.searchBar.text = searchText
-        }
-    }
-
     override func viewDidLoad() {
+        super.viewDidLoad()
+
         DDLogInfo("ChatListViewController/viewDidLoad")
 
         installAvatarBarButton()
@@ -112,8 +94,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         searchController.searchBar.searchTextField.backgroundColor = .searchBarBg
         searchController.searchBar.searchTextField.placeholder = Localizations.labelSearch
 
-        tableView.tableHeaderView = searchController.searchBar
-        tableView.tableHeaderView?.layoutMargins = UIEdgeInsets(top: 0, left: 21, bottom: 0, right: 21) // requested to be 21
+        navigationItem.searchController = searchController
 
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -130,7 +111,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         tableView.backgroundView = UIView() // fixes issue where bg color was off when pulled down from top
         tableView.backgroundColor = .primaryBg
         tableView.separatorStyle = .none
-        tableView.contentInset = UIEdgeInsets(top: -10, left: 0, bottom: 0, right: 0) // -10 to hide top padding on searchBar
 
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 60 // set a number close to default to prevent cells overlapping issue, can't be auto

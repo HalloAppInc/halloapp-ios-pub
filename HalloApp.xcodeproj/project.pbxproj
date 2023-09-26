@@ -462,7 +462,6 @@
 		F41F82972798D2AC0021BF40 /* GroupInviteSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41F82962798D2AC0021BF40 /* GroupInviteSheetViewController.swift */; };
 		F41FAA4227E52B7E00FC5090 /* BottomSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41FAA4127E52B7E00FC5090 /* BottomSheetViewController.swift */; };
 		F41FAA5227E54F2900FC5090 /* FeedPostMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41FAA5127E54F2800FC5090 /* FeedPostMenuViewController.swift */; };
-		F4271260286A721B009C56FA /* GroupGridSearchBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = F427125F286A721B009C56FA /* GroupGridSearchBar.swift */; };
 		F427FF3828D0FF50000D3EAD /* ComposerTitleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F427FF3728D0FF50000D3EAD /* ComposerTitleView.swift */; };
 		F42F574827C86D7200988E9D /* FeedInviteCarouselCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */; };
 		F43DF0EA28F0A686008008B7 /* ShareProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43DF0E928F0A685008008B7 /* ShareProvider.swift */; };
@@ -1309,7 +1308,6 @@
 		F41F82962798D2AC0021BF40 /* GroupInviteSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInviteSheetViewController.swift; sourceTree = "<group>"; };
 		F41FAA4127E52B7E00FC5090 /* BottomSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomSheetViewController.swift; sourceTree = "<group>"; };
 		F41FAA5127E54F2800FC5090 /* FeedPostMenuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostMenuViewController.swift; sourceTree = "<group>"; };
-		F427125F286A721B009C56FA /* GroupGridSearchBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridSearchBar.swift; sourceTree = "<group>"; };
 		F427FF3728D0FF50000D3EAD /* ComposerTitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerTitleView.swift; sourceTree = "<group>"; };
 		F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedInviteCarouselCell.swift; sourceTree = "<group>"; };
 		F43DF0E928F0A685008008B7 /* ShareProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareProvider.swift; sourceTree = "<group>"; };
@@ -2664,7 +2662,6 @@
 				F45D9F782825DF62005BAD9D /* GroupGridCollectionViewCell.swift */,
 				F45D9F7C282C3ACF005BAD9D /* GroupGridDataSource.swift */,
 				F45D9F7E282C4E4B005BAD9D /* GroupGridHeader.swift */,
-				F427125F286A721B009C56FA /* GroupGridSearchBar.swift */,
 				F499FB0C2877A914005D5ADD /* GroupGridProgressView.swift */,
 			);
 			path = Grid;
@@ -3513,7 +3510,6 @@
 				326A757D28400B500058DFAA /* BlockedContactSheetViewController.swift in Sources */,
 				321A70112704FF13005603B8 /* FeedLinkPreview+CoreDataProperties.swift in Sources */,
 				F80A0089288FF3DB00EAE39C /* MediaComposerTextView.swift in Sources */,
-				F4271260286A721B009C56FA /* GroupGridSearchBar.swift in Sources */,
 				A15E6C84280F1AA6008CAEA0 /* SettingsViewController.swift in Sources */,
 				A13C929028D9255C0096CE00 /* PermissionExplainerView.swift in Sources */,
 				EAD476F52458F03700EF8591 /* ChatThread+CoreDataProperties.swift in Sources */,

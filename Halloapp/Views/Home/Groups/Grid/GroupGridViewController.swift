@@ -18,12 +18,6 @@ class GroupGridViewController: UIViewController {
     private var cancellableSet: Set<AnyCancellable> = []
     private lazy var collectionView: UICollectionView = {
         let configuration = UICollectionViewCompositionalLayoutConfiguration()
-        configuration.boundarySupplementaryItems = [
-            NSCollectionLayoutBoundarySupplementaryItem(layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(44)),
-                                                        elementKind: GroupGridSearchBar.elementKind,
-                                                        alignment: .topLeading)
-
-        ]
         configuration.interSectionSpacing = 8
 
         let layout = UICollectionViewCompositionalLayout(sectionProvider: { [weak self] in self?.sectionProvider(section: $0, layoutEnvironment: $1) },
@@ -62,9 +56,6 @@ class GroupGridViewController: UIViewController {
         collectionView.register(GroupGridHeader.self,
                                 forSupplementaryViewOfKind: GroupGridHeader.elementKind,
                                 withReuseIdentifier: GroupGridHeader.reuseIdentifier)
-        collectionView.register(GroupGridSearchBar.self,
-                                forSupplementaryViewOfKind: GroupGridSearchBar.elementKind,
-                                withReuseIdentifier: GroupGridSearchBar.reuseIdentifier)
         collectionView.scrollsToTop = true
         collectionView.keyboardDismissMode = .interactive
         return collectionView
@@ -93,8 +84,6 @@ class GroupGridViewController: UIViewController {
         return searchController
     }()
 
-    private lazy var searchBarContainer = GroupGridSearchBar.SearchBarContainer(searchBar: searchController.searchBar)
-
     private var isEmptyCancellable: AnyCancellable?
     private var cancellables = Set<AnyCancellable>()
     private var lastDisappearDate: Date?
@@ -102,7 +91,7 @@ class GroupGridViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        definesPresentationContext = true // required for UISearchBar not to overlap navigation bar when active
+        navigationItem.searchController = searchController
 
         installAvatarBarButton()
 
@@ -253,14 +242,6 @@ class GroupGridViewController: UIViewController {
                 header.menuActions = { [weak self] in self?.menuActionsForGroup(groupID: groupID) ?? [] }
             }
             return header
-        case GroupGridSearchBar.elementKind:
-            let groupGridSearchBar = collectionView.dequeueReusableSupplementaryView(ofKind: GroupGridSearchBar.elementKind,
-                                                                   withReuseIdentifier: GroupGridSearchBar.reuseIdentifier,
-                                                                   for: indexPath)
-            if let groupGridSearchBar = groupGridSearchBar as? GroupGridSearchBar {
-                groupGridSearchBar.searchBarContainer = searchBarContainer
-            }
-            return groupGridSearchBar
         default:
             return nil
         }
