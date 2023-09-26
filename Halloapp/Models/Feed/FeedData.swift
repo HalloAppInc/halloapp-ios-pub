@@ -1617,7 +1617,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         var feedPosts = [PostData]()
         var comments = [CommentData]()
         var reactions = [CommentData]()
-        var contactNames = [UserID:String]()
+        var profileNames = [UserID: String]()
 
         for item in items {
             switch item {
@@ -1625,7 +1625,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 feedPosts.append(post)
                 post.orderedMentions.forEach {
                     guard !$0.name.isEmpty else { return }
-                    contactNames[$0.userID] = $0.name
+                    profileNames[$0.userID] = $0.name
                 }
             case .comment(let comment, let name):
                 switch comment.content {
@@ -1635,18 +1635,18 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     comments.append(comment)
                     comment.orderedMentions.forEach {
                         guard !$0.name.isEmpty else { return }
-                        contactNames[$0.userID] = $0.name
-                    }
-                    if let name = name, !name.isEmpty {
-                        contactNames[comment.userId] = name
+                        profileNames[$0.userID] = $0.name
                     }
                 }
                 
+                if let name = name, !name.isEmpty {
+                    profileNames[comment.userId] = name
+                }
             }
         }
 
-        if !contactNames.isEmpty {
-            UserProfile.updateNames(with: contactNames)
+        if !profileNames.isEmpty {
+            UserProfile.updateNames(with: profileNames)
         }
 
         DDLogInfo("FeedData/processIncomingFeedItems/feedPosts: \(feedPosts.count)/comments: \(comments.count)/reactions: \(reactions.count)")

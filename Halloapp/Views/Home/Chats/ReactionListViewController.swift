@@ -102,8 +102,6 @@ private class ReactionTableViewCell: ContactTableViewCell {
     }
     
     func configureWithReaction(_ reaction: CommonReaction, using avatarStore: AvatarStore) {
-        let contactStore = MainAppContext.shared.contactStore
-
         contactImage.configure(with: reaction.fromUserID, using: avatarStore)
         
         nameLabel.text = UserProfile.findOrCreate(with: reaction.fromUserID, in: AppContext.shared.mainDataStore.viewContext).displayName
