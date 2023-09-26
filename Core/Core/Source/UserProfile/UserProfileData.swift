@@ -230,7 +230,7 @@ public class UserProfileData: NSObject {
                 resetFriendStatus(profileStatus: .outgoingPending)
 
             case .getBlocked:
-                let predicate = NSPredicate(format: "NOT id in %@ AND isBlocked == YES")
+                let predicate = NSPredicate(format: "NOT id in %@ AND isBlocked == YES", userIDs)
                 UserProfile.find(predicate: predicate, in: context).forEach { $0.isBlocked = false }
 
             case .getSuggestions:
