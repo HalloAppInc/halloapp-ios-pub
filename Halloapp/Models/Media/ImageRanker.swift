@@ -15,7 +15,7 @@ import Vision
 final class BurstAwareHighlightSelector {
     
     let BurstThreshold = TimeInterval(15)
-    let SimilarityThreshold = Float(15)
+    let SimilarityThreshold = Float(0.7)
     
     func selectHighlights(_ n: Int, from assets: [PHAsset]) async -> [PHAsset] {
         
