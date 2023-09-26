@@ -395,7 +395,7 @@ class PhotoSuggestions: NSObject {
 
     private class func isValidAsset(_ asset: PHAsset) -> Bool {
         // PHAsset fetches do not accurately query mediaSubtypes, filter after the fetch
-        return asset.mediaSubtypes.isDisjoint(with: [.photoScreenshot, .photoAnimated, .videoScreenRecording])
+        return asset.mediaSubtypes != [] && asset.mediaSubtypes.isDisjoint(with: [.photoScreenshot, .photoAnimated, .videoScreenRecording])
     }
 }
 
