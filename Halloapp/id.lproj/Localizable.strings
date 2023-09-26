@@ -586,9 +586,6 @@
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "Buang Postingan?";
 
-/* Share to all contacts */
-"composer.destination.contactsShare" = "Kontak Saya";
-
 /* Label above the list with whom you share */
 "composer.destinations.label" = "Bagikan dengan";
 
@@ -814,13 +811,13 @@
 /* Shown while content is being posted to feed */
 "feed.posting" = "Memposting...";
 
-/* Describes what 'All Contacts' feed privacy setting means. */
+/* Describes what 'All Friends' feed privacy setting means. */
 "feed.privacy.descr.all" = "Bagikan ke semua kontak saya";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.except" = "Bagikan dengan kontak saya kecuali orang yang saya pilih";
 
-/* Describes what 'All Contacts' feed privacy setting means. */
+/* Describes what 'Favorites' feed privacy setting means. */
 "feed.privacy.descr.only" = "Hanya bagikan dengan kontak yang dipilih";
 
 /* Header describing what these options are for */
@@ -2295,9 +2292,6 @@
 
 /* Option when user taps more on profile page */
 "user.option.block" = "Blokir di HalloApp";
-
-/* Option when User clicks on the phone number on profile page and this can let the user copy the phone number */
-"user.option.copy.phone.number" = "Salin Nomor Telepon";
 
 /* Option when user taps more on profile page */
 "user.option.unblock" = "Buka Blokir di HalloApp";

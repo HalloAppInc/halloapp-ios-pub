@@ -1,4 +1,7 @@
 /* No comment provided by engineer. */
+"@%@" = "@%@";
+
+/* No comment provided by engineer. */
 "%" = "%";
 
 /* No comment provided by engineer. */
@@ -39,6 +42,9 @@
 
 /* First tab in the main app interface. */
 "activityCenter.promo.favorites" = "¡Mira la nueva función en Favoritos!";
+
+/* Title of a button to send a friend request. */
+"add.friend" = "Agregar amigo(a)";
 
 /* Title of a button that allows a location to be added. */
 "add.location.title" = "Agrega ubicación";
@@ -108,6 +114,13 @@
 
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Sin conexión a Internet";
+
+/* Failure message displayed after trying to block a user.
+   Success message displayed after blocking a user. */
+"block.success" = "Bloqueado";
+
+/* Title of an alert when blocking a user. */
+"block.title" = "Bloquear %@";
 
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Agregar";
@@ -297,6 +310,9 @@
 
 /* No comment provided by engineer. */
 "Cancel" = "Cancelar";
+
+/* Title of a button to cancel a friendship request. */
+"cancel.request" = "Cancelar solicitud";
 
 /* Text shown in the chat interface informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "Bloqueaste a este contacto";
@@ -526,6 +542,9 @@
 /* Prompts the user to choose a photo. */
 "choose.photo" = "Seleccionar foto";
 
+/* Title of a button to close a screen. */
+"close.title" = "Cerrar";
+
 /* Title for the button in comment deletion confirmation prompt. */
 "comment.delete.action" = "Eliminar comentario";
 
@@ -586,8 +605,8 @@
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "¿Eliminar publicación?";
 
-/* Share to all contacts */
-"composer.destination.contactsShare" = "Mis contactos";
+/* Share to all friends */
+"composer.destination.friendsShare" = "Mis amigos";
 
 /* Label above the list with whom you share */
 "composer.destinations.label" = "Compartir con";
@@ -814,13 +833,13 @@
 /* Shown while content is being posted to feed */
 "feed.posting" = "Publicando...";
 
-/* Describes what 'All Contacts' feed privacy setting means. */
+/* Describes what 'All Friends' feed privacy setting means. */
 "feed.privacy.descr.all" = "Compartir con todos tus contactos";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.except" = "Compartir con mis contactos, excepto con las personas que escoja";
 
-/* Describes what 'All Contacts' feed privacy setting means. */
+/* Describes what 'Favorites' feed privacy setting means. */
 "feed.privacy.descr.only" = "Compartir solo con los contactos seleccionados";
 
 /* Header describing what these options are for */
@@ -907,6 +926,12 @@
 /* Title of a header that appears before a list of contacts that can be invited to register. */
 "friend.invite.header.title" = "¿A quién más quieres ver aquí?";
 
+/* Message explaining the new friend network. */
+"friend.migration.message" = "Ahora puedes buscar personas en HalloApp usando su nombre o @nombredeusuario. Tus contactos existentes en HalloApp se convierten ahora en tus amigos. Puedes eliminar los contactos existentes de amigos en cualquier momento.";
+
+/* Title when explaining the new friend network. */
+"friend.migration.title" = "Nuevo modelo de amistad en HalloApp";
+
 /* Indicating friend requests */
 "friend.requests" = "Solicitud de amigo(a)";
 
@@ -918,6 +943,9 @@
 
 /* Indicating the user's friends. */
 "friends.title" = "Amistades";
+
+/* When displaying a generic error message. */
+"generic.error" = "Se produjo un error";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Agrega la descripción del grupo";
@@ -1158,6 +1186,12 @@
 
 /* Title of failed video call screen alert. */
 "home.video.calls.fail.title" = "No se pueden realizar videollamadas en este momento.";
+
+/* Title of a button to ignore a friendship request. */
+"ignore.title" = "Ignorar";
+
+/* Message displayed next to an incoming friend request. */
+"incoming.friend.request.format" = "%@ te envió una solicitud de amistad";
 
 /* Title of the bottom sheet that is presented only once to explain the moments feature. */
 "introducing.moments" = "Te presentamos Momentos";
@@ -1620,6 +1654,9 @@
 
 /* Title denoting something that is optional. */
 "optional.title" = "Opcional";
+
+/* Message displayed next to an outgoing friend request. */
+"outgoing.friend.request.format" = "Enviaste a %@ una solicitud de amistad";
 
 /* button to launch photo and video library */
 "photo.and.video.library" = "Galería de fotos y videos";
@@ -2323,8 +2360,8 @@
 /* Option when user taps more on profile page */
 "user.option.block" = "Bloquear en HalloApp";
 
-/* Option when User clicks on the phone number on profile page and this can let the user copy the phone number */
-"user.option.copy.phone.number" = "Copiar número de teléfono";
+/* Option when User clicks on the username on profile page and this can let the user copy the username */
+"user.option.copy.username" = "Copiar nombre de usuario";
 
 /* Option when user taps more on profile page */
 "user.option.unblock" = "Desbloquear en HalloApp";

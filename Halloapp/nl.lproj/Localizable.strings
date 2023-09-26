@@ -1,4 +1,7 @@
 /* No comment provided by engineer. */
+"@%@" = "@%@";
+
+/* No comment provided by engineer. */
 "%" = "%";
 
 /* No comment provided by engineer. */
@@ -526,6 +529,9 @@
 /* Prompts the user to choose a photo. */
 "choose.photo" = "Foto kiezen";
 
+/* Title of a button to close a screen. */
+"close.title" = "Sluiten";
+
 /* Title for the button in comment deletion confirmation prompt. */
 "comment.delete.action" = "Reactie Verwijderen";
 
@@ -586,8 +592,8 @@
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "Post Weggooien?";
 
-/* Share to all contacts */
-"composer.destination.contactsShare" = "Mijn Contacten";
+/* Share to all friends */
+"composer.destination.friendsShare" = "Mijn Vrienden";
 
 /* Label above the list with whom you share */
 "composer.destinations.label" = "Delen met";
@@ -814,14 +820,14 @@
 /* Shown while content is being posted to feed */
 "feed.posting" = "Wordt geplaatst...";
 
-/* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.all" = "Delen met al mijn contacten";
+/* Describes what 'All Friends' feed privacy setting means. */
+"feed.privacy.descr.all" = "Delen met al mijn vrienden";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.except" = "Delen met mijn contacten behalve personen die ik selecteer";
 
-/* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.only" = "Alleen delen met geselecteerde contacten";
+/* Describes what 'Favorites' feed privacy setting means. */
+"feed.privacy.descr.only" = "Alleen delen met geselecteerde vrienden";
 
 /* Header describing what these options are for */
 "feed.privacy.header" = "Wie kan mijn posts zien";
@@ -906,6 +912,12 @@
 
 /* Title of a header that appears before a list of contacts that can be invited to register. */
 "friend.invite.header.title" = "Wie wil je hier nog meer zien?";
+
+/* Message explaining the new friend network. */
+"friend.migration.message" = "Vanaf nu kun je personen op HalloApp zoeken op hun naam of @gebruikersnaam. Je bestaande HalloApp-contacten worden nu je vrienden. Je kunt bestaande contacten op ieder moment uit je vrienden verwijderen.";
+
+/* Title when explaining the new friend network. */
+"friend.migration.title" = "Nieuw vriendschapsmodel op HalloApp";
 
 /* Indicating friend requests */
 "friend.requests" = "Vriendschapsverzoeken";
@@ -2322,9 +2334,6 @@
 
 /* Option when user taps more on profile page */
 "user.option.block" = "Blokkeren op HalloApp";
-
-/* Option when User clicks on the phone number on profile page and this can let the user copy the phone number */
-"user.option.copy.phone.number" = "Telefoonnummer Kopiëren";
 
 /* Option when user taps more on profile page */
 "user.option.unblock" = "Deblokkeren op HalloApp";

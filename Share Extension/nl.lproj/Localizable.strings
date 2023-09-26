@@ -88,14 +88,14 @@
 /* Title for generic delete button. */
 "Delete" = "Verwijderen";
 
-/* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.all" = "Delen met al mijn contacten";
+/* Describes what 'All Friends' feed privacy setting means. */
+"feed.privacy.descr.all" = "Delen met al mijn vrienden";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.except" = "Delen met mijn contacten behalve personen die ik selecteer";
 
-/* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.only" = "Alleen delen met geselecteerde contacten";
+/* Describes what 'Favorites' feed privacy setting means. */
+"feed.privacy.descr.only" = "Alleen delen met geselecteerde vrienden";
 
 /* Button to dismiss edit favorites modal */
 "feed.privacy.list.dismiss.edit.favorites" = "Niet Nu";
@@ -190,9 +190,9 @@
 /* Groups category label */
 "share.destination.groups" = "Jouw groepen";
 
-/* Share on the home feed label with all my contacts
+/* Share on the home feed label with all my friends
    Share to all contacts */
-"share.destination.home" = "Mijn Contacten";
+"share.destination.home" = "Mijn Vrienden";
 
 /* Alert title when a direct to contact sharing is missing
    Alert title when a direct to group sharing is missing */

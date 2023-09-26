@@ -88,14 +88,14 @@
 /* Title for generic delete button. */
 "Delete" = "Verwijderen";
 
-/* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.all" = "Delen met al mijn contacten";
+/* Describes what 'All Friends' feed privacy setting means. */
+"feed.privacy.descr.all" = "Delen met al mijn vrienden";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.except" = "Delen met mijn contacten behalve personen die ik selecteer";
 
-/* Describes what 'All Contacts' feed privacy setting means. */
-"feed.privacy.descr.only" = "Alleen delen met geselecteerde contacten";
+/* Describes what 'Favorites' feed privacy setting means. */
+"feed.privacy.descr.only" = "Alleen delen met geselecteerde vrienden";
 
 /* Button to dismiss edit favorites modal */
 "feed.privacy.list.dismiss.edit.favorites" = "Niet Nu";

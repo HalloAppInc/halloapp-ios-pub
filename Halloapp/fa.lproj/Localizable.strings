@@ -1,4 +1,7 @@
 /* No comment provided by engineer. */
+"@%@" = "@%@";
+
+/* No comment provided by engineer. */
 "%" = "%";
 
 /* No comment provided by engineer. */
@@ -40,6 +43,9 @@
 /* First tab in the main app interface. */
 "activityCenter.promo.favorites" = "ویژگی جدید لیست مخاطبین را مشاهده کنید!";
 
+/* Title of a button to send a friend request. */
+"add.friend" = "اضافه دوست";
+
 /* Title of a button that allows a location to be added. */
 "add.location.title" = "اضافه کردن مکان";
 
@@ -60,6 +66,9 @@
 
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "لطفاً مطمئن شوید به اینترنت دسترسی دارید سپس دوباره امتحان کنید.";
+
+/* Indicating all pending friend requests. */
+"all.requests" = "همه درخواست‌ها";
 
 /* Title of the activity tab when contacts permissions aren't given. */
 "allow.contacts.for.activity" = "برای دریافت اخبار از دوستانتان، به مخاطبین موبایل دسترسی دهید.";
@@ -105,6 +114,13 @@
 
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "بدون اینترنت";
+
+/* Failure message displayed after trying to block a user.
+   Success message displayed after blocking a user. */
+"block.success" = "مسدود شده‌ها";
+
+/* Title of an alert when blocking a user. */
+"block.title" = "مسدود کردن @%";
 
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "افزودن";
@@ -294,6 +310,9 @@
 
 /* No comment provided by engineer. */
 "Cancel" = "لغو";
+
+/* Title of a button to cancel a friendship request. */
+"cancel.request" = "لغو درخواست";
 
 /* Text shown in the chat interface informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "شما مخاطب را مسدود کردید";
@@ -520,6 +539,12 @@
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "با حذف این گفتگو تاریخچه گفتگو و محتوای آن را از دستگاه خود پاک خواهید کرد.";
 
+/* Prompts the user to choose a photo. */
+"choose.photo" = "انتخاب عکس";
+
+/* Title of a button to close a screen. */
+"close.title" = "بستن";
+
 /* Title for the button in comment deletion confirmation prompt. */
 "comment.delete.action" = "حذف نظر";
 
@@ -580,8 +605,8 @@
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "لغو پست؟";
 
-/* Share to all contacts */
-"composer.destination.contactsShare" = "مخاطبین";
+/* Share to all friends */
+"composer.destination.friendsShare" = "دوستانم";
 
 /* Label above the list with whom you share */
 "composer.destinations.label" = "به اشتراک گذاشتن با";
@@ -627,6 +652,9 @@
 
 /* Show the user that the title is tappable */
 "composer.subtitle.cta" = "برای تغییر کلیک کنید";
+
+/* Title of a button to confirm a friend request. */
+"confirm.title" = "تأیید";
 
 /* No comment provided by engineer. */
 "CONNECTION" = "ارتباط";
@@ -805,13 +833,13 @@
 /* Shown while content is being posted to feed */
 "feed.posting" = "در حال ارسال...";
 
-/* Describes what 'All Contacts' feed privacy setting means. */
+/* Describes what 'All Friends' feed privacy setting means. */
 "feed.privacy.descr.all" = "به اشتراک گذاشتن با همه مخاطب‌ها";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.except" = "به اشتراک گذاشتن با همه مخاطب‌ها به جز آن‌هایی که انتخاب کرده‌اید";
 
-/* Describes what 'All Contacts' feed privacy setting means. */
+/* Describes what 'Favorites' feed privacy setting means. */
 "feed.privacy.descr.only" = "به اشتراک گذاشتن با مخاطب‌هایی که انتخاب کرده‌اید";
 
 /* Header describing what these options are for */
@@ -894,6 +922,30 @@
 
 /* Explains that as more contacts join the app, they will appear in this list automatically. */
 "fellow.contacts.will.arrive" = "مخاطبین تلفن شما که در هالواپ هستنید به طور خودکار اینجا نشان داده میشوند.";
+
+/* Title of a header that appears before a list of contacts that can be invited to register. */
+"friend.invite.header.title" = "دیگر چه کسی را میخواهید اینجا مشاهده کنید؟";
+
+/* Message explaining the new friend network. */
+"friend.migration.message" = "اکنون میتوانید در هالواپ برای جستجو کردن مردم از نامشان یا نام‌کاربریشان استفاده کنید. مخاطبین هالواپ شما حالا دوست‌هایتان هستند. میتوانید هر موقع خواستید آن‌ها را حذف کنید.";
+
+/* Title when explaining the new friend network. */
+"friend.migration.title" = "مدل دوستی جدید در هالواپ";
+
+/* Indicating friend requests */
+"friend.requests" = "درخواست دوستی";
+
+/* Indicating suggested friends. */
+"friend.suggestions" = "پیشنهادهای دوست";
+
+/* Disclaimer telling users that their posts can be seen by their friends. */
+"friends.privacy.disclaimer" = "کسانی که اضافه میکنید میتوانند پست‌هایی که با دوستان هالواپ خود به اشتراک میگذارید را ببینند.";
+
+/* Indicating the user's friends. */
+"friends.title" = "دوستان";
+
+/* When displaying a generic error message. */
+"generic.error" = "خطا پیش آمد";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "افزودن توضیحات گروه";
@@ -1135,6 +1187,12 @@
 /* Title of failed video call screen alert. */
 "home.video.calls.fail.title" = "تماس ویدیویی در حال حاضر ممکن نیست.";
 
+/* Title of a button to ignore a friendship request. */
+"ignore.title" = "رد کردن";
+
+/* Message displayed next to an incoming friend request. */
+"incoming.friend.request.format" = "@% درخواست دوستی فرستاده است";
+
 /* Title of the bottom sheet that is presented only once to explain the moments feature. */
 "introducing.moments" = "لحظه را معرفی میکنیم";
 
@@ -1212,6 +1270,9 @@
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "برنامه را به روز رسانی کنید.";
+
+/* Shown to the user when suggestions are being loaded. */
+"loading.suggestions" = "بارگذاری پیشنهادها";
 
 /* Title to indicate that a fetch operation is in progress. */
 "locating.title" = "مکان";
@@ -1435,6 +1496,9 @@
 /* Header that appears above unread messages in the chats view. */
 "n.unread.messages.title" = "n.unread.messages.title";
 
+/* Indicates the user's name. */
+"name.title" = "نام";
+
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
 "new.group.members.empty.placeholder" = "مخاطبین شما که در هالواپ هستند اینجا ظاهر میشوند";
 
@@ -1443,6 +1507,9 @@
 
 /* Title for alert that pops up when user attempts to save an empty contact list */
 "no.contact.selected" = "هیچ مخاطبی انتخاب نشده";
+
+/* Displayed when the user's friends list is empty. */
+"no.friends.message" = "شما هنوز با کسی در ارتباط نیستید";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "شما دیگر در این گروه نیستید";
@@ -1588,8 +1655,50 @@
 /* Title denoting something that is optional. */
 "optional.title" = "اختیاری";
 
+/* Message displayed next to an outgoing friend request. */
+"outgoing.friend.request.format" = "شما به @% درخواست دوستی فرستاده‌اید";
+
 /* button to launch photo and video library */
 "photo.and.video.library" = "آلبوم عکس و ویدیو";
+
+/* fallback title for suggested photo album */
+"photoSuggestions.album.title" = "پیشنهادها";
+
+/* Button to link to settings to enable location permission for HalloApp */
+"photosuggestions.cta.alwaysonlocation.action" = "اجازه در تنظیمات";
+
+/* explanation of why we want always location access */
+"photosuggestions.cta.alwaysonlocation.subtitle" = "وقتی عکس‌های جدید میگیرید، ما بهترین عکس را پیدا میکنیم و به صورت پست پیش‌نویس آن‌ها را مرتب میکنیم که اگر مایل باشید میتوانید پست کنید.";
+
+/* title for explanation of why we want always location access */
+"photosuggestions.cta.alwaysonlocation.title" = "برای استفاده از پست‌های جادویی به هالواپ اجازه دسترسی به مکان دهید";
+
+/* Button to link to settings to enable location permission for Photos app */
+"photosuggestions.cta.photolocation.action" = "باز کردن تنظیمات";
+
+/* explanation for why we need to turn on location access for photos */
+"photosuggestions.cta.photolocation.subtitle1" = "برای بهبود پست‌های جادویی اجازه دسترسی مکان به اپ دوربین دهید. هالواپ از متادیتای عکس‌هایتان برای نام‌گذاری و مرتب کردن آن‌ها استفاده میکند.";
+
+/* instructions for enabling location access for photos app. maintain '*' to indicate bold text. */
+"photosuggestions.cta.photolocation.subtitle2" = "برای دسترسی مکان: تنظیمات > حریم خصوصی و امنیت > سرویس‌های مکان > دوربین";
+
+/* title for explanation of why we want location access for photos app */
+"photosuggestions.cta.photolocation.title" = "اجازه به مکان برای دسترسی به برنامه دوربین";
+
+/* Button to allow access to photos */
+"photosuggestions.emptystate.photopermission.action" = "فعال‌سازی";
+
+/* Explanatory text on empty state view */
+"photosuggestions.emptystate.photopermission.title" = "اجازه دسترسی به عکس‌ها برای استفاده از پست‌های جادویی";
+
+/* explanation for photo suggestions */
+"photosuggestions.explainer.subtitle" = "وقتی عکس‌های جدید میگیرید، ما بهترین عکس را پیدا میکنیم و به صورت پست پیش‌نویس آن‌ها را مرتب میکنیم که اگر مایل باشید میتوانید پست کنید.";
+
+/* title for explanation of photo suggestions */
+"photosuggestions.explainer.title" = "امتحان پست‌های جادویی";
+
+/* title for photo suggestions section */
+"photosuggestionsheader.title" = "پشنهاد پست جدید";
 
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "لطفاً از تنظیمات اجازه دسترسی بدهید";
@@ -1843,6 +1952,9 @@
 /* Message shown to the user once they have successfully registered. */
 "registration.you.are.in" = "وارد شدید!";
 
+/* Title of a button to remove a friend. */
+"remove.friend" = "حذف دوست";
+
 /* Text for the action of removing a contact from the user's favorites list (title case). */
 "remove.from.favorites.title" = "حذف کردن از محبوب‌ها";
 
@@ -1885,6 +1997,12 @@
 /* Title of the dialog that appears when reporting a user. */
 "report.user.title" = "گزارش @%";
 
+/* Format string to display how many incoming friend requests there are. */
+"requests.received" = "درخواست‌های دریافتی (d%)";
+
+/* Indicating the user's friend requests. */
+"requests.title" = "درخواست‌ها";
+
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "برای اطمینان از ایمنی ارتباطتان با %@، لطفاً شماره بالا را با شماره‌ای که روی دستگاه ایشان هست مقایسه کنید، یا کد کیوآر را از تلفن ایشان اسکن کنید.";
 
@@ -1906,8 +2024,20 @@
 /* Title that indicates that someone took a screenshot. */
 "screenshot.title" = "عکس از صفحه";
 
+/* Title of a button that displays all results. */
+"see.all" = "مشاهده کل";
+
+/* Title of a button that shows all friend requests. */
+"see.all.requests" = "مشاهده همه درخواست‌ها";
+
+/* Title of a button that shows sent friend requests. */
+"see.sent.requests" = "درخواست‌های فرستاده";
+
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "لطفاً حداقل یک مخاطب انتخاب کنید.";
+
+/* Prompts the user to choose their username. */
+"select.username.prompt" = "اسم خود را وارد کنید و یک نام کاربری انتخاب کنید";
 
 /* Indicates that an item is in the process of being sent. */
 "sending.title" = "در حال فرستادن";
@@ -2074,6 +2204,12 @@
 /* Text placed on the blurred overlay of someone else's moment. */
 "shared.moment" = "لحظه @%";
 
+/* title of album suggestion with location */
+"sharedalbums.albumsuggestioncell.titleformat.location" = "d$1% عکس از @$2% گرفته شده";
+
+/* title of album suggestion without location */
+"sharedalbums.albumsuggestioncell.titleformat.nolocation" = "d% عکس";
+
 /* Title for sharing to instagram stories */
 "shareprovider.instagramstories.title" = "استوری اینستاگرام";
 
@@ -2179,6 +2315,9 @@
 /* Row in Settings screen */
 "title.storage" = "حافظه";
 
+/* Tab for suggestions tab in main interface */
+"title.suggestions" = "پست جادویی";
+
 /* Title for the screen with information about who saw your moment. */
 "title.your.moment" = "دیده شد توسط";
 
@@ -2221,8 +2360,8 @@
 /* Option when user taps more on profile page */
 "user.option.block" = "مسدود کردن در هالواپ";
 
-/* Option when User clicks on the phone number on profile page and this can let the user copy the phone number */
-"user.option.copy.phone.number" = "کپی شماره تلفن";
+/* Option when User clicks on the username on profile page and this can let the user copy the username */
+"user.option.copy.username" = "کپی نام کاربری";
 
 /* Option when user taps more on profile page */
 "user.option.unblock" = "رفع مسدودیت در هالواپ";
@@ -2236,6 +2375,9 @@
 /* Button to start voice call. Should be translated as verb. */
 "user.voice.call" = "تماس";
 
+/* Indicates the user's username. */
+"username.title" = "نام کاربری";
+
 /* No comment provided by engineer. */
 "VIDEO" = "ویدیو";
 
@@ -2244,6 +2386,15 @@
 
 /* Text that indicates a view action. */
 "view.title" = "مشاهده کردن";
+
+/* Body of notification that a user has a new sharing suggestion. '6 photos' */
+"visitTracker.notification.body.nolocation" = "dl% عکس";
+
+/* Body of notification that a user has a new sharing suggestion. '6 photos from Terun' */
+"visitTracker.notification.body.withlocation" = "dl$1% عکس از @$2%";
+
+/* Title of notification that a user has a new sharing suggestion */
+"visitTracker.notification.title" = "پیشنهاد اشتراک‌گذاری جدید";
 
 /* Moment deletion confirmation. Displays as action sheet title. */
 "your.moment.delete.confirmation" = "لحظه حذف شود؟ این عمل غیر قابل بازگشت است.";

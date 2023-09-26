@@ -586,9 +586,6 @@
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "Descartar Postagem?";
 
-/* Share to all contacts */
-"composer.destination.contactsShare" = "Meus Contatos";
-
 /* Label above the list with whom you share */
 "composer.destinations.label" = "Partilhar com";
 
@@ -814,13 +811,13 @@
 /* Shown while content is being posted to feed */
 "feed.posting" = "A publicar...";
 
-/* Describes what 'All Contacts' feed privacy setting means. */
+/* Describes what 'All Friends' feed privacy setting means. */
 "feed.privacy.descr.all" = "Compartilhar com todos os seus contatos";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.except" = "Compartilhar com os seus contatos, exceto com pessoas selecionadas";
 
-/* Describes what 'All Contacts' feed privacy setting means. */
+/* Describes what 'Favorites' feed privacy setting means. */
 "feed.privacy.descr.only" = "Partilhar apenas com contatos selecionados";
 
 /* Header describing what these options are for */
@@ -2316,9 +2313,6 @@
 
 /* Option when user taps more on profile page */
 "user.option.block" = "Bloquear no HalloApp";
-
-/* Option when User clicks on the phone number on profile page and this can let the user copy the phone number */
-"user.option.copy.phone.number" = "Copiar número de telefone";
 
 /* Option when user taps more on profile page */
 "user.option.unblock" = "Desbloquear no HalloApp";

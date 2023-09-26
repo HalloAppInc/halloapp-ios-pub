@@ -88,13 +88,13 @@
 /* Title for generic delete button. */
 "Delete" = "Excluir";
 
-/* Describes what 'All Contacts' feed privacy setting means. */
+/* Describes what 'All Friends' feed privacy setting means. */
 "feed.privacy.descr.all" = "Compartilhar com todos os meus contatos";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.except" = "Compartilhar com meus contatos, exceto pessoas que eu selecionar";
 
-/* Describes what 'All Contacts' feed privacy setting means. */
+/* Describes what 'Favorites' feed privacy setting means. */
 "feed.privacy.descr.only" = "Compartilhar apenas com contatos selecionados";
 
 /* Button to dismiss edit favorites modal */

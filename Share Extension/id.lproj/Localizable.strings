@@ -88,13 +88,13 @@
 /* Title for generic delete button. */
 "Delete" = "Hapus";
 
-/* Describes what 'All Contacts' feed privacy setting means. */
+/* Describes what 'All Friends' feed privacy setting means. */
 "feed.privacy.descr.all" = "Bagikan dengan semua kontak saya";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.except" = "Bagikan dengan kontak saya kecuali orang yang saya pilih";
 
-/* Describes what 'All Contacts' feed privacy setting means. */
+/* Describes what 'Favorites' feed privacy setting means. */
 "feed.privacy.descr.only" = "Hanya bagikan dengan kontak yang dipilih";
 
 /* Button to dismiss edit favorites modal */
@@ -190,7 +190,7 @@
 /* Groups category label */
 "share.destination.groups" = "Grup Anda";
 
-/* Share on the home feed label with all my contacts
+/* Share on the home feed label with all my friends
    Share to all contacts */
 "share.destination.home" = "Kontak Saya";
 

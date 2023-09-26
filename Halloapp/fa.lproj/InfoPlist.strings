@@ -7,6 +7,12 @@
 /* Privacy - Contacts Usage Description */
 "NSContactsUsageDescription" = "به هالواپ اجازه دسترسی به مخاطبین موبایل خود دهید تا بتوانید پست‌های دوستان و آشنایانتان را مشاهده کنید و به اشتراک بگذارید.";
 
+/* Privacy - Location Always and When In Use Usage Description */
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "این به شما اجازه میدهد مکان کنونی و یا مکان‌های اطراف خود را در کامنت‌ها و چت‌ها بفرستید و به ما اجازه میدهد عکس‌های جدید را با شما پیشنهاد کنیم.";
+
+/* Privacy - Location Always Usage Description */
+"NSLocationAlwaysUsageDescription" = "این به شما اجازه میدهد مکان کنونی و یا مکان‌های اطراف خود را در کامنت‌ها و چت‌ها بفرستید و به ما اجازه میدهد عکس‌های جدید را با شما پیشنهاد کنیم.";
+
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "این به شما اجازه میدهد مکان‌های اطرافتان را مشاهده کنید و به اشتراک بگذارید.";
 
