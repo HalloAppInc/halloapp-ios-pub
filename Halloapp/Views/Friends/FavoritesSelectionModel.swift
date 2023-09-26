@@ -61,7 +61,8 @@ class FavoritesSelectionModel: NSObject, ObservableObject, SelectionModel, NSFet
     }
 
     private func transformResults() {
-        let profiles = resultsController.fetchedObjects ?? []
+        let profiles = (resultsController.fetchedObjects ?? [])
+            .sorted(by: { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending })
         var selected = [Friend]()
         var candidates = [Section]()
 
