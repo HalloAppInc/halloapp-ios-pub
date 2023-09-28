@@ -339,7 +339,32 @@ final class NotificationProtoService: ProtoServiceCore {
         }
 
         switch metadata.contentType {
+        case .profileUpdate:
+            notificationDataStore.saveServerMsg(contentId: msg.id, serverMsgPb: serverMsgPb)
+            guard case let .halloappProfileUpdate(update) = msg.payload, 
+                  update.profile.status.userProfileFriendshipStatus != .friends else {
+                return
+            }
+            DDLogInfo("didReceiveRequest/profileUpdate/removing any existing notification for [\(metadata.identifier)]")
+            self.removeNotification(id: metadata.identifier)
 
+        case .friendRequest, .friendAccept:
+            hasAckBeenDelegated = true
+            mainDataStore.performSeriallyOnBackgroundContext { context in
+                guard case let .halloappProfileUpdate(update) = msg.payload else {
+                    DDLogError("didReceiveRequest/error could not get profle update from message [\(metadata.contentId)]")
+                    return ack()
+                }
+                
+                let userID = UserID(update.profile.uid)
+                let profile = UserProfile.findOrCreate(with: userID, in: context)
+
+                profile.update(with: update.profile)
+                self.mainDataStore.save(context)
+
+                self.presentNotification(for: metadata, shouldRecord: false)
+                ack()
+            }
         case .feedPost, .feedComment:
             let contentType: FeedElementType
             switch metadata.contentType {
@@ -1326,7 +1351,7 @@ final class NotificationProtoService: ProtoServiceCore {
     }
 
     // Used to present contact/inviter notifications.
-    private func presentNotification(for metadata: NotificationMetadata) {
+    private func presentNotification(for metadata: NotificationMetadata, shouldRecord: Bool = true) {
         runIfNotificationWasNotPresented(for: metadata.identifier) { [self] in
             Analytics.log(event: .notificationReceived, properties: [.notificationType: metadata.contentType.rawValue])
             DDLogDebug("ProtoService/presentNotification")
@@ -1339,7 +1364,10 @@ final class NotificationProtoService: ProtoServiceCore {
 
             let notificationCenter = UNUserNotificationCenter.current()
             notificationCenter.add(UNNotificationRequest(identifier: metadata.identifier, content: notificationContent, trigger: nil))
-            recordPresentingNotification(for: metadata.identifier, type: metadata.contentType.rawValue)
+
+            if shouldRecord {
+                recordPresentingNotification(for: metadata.identifier, type: metadata.contentType.rawValue)
+            }
         }
     }
 

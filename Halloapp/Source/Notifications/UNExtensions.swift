@@ -415,4 +415,16 @@ extension Localizations {
                    value: "You have 2 minutes to share a Moment",
                  comment: "Body of the daily moment notification.")
     }
+
+    static var friendRequestNotificationBody: String {
+        NSLocalizedString("notification.friend.request.body",
+                          value: "%@ sent you a friend request",
+                          comment: "Body of a notification for a new friend request.")
+    }
+
+    static var friendRequestAcceptNotificationBody: String {
+        NSLocalizedString("notification.friend.request.accept.body",
+                          value: "%@ accepted your friend request",
+                          comment: "Body of a notification for when a friend request is accepted.")
+    }
 }

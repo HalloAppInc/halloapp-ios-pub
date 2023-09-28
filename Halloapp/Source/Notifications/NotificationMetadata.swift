@@ -53,6 +53,10 @@ enum NotificationContentType: String, RawRepresentable, Codable {
     case feedPost = "feedpost"
     case groupFeedPost = "group_post"
 
+    case friendRequest = "friend_request"
+    case friendAccept = "friend_accept"
+    case profileUpdate = "profile_update"
+
     case feedComment = "comment"
     case groupFeedComment = "group_comment"
 
@@ -311,6 +315,21 @@ class NotificationMetadata: Codable {
             data = nil
             pushName = contact.name
             normalizedPhone = contact.normalized
+
+        case .halloappProfileUpdate(let update):
+            switch update.type {
+            case .incomingFriendRequest:
+                contentType = .friendRequest
+            case .friendNotice:
+                contentType = .friendAccept
+            default:
+                contentType = .profileUpdate
+            }
+            let userID = UserID(update.profile.uid)
+            contentId = userID
+            timestamp = Date()
+            fromId = userID
+            pushName = update.profile.name
 
         case .feedItem(let feedItem):
             switch feedItem.item {
@@ -676,7 +695,12 @@ class NotificationMetadata: Codable {
         checkAndSavePushName(for: fromId, with: pushName)
 
         switch contentType {
-
+        case .friendRequest:
+            title = ""
+            body = String(format: Localizations.friendRequestNotificationBody, contactName ?? "")
+        case .friendAccept:
+            title = ""
+            body = String(format: Localizations.friendRequestAcceptNotificationBody, contactName ?? "")
         // Post on user feed
         case .feedPost:
             populateFeedPostBody(from: postData(), in: context)
@@ -904,7 +928,7 @@ extension NotificationMetadata {
         switch contentType {
         case .feedPost, .groupFeedPost, .feedPostRetract, .groupFeedPostRetract:
             return true
-        case .feedComment, .groupFeedComment, .feedCommentRetract, .groupFeedCommentRetract, .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .newFriend, .newInvitee, .newContact, .groupAdd, .chatRerequest, .missedAudioCall, .missedVideoCall, .screenshot, .dailyMoment:
+        case .feedComment, .groupFeedComment, .feedCommentRetract, .groupFeedCommentRetract, .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .newFriend, .newInvitee, .newContact, .groupAdd, .chatRerequest, .missedAudioCall, .missedVideoCall, .screenshot, .dailyMoment, .friendRequest, .friendAccept, .profileUpdate:
             return false
         }
     }
@@ -913,16 +937,16 @@ extension NotificationMetadata {
         switch contentType {
         case .feedComment, .groupFeedComment, .feedCommentRetract, .groupFeedCommentRetract:
             return true
-        case .feedPost, .groupFeedPost, .feedPostRetract, .groupFeedPostRetract, .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .newFriend, .newInvitee, .newContact, .groupAdd, .chatRerequest, .missedAudioCall, .missedVideoCall, .screenshot, .dailyMoment:
+        case .feedPost, .groupFeedPost, .feedPostRetract, .groupFeedPostRetract, .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .newFriend, .newInvitee, .newContact, .groupAdd, .chatRerequest, .missedAudioCall, .missedVideoCall, .screenshot, .dailyMoment, .friendAccept, .friendRequest, .profileUpdate:
             return false
         }
     }
 
     var isFeedNotification: Bool {
         switch contentType {
-        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .feedPostRetract, .feedCommentRetract, .groupFeedPostRetract, .groupFeedCommentRetract, .screenshot, .dailyMoment:
+        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .feedPostRetract, .feedCommentRetract, .groupFeedPostRetract, .groupFeedCommentRetract, .screenshot, .dailyMoment, .friendRequest, .friendAccept:
             return true
-        case .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .newFriend, .newInvitee, .newContact, .groupAdd, .chatRerequest, .missedAudioCall, .missedVideoCall:
+        case .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .newFriend, .newInvitee, .newContact, .groupAdd, .chatRerequest, .missedAudioCall, .missedVideoCall, .profileUpdate:
             return false
         }
     }
@@ -951,7 +975,7 @@ extension NotificationMetadata {
         switch contentType {
         case .newFriend, .newInvitee, .newContact:
             return true
-        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .feedPostRetract, .feedCommentRetract, .groupFeedPostRetract, .groupFeedCommentRetract, .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .groupAdd, .chatRerequest, .missedAudioCall, .missedVideoCall, .screenshot, .dailyMoment:
+        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .feedPostRetract, .feedCommentRetract, .groupFeedPostRetract, .groupFeedCommentRetract, .chatMessage, .groupChatMessage, .chatMessageRetract, .groupChatMessageRetract, .groupAdd, .chatRerequest, .missedAudioCall, .missedVideoCall, .screenshot, .dailyMoment, .friendRequest, .friendAccept, .profileUpdate:
             return false
         }
     }
@@ -960,7 +984,7 @@ extension NotificationMetadata {
         switch contentType {
         case .groupFeedPost, .groupFeedComment, .groupChatMessage, .groupFeedPostRetract, .groupFeedCommentRetract, .groupChatMessageRetract, .groupAdd:
             return true
-        case .feedPost, .feedComment, .feedPostRetract, .feedCommentRetract, .chatMessage, .chatMessageRetract, .newFriend, .newInvitee, .newContact, .chatRerequest, .missedAudioCall, .missedVideoCall, .screenshot, .dailyMoment:
+        case .feedPost, .feedComment, .feedPostRetract, .feedCommentRetract, .chatMessage, .chatMessageRetract, .newFriend, .newInvitee, .newContact, .chatRerequest, .missedAudioCall, .missedVideoCall, .screenshot, .dailyMoment, .friendRequest, .friendAccept, .profileUpdate:
             return false
         }
     }
@@ -985,16 +1009,16 @@ extension NotificationMetadata {
         switch contentType {
         case .chatMessageRetract, .groupChatMessageRetract, .feedCommentRetract, .groupFeedCommentRetract, .feedPostRetract, .groupFeedPostRetract:
             return true
-        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .chatMessage, .groupChatMessage, .groupAdd, .newFriend, .newInvitee, .newContact, .chatRerequest, .missedAudioCall, .missedVideoCall, .screenshot, .dailyMoment:
+        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .chatMessage, .groupChatMessage, .groupAdd, .newFriend, .newInvitee, .newContact, .chatRerequest, .missedAudioCall, .missedVideoCall, .screenshot, .dailyMoment, .friendRequest, .friendAccept, .profileUpdate:
             return false
         }
     }
 
     var isVisibleNotification: Bool {
         switch contentType {
-        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .chatMessage, .groupChatMessage, .groupAdd, .newFriend, .newInvitee, .newContact, .screenshot, .dailyMoment:
+        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .chatMessage, .groupChatMessage, .groupAdd, .newFriend, .newInvitee, .newContact, .screenshot, .dailyMoment, .friendRequest, .friendAccept:
             return true
-        case .chatMessageRetract, .groupChatMessageRetract, .feedCommentRetract, .groupFeedCommentRetract, .feedPostRetract, .groupFeedPostRetract, .chatRerequest, .missedAudioCall, .missedVideoCall:
+        case .chatMessageRetract, .groupChatMessageRetract, .feedCommentRetract, .groupFeedCommentRetract, .feedPostRetract, .groupFeedPostRetract, .chatRerequest, .missedAudioCall, .missedVideoCall, .profileUpdate:
             return false
         }
     }

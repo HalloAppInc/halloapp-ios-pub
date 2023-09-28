@@ -14,7 +14,7 @@ import CoreData
 
 final class NotificationRequest {
 
-    public static func createAndShow(from metadata: NotificationMetadata, with completionHandler: ((Error?) -> Void)? = nil) {
+    public static func createAndShow(from metadata: NotificationMetadata, shouldRecord: Bool = true, with completionHandler: ((Error?) -> Void)? = nil) {
 
         AppContext.shared.notificationStore.runIfNotificationWasNotPresented(for: metadata.identifier) {
             DDLogInfo("NotificationRequest/createAndShow/identifier: \(metadata.identifier)")
@@ -72,7 +72,10 @@ final class NotificationRequest {
             let request = UNNotificationRequest(identifier: metadata.identifier, content: notificationContent, trigger: nil)
             let notificationCenter = UNUserNotificationCenter.current()
             notificationCenter.add(request, withCompletionHandler: completionHandler)
-            AppContext.shared.notificationStore.save(id: metadata.identifier, type: metadata.contentType.rawValue)
+
+            if shouldRecord {
+                AppContext.shared.notificationStore.save(id: metadata.identifier, type: metadata.contentType.rawValue)
+            }
         }
     }
 

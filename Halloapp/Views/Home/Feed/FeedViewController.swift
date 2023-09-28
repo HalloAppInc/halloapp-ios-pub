@@ -569,6 +569,14 @@ extension FeedViewController: UIViewControllerHandleTapNotification {
             present(UINavigationController(rootViewController: dashboard), animated: true)
         case .dailyMoment:
             presentNewMomentViewController(context: .normal)
+        case .friendRequest:
+            let viewController = SegmentedFriendsViewController(initialState: .requests)
+            let navigationController = UINavigationController(rootViewController: viewController)
+            present(navigationController, animated: true)
+        case .friendAccept:
+            let viewController = UserFeedViewController(userId: metadata.fromId)
+            let navigationController = UINavigationController(rootViewController: viewController)
+            present(navigationController, animated: true)
         default:
             break
         }

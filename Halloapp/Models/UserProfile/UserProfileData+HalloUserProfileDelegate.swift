@@ -17,20 +17,18 @@ extension UserProfileData: HalloUserProfileDelegate {
         let userID = String(serverProfile.uid)
         DDLogInfo("UserProfileData/didReceiveProfileUpdate/\(userID)/\(profileUpdate.type)")
 
-        switch profileUpdate.type {
-        case .normal:
-            // TODO
-            break
-        case .friendNotice:
-            break
-        case .incomingFriendRequest:
-            // TODO
-            break
-        case .deleteNotice:
-            // TODO
-            break
-        case .UNRECOGNIZED:
-            DDLogError("UserProfileData/unrecognized update type")
+        let updateNotifications = {
+            switch profileUpdate.type {
+            case .friendNotice, .incomingFriendRequest:
+                await self.presentFriendshipNotification(from: userID, name: serverProfile.name, updateType: profileUpdate.type)
+            case .normal, .deleteNotice:
+                if serverProfile.status.userProfileFriendshipStatus != .friends {
+                    // remove pending friendship notifications, if any
+                    await self.removeFriendshipNotification(from: userID)
+                }
+            case .UNRECOGNIZED:
+                DDLogError("UserProfileData/unrecognized update type")
+            }
         }
 
         mainDataStore.saveSeriallyOnBackgroundContext { context in
@@ -47,6 +45,7 @@ extension UserProfileData: HalloUserProfileDelegate {
             switch result {
             case .success:
                 ack?()
+                Task { await updateNotifications() }
             case .failure(let error):
                 DDLogError("UserProfileData/failed to update profile \(String(describing: error))")
             }
@@ -58,5 +57,57 @@ extension UserProfileData: HalloUserProfileDelegate {
         Task {
             await syncFriendships()
         }
+    }
+
+    // Notifications
+
+    @MainActor
+    private func presentFriendshipNotification(from userID: UserID, name: String, updateType: Server_HalloappProfileUpdate.TypeEnum) {
+        guard UIApplication.shared.applicationState != .active,
+              let metadata = NotificationMetadata(userID: userID, name: name, profileUpdateType: updateType) else {
+            return
+        }
+        
+        DDLogInfo("UserProfileData/presentFriendshipNotification/presenting [\(userID)] [\(updateType)]")
+        // avoid recording friend notifications as they may arrive again in the future with the same ID
+        NotificationRequest.createAndShow(from: metadata, shouldRecord: false)
+    }
+
+    @MainActor
+    private func removeFriendshipNotification(from userID: UserID) {
+        guard UIApplication.shared.applicationState != .active else {
+            return
+        }
+
+        DDLogInfo("UserProfileData/removeFriendshipNotification/removing [\(userID)] if found")
+        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [userID])
+    }
+}
+
+// MARK: - NotificationMetadata + Convenience
+
+extension NotificationMetadata {
+
+    fileprivate convenience init?(userID: UserID, name: String, profileUpdateType: Server_HalloappProfileUpdate.TypeEnum) {
+        let contentType: NotificationContentType
+        switch profileUpdateType {
+        case .friendNotice:
+            contentType = .friendRequest
+        case .incomingFriendRequest:
+            contentType = .friendAccept
+        default:
+            return nil
+        }
+
+        self.init(contentId: userID,
+                  contentType: contentType,
+                  fromId: userID,
+                  groupId: nil,
+                  groupType: nil,
+                  groupName: nil,
+                  timestamp: Date(),
+                  data: nil,
+                  messageId: nil,
+                  pushName: name)
     }
 }
