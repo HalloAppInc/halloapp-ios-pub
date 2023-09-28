@@ -196,8 +196,9 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
                 }
             case .group(let groupID, _, let name):
                 cell.configureGroup(groupID, name: name, isSelected: isSelected)
-            case .user(let userID, let name, let phone):
-                cell.configureUser(userID, name: name, phone: phone, isSelected: isSelected)
+            case .user(let userID, let name, let username):
+                let username = username.flatMap { $0.isEmpty ? "" : "@\($0)" } ?? ""
+                cell.configureUser(userID, name: name, username: username, isSelected: isSelected)
             }
             return cell
         }
@@ -375,7 +376,7 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
     private func updateData(searchString: String? = nil) {
         var snapshot = NSDiffableDataSourceSnapshot<DestinationSection, DestinationPickerDestination>()
         var recentItems = recentFetchedResultsController.fetchedObjects ?? []
-        var friends = friendsFetchedResultsController.fetchedObjects ?? []
+        let friends = friendsFetchedResultsController.fetchedObjects ?? []
 
         let usernames = friends.reduce(into: [UserID: String]()) {
             $0[$1.id] = $1.username

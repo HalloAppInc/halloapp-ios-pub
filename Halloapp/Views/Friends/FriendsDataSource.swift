@@ -30,7 +30,7 @@ extension FriendsDataSource {
         case outgoing(Friend)
         case suggested(Friend)
         case existing(Friend)
-        case allRequests(Int)
+        case allRequests(incoming: Int)
         case sentRequests(Int)
         case noFriends
         case invite(InviteContact)
@@ -213,7 +213,7 @@ class FriendRequestsDataSource: FriendsDataSource {
             .store(in: &cancellables)
 
         Task {
-            friendSuggestions = await fetchFriendSuggestions()
+            friendSuggestions = await fetchAndAssembleSuggestions()
             makeAndApplySnapshot()
         }
     }
@@ -232,36 +232,36 @@ class FriendRequestsDataSource: FriendsDataSource {
             }
         }
 
-        if let first = items.first {
-            let final = items.count > 1 ? [first, .allRequests(items.count - 1)] : [first]
-
-            snapshot.appendSections([.requests])
-            snapshot.appendItems(final, toSection: .requests)
+        let suggested = friendSuggestions.compactMap { friend in
+            switch friend.friendshipStatus {
+            case .none:
+                return Item.suggested(friend)
+            case .outgoingPending:
+                return Item.outgoing(friend)
+            default:
+                return nil
+            }
         }
 
-        if !friendSuggestions.isEmpty {
+        snapshot.appendSections([.requests])
+
+        if let first = items.first {
+            let final = [first, .allRequests(incoming: items.count - 1)]
+            snapshot.appendItems(final, toSection: .requests)
+        } else {
+            snapshot.appendItems([.allRequests(incoming: 0)], toSection: .requests)
+        }
+
+        if !suggested.isEmpty {
             snapshot.appendSections([.suggestions])
-            snapshot.appendItems(friendSuggestions.map { .suggested($0) }, toSection: .suggestions)
+            snapshot.appendItems(suggested, toSection: .suggestions)
         }
 
         apply(snapshot, animated: animated)
     }
 
-    private func fetchFriendSuggestions() async -> [Friend] {
-        let suggestionProfiles = await withCheckedContinuation { continuation in
-            MainAppContext.shared.coreService.friendList(action: .getSuggestions, cursor: "") { result in
-                switch result {
-                case .success((let profiles, _)):
-                    continuation.resume(returning: profiles)
-                case .failure(let error):
-                    DDLogError("FreindRequestsDataSource/fetch-suggestions/failed with error \(String(describing: error))")
-                    continuation.resume(returning: [])
-                }
-            }
-        }
-
-        let suggestions = suggestionProfiles
-            .filter { $0.hasUserProfile }
+    private func fetchAndAssembleSuggestions() async -> [Friend] {
+        let suggestions = await fetchFriendSuggestions()
             .map {
                 let profile = $0.userProfile
                 return Friend(id: UserID(profile.uid),
@@ -272,6 +272,23 @@ class FriendRequestsDataSource: FriendsDataSource {
 
         DDLogInfo("FriendsDataSource/fetchFriendSuggestions/fetched [\(suggestions.count)] suggestions")
         return suggestions
+    }
+
+    private func fetchFriendSuggestions() async -> [Server_FriendProfile] {
+        let service = MainAppContext.shared.service
+        return await withCheckedContinuation { continuation in
+            service.execute(whenConnectionStateIs: .connected, onQueue: .global(qos: .userInitiated)) {
+                service.friendList(action: .getSuggestions, cursor: "") { result in
+                    switch result {
+                    case .success((let profiles, _)):
+                        continuation.resume(returning: profiles)
+                    case .failure(let error):
+                        DDLogError("FriendRequestsDataSource/fetchFriendSuggestions/fetch failed with error [\(String(describing: error))]")
+                        continuation.resume(returning: [])
+                    }
+                }
+            }
+        }
     }
 
     override func update(_ userID: UserID, to status: UserProfile.FriendshipStatus) {

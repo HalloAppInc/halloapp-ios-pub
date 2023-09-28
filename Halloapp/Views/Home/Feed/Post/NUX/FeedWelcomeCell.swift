@@ -16,25 +16,15 @@ class FeedWelcomeCell: UICollectionViewCell {
         "welcome-post"
     }
 
-    var openInvite: (() -> ())?
+    var openNetwork: (() -> ())?
     var closeWelcomePost: (() -> ())?
 
     public func configure(showCloseButton: Bool) {
         closeButtonColumn.isHidden = !showCloseButton
     }
 
-    public func height() -> CGFloat {
-        let size = bodyLabel.getSize(width: contentView.bounds.size.width)
-        return size.height + 300
-    }
-
-    override func preferredLayoutAttributesFitting(_ layoutAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutAttributes {
-        layoutAttributes.size.height = height()
-        return layoutAttributes
-    }
-
     struct LayoutConstants {
-        static let interCardSpacing: CGFloat = 50
+        static let interCardSpacing: CGFloat = 20
         static let backgroundCornerRadius: CGFloat = 20
         /**
          Content view (vertical stack takes standard table view content width: tableView.width - tableView.layoutMargins.left - tableView.layoutMargins.right
@@ -50,25 +40,22 @@ class FeedWelcomeCell: UICollectionViewCell {
 
     private let backgroundPanelView = FeedItemBackgroundPanelView()
 
+    private lazy var backgroundPanelLeadingConstraint: NSLayoutConstraint = {
+        backgroundPanelView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor,
+                                                     constant: layoutMargins.left * LayoutConstants.backgroundPanelHMarginRatio)
+    }()
+
+    private lazy var backgroundPanelTrailingConstraint: NSLayoutConstraint = {
+        backgroundPanelView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor,
+                                                      constant: -layoutMargins.right * LayoutConstants.backgroundPanelHMarginRatio)
+    }()
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-
-        if let backgroundView = backgroundView {
-            let panelInsets = UIEdgeInsets(
-                top: LayoutConstants.interCardSpacing / 2,
-                left: LayoutConstants.backgroundPanelHMarginRatio * backgroundView.layoutMargins.left,
-                bottom: LayoutConstants.interCardSpacing / 2,
-                right: LayoutConstants.backgroundPanelHMarginRatio * backgroundView.layoutMargins.right)
-            backgroundPanelView.frame = backgroundView.bounds.inset(by: panelInsets)
-        }
-    }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
@@ -87,35 +74,48 @@ class FeedWelcomeCell: UICollectionViewCell {
         preservesSuperviewLayoutMargins = true
         contentView.preservesSuperviewLayoutMargins = true
 
-        contentView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.constrain(to: self)
-
-        contentView.heightAnchor.constraint(equalToConstant: height()).isActive = true
-
         // Background
         backgroundPanelView.cornerRadius = LayoutConstants.backgroundCornerRadius
-        let bgView = UIView()
-        bgView.preservesSuperviewLayoutMargins = true
-        bgView.addSubview(backgroundPanelView)
-        backgroundView = bgView
+        backgroundPanelView.translatesAutoresizingMaskIntoConstraints = false
         updateBackgroundPanelShadow()
 
+        backgroundPanelView.translatesAutoresizingMaskIntoConstraints = false
+
+        contentView.addSubview(backgroundPanelView)
         contentView.addSubview(mainView)
-        // anchoring top instead of layoutMargins as margins seem to change when there's zero posts and some posts
-        mainView.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
-        mainView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        mainView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor).isActive = true
+        contentView.addSubview(inviteFriendsButton)
+
+        let verticalPadding = LayoutConstants.backgroundPanelViewOutsetV + LayoutConstants.interCardSpacing * 0.5
+
+        NSLayoutConstraint.activate([
+            mainView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            mainView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
+            mainView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: verticalPadding),
+
+            inviteFriendsButton.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            inviteFriendsButton.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
+            inviteFriendsButton.topAnchor.constraint(equalTo: mainView.bottomAnchor, constant: 20),
+            inviteFriendsButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -verticalPadding - 20),
+
+            backgroundPanelView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: LayoutConstants.interCardSpacing * 0.5),
+            backgroundPanelView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -LayoutConstants.interCardSpacing * 0.5),
+            backgroundPanelLeadingConstraint,
+            backgroundPanelTrailingConstraint,
+        ])
+    }
+
+    override func layoutMarginsDidChange() {
+        super.layoutMarginsDidChange()
+        
+        backgroundPanelLeadingConstraint.constant = layoutMargins.left * LayoutConstants.backgroundPanelHMarginRatio
+        backgroundPanelTrailingConstraint.constant = -layoutMargins.right * LayoutConstants.backgroundPanelHMarginRatio
     }
 
     private lazy var mainView: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ headerRow, bodyColumn, footerColumn ])
+        let view = UIStackView(arrangedSubviews: [ headerRow, bodyColumn ])
         view.axis = .vertical
         view.spacing = 10
         view.setCustomSpacing(20, after: bodyColumn)
-
-        view.layoutMargins = UIEdgeInsets(top: 33, left: 0, bottom: 20, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
-
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -135,8 +135,8 @@ class FeedWelcomeCell: UICollectionViewCell {
         let image = UIImage(named: "AppIconAvatarCircle")
         view.image = image
 
-        view.widthAnchor.constraint(equalToConstant: 36).isActive = true
-        view.heightAnchor.constraint(equalToConstant: 36).isActive = true
+        view.widthAnchor.constraint(equalToConstant: 45).isActive = true
+        view.heightAnchor.constraint(equalToConstant: 45).isActive = true
         return view
     }()
 
@@ -199,7 +199,10 @@ class FeedWelcomeCell: UICollectionViewCell {
     }()
 
     private lazy var bodyColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [bodyTitleLabel, bodyLabel])
+        let firstSection = section(emoji: "🎉", title: Localizations.feedWelcomePostTitle1, body: Localizations.feedWelcomePostBody1)
+        let secondSection = section(emoji: "🤗", title: Localizations.feedWelcomePostTitle2, body: Localizations.feedWelcomePostBody2)
+
+        let view = UIStackView(arrangedSubviews: [firstSection, secondSection])
         view.axis = .vertical
         view.spacing = 15
 
@@ -210,67 +213,51 @@ class FeedWelcomeCell: UICollectionViewCell {
         return view
     }()
 
-    private lazy var bodyTitleLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 0
-        label.font = .systemFont(ofSize: 16, weight: .semibold)
-        label.textColor = .label
-        label.text = Localizations.feedWelcomePostTitle
+    private func section(emoji: String, title: String, body: String) -> UIView {
+        let emojiLabel = UILabel()
+        emojiLabel.font = .systemFont(ofSize: 27)
+        emojiLabel.textAlignment = .center
+        emojiLabel.text = emoji
 
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
+        let titleLabel = UILabel()
+        titleLabel.font = .scaledSystemFont(ofSize: 18, weight: .medium)
+        titleLabel.textAlignment = .natural
+        titleLabel.numberOfLines = 0
+        titleLabel.text = title
 
-    private lazy var bodyLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 0
-        label.font = .systemFont(ofSize: 16, weight: .regular)
-        label.textColor = .label
-        label.text = Localizations.feedWelcomePostBody
+        let bodyLabel = UILabel()
+        bodyLabel.font = .scaledSystemFont(ofSize: 18)
+        bodyLabel.textAlignment = .natural
+        bodyLabel.textColor = .secondaryLabel
+        bodyLabel.numberOfLines = 0
+        bodyLabel.text = body
 
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
+        let stack = UIStackView(arrangedSubviews: [emojiLabel, titleLabel, bodyLabel])
+        stack.axis = .vertical
+        stack.alignment = .fill
+        stack.setCustomSpacing(5, after: emojiLabel)
+        stack.setCustomSpacing(5, after: titleLabel)
 
-    private lazy var footerColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [inviteFriendsButton])
-        view.axis = .vertical
-        view.alignment = .center
+        return stack
+    }
 
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-
-    private lazy var inviteFriendsButton: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ inviteFriendsLabel ])
-        view.axis = .horizontal
-        view.alignment = .center
-        view.backgroundColor = UIColor.primaryBlue
-        view.layer.cornerRadius = 20
-
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 25, bottom: 2, right: 25)
-        view.isLayoutMarginsRelativeArrangement = true
-
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.widthAnchor.constraint(equalToConstant: 172).isActive = true
-        view.heightAnchor.constraint(equalToConstant: 42).isActive = true
-
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(openInviteAction)))
-
-        return view
-    }()
-
-    private lazy var inviteFriendsLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.backgroundColor = .clear
-        label.textAlignment = .center
-        label.font = .systemFont(ofSize: 17, weight: .semibold)
-        label.textColor = UIColor.primaryWhiteBlack
-        label.text = Localizations.chatInviteFriends
-
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
+    private lazy var inviteFriendsButton: UIButton = {
+        var configuration = UIButton.Configuration.filled()
+        configuration.baseBackgroundColor = .primaryBlue
+        configuration.cornerStyle = .capsule
+        configuration.image = UIImage(systemName: "chevron.forward")
+        configuration.preferredSymbolConfigurationForImage = .init(pointSize: 14, weight: .medium)
+        configuration.imagePlacement = .trailing
+        configuration.imagePadding = 15
+        configuration.contentInsets = .init(top: 12, leading: 12, bottom: 12, trailing: 12)
+        configuration.attributedTitle = .init(Localizations.seeMyNetwork,
+                                              attributes: .init([.font: UIFont.scaledSystemFont(ofSize: 18, weight: .medium)]))
+        let button = UIButton(configuration: configuration, primaryAction: .init { [weak self] _ in
+            self?.openNetwork?()
+        })
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setContentCompressionResistancePriority(.breakable, for: .vertical)
+        return button
     }()
 
     // MARK: Button actions
@@ -278,11 +265,6 @@ class FeedWelcomeCell: UICollectionViewCell {
     @objc(closeAction)
     private func closeAction() {
         closeWelcomePost?()
-    }
-
-    @objc(openInviteAction)
-    private func openInviteAction() {
-        openInvite?()
     }
 }
 
@@ -294,12 +276,33 @@ fileprivate extension UILabel {
 
 extension Localizations {
 
-    static var feedWelcomePostTitle: String {
-        return NSLocalizedString("feed.welcome.post.title", value: "Welcome to HalloApp, a space for real relationships ✨", comment: "Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed")
+    static var seeMyNetwork: String {
+        NSLocalizedString("see.my.network", 
+                          value: "See My Network",
+                          comment: "Title of a button that displays the users friend list.")
     }
 
-    static var feedWelcomePostBody: String {
-        return NSLocalizedString("feed.welcome.post.body", value: "Use your phone number to connect with friends and family in a space with no ads, no brands, no likes, and no influencers.\n\nHalloApp is for you, and those closest to you, in private. Invite your real friends to get started!", comment: "Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed")
+    static var feedWelcomePostTitle1: String {
+        return NSLocalizedString("feed.welcome.post.title.1", 
+                                 value: "Welcome to HalloApp! Your private social network",
+                                 comment: "Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed")
     }
 
+    static var feedWelcomePostTitle2: String {
+        return NSLocalizedString("feed.welcome.post.title.2",
+                                 value: "Who can see my posts?",
+                                 comment: "Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed")
+    }
+
+    static var feedWelcomePostBody1: String {
+        NSLocalizedString("feed.welcome.post.body.1",
+                          value: "A private space with no influencers and no ads. Only you and people you care about.",
+                          comment: "Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed")
+    }
+
+    static var feedWelcomePostBody2: String {
+        NSLocalizedString("feed.welcome.post.body.2",
+                          value: "Your friends on HalloApp can see your posts. Add friends from your network and manage friend requests.",
+                          comment: "Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed")
+    }
 }

@@ -810,9 +810,14 @@ extension FeedCollectionViewController {
                         welcomeCell.configure(showCloseButton: true)
                     }
                     
-                    welcomeCell.openInvite = { [weak self] in
-                        guard let self = self else { return }
-                        self.showInviteScreen()
+                    welcomeCell.openNetwork = { [weak self] in
+                        guard let self else {
+                            return
+                        }
+
+                        let viewController = SegmentedFriendsViewController(initialState: .friends)
+                        let navigationController = UINavigationController(rootViewController: viewController)
+                        self.present(navigationController, animated: true)
                     }
                     
                     welcomeCell.closeWelcomePost = {

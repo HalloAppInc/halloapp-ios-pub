@@ -10,7 +10,7 @@ import UIKit
 import CoreCommon
 import Core
 
-class FriendsViewController: UIViewController {
+class FriendsViewController: UIViewController, UserActionHandler {
 
     enum `Type` {
         case existing, incomingRequests, allRequests, search
@@ -143,7 +143,7 @@ class FriendsViewController: UIViewController {
         switch dataSource.section(for: IndexPath(row: 0, section: sectionIndex)) {
         case .blank:
             header = nil
-        case .initial:
+        case .initial, .suggestions, .requests:
             pinHeader = true
             fallthrough
         default:
@@ -208,9 +208,21 @@ class FriendsViewController: UIViewController {
                 break
             }
             cell.configure(with: friend, isFirst: isFirst, isLast: isLast)
-            cell.menuButton.configureWithMenu {
-                HAMenu.lazy { [weak self,  id = friend.id] in
-                    self?.friendMenu(for: id)
+            cell.menuButton.configureWithMenu { [weak self] in
+                HAMenu.menu(for: friend.id, options: [.viewProfile, .updateFriendship, .block, .favorite]) { action, userID in
+                    guard let self else {
+                        return
+                    }
+                    switch action {
+                    case .removeFriend:
+                        self.removeFriend(userID: userID)
+                    case .viewProfile:
+                        let viewController = UserFeedViewController(userId: userID)
+                        let navigationController = UINavigationController(rootViewController: viewController)
+                        self.present(navigationController, animated: true)
+                    default:
+                        Task { try await self.handle(action, for: userID) }
+                    }
                 }
             }
 
@@ -334,16 +346,28 @@ class FriendsViewController: UIViewController {
     }
 
     private func removeFriend(userID: UserID) {
-        dataSource.update(userID, to: .none)
-
+        let profile = UserProfile.findOrCreate(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)
         let previousStatus = UserProfile.FriendshipStatus.friends
-        Task(priority: .userInitiated) {
-            do {
-                try await MainAppContext.shared.userProfileData.removeFriend(userID: userID)
-            } catch {
-                dataSource.update(userID, to: previousStatus)
+
+        let alert = UIAlertController(title: Localizations.removeFriendTitle(name: profile.name),
+                                      message: Localizations.removeFriendBody(name: profile.name),
+                                      preferredStyle: .alert)
+        let removeAction = UIAlertAction(title: Localizations.buttonRemove, style: .destructive) { [weak self] _ in
+            self?.dataSource.update(userID, to: .none)
+            Task(priority: .userInitiated) {
+                do {
+                    try await MainAppContext.shared.userProfileData.removeFriend(userID: userID)
+                } catch {
+                    self?.dataSource.update(userID, to: previousStatus)
+                }
             }
         }
+        let cancelAction = UIAlertAction(title: Localizations.buttonCancel, style: .cancel)
+
+        alert.addAction(removeAction)
+        alert.addAction(cancelAction)
+
+        self.present(alert, animated: true)
     }
 
     private func cancelRequest(userID: UserID) {

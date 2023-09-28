@@ -39,7 +39,6 @@ class ProfileFriendshipToggle: UIView {
         configuration.baseBackgroundColor = .primaryBlue
         let button = UIButton(configuration: configuration)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setContentHuggingPriority(.breakable, for: .horizontal)
         button.setContentCompressionResistancePriority(.breakable, for: .horizontal)
         return button
     }()
@@ -51,7 +50,6 @@ class ProfileFriendshipToggle: UIView {
         configuration.baseBackgroundColor = .secondarySystemFill
         let button = UIButton(configuration: configuration)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setContentHuggingPriority(.breakable, for: .horizontal)
         button.setContentCompressionResistancePriority(.breakable, for: .horizontal)
         return button
     }()

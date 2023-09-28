@@ -116,7 +116,7 @@ extension UserActionHandler where Self: UIViewController {
                 return
             }
 
-            let toast = Toast(type: .icon(UIImage(named: "FavoritesOutline")?.withRenderingMode(.alwaysTemplate)),
+            let toast = Toast(type: .icon(UIImage(named: "UnfavoriteOutline")?.withRenderingMode(.alwaysTemplate)),
                               text: Localizations.removedFromFavorites)
             toast.show()
         }
@@ -237,6 +237,20 @@ extension UserActionHandler where Self: UIViewController {
 // MARK: - Localization
 
 extension Localizations {
+
+    static func removeFriendTitle(name: String) -> String {
+        let format = NSLocalizedString("remove.friend.title",
+                                       value: "Remove %@ from Friends",
+                                       comment: "Title of an alert that appears when removing a friend.")
+        return String(format: format, name)
+    }
+
+    static func removeFriendBody(name: String) -> String {
+        let format = NSLocalizedString("remove.friend.body",
+                                       value: "%@ and you will no longer be able to see each other’s posts.",
+                                       comment: "Body of an alert that appears when removing a friend.")
+        return String(format: format, name)
+    }
 
     static func blockTitle(name: String) -> String {
         let format = NSLocalizedString("block.title", value: "Block %@", comment: "Title of an alert when blocking a user.")

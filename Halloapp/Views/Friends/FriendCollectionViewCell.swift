@@ -150,11 +150,13 @@ class IncomingFriendCollectionViewCell: FriendCollectionViewCell {
     var onIgnore: (() -> Void)?
 
     private let confirmButton: UIButton = {
-        let button = RoundedRectButton()
+        let button = UIButton()
+        var configuration = UIButton.Configuration.filled()
+        configuration.cornerStyle = .capsule
+        configuration.baseBackgroundColor = .primaryBlue
+        configuration.contentInsets = .init(top: 8, leading: 13, bottom: 8, trailing: 13)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundTintColor = .primaryBlue
-        button.titleLabel?.font = .scaledSystemFont(ofSize: 14, weight: .medium)
-        button.contentEdgeInsets = .init(top: 6, left: 11, bottom: 6, right: 11)
+        button.configuration = configuration
         return button
     }()
 
@@ -188,7 +190,8 @@ class IncomingFriendCollectionViewCell: FriendCollectionViewCell {
             ignoreButton.bottomAnchor.constraint(equalTo: trailingView.bottomAnchor),
         ])
 
-        confirmButton.setTitle(Localizations.confirmTitle.uppercased(), for: .normal)
+        confirmButton.configuration?.attributedTitle = .init(Localizations.confirmTitle.uppercased(),
+                                                             attributes: .init([.font: UIFont.scaledSystemFont(ofSize: 14, weight: .medium)]))
 
         confirmButton.addTarget(self, action: #selector(confirmButtonPushed), for: .touchUpInside)
         ignoreButton.addTarget(self, action: #selector(ignoreButtonPushed), for: .touchUpInside)
@@ -220,11 +223,14 @@ class OutgoingFriendCollectionViewCell: FriendCollectionViewCell {
     var onCancel: (() -> Void)?
 
     private let cancelButton: UIButton = {
-        let button = RoundedRectButton()
+        let button = UIButton()
+        var configuration = UIButton.Configuration.filled()
+        configuration.cornerStyle = .capsule
+        configuration.baseBackgroundColor = .secondarySystemBackground
+        configuration.baseForegroundColor = .primaryBlue
+        configuration.contentInsets = .init(top: 8, leading: 13, bottom: 8, trailing: 13)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundTintColor = .secondarySystemBackground
-        button.titleLabel?.font = .scaledSystemFont(ofSize: 14, weight: .medium)
-        button.contentEdgeInsets = .init(top: 6, left: 11, bottom: 6, right: 11)
+        button.configuration = configuration
         return button
     }()
 
@@ -241,8 +247,8 @@ class OutgoingFriendCollectionViewCell: FriendCollectionViewCell {
             cancelButton.bottomAnchor.constraint(equalTo: trailingView.bottomAnchor),
         ])
 
-        cancelButton.setTitle(Localizations.buttonCancel.uppercased(), for: .normal)
-        cancelButton.setTitleColor(.primaryBlue, for: .normal)
+        cancelButton.configuration?.attributedTitle = .init(Localizations.buttonCancel.uppercased(),
+                                                            attributes: .init([.font: UIFont.scaledSystemFont(ofSize: 14, weight: .medium)]))
         cancelButton.addTarget(self, action: #selector(cancelPushed), for: .touchUpInside)
     }
 
@@ -267,11 +273,14 @@ class SuggestedFriendCollectionViewCell: FriendCollectionViewCell {
     var onAdd: (() -> Void)?
 
     private let addButton: UIButton = {
-        let button = RoundedRectButton()
+        let button = UIButton()
+        var configuration = UIButton.Configuration.filled()
+        configuration.cornerStyle = .capsule
+        configuration.baseBackgroundColor = .secondarySystemBackground
+        configuration.baseForegroundColor = .primaryBlue
+        configuration.contentInsets = .init(top: 8, leading: 13, bottom: 8, trailing: 13)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundTintColor = .secondarySystemBackground
-        button.titleLabel?.font = .scaledSystemFont(ofSize: 14, weight: .medium)
-        button.contentEdgeInsets = .init(top: 6, left: 11, bottom: 6, right: 11)
+        button.configuration = configuration
         return button
     }()
 
@@ -288,8 +297,8 @@ class SuggestedFriendCollectionViewCell: FriendCollectionViewCell {
             addButton.bottomAnchor.constraint(equalTo: trailingView.bottomAnchor),
         ])
 
-        addButton.setTitle(Localizations.buttonAdd.uppercased(), for: .normal)
-        addButton.setTitleColor(.primaryBlue, for: .normal)
+        addButton.configuration?.attributedTitle = .init(Localizations.buttonAdd.uppercased(),
+                                                         attributes: .init([.font: UIFont.scaledSystemFont(ofSize: 14, weight: .medium)]))
         addButton.addTarget(self, action: #selector(addButtonPushed), for: .touchUpInside)
     }
 
@@ -482,7 +491,7 @@ class FriendRequestsIndicatorCollectionViewCell: BaseFriendCollectionViewCell {
 
     func configure(title: String, count: Int, showCircle: Bool, isFirst: Bool, isLast: Bool) {
         titleLabel.text = title
-        countLabel.text = "\(count)"
+        countLabel.text = count == 0 ? "" : "\(count)"
 
         let countLabelColor: UIColor
         if showCircle {
@@ -492,7 +501,7 @@ class FriendRequestsIndicatorCollectionViewCell: BaseFriendCollectionViewCell {
         }
 
         countLabel.textColor = countLabelColor
-        circleView.isHidden = !showCircle
+        circleView.isHidden = !showCircle || count == 0
 
         configure(isFirst: isFirst, isLast: isLast)
     }

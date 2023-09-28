@@ -38,15 +38,18 @@ public class UserProfileData: NSObject {
         super.init()
 
         service.didConnect
-            .sink { [weak self] in
-                self?.syncFriendshipsIfNeeded()
-            }
+            .sink { [weak self] in self?.syncFriendshipsIfNeeded() }
             .store(in: &cancellables)
 
         NotificationCenter.default.publisher(for: UserData.userDataDidSave)
-            .sink { [weak self] _ in
-                self?.syncUserProfile()
-            }
+            .sink { [weak self] _ in self?.syncUserProfile() }
+            .store(in: &cancellables)
+
+        // on re-install, the clearing of the store can remove the profile saved during registration
+        // re-sync in this case
+        mainDataStore.didClearStore
+            .filter { [userData] in !userData.userId.isEmpty }
+            .sink { [weak self] in self?.syncUserProfile() }
             .store(in: &cancellables)
     }
 

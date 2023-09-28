@@ -73,6 +73,7 @@ class UsernameInputViewController: UIViewController {
         textField.tintColor =  .systemBlue
         textField.returnKeyType = .done
         textField.spellCheckingType = .no
+        textField.autocapitalizationType = .none
         return textField
     }()
 

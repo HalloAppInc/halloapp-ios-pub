@@ -61,7 +61,7 @@ class MessageReceiptInfoView: UIViewController, NSFetchedResultsControllerDelega
                 guard let cell = cell as? DestinationCell, let self = self, let contactInfo = self.contactsMap[messageReceiptData.userId] else { return cell }
 
                 cell.separator.isHidden = collectionView.numberOfItems(inSection: indexPath.section) - 1 == indexPath.row
-                cell.configureUser(messageReceiptData.userId, name: contactInfo.fullName, phone: contactInfo.phoneNumber, enableSelection: false)
+                cell.configureUser(messageReceiptData.userId, name: contactInfo.fullName, username: nil, enableSelection: false)
                 return cell
             case .emptyRow:
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: EmptyDestinationCell.reuseIdentifier, for: indexPath)

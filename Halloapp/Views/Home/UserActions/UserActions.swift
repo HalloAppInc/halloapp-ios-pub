@@ -183,7 +183,7 @@ extension HAMenu {
     }
 
     private static func removeFriendButton(_ userID: UserID, handler: @escaping UserActionCallback) -> HAMenuButton {
-        HAMenuButton(title: Localizations.addFriend, image: UIImage(systemName: "person.crop.circle.badge.minus")) {
+        HAMenuButton(title: Localizations.removeFriend, image: UIImage(systemName: "person.crop.circle.badge.minus")) {
             await handler(.removeFriend, userID)
         }
     }

@@ -112,10 +112,23 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
                 try await MainAppContext.shared.userProfileData.ignoreRequest(userID: id)
             }
         }
-        headerView.friendshipToggle.onRemove = {
-            template(.none) { id in
-                try await MainAppContext.shared.userProfileData.removeFriend(userID: id)
+        headerView.friendshipToggle.onRemove = { [weak self] in
+            guard let self, let profile = self.profile else {
+                return
             }
+            let alert = UIAlertController(title: Localizations.removeFriendTitle(name: profile.name),
+                                          message: Localizations.removeFriendBody(name: profile.name),
+                                          preferredStyle: .alert)
+            let removeAction = UIAlertAction(title: Localizations.buttonRemove, style: .destructive) { _ in
+                template(.none) { id in
+                    try await MainAppContext.shared.userProfileData.removeFriend(userID: id)
+                }
+            }
+            let cancelAction = UIAlertAction(title: Localizations.buttonCancel, style: .cancel)
+
+            alert.addAction(removeAction)
+            alert.addAction(cancelAction)
+            self.present(alert, animated: true)
         }
 
         view = headerView

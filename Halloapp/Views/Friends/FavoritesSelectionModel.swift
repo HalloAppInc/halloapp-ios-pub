@@ -41,7 +41,7 @@ class FavoritesSelectionModel: NSObject, ObservableObject, SelectionModel, NSFet
     private let resultsController: NSFetchedResultsController<UserProfile> = {
         let request = UserProfile.fetchRequest()
         request.predicate = NSPredicate(format: "friendshipStatusValue == %d", UserProfile.FriendshipStatus.friends.rawValue)
-        request.sortDescriptors = [.init(keyPath: \UserProfile.name, ascending: true)]
+        request.sortDescriptors = [.init(key: "name", ascending: true, selector: #selector(NSString.caseInsensitiveCompare))]
 
         return NSFetchedResultsController(fetchRequest: request,
                                           managedObjectContext: MainAppContext.shared.mainDataStore.viewContext,
@@ -61,8 +61,7 @@ class FavoritesSelectionModel: NSObject, ObservableObject, SelectionModel, NSFet
     }
 
     private func transformResults() {
-        let profiles = (resultsController.fetchedObjects ?? [])
-            .sorted(by: { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending })
+        let profiles = resultsController.fetchedObjects ?? []
         var selected = [Friend]()
         var candidates = [Section]()
 

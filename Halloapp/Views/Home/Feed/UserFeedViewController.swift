@@ -69,29 +69,14 @@ class UserFeedViewController: FeedCollectionViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
         let profile = UserProfile.findOrCreate(with: userId, in: MainAppContext.shared.mainDataStore.viewContext)
-
-        let namePublisher = profile.publisher(for: \.name).map { _ in }.dropFirst().eraseToAnyPublisher()
-        let usernamePublisher = profile.publisher(for: \.username).map { _ in }.dropFirst().eraseToAnyPublisher()
-        let statusPublisher = profile.publisher(for: \.friendshipStatusValue).map { _ in }.dropFirst().eraseToAnyPublisher()
-
-        Publishers.Merge3(namePublisher, usernamePublisher, statusPublisher)
-            .sink { [weak self] in
-                guard let self else {
-                    return
-                }
-
-                self.setupMoreButton()
-                self.viewIfLoaded?.setNeedsLayout()
-            }
-            .store(in: &cancellables)
 
         if isOwnFeed {
             title = Localizations.titleMyPosts
         }
 
         headerViewController?.configure(with: profile)
+        setupMoreButton()
     }
 
     override func viewDidAppear(_ animated: Bool) {

@@ -18,7 +18,6 @@ class DestinationCell: UICollectionViewCell {
     private lazy var homeView: UIView = {
         let imageView = UIImageView(image: Self.homeIcon)
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.tintColor = .black.withAlphaComponent(0.7)
         imageView.contentMode = .scaleAspectFit
 
         let container = UIView()
@@ -190,14 +189,14 @@ class DestinationCell: UICollectionViewCell {
         configureSelected(isSelected)
     }
 
-    public func configureUser(_ userID: UserID, name: String?, phone: String?, enableSelection: Bool = true, isSelected: Bool = false) {
+    public func configureUser(_ userID: UserID, name: String?, username: String?, enableSelection: Bool = true, isSelected: Bool = false) {
         subtitle.isHidden = false
         homeView.isHidden = true
         favoritesView.isHidden = true
         avatarView.isHidden = false
 
         title.text = name
-        subtitle.text = phone
+        subtitle.text = username
         avatarView.configure(with: userID, using: MainAppContext.shared.avatarStore)
 
         if enableSelection {

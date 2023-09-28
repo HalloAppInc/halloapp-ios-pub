@@ -72,12 +72,12 @@ extension UserData {
     }
 
     private func validate(username: String) throws {
-        if username.rangeOfCharacter(from: .username.inverted) != nil {
-            throw ChangeUsernameError.invalidCharacters
-        }
-
         if let first = username.first?.unicodeScalars.first, !CharacterSet.usernameLowercaseLetters.contains(first) {
             throw ChangeUsernameError.invalidStartingCharacter
+        }
+
+        if username.rangeOfCharacter(from: .username.inverted) != nil {
+            throw ChangeUsernameError.invalidCharacters
         }
     }
 }
