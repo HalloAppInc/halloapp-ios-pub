@@ -272,6 +272,16 @@ class OnboardingFriendSuggestionsViewController: UIViewController {
 
     @objc
     private func nextButtonPushed(_ button: UIButton) {
+        if !selectedUsers.isEmpty {
+            Task { [selectedUsers] in
+                await withTaskGroup(of: Void.self) { group in
+                    for id in selectedUsers {
+                        group.addTask { try? await MainAppContext.shared.userProfileData.addFriend(userID: id) }
+                    }
+                }
+            }
+        }
+
         if let viewController = onboarder.nextViewController() {
             navigationController?.setViewControllers([viewController], animated: true)
         }
