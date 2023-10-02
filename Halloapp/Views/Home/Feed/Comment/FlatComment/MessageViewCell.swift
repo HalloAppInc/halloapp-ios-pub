@@ -144,6 +144,6 @@ class MessageViewCell: MessageCellViewBase {
     }
 
     private func setNameLabel(for userID: String) {
-        nameLabel.text = UserProfile.findOrCreate(with: userID, in: AppContext.shared.mainDataStore.viewContext).displayName
+        nameLabel.text = UserProfile.find(with: userID, in: AppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
     }
 }

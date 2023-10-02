@@ -69,13 +69,17 @@ class UserFeedViewController: FeedCollectionViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        let profile = UserProfile.findOrCreate(with: userId, in: MainAppContext.shared.mainDataStore.viewContext)
+        let profile = UserProfile.find(with: userId, in: MainAppContext.shared.mainDataStore.viewContext)
 
         if isOwnFeed {
             title = Localizations.titleMyPosts
         }
 
-        headerViewController?.configure(with: profile)
+        if let profile {
+            // TODO: save a profile on background context so that it's not optional
+            headerViewController?.configure(with: profile)
+        }
+
         setupMoreButton()
     }
 

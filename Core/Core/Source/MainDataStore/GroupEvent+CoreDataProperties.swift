@@ -99,7 +99,7 @@ public extension GroupEvent {
 
             let name = managedObjectContext.flatMap { context in
                 context.performAndWait {
-                    UserProfile.findOrCreate(with: userId, in: context).displayName
+                    UserProfile.find(with: userId, in: context)?.displayName ?? ""
                 }
             }
 
@@ -116,7 +116,7 @@ public extension GroupEvent {
 
             return managedObjectContext.flatMap { context in
                 context.performAndWait {
-                    UserProfile.findOrCreate(with: userId, in: context).displayName
+                    UserProfile.find(with: userId, in: context)?.displayName ?? ""
                 }
             }
         }

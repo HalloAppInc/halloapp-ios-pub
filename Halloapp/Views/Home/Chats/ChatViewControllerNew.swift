@@ -115,7 +115,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     weak var chatViewControllerDelegate: ChatViewControllerDelegate?
     var previousChatSenderInfo: [ChatMessageID: Bool] = [:]
 
-    private let profile: UserProfile
+    private let profile: UserProfile?
     /// The `userID` of the user the client is receiving messages from
     private var fromUserId: UserID?
     private var feedPostId: FeedPostID?
@@ -341,7 +341,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                 case .chatEvent(let chatEventData):
                     guard let self = self, let chatEvent = self.chatEventFetchedResultsController?.optionalObjectfor(at: chatEventData.indexPath) as? ChatEvent else { break }
                     if (chatEvent.type == .whisperKeysChange || chatEvent.type == .blocked || chatEvent.type == .unblocked), let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChatViewControllerNew.messageCellViewEventReuseIdentifier, for: indexPath) as? MessageCellViewEvent {
-                        let fullname = UserProfile.findOrCreate(with: chatEvent.userID, in: AppContext.shared.mainDataStore.viewContext).displayName
+                        let fullname = UserProfile.find(with: chatEvent.userID, in: AppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
                         switch chatEvent.type {
                         case .whisperKeysChange:
                             cell.configure(chatLogEventType: .whisperKeysChange, userID: chatEvent.userID)
@@ -566,12 +566,12 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     }
 
     init(for fromUserId: UserID, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0) {
-        self.profile = UserProfile.findOrCreate(with: fromUserId, in: AppContext.shared.mainDataStore.viewContext)
+        self.profile = UserProfile.find(with: fromUserId, in: AppContext.shared.mainDataStore.viewContext)
         self.fromUserId = fromUserId
         self.feedPostId = feedPostId
         self.feedPostMediaIndex = feedPostMediaIndex
 
-        DDLogDebug("ChatViewControllerNew/init/\(fromUserId) [\(profile.displayName)]/feedpostId: \(feedPostId ?? "")/feedPostMediaIndex: \(feedPostMediaIndex)")
+        DDLogDebug("ChatViewControllerNew/init/\(fromUserId) [\(profile?.displayName ?? "")]/feedpostId: \(feedPostId ?? "")/feedPostMediaIndex: \(feedPostMediaIndex)")
         super.init(nibName: nil, bundle: nil)
         self.hidesBottomBarWhenPushed = true
     }
@@ -660,7 +660,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             }
         )
 
-        profile.publisher(for: \.isBlocked)
+        profile?.publisher(for: \.isBlocked)
             .dropFirst()
             .sink { [weak self] _ in
                 self?.setupOrRefreshHeaderAndFooter()
@@ -973,7 +973,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
     override var canBecomeFirstResponder: Bool {
         get {
-            return profile.friendshipStatus == .friends
+            return profile?.friendshipStatus ?? .none == .friends
         }
     }
 
@@ -1080,7 +1080,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
     }
 
     private func setupOrRefreshHeaderAndFooter() {
-        if profile.isBlocked {
+        if profile?.isBlocked ?? false {
             present(blockedContactSheet, animated: true)
         }
     }
@@ -1600,7 +1600,7 @@ extension ChatViewControllerNew: MessageViewChatDelegate, ReactionViewController
             guard let fromUserId else {
                 return
             }
-            let controller = ChatMediaListViewController(name: UserProfile.findOrCreate(with: fromUserId, in: MainAppContext.shared.mainDataStore.viewContext).displayName,
+            let controller = ChatMediaListViewController(name: UserProfile.find(with: fromUserId, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName ?? "",
                                                          message: message,
                                                          index: index)
 

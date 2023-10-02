@@ -79,7 +79,7 @@ extension HAMenu {
     }
 
     private static func buildMenu(userID: UserID, desiredOptions: UserMenuOptions, handler: @escaping UserActionCallback) -> [HAMenuItem] {
-        let profile = UserProfile.findOrCreate(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)
+        let profile = UserProfile.find(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)
         var currentGroup = UserMenuOptions.firstGroup
         var currentButtonGroup = [HAMenuButton]()
         var menuItems = [HAMenuItem]()
@@ -95,7 +95,7 @@ extension HAMenu {
         }
 
         for option in UserMenuOptions.ordered where desiredOptions.contains(option) {
-            guard let button = button(for: option, profile: profile, handler: handler) else {
+            guard let profile, let button = button(for: option, profile: profile, handler: handler) else {
                 continue
             }
 

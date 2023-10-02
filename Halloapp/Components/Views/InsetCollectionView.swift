@@ -292,7 +292,7 @@ fileprivate class UserCollectionViewCell: InsetCollectionViewCell {
         }
 
         let contactStore = MainAppContext.shared.contactStore
-        let name = UserProfile.findOrCreate(with: id, in: MainAppContext.shared.mainDataStore.viewContext).displayName
+        let name = UserProfile.find(with: id, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
         var number = contactStore.normalizedPhoneNumber(for: id, using: contactStore.viewContext)
         if let normalized = number, let parsed = try? AppContextCommon.shared.phoneNumberFormatter.parse(normalized) {
            number = AppContextCommon.shared.phoneNumberFormatter.format(parsed, toType: .international)

@@ -346,11 +346,11 @@ class FriendsViewController: UIViewController, UserActionHandler {
     }
 
     private func removeFriend(userID: UserID) {
-        let profile = UserProfile.findOrCreate(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)
+        let profile = UserProfile.find(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)
         let previousStatus = UserProfile.FriendshipStatus.friends
 
-        let alert = UIAlertController(title: Localizations.removeFriendTitle(name: profile.name),
-                                      message: Localizations.removeFriendBody(name: profile.name),
+        let alert = UIAlertController(title: Localizations.removeFriendTitle(name: profile?.name ?? ""),
+                                      message: Localizations.removeFriendBody(name: profile?.name ?? ""),
                                       preferredStyle: .alert)
         let removeAction = UIAlertAction(title: Localizations.buttonRemove, style: .destructive) { [weak self] _ in
             self?.dataSource.update(userID, to: .none)

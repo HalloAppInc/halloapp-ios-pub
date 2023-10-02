@@ -707,7 +707,7 @@ extension ChatListViewController: UISearchResultsUpdating {
         filteredChats = allChats.filter {
             var title = ""
             if let chatWithUserID = $0.userID {
-                title = UserProfile.findOrCreate(with: chatWithUserID, in: AppContext.shared.mainDataStore.viewContext).displayName
+                title = UserProfile.find(with: chatWithUserID, in: AppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
             } else if let chatInGroupID = $0.groupId {
                 guard let group = MainAppContext.shared.chatData.chatGroup(groupId: chatInGroupID, in: MainAppContext.shared.chatData.viewContext) else { return false }
                 title = group.name

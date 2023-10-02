@@ -104,7 +104,7 @@ private class ReactionTableViewCell: ContactTableViewCell {
     func configureWithReaction(_ reaction: CommonReaction, using avatarStore: AvatarStore) {
         contactImage.configure(with: reaction.fromUserID, using: avatarStore)
         
-        nameLabel.text = UserProfile.findOrCreate(with: reaction.fromUserID, in: AppContext.shared.mainDataStore.viewContext).displayName
+        nameLabel.text = UserProfile.find(with: reaction.fromUserID, in: AppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
         if reaction.fromUserID == AppContext.shared.userData.userId {
             subtitleLabel.text = Localizations.tapToRemoveReaction
         }

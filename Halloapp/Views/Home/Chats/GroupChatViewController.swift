@@ -1242,8 +1242,8 @@ fileprivate class QuotedItemPanel: UIView, InputContextPanel {
             return
         }
 
-        quoteFeedPanelNameLabel.text = UserProfile.findOrCreate(with: postInfo.userID,
-                                                                in: AppContext.shared.mainDataStore.viewContext).displayName
+        quoteFeedPanelNameLabel.text = UserProfile.find(with: postInfo.userID,
+                                                        in: AppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
         let ham = HAMarkdown(font: UIFont.preferredFont(forTextStyle: .subheadline), color: UIColor.secondaryLabel)
         quoteFeedPanelTextLabel.attributedText = ham.parse(postInfo.text)
 

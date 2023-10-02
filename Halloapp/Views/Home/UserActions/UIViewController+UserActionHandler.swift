@@ -153,9 +153,9 @@ extension UserActionHandler where Self: UIViewController {
             return try await MainAppContext.shared.userProfileData.block(userID: userID)
         }
 
-        let profile = UserProfile.findOrCreate(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)
-        let title = Localizations.blockTitle(name: profile.name)
-        let message = Localizations.blockMessage(username: profile.name)
+        let profile = UserProfile.find(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)
+        let title = Localizations.blockTitle(name: profile?.name ?? "")
+        let message = Localizations.blockMessage(username: profile?.name ?? "")
 
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
 

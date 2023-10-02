@@ -137,8 +137,9 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
     // MARK: Configuring View
 
     func configureForOwnProfile() {
-        let profile = UserProfile.findOrCreate(with: MainAppContext.shared.userData.userId, in: MainAppContext.shared.mainDataStore.viewContext)
-        configure(with: profile)
+        if let profile = UserProfile.find(with: MainAppContext.shared.userData.userId, in: MainAppContext.shared.mainDataStore.viewContext) {
+            configure(with: profile)
+        }
     }
 
     func configure(with profile: UserProfile) {

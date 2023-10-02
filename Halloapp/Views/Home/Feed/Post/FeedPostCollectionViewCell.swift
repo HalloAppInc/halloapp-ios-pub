@@ -424,7 +424,7 @@ extension Localizations {
                                       value: "You deleted your post",
                                       comment: "Displayed in place of a deleted feed post.")
         } else {
-            let name = UserProfile.findOrCreate(with: userID, in: MainAppContext.shared.mainDataStore.viewContext).displayName
+            let name = UserProfile.find(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
             if name.isEmpty {
                 return deletedPostGeneric
             } else {
