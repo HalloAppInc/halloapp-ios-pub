@@ -1,4 +1,7 @@
 /* No comment provided by engineer. */
+"@%@" = "@%@";
+
+/* No comment provided by engineer. */
 "%" = "%";
 
 /* No comment provided by engineer. */
@@ -39,6 +42,9 @@
 
 /* First tab in the main app interface. */
 "activityCenter.promo.favorites" = "Confira o novo recurso Favoritos!";
+
+/* Title of a button to send a friend request. */
+"add.friend" = "Adicionar amigo";
 
 /* Title of a button that allows a location to be added. */
 "add.location.title" = "Adicionar local";
@@ -108,6 +114,13 @@
 
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Sem Conexão à Internet";
+
+/* Failure message displayed after trying to block a user.
+   Success message displayed after blocking a user. */
+"block.success" = "Bloqueado";
+
+/* Title of an alert when blocking a user. */
+"block.title" = "Bloquear %@";
 
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Adicionar";
@@ -297,6 +310,9 @@
 
 /* No comment provided by engineer. */
 "Cancel" = "Cancelar";
+
+/* Title of a button to cancel a friendship request. */
+"cancel.request" = "Cancelar Pedido";
 
 /* Text shown in the chat interface informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "Você bloqueou este contato";
@@ -526,6 +542,9 @@
 /* Prompts the user to choose a photo. */
 "choose.photo" = "Escolher Foto";
 
+/* Title of a button to close a screen. */
+"close.title" = "Fechar";
+
 /* Title for the button in comment deletion confirmation prompt. */
 "comment.delete.action" = "Apagar comentário";
 
@@ -585,6 +604,9 @@
 
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "Descartar Postagem?";
+
+/* Share to all friends */
+"composer.destination.friendsShare" = "Meus Amigos";
 
 /* Label above the list with whom you share */
 "composer.destinations.label" = "Partilhar com";
@@ -877,12 +899,6 @@
 /* Possible Feed Privacy setting value. Keep short. */
 "feed.privacy.value.n.selected" = "feed.privacidade.valor.n.selecionados";
 
-/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.body" = "Use seu número de telefone para se conectar com amigos e familiares em um espaço sem anúncios, sem propagandas, sem curtidas e sem influenciadores.\n\nHalloApp é para você, e para aqueles mais próximos de você, em particular. Convide seus verdadeiros amigos para começar!";
-
-/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.title" = "Bem-vindo ao HalloApp, um espaço para relacionamentos reais ✨";
-
 /* Text for 'more' cell prompting users to open the invite screen */
 "feedInviteCarousel.searchPrompt" = "Procure mais amigos e familiares";
 
@@ -904,6 +920,12 @@
 /* Title of a header that appears before a list of contacts that can be invited to register. */
 "friend.invite.header.title" = "Quem mais gostarias de ver aqui?";
 
+/* Message explaining the new friend network. */
+"friend.migration.message" = "Agora você pode pesquisar pessoas no HalloApp usando seu nome ou @nomedeusuário. Seus contatos existentes do HalloApp agora se tornam seus amigos. Você pode remover contatos existentes de amigos a qualquer momento.";
+
+/* Title when explaining the new friend network. */
+"friend.migration.title" = "Novo modelo de amizade no HalloApp";
+
 /* Indicating friend requests */
 "friend.requests" = "Pedidos de Amizade";
 
@@ -915,6 +937,9 @@
 
 /* Indicating the user's friends. */
 "friends.title" = "Amigos";
+
+/* When displaying a generic error message. */
+"generic.error" = "Um erro ocorreu";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Adicionar descrição do grupo";
@@ -1155,6 +1180,12 @@
 
 /* Title of failed video call screen alert. */
 "home.video.calls.fail.title" = "As videochamadas não são suportadas no momento.";
+
+/* Title of a button to ignore a friendship request. */
+"ignore.title" = "Ignorar";
+
+/* Message displayed next to an incoming friend request. */
+"incoming.friend.request.format" = "%@ enviou-lhe um pedido de amizade";
 
 /* Title of the bottom sheet that is presented only once to explain the moments feature. */
 "introducing.moments" = "Apresentando Momentos";
@@ -1618,6 +1649,9 @@
 /* Title denoting something that is optional. */
 "optional.title" = "Opcional";
 
+/* Message displayed next to an outgoing friend request. */
+"outgoing.friend.request.format" = "Você enviou a %@ um pedido de amizade";
+
 /* button to launch photo and video library */
 "photo.and.video.library" = "Biblioteca de Fotos e Vídeos";
 
@@ -1635,6 +1669,12 @@
 
 /* Button to link to settings to enable location permission for Photos app */
 "photosuggestions.cta.photolocation.action" = "Permitir nas configurações";
+
+/* explanation for why we need to turn on location access for photos */
+"photosuggestions.cta.photolocation.subtitle1" = "Permita o acesso à localização para o aplicativo Câmera para melhorar as postagens mágicas. HalloApp usa metadados de localização de suas fotos para ajudar a classificá-las e nomeá-las.";
+
+/* instructions for enabling location access for photos app. maintain '*' to indicate bold text. */
+"photosuggestions.cta.photolocation.subtitle2" = "Para permitir o acesso à localização, vá para: *Configurações* > *Privacidade e segurança* > *Serviços de localização* > *Câmera*";
 
 /* title for explanation of why we want location access for photos app */
 "photosuggestions.cta.photolocation.title" = "Permitir acesso à localização para o aplicativo Fotos";
@@ -2313,6 +2353,9 @@
 
 /* Option when user taps more on profile page */
 "user.option.block" = "Bloquear no HalloApp";
+
+/* Option when User clicks on the username on profile page and this can let the user copy the username */
+"user.option.copy.username" = "Copiar nome de usuário";
 
 /* Option when user taps more on profile page */
 "user.option.unblock" = "Desbloquear no HalloApp";

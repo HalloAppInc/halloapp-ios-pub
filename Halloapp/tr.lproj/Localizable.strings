@@ -871,12 +871,6 @@
 /* Possible Feed Privacy setting value. Keep short. */
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
-/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.body" = "Reklam, marka, beğeni ve etkileyicilerin olmadığı bir alanda ailen ve arkadaşlarınla bağlantı kurmak için telefon numaranı kullan. \n\nHalloApp yalnızca sen ve en yakınların için. Başlamak için arkadaşlarını davet et!";
-
-/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.title" = "Gerçek bağların alanı HalloApp'e hoş geldin ✨\n ";
-
 /* Text for 'more' cell prompting users to open the invite screen */
 "feedInviteCarousel.searchPrompt" = "Daha fazla arkadaş ve yakın ara";
 

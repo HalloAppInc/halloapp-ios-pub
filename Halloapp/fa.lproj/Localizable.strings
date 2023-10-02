@@ -899,12 +899,6 @@
 /* Possible Feed Privacy setting value. Keep short. */
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
-/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.body" = "از شماره تلفن خود برای پیوستن به دوستان و آشنایان خود در فضایی بدون تبلیغات، برندها، لایک‌ها و اینفلونسرها استفاده کنید. هالواپ برای شما و نزدیکانتان در فضای خصوصی است. دوستان واقعیتان را برای شروع دعوت کنید!";
-
-/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.title" = "به هالواپ خوش‌آمدید، فضایی برای رابطه‌های واقعی ✨";
-
 /* Text for 'more' cell prompting users to open the invite screen */
 "feedInviteCarousel.searchPrompt" = "جستجوی دوستان و آشنایان";
 

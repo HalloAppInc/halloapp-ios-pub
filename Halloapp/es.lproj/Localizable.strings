@@ -900,10 +900,16 @@
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
 /* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.body" = "Usa tu número de teléfono para conectarte con amigos y familia en un entorno sin anuncios, marcas, me gustan o influentes.\n\nHalloApp es para ti y para esos cercanos a ti, en privado. ¡Invita a tus amigos de verdad para empezar!";
+"feed.welcome.post.body.1" = "Un espacio privado sin influencers ni anuncios. Solo tú y las personas que te importan.";
+
+/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.body.2" = "Tus amigos en HalloApp pueden ver tus publicaciones. Añade amigos de tu red y gestiona las solicitudes de amistad.";
 
 /* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.title" = "Te damos la bienvenida a HalloApp, un espacio para relaciones de verdad ✨";
+"feed.welcome.post.title.1" = "¡Te damos la bienvenida a HalloApp! Tu red social privada";
+
+/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.title.2" = "¿Quién puede ver mis publicaciones?";
 
 /* Text for 'more' cell prompting users to open the invite screen */
 "feedInviteCarousel.searchPrompt" = "Busca más amigos y familiares";
@@ -1529,6 +1535,12 @@
 /* Title of the daily moment notification. */
 "notification.daily.moment.title" = "Momento diario";
 
+/* Body of a notification for when a friend request is accepted. */
+"notification.friend.request.accept.body" = "%@ aceptó tu solicitud de amistad";
+
+/* Body of a notification for a new friend request. */
+"notification.friend.request.body" = "%@ te envió una solicitud de amistad";
+
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ acaba de aceptar tu invitación a HalloApp 🎉";
 
@@ -1955,6 +1967,12 @@
 /* Title of a button to remove a friend. */
 "remove.friend" = "Eliminar amigo(a)";
 
+/* Body of an alert that appears when removing a friend. */
+"remove.friend.body" = "%@ y tú ya no podrán ver los mensajes de los demás.";
+
+/* Title of an alert that appears when removing a friend. */
+"remove.friend.title" = "Eliminar a %@ de Amigos";
+
 /* Text for the action of removing a contact from the user's favorites list (title case). */
 "remove.from.favorites.title" = "Remover de favoritos";
 
@@ -2029,6 +2047,9 @@
 
 /* Title of a button that shows all friend requests. */
 "see.all.requests" = "Ver todas las solicitudes";
+
+/* Title of a button that displays the users friend list. */
+"see.my.network" = "Ver mi red";
 
 /* Title of a button that shows sent friend requests. */
 "see.sent.requests" = "Solicitudes enviadas";

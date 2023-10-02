@@ -868,12 +868,6 @@
 /* Possible Feed Privacy setting value. Keep short. */
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
-/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.body" = "Verwende deine Handynummer, um dich mit deinen Freunden und deiner Familie ohne Werbung, Marken, Likes und Influencer zu vernetzen.\n\nHalloApp ist für dich und die Menschen, die dir nahestehen - ganz privat. Lade deine echten Freunde ein, um loszulegen!";
-
-/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.title" = "Willkommen bei HalloApp, eine Plattform für echte Beziehungen ✨";
-
 /* Text for 'more' cell prompting users to open the invite screen */
 "feedInviteCarousel.searchPrompt" = "Suche nach mehr Freunden und Familie";
 

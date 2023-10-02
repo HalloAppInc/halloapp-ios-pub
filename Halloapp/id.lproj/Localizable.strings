@@ -877,12 +877,6 @@
 /* Possible Feed Privacy setting value. Keep short. */
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
-/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.body" = "Gunakan nomor telepon Anda untuk terhubung dengan teman dan keluarga di aplikasi tanpa iklan, tanpa merek, tanpa fitur suka, dan tanpa pemengaruh.\n\nHalloApp adalah aplikasi untuk Anda dan orang-orang terdekat, penuh privasi. Undang teman-teman sejati untuk memulai!";
-
-/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
-"feed.welcome.post.title" = "Selamat datang di HalloApp, tempat untuk jejaring hubungan karib ✨";
-
 /* Text for 'more' cell prompting users to open the invite screen */
 "feedInviteCarousel.searchPrompt" = "Cari teman dan keluarga lainnya";
 
