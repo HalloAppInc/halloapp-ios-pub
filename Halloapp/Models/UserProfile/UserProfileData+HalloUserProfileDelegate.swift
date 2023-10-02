@@ -6,6 +6,7 @@
 //  Copyright © 2023 HalloApp, Inc. All rights reserved.
 //
 
+import CoreData
 import Core
 import CoreCommon
 import CocoaLumberjackSwift
@@ -15,37 +16,32 @@ extension UserProfileData: HalloUserProfileDelegate {
     func halloService(_ halloService: HalloService, didReceiveProfileUpdate profileUpdate: Server_HalloappProfileUpdate, ack: (() -> Void)?) {
         let serverProfile = profileUpdate.profile
         let userID = String(serverProfile.uid)
+        let updatedFriendshipStatus = serverProfile.status.userProfileFriendshipStatus
+        let profileUpdateType = profileUpdate.type
         DDLogInfo("UserProfileData/didReceiveProfileUpdate/\(userID)/\(profileUpdate.type)")
-
-        let updateNotifications = {
-            switch profileUpdate.type {
-            case .friendNotice, .incomingFriendRequest:
-                await self.presentFriendshipNotification(from: userID, name: serverProfile.name, updateType: profileUpdate.type)
-            case .normal, .deleteNotice:
-                if serverProfile.status.userProfileFriendshipStatus != .friends {
-                    // remove pending friendship notifications, if any
-                    await self.removeFriendshipNotification(from: userID)
-                }
-            case .UNRECOGNIZED:
-                DDLogError("UserProfileData/unrecognized update type")
-            }
-        }
 
         mainDataStore.saveSeriallyOnBackgroundContext { context in
             let profile = UserProfile.findOrCreate(with: userID, in: context)
             let currentFriendshipStatus = profile.friendshipStatus
+            let isNoLongerFriend = currentFriendshipStatus == .friends && updatedFriendshipStatus != .friends
+            
             profile.update(with: serverProfile)
+            self.updateFriendActivity(for: userID, after: profileUpdateType, friendshipStatus: updatedFriendshipStatus, in: context)
 
-            if case .friends = currentFriendshipStatus, currentFriendshipStatus != profile.friendshipStatus {
-                // no longer friends, remove content
+            switch profileUpdateType {
+            case .normal where isNoLongerFriend:
                 UserProfile.removeContent(for: userID, in: context, options: .unfriended)
+            case .deleteNotice:
+                UserProfile.removeContent(for: userID, in: context, options: .deletedAccount)
+            default:
+                break
             }
 
         } completion: { result in
             switch result {
             case .success:
                 ack?()
-                Task { await updateNotifications() }
+                Task { await self.updateFriendshipNotifications(for: userID, serverProfile: serverProfile, updateType: profileUpdateType) }
             case .failure(let error):
                 DDLogError("UserProfileData/failed to update profile \(String(describing: error))")
             }
@@ -59,28 +55,55 @@ extension UserProfileData: HalloUserProfileDelegate {
         }
     }
 
-    // Notifications
+    // MARK: Activities
 
-    @MainActor
-    private func presentFriendshipNotification(from userID: UserID, name: String, updateType: Server_HalloappProfileUpdate.TypeEnum) {
-        guard UIApplication.shared.applicationState != .active,
-              let metadata = NotificationMetadata(userID: userID, name: name, profileUpdateType: updateType) else {
-            return
+    private func updateFriendActivity(for userID: UserID,
+                                      after updateType: Server_HalloappProfileUpdate.TypeEnum,
+                                      friendshipStatus: UserProfile.FriendshipStatus,
+                                      in context: NSManagedObjectContext) {
+        switch updateType {
+        case .incomingFriendRequest:
+            // show a notification for a pending incoming request
+            FriendActivity.findOrCreate(with: userID, in: context).status = .pending
+        case .friendNotice:
+            // show a notification indicating an accepted outgoing request
+            FriendActivity.findOrCreate(with: userID, in: context).status = .accepted
+        default:
+            if case .none = friendshipStatus {
+                FriendActivity.find(with: userID, in: context)?.status = .none
+            }
         }
-        
-        DDLogInfo("UserProfileData/presentFriendshipNotification/presenting [\(userID)] [\(updateType)]")
-        // avoid recording friend notifications as they may arrive again in the future with the same ID
-        NotificationRequest.createAndShow(from: metadata, shouldRecord: false)
     }
 
+    // MARK: Notifications
+
     @MainActor
-    private func removeFriendshipNotification(from userID: UserID) {
+    private func updateFriendshipNotifications(for userID: UserID, serverProfile: Server_HalloappUserProfile, updateType: Server_HalloappProfileUpdate.TypeEnum) {
         guard UIApplication.shared.applicationState != .active else {
             return
         }
 
-        DDLogInfo("UserProfileData/removeFriendshipNotification/removing [\(userID)] if found")
-        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [userID])
+        let name = serverProfile.name
+        let isFriend = serverProfile.status.userProfileFriendshipStatus == .friends
+
+        switch updateType {
+        case .friendNotice, .incomingFriendRequest:
+            guard let metadata = NotificationMetadata(userID: userID, name: name, profileUpdateType: updateType) else {
+                break
+            }
+            DDLogInfo("UserProfileData/updateFriendshipNotifications/presenting [\(userID)] [\(updateType)]")
+            NotificationRequest.createAndShow(from: metadata, shouldRecord: false)
+
+        case .normal, .deleteNotice:
+            guard !isFriend else {
+                break
+            }
+            DDLogInfo("UserProfileData/updateFriendshipNotifications/removing [\(userID)] if found")
+            UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [userID])
+
+        case .UNRECOGNIZED:
+            DDLogError("UserProfileData/unrecognized update type")
+        }
     }
 }
 

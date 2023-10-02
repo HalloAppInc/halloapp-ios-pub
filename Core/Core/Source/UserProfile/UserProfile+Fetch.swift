@@ -65,6 +65,7 @@ extension UserProfile {
     public class func findFirst(predicate: NSPredicate, in context: NSManagedObjectContext) -> UserProfile? {
         let request = UserProfile.fetchRequest()
         request.predicate = predicate
+        request.fetchLimit = 1
 
         do {
             return try context.fetch(request).first

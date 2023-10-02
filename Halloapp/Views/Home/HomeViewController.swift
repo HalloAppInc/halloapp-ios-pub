@@ -125,13 +125,23 @@ class HomeViewController: UITabBarController {
         })
         MainAppContext.shared.chatData.updateUnreadChatsThreadCount()
 
-        let feedActivity = MainAppContext.shared.feedData.activityObserver
-        let currentNotificationCount = feedActivity?.unreadCount ?? 0
-        updateActivityNavigationControllerBadge(currentNotificationCount)
+        let context = MainAppContext.shared.mainDataStore.viewContext
+        var feedActivityCount = 0
+        var friendActivityCount = 0
 
-        feedActivity?.unreadCountDidChange.receive(on: DispatchQueue.main).sink { [weak self] count in
-            self?.updateActivityNavigationControllerBadge(count)
-        }.store(in: &cancellableSet)
+        CountPublisher<FeedActivity>(context: context, predicate: .init(format: "read == NO"))
+            .sink { [weak self] in
+                feedActivityCount = $0
+                self?.updateActivityNavigationControllerBadge(feedActivityCount + friendActivityCount)
+            }
+            .store(in: &cancellableSet)
+
+        CountPublisher<FriendActivity>(context: context, predicate: .init(format: "read == NO"))
+            .sink { [weak self] in
+                friendActivityCount = $0
+                self?.updateActivityNavigationControllerBadge(feedActivityCount + friendActivityCount)
+            }
+            .store(in: &cancellableSet)
 
         // When the app was in the background
         cancellableSet.insert(

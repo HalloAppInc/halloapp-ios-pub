@@ -358,10 +358,20 @@ final class NotificationProtoService: ProtoServiceCore {
                 
                 let userID = UserID(update.profile.uid)
                 let profile = UserProfile.findOrCreate(with: userID, in: context)
+                let activity = FriendActivity.findOrCreate(with: userID, in: context)
 
                 profile.update(with: update.profile)
-                self.mainDataStore.save(context)
+                
+                switch update.type {
+                case .incomingFriendRequest:
+                    activity.status = .pending
+                case .friendNotice:
+                    activity.status = .accepted
+                default:
+                    break
+                }
 
+                self.mainDataStore.save(context)
                 self.presentNotification(for: metadata, shouldRecord: false)
                 ack()
             }

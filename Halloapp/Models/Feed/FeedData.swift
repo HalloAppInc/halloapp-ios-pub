@@ -24,8 +24,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private var cancellableSet: Set<AnyCancellable> = []
 
-    private(set) var activityObserver: FeedActivityObserver?
-
     let didReloadStore = PassthroughSubject<Void, Never>()
 
     let shouldReloadView = PassthroughSubject<Void, Never>()
@@ -586,8 +584,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogError("FeedData/fetch/error [\(error)]")
             fatalError("Failed to fetch feed items \(error)")
         }
-
-        activityObserver = FeedActivityObserver(viewContext)
 
         reloadGroupFeedUnreadCounts(using: viewContext)
     }

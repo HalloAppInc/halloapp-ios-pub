@@ -70,6 +70,7 @@ public class UserProfileData: NSObject {
         let updatedProfile = try await perform(action: .acceptFriend, for: userID)
         try await perform { context in
             UserProfile.findOrCreate(with: userID, in: context).update(with: updatedProfile)
+            FriendActivity.find(with: userID, in: context)?.status = .none
         }
     }
 
@@ -92,6 +93,7 @@ public class UserProfileData: NSObject {
         let updatedProfile = try await perform(action: .rejectFriend, for: userID)
         try await perform { context in
             UserProfile.findOrCreate(with: userID, in: context).update(with: updatedProfile)
+            FriendActivity.find(with: userID, in: context)?.status = .none
         }
     }
 
@@ -149,6 +151,21 @@ public class UserProfileData: NSObject {
                     continuation.resume()
                 }
             }
+        }
+    }
+
+    // MARK: Activities
+
+    public func markAllFriendEventsAsRead() {
+        mainDataStore.saveSeriallyOnBackgroundContext { context in
+            FriendActivity.find(predicate: .init(format: "read == NO"), in: context)
+                .forEach { $0.read = true }
+        }
+    }
+
+    public func markFriendEventAsRead(userID: UserID) {
+        mainDataStore.saveSeriallyOnBackgroundContext { context in
+            FriendActivity.find(with: userID, in: context)?.read = true
         }
     }
 

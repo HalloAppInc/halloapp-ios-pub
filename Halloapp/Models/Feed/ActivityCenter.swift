@@ -34,6 +34,10 @@ struct ActivityCenterItem: Hashable {
             read = notifications.allSatisfy { $0.read }
         case .groupEvent(let groupEvent):
             read = groupEvent.read
+        case .incomingFriendNotification(let notification):
+            read = notification.read
+        case .confirmedFriendNotification(let notification):
+            read = notification.read
         }
     }
     
@@ -50,6 +54,10 @@ struct ActivityCenterItem: Hashable {
             return textForUnknownCommenters(with: notifications)
         case .groupEvent(let groupEvent):
             return groupEvent.formattedNotificationText ?? NSAttributedString()
+        case .incomingFriendNotification(let notification):
+            return notification.formattedText
+        case .confirmedFriendNotification(let notification):
+            return notification.formattedText
         }
     }
     
@@ -60,6 +68,10 @@ struct ActivityCenterItem: Hashable {
         case .unknownCommenters(let notifications):
             return notifications.first.flatMap { $0.image ?? Self.image(for: $0.postID) }
         case .groupEvent:
+            return nil
+        case .incomingFriendNotification:
+            return nil
+        case .confirmedFriendNotification:
             return nil
         }
     }
@@ -73,6 +85,10 @@ struct ActivityCenterItem: Hashable {
             return nil
         case .groupEvent:
             return nil
+        case .incomingFriendNotification(let notification):
+            return notification.userID
+        case .confirmedFriendNotification(let notification):
+            return notification.userID
         }
     }
     
@@ -84,6 +100,10 @@ struct ActivityCenterItem: Hashable {
             return notifications.map(\.timestamp).max() ?? Date()
         case .groupEvent(let groupEvent):
             return groupEvent.timestamp
+        case .incomingFriendNotification(let notification):
+            return notification.timestamp
+        case .confirmedFriendNotification(let notification):
+            return notification.timestamp
         }
     }
     
@@ -96,6 +116,10 @@ struct ActivityCenterItem: Hashable {
             return Self.latestUnseen(for: notifications)?.postID ?? nil
         case .groupEvent:
             return nil
+        case .incomingFriendNotification:
+            return nil
+        case .confirmedFriendNotification:
+            return nil
         }
     }
     
@@ -107,6 +131,10 @@ struct ActivityCenterItem: Hashable {
         case .unknownCommenters(let notifications):
             return Self.latestUnseen(for: notifications)?.commentID ?? nil
         case .groupEvent:
+            return nil
+        case .incomingFriendNotification:
+            return nil
+        case .confirmedFriendNotification:
             return nil
         }
     }
@@ -172,6 +200,8 @@ struct ActivityCenterItem: Hashable {
         case singleNotification(FeedActivity)
         case unknownCommenters([FeedActivity])
         case groupEvent(GroupEvent)
+        case incomingFriendNotification(FriendActivity)
+        case confirmedFriendNotification(FriendActivity)
     }
 }
 
@@ -187,7 +217,7 @@ extension FeedActivity {
 
     var authorName: String {
         get {
-            return MainAppContext.shared.contactStore.firstName(for: userID, in: MainAppContext.shared.contactStore.viewContext)
+            UserProfile.findOrCreate(with: userID, in: MainAppContext.shared.mainDataStore.viewContext).displayName
         }
     }
 
@@ -511,5 +541,40 @@ extension GroupEvent {
         }
 
         return result
+    }
+}
+
+extension FriendActivity {
+
+    var formattedText: NSAttributedString {
+        let name = UserProfile.findOrCreate(with: userID, in: MainAppContext.shared.mainDataStore.viewContext).name
+        let text: String
+
+        switch status {
+        case .pending:
+            text = NSLocalizedString("friend.activity.incoming.pending",
+                                     value: "<$author$> sent you a friend request",
+                                     comment: "Message displayed in the activity center when there's an incoming friend request.")
+        case .accepted:
+            text = NSLocalizedString("friend.activity.incoming.accepted",
+                                     value: "<$author$> accepted your friend request",
+                                     comment: "Message displayed in the activity center when someone accepts your friend request.")
+        case .none:
+            text = ""
+        }
+
+        let attributed = NSMutableAttributedString(string: text, attributes: [.font: ActivityCenterConstants.baseFont])
+        let nameRange = attributed.mutableString.range(of: "<$author$>")
+
+        if nameRange.location != NSNotFound {
+            let author = NSAttributedString(string: name, attributes: [.font: ActivityCenterConstants.boldFont])
+            attributed.replaceCharacters(in: nameRange, with: author)
+        }
+
+        let timestampString = NSAttributedString(string: " \(self.timestamp.feedTimestamp().withNonBreakingSpaces())",
+                                                 attributes: [.font: ActivityCenterConstants.baseFont, .foregroundColor: UIColor.secondaryLabel ])
+        attributed.append(timestampString)
+
+        return attributed
     }
 }

@@ -62,9 +62,11 @@ extension UserProfile {
         fileprivate static let feedPosts = Self(rawValue: 1 << 0)
         fileprivate static let allPosts = Self(rawValue: 1 << 1)
         fileprivate static let comments = Self(rawValue: 1 << 2)
+        fileprivate static let friendActivity = Self(rawValue: 1 << 3)
 
-        public static let unfriended: Self = [.feedPosts]
-        public static let blocked: Self = [.allPosts, .comments]
+        public static let unfriended: Self = [.feedPosts, .friendActivity]
+        public static let blocked: Self = [.allPosts, .comments, .friendActivity]
+        public static let deletedAccount: Self = [.allPosts, .comments, .friendActivity]
 
         public init(rawValue: Int16) {
             self.rawValue = rawValue
@@ -84,6 +86,9 @@ extension UserProfile {
             removePosts(for: user, includeGroups: true, in: context)
         } else if options.contains(.feedPosts) {
             removePosts(for: user, includeGroups: false, in: context)
+        }
+        if options.contains(.friendActivity) {
+            removeFriendActivity(for: userID, in: context)
         }
     }
 
@@ -129,5 +134,14 @@ extension UserProfile {
 
             context.delete(comment)
         }
+    }
+
+    private class func removeFriendActivity(for userID: UserID, in context: NSManagedObjectContext) {
+        DDLogInfo("UserProfile/removeFriendActivity [\(userID)]")
+        guard let activity = FriendActivity.find(with: userID, in: context) else {
+            return
+        }
+
+        context.delete(activity)
     }
 }

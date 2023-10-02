@@ -52,14 +52,6 @@ class FeedPermissionDeniedController: UIViewController {
         notificationButton.addTarget(self, action: #selector(didTapNotificationButton), for: .touchUpInside)
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(customView: notificationButton)
         self.notificationButton = notificationButton
-
-        // We need this here to show/hide the badge on the activity center button
-        if let feedActivities = MainAppContext.shared.feedData.activityObserver {
-            notificationCount = feedActivities.unreadCount
-            self.cancellables.insert(feedActivities.unreadCountDidChange.sink { [weak self] (unreadCount) in
-                self?.notificationCount = unreadCount
-            })
-        }
     }
     
     private func updateNotificationCount(_ unreadCount: Int) {

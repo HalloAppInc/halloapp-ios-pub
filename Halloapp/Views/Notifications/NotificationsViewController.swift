@@ -23,8 +23,7 @@ private extension Localizations {
 }
 
 class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetchedResultsControllerDelegate {
-    private static let cellReuseIdentifier = "NotificationsTableViewCell"
-    
+
     private let bottomSafeAreaHeight = UIApplication.shared.windows[0].safeAreaInsets.bottom
 
     private var dataSource: UITableViewDiffableDataSource<ActivityCenterSection, ActivityCenterItem>!
@@ -33,23 +32,8 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
     /// - note: Used for when the user marks all notifications as read.
     private var cachedScrollPosition: (indexPath: IndexPath, offset: CGFloat)?
 
-    private var permissionsViewController: InAppPermissionsViewController?
-
     private lazy var feedActivityFetchedResultsController: NSFetchedResultsController<FeedActivity> = {
         let fetchRequest: NSFetchRequest<FeedActivity> = FeedActivity.fetchRequest()
-        if !ContactStore.contactsAccessAuthorized {
-            let eligiblePostIdsFetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-            eligiblePostIdsFetchRequest.predicate = NSPredicate(format: "(userID = %@ || groupID != nil) && fromExternalShare == NO",
-                                                                MainAppContext.shared.userData.userId)
-            do {
-                let eligiblePosts = try MainAppContext.shared.feedData.viewContext.fetch(eligiblePostIdsFetchRequest)
-                let eligiblePostIds = eligiblePosts.compactMap {$0.id}
-                fetchRequest.predicate = NSPredicate(format: "postID IN %@", eligiblePostIds)
-            }
-            catch {
-                DDLogError("NotificationsViewController/viewDidLoad/failed to fetch eligible posts")
-            }
-        }
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedActivity.timestamp, ascending: false) ]
         return NSFetchedResultsController<FeedActivity>(fetchRequest: fetchRequest,
                                                         managedObjectContext: MainAppContext.shared.mainDataStore.viewContext,
@@ -98,6 +82,16 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
                                           cacheName: nil)
     }()
 
+    private lazy var friendActivityResultsController: NSFetchedResultsController<FriendActivity> = {
+        let request = FriendActivity.fetchRequest()
+        request.predicate = NSPredicate(format: "statusValue != %d", FriendActivity.Status.none.rawValue)
+        request.sortDescriptors = [.init(keyPath: \FriendActivity.timestamp, ascending: false)]
+        return NSFetchedResultsController(fetchRequest: request,
+                                          managedObjectContext: MainAppContext.shared.mainDataStore.viewContext,
+                                          sectionNameKeyPath: nil,
+                                          cacheName: nil)
+    }()
+
     // MARK: UIViewController
 
     override func viewDidLoad() {
@@ -112,7 +106,8 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
 
         tableView.delegate = self
         tableView.register(AllowContactsPermissionTableViewHeader.self, forHeaderFooterViewReuseIdentifier: AllowContactsPermissionTableViewHeader.reuseIdentifier)
-        tableView.register(NotificationTableViewCell.self, forCellReuseIdentifier: NotificationsViewController.cellReuseIdentifier)
+        tableView.register(StandardNotificationTableViewCell.self, forCellReuseIdentifier: StandardNotificationTableViewCell.reuseIdentifier)
+        tableView.register(FriendNotificationTableViewCell.self, forCellReuseIdentifier: FriendNotificationTableViewCell.reuseIdentifier)
         tableView.separatorStyle = .none
         
         view.addSubview(tableView)
@@ -130,8 +125,27 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         tableView.sectionHeaderTopPadding = 0
 
         dataSource = UITableViewDiffableDataSource<ActivityCenterSection, ActivityCenterItem>(tableView: tableView) { tableView, indexPath, notification in
-            let cell = tableView.dequeueReusableCell(withIdentifier: NotificationsViewController.cellReuseIdentifier, for: indexPath) as! NotificationTableViewCell
-            cell.configure(with: notification)
+            let cell: UITableViewCell
+
+            switch notification.content {
+            case .incomingFriendNotification(let activity):
+                cell = tableView.dequeueReusableCell(withIdentifier: FriendNotificationTableViewCell.reuseIdentifier, for: indexPath)
+                guard let cell = cell as? FriendNotificationTableViewCell else {
+                    break
+                }
+                cell.configure(with: notification)
+                cell.onConfirm = { [weak self] in
+                    self?.confirmRequest(using: notification)
+                }
+                cell.onIgnore = { [weak self] in
+                    self?.ignoreRequest(using: notification)
+                }
+                cell.selectionStyle = .none
+            default:
+                cell = tableView.dequeueReusableCell(withIdentifier: StandardNotificationTableViewCell.reuseIdentifier, for: indexPath)
+                (cell as? StandardNotificationTableViewCell)?.configure(with: notification)
+            }
+
             return cell
         }
 
@@ -143,13 +157,11 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
 
         groupEventFetchedResultsController.delegate = self
         try? groupEventFetchedResultsController.performFetch()
-        
+
+        friendActivityResultsController.delegate = self
+        try? friendActivityResultsController.performFetch()
 
         updateUI()
-
-        if !ContactStore.contactsAccessAuthorized, dataSource.snapshot().itemIdentifiers.isEmpty {
-            showPermissionsViewController()
-        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -166,12 +178,6 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
 
         dataSource.apply(snapshot, animatingDifferences: false)
         navigationItem.rightBarButtonItem?.isEnabled = hasUnreadItem
-
-        if snapshot.itemIdentifiers.count > 0, let permissionsVC = permissionsViewController {
-            permissionsVC.view.removeFromSuperview()
-            permissionsVC.removeFromParent()
-            permissionsViewController = nil
-        }
     }
 
     override func viewDidLayoutSubviews() {
@@ -186,22 +192,6 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         }
         
         cachedScrollPosition = nil
-    }
-
-    private func showPermissionsViewController() {
-        let vc = InAppPermissionsViewController(configuration: .activityCenter)
-        vc.view.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(vc.view)
-        addChild(vc)
-
-        NSLayoutConstraint.activate([
-            vc.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            vc.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            vc.view.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-        ])
-
-        permissionsViewController = vc
     }
 
     // MARK: Fetched Results Controller
@@ -229,6 +219,10 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
                 }
                 return nil
             }
+        }
+
+        if let friendActivities = friendActivityResultsController.fetchedObjects {
+            items += friendItems(for: friendActivities)
         }
 
         // Sort the notifications from newest to oldest before returning them
@@ -335,7 +329,18 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
 
         return items
     }
-    
+
+    private func friendItems(for friendNotifications: [FriendActivity]) -> [ActivityCenterItem] {
+        friendNotifications.compactMap { notification in
+            switch notification.status {
+            case .accepted:
+                return ActivityCenterItem(content: .confirmedFriendNotification(notification))
+            default:
+                return ActivityCenterItem(content: .incomingFriendNotification(notification))
+            }
+        }
+    }
+
     /// Default handler for notifications. Simply passes them on as `ActivityCenterItems` without any modification
     private func defaultItems(for postNotifications: [FeedActivity]) -> [ActivityCenterItem] {
         return postNotifications.compactMap {
@@ -344,6 +349,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
     }
 
     // MARK: Table View
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let activityCenterItem = dataSource.itemIdentifier(for: indexPath) else {
             DDLogError("NotificationsViewController/didSelectRowAt/missing notification at \(indexPath)")
@@ -383,6 +389,12 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
             case .oneToOne:
                 break
             }
+        case .incomingFriendNotification:
+            break
+        case .confirmedFriendNotification(let activity):
+            MainAppContext.shared.userProfileData.markFriendEventAsRead(userID: activity.userID)
+            let viewController = UserFeedViewController(userId: activity.userID)
+            navigationController?.pushViewController(viewController, animated: true)
         }
     }
 
@@ -409,6 +421,7 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
             HAMenuButton(title: Localizations.markAllRead) { [weak self] in
                 MainAppContext.shared.feedData.markNotificationsAsRead()
                 MainAppContext.shared.chatData.markAllGroupEventsAsRead()
+                MainAppContext.shared.userProfileData.markAllFriendEventsAsRead()
                 self?.memoizeScrollPosition()
             }.destructive()
         }
@@ -423,9 +436,50 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         let offset = tableView.contentOffset.y - rect.minY
         cachedScrollPosition = (firstVisiblePath, offset)
     }
+
+    private func confirmRequest(using notification: ActivityCenterItem) {
+        guard case let .incomingFriendNotification(activity) = notification.content else {
+            return
+        }
+
+        // optimistically update
+        var snapshot = dataSource.snapshot()
+        snapshot.deleteItems([notification])
+        dataSource.apply(snapshot, animatingDifferences: true)
+
+        Task(priority: .userInitiated) {
+            do {
+                try await MainAppContext.shared.userProfileData.acceptFriend(userID: activity.userID)
+            } catch {
+                makeDataSnapshot()
+                let alert = UIAlertController(title: nil, message: Localizations.genericError, preferredStyle: .alert)
+                present(alert, animated: true)
+            }
+        }
+    }
+
+    private func ignoreRequest(using notification: ActivityCenterItem) {
+        guard case let .incomingFriendNotification(activity) = notification.content else {
+            return
+        }
+
+        var snapshot = dataSource.snapshot()
+        snapshot.deleteItems([notification])
+        dataSource.apply(snapshot, animatingDifferences: true)
+
+        Task(priority: .userInitiated) {
+            do {
+                try await MainAppContext.shared.userProfileData.ignoreRequest(userID: activity.userID)
+            } catch {
+                makeDataSnapshot()
+                let alert = UIAlertController(title: nil, message: Localizations.genericError, preferredStyle: .alert)
+                present(alert, animated: true)
+            }
+        }
+    }
 }
 
-fileprivate class NotificationTableViewCell: UITableViewCell {
+fileprivate class BaseNotificationTableViewCell: UITableViewCell {
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -458,31 +512,19 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
         return badge
     }()
 
-    private lazy var mediaPreview: UIImageView = {
-        let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFit
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.layer.cornerRadius = 8
-        imageView.backgroundColor = .feedPostBackground
-        imageView.layer.masksToBounds = true
-        imageView.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.5).cgColor
-        imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 22)
-        imageView.tintColor = .darkGray
-        return imageView
+    let trailingView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
     }()
-    
-    private var mediaPreviewWidthAnchor: NSLayoutConstraint?
 
     private func setupView() {
         contentView.addSubview(unreadBadge)
         contentView.addSubview(contactImage)
         contentView.addSubview(notificationTextLabel)
-        contentView.addSubview(mediaPreview)
-
-        mediaPreviewWidthAnchor = mediaPreview.widthAnchor.constraint(equalToConstant: 22)
-        mediaPreviewWidthAnchor?.isActive = true
+        contentView.addSubview(trailingView)
         
-        contentView.addConstraints([
+        NSLayoutConstraint.activate([
             unreadBadge.heightAnchor.constraint(equalToConstant: 7),
             unreadBadge.widthAnchor.constraint(equalTo: unreadBadge.heightAnchor),
             unreadBadge.centerYAnchor.constraint(equalTo: contactImage.centerYAnchor),
@@ -498,11 +540,10 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
             notificationTextLabel.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor),
             notificationTextLabel.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor),
 
-            mediaPreview.heightAnchor.constraint(equalTo: mediaPreview.widthAnchor),
-            mediaPreview.leadingAnchor.constraint(equalToSystemSpacingAfter: notificationTextLabel.trailingAnchor, multiplier: 1),
-            mediaPreview.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
-            mediaPreview.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor),
-            mediaPreview.bottomAnchor.constraint(lessThanOrEqualTo: contentView.layoutMarginsGuide.bottomAnchor)
+            trailingView.leadingAnchor.constraint(equalToSystemSpacingAfter: notificationTextLabel.trailingAnchor, multiplier: 1),
+            trailingView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
+            trailingView.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor),
+            trailingView.bottomAnchor.constraint(lessThanOrEqualTo: contentView.layoutMarginsGuide.bottomAnchor),
         ])
     }
 
@@ -511,8 +552,67 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
 
         unreadBadge.isHidden = item.read
         notificationTextLabel.attributedText = item.text
-        mediaPreview.image = item.image
 
+        if case .singleNotification(let notif) = item.content, notif.event == .favoritesPromo {
+            contactImage.configure(image: UIImage(named: "PrivacySettingFavoritesWithBackground"))
+        } else if let userId = item.userID {
+            contactImage.configure(with: userId, using: MainAppContext.shared.avatarStore)
+        }
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        
+        contactImage.prepareForReuse()
+        notificationTextLabel.attributedText = nil
+    }
+}
+
+// MARK: - StandardNotificationTableViewCell
+
+fileprivate class StandardNotificationTableViewCell: BaseNotificationTableViewCell {
+
+    static let reuseIdentifier = "standardNotificationCell"
+
+    private let mediaPreview: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.layer.cornerRadius = 8
+        imageView.backgroundColor = .feedPostBackground
+        imageView.layer.masksToBounds = true
+        imageView.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.5).cgColor
+        imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 22)
+        imageView.tintColor = .darkGray
+        return imageView
+    }()
+
+    private lazy var mediaPreviewWidthConstraint: NSLayoutConstraint = {
+        mediaPreview.widthAnchor.constraint(equalToConstant: 22)
+    }()
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+
+        trailingView.addSubview(mediaPreview)
+        NSLayoutConstraint.activate([
+            mediaPreview.leadingAnchor.constraint(equalTo: trailingView.leadingAnchor),
+            mediaPreview.trailingAnchor.constraint(equalTo: trailingView.trailingAnchor),
+            mediaPreview.topAnchor.constraint(equalTo: trailingView.topAnchor),
+            mediaPreview.bottomAnchor.constraint(equalTo: trailingView.bottomAnchor),
+            mediaPreview.heightAnchor.constraint(equalTo: mediaPreview.widthAnchor, multiplier: 1),
+            mediaPreviewWidthConstraint,
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("StandardNotificationTableViewCell coder init not implemented...")
+    }
+
+    override func configure(with item: ActivityCenterItem) {
+        super.configure(with: item)
+
+        mediaPreview.image = item.image
         // only text and audio posts get a border
         let displayedMediaType: FeedActivity.MediaType
 
@@ -523,6 +623,8 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
             // Fall back to borderless case if activities is empty
             displayedMediaType = activities.first?.mediaType ?? .image
         case .groupEvent(_):
+            displayedMediaType = .none
+        case .incomingFriendNotification, .confirmedFriendNotification:
             displayedMediaType = .none
         }
 
@@ -538,21 +640,75 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
             mediaPreview.contentMode = .scaleAspectFit
             mediaPreview.layer.borderWidth = 0
         }
-        
-        mediaPreviewWidthAnchor?.constant = item.image == nil ? 0 : 44
-        
-        if case .singleNotification(let notif) = item.content, notif.event == .favoritesPromo {
-            contactImage.configure(image: UIImage(named: "PrivacySettingFavoritesWithBackground"))
-        } else if let userId = item.userID {
-            contactImage.configure(with: userId, using: MainAppContext.shared.avatarStore)
-        }
+
+        mediaPreviewWidthConstraint.constant = item.image == nil ? 0 : 44
     }
-    
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        
-        contactImage.prepareForReuse()
-        notificationTextLabel.attributedText = nil
+}
+
+// MARK: - FriendNotificationTableViewCell
+
+fileprivate class FriendNotificationTableViewCell: BaseNotificationTableViewCell {
+
+    static let reuseIdentifier = "friendNotificationCell"
+
+    var onConfirm: (() -> Void)?
+    var onIgnore: (() -> Void)?
+
+    private let confirmButton: UIButton = {
+        let button = UIButton()
+        var configuration = UIButton.Configuration.filled()
+        configuration.cornerStyle = .capsule
+        configuration.baseBackgroundColor = .primaryBlue
+        configuration.contentInsets = .init(top: 8, leading: 13, bottom: 8, trailing: 13)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.configuration = configuration
+        return button
+    }()
+
+    private let ignoreButton: UIButton = {
+        let button = UIButton(type: .custom)
+        let image = UIImage(systemName: "xmark")?
+            .withConfiguration(UIImage.SymbolConfiguration(pointSize: 6, weight: .regular))
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(UIImage(systemName: "xmark"), for: .normal)
+        button.tintColor = .lightGray
+        return button
+    }()
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+
+        for view in [confirmButton, ignoreButton] {
+            trailingView.addSubview(view)
+            view.setContentHuggingPriority(.breakable, for: .horizontal)
+            view.setContentCompressionResistancePriority(.breakable, for: .horizontal)
+        }
+
+        NSLayoutConstraint.activate([
+            confirmButton.leadingAnchor.constraint(equalTo: trailingView.leadingAnchor),
+            confirmButton.topAnchor.constraint(greaterThanOrEqualTo: trailingView.topAnchor),
+            confirmButton.bottomAnchor.constraint(equalTo: trailingView.bottomAnchor),
+            confirmButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+
+            ignoreButton.leadingAnchor.constraint(equalTo: confirmButton.trailingAnchor, constant: 12),
+            ignoreButton.trailingAnchor.constraint(equalTo: trailingView.trailingAnchor),
+            ignoreButton.topAnchor.constraint(greaterThanOrEqualTo: trailingView.topAnchor),
+            ignoreButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+        ])
+
+        confirmButton.configuration?.attributedTitle = .init(Localizations.confirmTitle.uppercased(),
+                                                             attributes: .init([.font: UIFont.scaledSystemFont(ofSize: 14, weight: .medium)]))
+
+        confirmButton.addAction(.init { [weak self] _ in self?.onConfirm?() }, for: .touchUpInside)
+        ignoreButton.addAction(.init { [weak self] _ in self?.onIgnore?() }, for: .touchUpInside)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("FriendNotificationTableViewCell coder init not implemented...")
+    }
+
+    override func configure(with item: ActivityCenterItem) {
+        super.configure(with: item)
     }
 }
 
