@@ -129,9 +129,7 @@ extension FeedPost: FeedPostDisplayable {
     }
 
     var canReplyPrivately: Bool {
-        return MainAppContext.shared.contactStore.isContactInAddressBook(
-            userId: userId,
-            in: MainAppContext.shared.contactStore.viewContext) &&
+        return user.friendshipStatus == .friends &&
         MainAppContext.shared.userData.userId != userId
     }
 
@@ -140,7 +138,7 @@ extension FeedPost: FeedPostDisplayable {
     }
 
     var posterFullName: String {
-        user.name
+        user.displayName
     }
 
     var uploadProgressPublisher: AnyPublisher<Float, Never> {

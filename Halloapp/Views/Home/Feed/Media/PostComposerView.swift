@@ -1444,7 +1444,7 @@ fileprivate struct TextView: UIViewRepresentable {
         private func mentionableUsers(for destination: ShareDestination) -> [MentionableUser] {
             switch destination {
             case .feed(let privacyListType):
-                return Mentions.mentionableUsersForNewPost(privacyListType: privacyListType)
+                return Mentions.mentionableUsersForNewPost(privacyListType: privacyListType, in: MainAppContext.shared.mainDataStore.viewContext)
             case .group(let groupID, _, _):
                 return Mentions.mentionableUsers(forGroupID: groupID, in: MainAppContext.shared.feedData.viewContext)
             case .user:

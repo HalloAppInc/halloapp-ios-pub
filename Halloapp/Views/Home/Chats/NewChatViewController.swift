@@ -101,11 +101,6 @@ class NewChatViewController: NewChatTableViewController {
     }
 
     private func openNewChatGroup() {
-        guard ContactStore.contactsAccessAuthorized else {
-            present(UINavigationController(rootViewController: NewGroupMembersPermissionDeniedController()), animated: true)
-            return
-        }
-
         navigationController?.pushViewController(CreateGroupViewController(groupType: GroupType.groupChat, completion: didCreateNewGroup(_:)), animated: true)
     }
 

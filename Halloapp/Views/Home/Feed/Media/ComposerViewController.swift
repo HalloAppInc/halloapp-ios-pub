@@ -118,8 +118,9 @@ class ComposerViewController: UIViewController {
         AppContext.shared.mainDataStore.feedGroups(in: AppContext.shared.mainDataStore.viewContext)
     }()
 
-    private lazy var contacts: [ABContact] = {
-        AppContext.shared.contactStore.allRegisteredContacts(sorted: false, in: AppContext.shared.contactStore.viewContext)
+    private lazy var friends: [UserProfile] = {
+        UserProfile.find(predicate: .init(format: "friendshipStatusValue == %d", UserProfile.FriendshipStatus.friends.rawValue),
+                         in: MainAppContext.shared.mainDataStore.viewContext)
     }()
 
     public var isCompactShareFlow: Bool {
@@ -130,7 +131,7 @@ class ComposerViewController: UIViewController {
         } else if AppContext.shared.userDefaults.bool(forKey: "forcePickerShare") {
             return false
         } else {
-            return AppContext.shared.userDefaults.bool(forKey: "forceCompactShare") || (groups.count + contacts.count <= 6)
+            return AppContext.shared.userDefaults.bool(forKey: "forceCompactShare") || (groups.count + friends.count <= 6)
         }
     }
 
@@ -352,7 +353,7 @@ class ComposerViewController: UIViewController {
     }()
 
     private lazy var destinationsView: ComposerDestinationRowView = {
-        let destinationsView = ComposerDestinationRowView(destination: config.destination, groups: groups, contacts: contacts)
+        let destinationsView = ComposerDestinationRowView(destination: config.destination, groups: groups, friends: friends)
         destinationsView.translatesAutoresizingMaskIntoConstraints = false
         destinationsView.destinationDelegate = self
 
@@ -1322,7 +1323,7 @@ extension ComposerViewController {
         let mentionableUsers: [MentionableUser]
         switch config.destination {
         case .feed(let privacyListType):
-            mentionableUsers = Mentions.mentionableUsersForNewPost(privacyListType: privacyListType)
+            mentionableUsers = Mentions.mentionableUsersForNewPost(privacyListType: privacyListType, in: MainAppContext.shared.mainDataStore.viewContext)
         case .group(let id, _, _):
             mentionableUsers = Mentions.mentionableUsers(forGroupID: id, in: MainAppContext.shared.feedData.viewContext)
         case .user:

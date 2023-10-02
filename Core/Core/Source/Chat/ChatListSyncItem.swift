@@ -48,43 +48,37 @@ public struct ChatListSyncItem: Codable {
         // Do some cleanup
         cleanup()
 
-        let viewContext = AppContext.shared.contactStore.viewContext
-        let abContacts = AppContext.shared.contactStore.allRegisteredContacts(sorted: false, in: viewContext)
-        var contactsMap = [UserID: ABContact]()
-        for contact in abContacts {
-            guard let userID = contact.userId else {
-                continue
-            }
-            contactsMap[userID] = contact
-        }
-
-        let pushNames = AppContext.shared.contactStore.pushNames
-
         let chatThreads = AppContext.shared.mainDataStore.chatThreads(in: AppContext.shared.mainDataStore.viewContext)
+        let threadUserIDs = chatThreads.compactMap { $0.userID }
+        let profiles = UserProfile.find(with: threadUserIDs, in: AppContext.shared.mainDataStore.viewContext)
+            .reduce(into: [UserID: UserProfile]()) {
+                $0[$1.id] = $1
+            }
+
         var chatTimestamps: [UserID : Date] = [:]
         let chatListItems1 = chatThreads.compactMap { chatThread -> ChatListSyncItem? in
             guard let userID = chatThread.userID else {
                 return nil
             }
-            guard contactsMap[userID] == nil else {
+
+            if let profile = profiles[userID], profile.friendshipStatus == .friends {
                 // These are included below as part of contacts.
                 chatTimestamps[userID] = chatThread.lastTimestamp
                 return nil
             }
-            guard let pushName = pushNames[userID] else {
+
+            guard let name = profiles[userID]?.name else {
                 return nil
             }
-            return ChatListSyncItem(userId: userID, timestamp: chatThread.lastTimestamp, fullName: "", pushName: pushName, phoneNumber: "")
+            return ChatListSyncItem(userId: userID, timestamp: chatThread.lastTimestamp, fullName: "", pushName: name, phoneNumber: "")
         }
 
-        let chatListItems2 = AppContext.shared.contactStore.allRegisteredContacts(sorted: false, in: viewContext).compactMap { contact -> ChatListSyncItem? in
-            guard let userID = contact.userId else {
+        let friends = profiles.values.filter { $0.friendshipStatus == .friends }
+        let chatListItems2 = friends.compactMap { profile -> ChatListSyncItem? in
+            if profile.name.isEmpty, profiles[profile.id]?.name.isEmpty ?? true {
                 return nil
             }
-            if (contact.fullName?.isEmpty ?? true) && (pushNames[userID]?.isEmpty ?? true) {
-                return nil
-            }
-            return ChatListSyncItem(userId: userID, timestamp: chatTimestamps[userID], fullName: contact.fullName, pushName: pushNames[userID], phoneNumber: contact.phoneNumber)
+            return ChatListSyncItem(userId: profile.id, timestamp: chatTimestamps[profile.id], fullName: profile.name, pushName: nil, phoneNumber: nil)
         }
 
         let allChatListItems = chatListItems1 + chatListItems2

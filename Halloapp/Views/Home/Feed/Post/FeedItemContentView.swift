@@ -960,7 +960,7 @@ final class FeedItemFooterView: UIView, FeedItemFooterProtocol {
         if post.userId == MainAppContext.shared.userData.userId {
             return .ownPost
         }
-        if MainAppContext.shared.contactStore.isContactInAddressBook(userId: post.userId, in: MainAppContext.shared.contactStore.viewContext) {
+        if UserProfile.find(with: post.userId, in: MainAppContext.shared.mainDataStore.viewContext)?.friendshipStatus ?? .none == .friends {
             return .contact
         }
         return .nonContact
@@ -1384,7 +1384,7 @@ final class FeedItemFooterReactionView: UIView, FeedItemFooterProtocol {
         if post.userId == MainAppContext.shared.userData.userId {
             return .ownPost
         }
-        if MainAppContext.shared.contactStore.isContactInAddressBook(userId: post.userId, in: MainAppContext.shared.contactStore.viewContext) {
+        if UserProfile.find(with: post.userId, in: MainAppContext.shared.mainDataStore.viewContext)?.friendshipStatus ?? .none == .friends {
             return .contact
         }
         return .nonContact

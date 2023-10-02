@@ -1410,12 +1410,12 @@ final class NotificationProtoService: ProtoServiceCore {
             let isPostReaction = metadata.isReaction && commentData.parentId == nil
 
             self.presentCommentNotification(for: metadata, using: commentData,
-                                            isOwnPostRelated: isOwnPostRelated, isOwnCommentRelated: isOwnCommentRelated, isPostReaction: isPostReaction)
+                                            isOwnPostRelated: isOwnPostRelated, isOwnCommentRelated: isOwnCommentRelated, isPostReaction: isPostReaction, in: context)
         }
     }
     // Used to present comment notifications.
     private func presentCommentNotification(for metadata: NotificationMetadata, using commentData: CommentData,
-                                            isOwnPostRelated: Bool, isOwnCommentRelated: Bool, isPostReaction: Bool) {
+                                            isOwnPostRelated: Bool, isOwnCommentRelated: Bool, isPostReaction: Bool, in context: NSManagedObjectContext) {
 
         // Notify important comments.
         let isImportantComment = isOwnPostRelated || isOwnCommentRelated
@@ -1429,10 +1429,7 @@ final class NotificationProtoService: ProtoServiceCore {
         let isUserBlocked = AppContext.shared.privacySettings.blocked.userIds.contains(metadata.fromId)
 
         // Notify comments from contacts on group posts.
-        var isKnownPublisher = false
-        AppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-            isKnownPublisher = AppContext.shared.contactStore.isContactInAddressBook(userId: commentData.userId, in: managedObjectContext)
-        }
+        let isKnownPublisher = UserProfile.find(with: commentData.userId, in: context)?.friendshipStatus ?? .none == .friends
 
         let isReaction = metadata.isReaction
         let isCommentReaction = isReaction && !isPostReaction

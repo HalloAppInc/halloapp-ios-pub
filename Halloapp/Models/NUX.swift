@@ -64,8 +64,9 @@ final class NUX {
         loadFromUserDefaults()
         expireWelcomePosts()
 
-        let contacts = MainAppContext.shared.contactStore.allRegisteredContacts(sorted: false, in: MainAppContext.shared.contactStore.viewContext)
-        if contacts.count == 0 {
+        let friends = UserProfile.find(predicate: NSPredicate(format: "friendshipStatusValue == %d", UserProfile.FriendshipStatus.friends.rawValue),
+                                       in: MainAppContext.shared.mainDataStore.viewContext)
+        if friends.count == 0 {
             state = .zeroZone
         }
     }

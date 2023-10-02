@@ -60,7 +60,7 @@ class ThreadListCell: UITableViewCell {
     private func lastMessageText(for chatThread: ChatThread) -> NSMutableAttributedString {
         var defaultText = ""
         if chatThread.type == .oneToOne, let chatWithUserID = chatThread.userID, chatThread.lastMsgMediaType == .none, chatThread.userID != MainAppContext.shared.userData.userId {
-            let fullName = UserProfile.findOrCreate(with: chatWithUserID, in: AppContext.shared.mainDataStore.viewContext).displayName
+            let fullName = UserProfile.find(with: chatWithUserID, in: AppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
             if chatThread.isNew {
                 defaultText = Localizations.threadListPreviewInvitedUserDefault(name: fullName)
             } else {
@@ -176,10 +176,7 @@ class ThreadListCell: UITableViewCell {
                 if lastMsgUserId == MainAppContext.shared.userData.userId {
                     firstName = Localizations.userYouCapitalized
                 } else {
-                    firstName = MainAppContext.shared.contactStore.firstName(for: lastMsgUserId, in: MainAppContext.shared.contactStore.viewContext)
-                    if firstName == Localizations.unknownContact {
-                        firstName = MainAppContext.shared.contactStore.normalizedPhoneNumber(for: lastMsgUserId, using: MainAppContext.shared.contactStore.viewContext)
-                    }
+                    firstName = UserProfile.find(with: lastMsgUserId, in: MainAppContext.shared.mainDataStore.viewContext)?.name ?? ""
                 }
             }
             if let firstName = firstName {
@@ -196,7 +193,9 @@ class ThreadListCell: UITableViewCell {
         var contactNamePart = ""
         if chatThread.type == .groupFeed {
             if let userID = chatThread.lastFeedUserID, userID != MainAppContext.shared.userData.userId {
-                contactNamePart = UserProfile.findOrCreate(with: userID, in: AppContext.shared.mainDataStore.viewContext).displayName + ": "
+                contactNamePart = UserProfile.find(with: userID, in: AppContext.shared.mainDataStore.viewContext).flatMap {
+                    $0.displayName + ": "
+                } ?? ""
             }
         }
 
@@ -259,7 +258,7 @@ class ThreadListCell: UITableViewCell {
         switch chatThread.type {
         case .oneToOne:
             if let userID = chatThread.userID {
-                titleLabel.text = UserProfile.findOrCreate(with: userID, in: AppContext.shared.mainDataStore.viewContext).displayName
+                titleLabel.text = UserProfile.find(with: userID, in: AppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
                 DDLogDebug("ThreadListCell/configureForChatsList/id: \(userID)/groupID: \(String(describing: chatThread.groupId))/unreadCount: \(chatThread.unreadCount)")
 
                 avatarView.configure(userId: chatThread.userID ?? "", using: MainAppContext.shared.avatarStore)
@@ -270,7 +269,7 @@ class ThreadListCell: UITableViewCell {
                     cancellableSet.insert(
                         MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] (newUserIDs) in
                             if let self, newUserIDs.contains(userID) {
-                                self.titleLabel.text = UserProfile.findOrCreate(with: userID, in: AppContext.shared.mainDataStore.viewContext).displayName
+                                self.titleLabel.text = UserProfile.find(with: userID, in: AppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
                             }
                         }
                     )

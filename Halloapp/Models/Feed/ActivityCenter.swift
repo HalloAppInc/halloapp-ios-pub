@@ -147,7 +147,6 @@ struct ActivityCenterItem: Hashable {
         let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
         let boldFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
         let result = NSMutableAttributedString(string: localizedString, attributes: [ .font: baseFont ])
-        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
         
         let authorRange = (result.string as NSString).range(of: "<$author$>")
         if authorRange.location != NSNotFound {
@@ -217,7 +216,7 @@ extension FeedActivity {
 
     var authorName: String {
         get {
-            UserProfile.findOrCreate(with: userID, in: MainAppContext.shared.mainDataStore.viewContext).displayName
+            UserProfile.find(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
         }
     }
 
@@ -523,13 +522,13 @@ extension GroupEvent {
         let result = NSMutableAttributedString(string: eventText, attributes: [ .font: ActivityCenterConstants.baseFont ])
 
         if let senderUserID = senderUserID, let senderRange = result.string.range(of: "<$sender$>") {
-            let sender = MainAppContext.shared.contactStore.firstName(for: senderUserID, in: MainAppContext.shared.contactStore.viewContext)
+            let sender = UserProfile.find(with: senderUserID, in: MainAppContext.shared.mainDataStore.viewContext)?.name ?? ""
             result.replaceCharacters(in: NSRange(senderRange, in: result.string),
                                      with: NSAttributedString(string: sender, attributes: [.font: ActivityCenterConstants.boldFont]))
         }
 
         if let memberUserID = memberUserID, let memberRange = result.string.range(of: "<$member$>") {
-            let member = MainAppContext.shared.contactStore.firstName(for: memberUserID, in: MainAppContext.shared.contactStore.viewContext)
+            let member = UserProfile.find(with: memberUserID, in: MainAppContext.shared.mainDataStore.viewContext)?.name ?? ""
             result.replaceCharacters(in: NSRange(memberRange, in: result.string),
                                      with: NSAttributedString(string: member, attributes: [.font: ActivityCenterConstants.boldFont]))
         }
@@ -547,7 +546,7 @@ extension GroupEvent {
 extension FriendActivity {
 
     var formattedText: NSAttributedString {
-        let name = UserProfile.findOrCreate(with: userID, in: MainAppContext.shared.mainDataStore.viewContext).name
+        let name = UserProfile.find(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)?.name ?? ""
         let text: String
 
         switch status {

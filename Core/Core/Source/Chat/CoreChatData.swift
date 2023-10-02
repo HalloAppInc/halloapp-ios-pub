@@ -192,7 +192,8 @@ public class CoreChatData {
         chatMessage.user = UserProfile.findOrCreate(with: userData.userId, in: context)
         chatMessage.rawText = mentionText.collapsedText
         chatMessage.mentions = mentionText.mentions.map { (index, user) in
-            return MentionData(index: index, userID: user.userID, name: contactStore.pushNames[user.userID] ?? user.pushName ?? "")
+            let name = UserProfile.find(with: user.userID, in: context)?.name ?? ""
+            return MentionData(index: index, userID: user.userID, name: name)
         }
         chatMessage.feedPostId = feedPostId
         chatMessage.feedPostMediaIndex = feedPostMediaIndex
@@ -1926,18 +1927,15 @@ extension CoreChatData {
     }
 
     public func processGroupFeedHistoryResend(_ historyPayload: Clients_GroupHistoryPayload, for groupID: GroupID, fromUserID: UserID) {
-        // Check if sender is in the address book.
+        // Check if sender is a friend.
         // If yes - then verify the hash of the contents and send them to the new members.
         // Else - log and return
 
         mainDataStore.performSeriallyOnBackgroundContext { managedObjectContext in
-            var isContactInAddressBook = false
-            self.contactStore.performOnBackgroundContextAndWait { contactsManagedObjectContext in
-                isContactInAddressBook = self.contactStore.isContactInAddressBook(userId: fromUserID, in: contactsManagedObjectContext)
-            }
+            var isFriend = UserProfile.find(with: fromUserID, in: managedObjectContext)?.friendshipStatus ?? .none == .friends
 
-            guard isContactInAddressBook else {
-                DDLogInfo("ChatData/processGroupFeedHistory/\(groupID)/sendingAdmin is not in address book - ignore historyResend stanza")
+            guard isFriend else {
+                DDLogInfo("ChatData/processGroupFeedHistory/\(groupID)/sendingAdmin is not friend - ignore historyResend stanza")
                 return
             }
 

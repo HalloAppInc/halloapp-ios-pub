@@ -1719,8 +1719,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         // Notify group comments by contacts on group posts
         var isKnownPublisher = false
-        AppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-            isKnownPublisher = AppContext.shared.contactStore.isContactInAddressBook(userId: comment.userId, in: managedObjectContext)
+        if let context = comment.managedObjectContext, let profile = UserProfile.find(with: comment.userId, in: context) {
+            isKnownPublisher = profile.friendshipStatus == .friends
         }
 
         let isGroupComment = comment.post.groupId != nil
@@ -1902,10 +1902,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return true
         }
 
-        // Notify group comments by contacts on group posts
+        // Notify group comments by friends on group posts
         var isKnownPublisher = false
-        AppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-            isKnownPublisher = AppContext.shared.contactStore.isContactInAddressBook(userId: comment.userId, in: managedObjectContext)
+        if let context = comment.managedObjectContext, let profile = UserProfile.find(with: comment.userId, in: context) {
+            isKnownPublisher = profile.friendshipStatus == .friends
         }
         let isGroupComment = comment.post.groupId != nil
         if ServerProperties.isGroupCommentNotificationsEnabled  && isGroupComment && isKnownPublisher {
@@ -2900,7 +2900,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 return MentionData(
                     index: index,
                     userID: user.userID,
-                    name: self.contactStore.pushNames[user.userID] ?? user.pushName ?? "")
+                    name: UserProfile.find(with: user.userID, in: managedObjectContext)?.name ?? ""
+                )
             }
             feedPost.mentions.filter { $0.name == "" }.forEach {
                 DDLogError("FeedData/new-comment/mention/\($0.userID) missing push name")
@@ -4234,12 +4235,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
                     // Add push name and avatar if from external user
                     let userID = String(externalSharePostContainer.uid)
-                    var isContact = false
-                    self.contactStore.performOnBackgroundContextAndWait { [weak self] context in
-                        isContact = self?.contactStore.isContactInAddressBook(userId: userID, in: context) ?? false
+                    var isFriend = false
+                    mainDataStore.performOnBackgroundContextAndWait { context in
+                        isFriend = UserProfile.find(with: userID, in: context)?.friendshipStatus ?? .none == .friends
                     }
 
-                    if !isContact {
+                    if !isFriend {
                         UserProfile.updateNames(with: [userID: externalSharePostContainer.name])
                         if !externalSharePostContainer.avatarID.isEmpty {
                             MainAppContext.shared.avatarStore.addAvatar(id: externalSharePostContainer.avatarID, for: userID)

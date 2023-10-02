@@ -71,11 +71,9 @@ private class ReactionTableViewCell: ContactTableViewCell {
     }
 
     func configureWithReaction(_ reaction: CommonReaction, using avatarStore: AvatarStore) {
-        let contactStore = MainAppContext.shared.contactStore
-
         contactImage.configure(with: reaction.fromUserID, using: avatarStore)
 
-        nameLabel.text = UserProfile.findOrCreate(with: reaction.fromUserID, in: MainAppContext.shared.mainDataStore.viewContext).displayName
+        nameLabel.text = UserProfile.find(with: reaction.fromUserID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
         accessoryLabel.text = reaction.emoji
     }
 }
@@ -295,17 +293,17 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         switch row {
         case .receipt(let receipt):
             guard receipt.type != .placeholder else { break }
-            let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-            let contactName = UserProfile.findOrCreate(with: receipt.userId, in: MainAppContext.shared.mainDataStore.viewContext).displayName
-            let isUserAContact = MainAppContext.shared.contactStore.isContactInAddressBook(userId: receipt.userId, in: contactsViewContext)
+            let profile = UserProfile.find(with: receipt.userId, in: MainAppContext.shared.mainDataStore.viewContext)
+            let name = profile?.displayName ?? ""
+            let isFriend = profile?.friendshipStatus ?? .none == .friends
 
-            let actionSheet = UIAlertController(title: contactName, message: nil, preferredStyle: .actionSheet)
+            let actionSheet = UIAlertController(title: name, message: nil, preferredStyle: .actionSheet)
             // View Profile
             actionSheet.addAction(UIAlertAction(title: Localizations.actionViewProfile, style: .default, handler: { (_) in
                 delegate.postDashboardViewController(didRequestPerformAction: .profile(receipt.userId))
             }))
             // Message
-            if isUserAContact {
+            if isFriend {
                 actionSheet.addAction(UIAlertAction(title: Localizations.actionMessage, style: .default, handler: { [feedPost] (_) in
                     delegate.postDashboardViewController(didRequestPerformAction: .message(receipt.userId, feedPost.id))
                 }))

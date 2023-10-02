@@ -49,7 +49,7 @@ class MessageReceiptInfoView: UIViewController, NSFetchedResultsControllerDelega
     }
 
     var chatMessage: ChatMessage
-    var contactsMap: [UserID : ABContact]
+
     static let rowHeight = CGFloat(54)
     private lazy var dataSource: UICollectionViewDiffableDataSource<Section, MessageReceiptRow> = {
         let dataSource = UICollectionViewDiffableDataSource<Section, MessageReceiptRow>(collectionView: collectionView, cellProvider: { [weak self] collectionView, indexPath, messageReceiptRow in
@@ -57,11 +57,16 @@ class MessageReceiptInfoView: UIViewController, NSFetchedResultsControllerDelega
             switch messageReceiptRow {
             case .userRow(let messageReceiptData):
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: DestinationCell.reuseIdentifier, for: indexPath)
-                
-                guard let cell = cell as? DestinationCell, let self = self, let contactInfo = self.contactsMap[messageReceiptData.userId] else { return cell }
+                guard let cell = cell as? DestinationCell else {
+                    return cell
+                }
+
+                let profile = UserProfile.find(with: messageReceiptData.userId, in: MainAppContext.shared.mainDataStore.viewContext)
+                let name = profile?.name ?? ""
+                let username = profile?.username ?? ""
 
                 cell.separator.isHidden = collectionView.numberOfItems(inSection: indexPath.section) - 1 == indexPath.row
-                cell.configureUser(messageReceiptData.userId, name: contactInfo.fullName, username: nil, enableSelection: false)
+                cell.configureUser(messageReceiptData.userId, name: name, username: username, enableSelection: false)
                 return cell
             case .emptyRow:
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: EmptyDestinationCell.reuseIdentifier, for: indexPath)
@@ -133,14 +138,6 @@ class MessageReceiptInfoView: UIViewController, NSFetchedResultsControllerDelega
 
     init(chatMessage: ChatMessage) {
         self.chatMessage = chatMessage
-        let userIds = chatMessage.orderedInfo.map { $0.userId }
-        var contacts = MainAppContext.shared.contactStore.contacts(withUserIds: userIds, in: MainAppContext.shared.contactStore.viewContext)
-        contacts = ABContact.contactsWithUniquePhoneNumbers(allContacts: contacts)
-        contactsMap = contacts.reduce(into: [UserID: ABContact]()) { (map, contact) in
-            if let userID = contact.userId {
-                map[userID] = contact
-            }
-        }
         super.init(nibName: nil, bundle: nil)
     }
     

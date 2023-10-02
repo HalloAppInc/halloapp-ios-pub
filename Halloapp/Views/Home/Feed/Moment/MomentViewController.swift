@@ -132,7 +132,7 @@ class MomentViewController: UIViewController, UIViewControllerMediaSaving, Share
         view.autoresizingMask = [.flexibleHeight]
         view.blurView.isHidden = true
         view.delegate = self
-        let name = MainAppContext.shared.contactStore.firstName(for: post.userID, in: MainAppContext.shared.contactStore.viewContext)
+        let name = UserProfile.find(with: post.userID, in: MainAppContext.shared.mainDataStore.viewContext)?.name ?? ""
         view.placeholderText = String(format: Localizations.privateReplyPlaceholder, name)
 
         return view
@@ -810,8 +810,7 @@ extension MomentViewController {
             return
         }
 
-        let name = MainAppContext.shared.contactStore.firstName(for: moment.userID,
-                                                                 in: MainAppContext.shared.contactStore.viewContext)
+        let name = UserProfile.find(with: moment.userID, in: MainAppContext.shared.mainDataStore.viewContext)?.name ?? ""
         let firstDuration = 0.25
         let firstDelay = 0.15
         let secondDuration = 0.175

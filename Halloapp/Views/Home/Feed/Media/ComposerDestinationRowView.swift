@@ -93,8 +93,8 @@ class ComposerDestinationRowView: UICollectionView {
         return source
     } ()
 
-    init(destination: ShareDestination, groups: [Group], contacts: [ABContact]) {
-        contactsCount = contacts.count
+    init(destination: ShareDestination, groups: [Group], friends: [UserProfile]) {
+        contactsCount = friends.count
 
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
@@ -116,7 +116,7 @@ class ComposerDestinationRowView: UICollectionView {
         alwaysBounceHorizontal = true
         delegate = self
 
-        destinationDataSource.apply(makeSnapshot(groups: groups, contacts: contacts), animatingDifferences: false)
+        destinationDataSource.apply(makeSnapshot(groups: groups, friends: friends), animatingDifferences: false)
 
         if case .feed = destination {
             // no selection
@@ -131,7 +131,7 @@ class ComposerDestinationRowView: UICollectionView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    private func makeSnapshot(groups: [Group], contacts: [ABContact]) -> NSDiffableDataSourceSnapshot<Int, ShareDestination> {
+    private func makeSnapshot(groups: [Group], friends: [UserProfile]) -> NSDiffableDataSourceSnapshot<Int, ShareDestination> {
         let groupDesinations = groups
             .sorted { $0.name < $1.name }
             .map { ShareDestination.destination(from: $0) }

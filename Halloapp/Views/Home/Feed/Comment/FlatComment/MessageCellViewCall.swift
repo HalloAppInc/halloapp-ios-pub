@@ -103,9 +103,8 @@ class MessageCellViewCall: UICollectionViewCell {
         
         let iconConfiguration = UIImage.SymbolConfiguration(pointSize: 15)
         let messagefont = UIFont.scaledSystemFont(ofSize: 12, weight: .medium)
+        let name = UserProfile.find(with: callData.userID, in: MainAppContext.shared.mainDataStore.viewContext)?.name ?? ""
 
-        let name = MainAppContext.shared.contactStore.firstName(for: callData.userID, in: MainAppContext.shared.contactStore.viewContext)
-        
         // Call icon
         switch callData.type {
         case .audio:

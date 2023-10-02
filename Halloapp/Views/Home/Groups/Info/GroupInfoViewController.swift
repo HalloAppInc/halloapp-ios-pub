@@ -298,7 +298,7 @@ class GroupInfoViewController: UIViewController, NSFetchedResultsControllerDeleg
                     yourself.append(groupMember)
                 } else if groupMember.type == .admin {
                     contactsWhoAreAdmins.append(groupMember)
-                } else if MainAppContext.shared.contactStore.isContactInAddressBook(userId: groupMember.userID, in: contactsViewContext) {
+                } else if UserProfile.find(with: groupMember.userID, in: MainAppContext.shared.mainDataStore.viewContext)?.friendshipStatus ?? .none == .friends {
                     contactsInAddressBook.append(groupMember)
                 } else {
                     contactsNotInAddressBook.append(groupMember)
@@ -701,9 +701,9 @@ extension GroupInfoViewController: UITableViewDelegate {
                     return deselectRow()
                 }
 
-                let userName = UserProfile.find(with: memberUserID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName
-                let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-                let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: memberUserID, in: contactsViewContext)
+                let profile = UserProfile.find(with: memberUserID, in: MainAppContext.shared.mainDataStore.viewContext)
+                let userName = profile?.displayName ?? ""
+                let isFriend = profile?.friendshipStatus ?? .none == .friends
                 let selectedMembers = [memberUserID]
 
                 let actionSheet = UIAlertController(title: "\(userName)", message: nil, preferredStyle: .actionSheet)
@@ -716,7 +716,7 @@ extension GroupInfoViewController: UITableViewDelegate {
                     self.navigationController?.pushViewController(userViewController, animated: true)
                 })
 
-                if isContactInAddressBook {
+                if isFriend {
                     actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoMessageUser, style: .default) { [weak self] _ in
                         guard let self = self else { return }
                         let vc = ChatViewControllerNew(for: memberUserID)

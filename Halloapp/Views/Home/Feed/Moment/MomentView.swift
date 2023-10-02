@@ -683,8 +683,7 @@ class MomentView: UIView {
         let hideSmallAvatar = configuration == .fullscreen || newState == .prompt
 
         if let feedPost {
-            let name = MainAppContext.shared.contactStore.firstName(for: feedPost.userID,
-                                                                     in: MainAppContext.shared.contactStore.viewContext)
+            let name = UserProfile.find(with: feedPost.userId, in: MainAppContext.shared.mainDataStore.viewContext)?.name ?? ""
             promptText = String(format: Localizations.otherUsersMoment, name)
         }
 

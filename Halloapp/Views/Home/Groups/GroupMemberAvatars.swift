@@ -72,7 +72,7 @@ class GroupMemberAvatars: UIView, UIScrollViewDelegate {
             nameLabel.font = .systemFont(ofSize: 11)
             nameLabel.textColor = .label
             nameLabel.textAlignment = .center
-            nameLabel.text = MainAppContext.shared.contactStore.firstName(for: avatarUserID, in: MainAppContext.shared.contactStore.viewContext)
+            nameLabel.text = UserProfile.find(with: avatarUserID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
             nameLabel.translatesAutoresizingMaskIntoConstraints = false
             
             // main avatar container

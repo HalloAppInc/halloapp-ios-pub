@@ -26,18 +26,11 @@ public struct MentionableUser: Hashable {
 }
 
 public final class Mentions {
-    public static func mentionableUsersForNewPost(privacyListType: PrivacyListType) -> [MentionableUser] {
-
-        var allContactIDs: Set<UserID> = []
-        do {
-            allContactIDs = try AppContext.shared.privacySettings.feedAudience(for: privacyListType).userIds
-        } catch {
-            DDLogError("Mentions/Unable to fetch feed audience for mentions")
-
-            AppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-                allContactIDs = Set(AppContext.shared.contactStore.allRegisteredContactIDs(in: managedObjectContext))
+    public static func mentionableUsersForNewPost(privacyListType: PrivacyListType, in context: NSManagedObjectContext) -> [MentionableUser] {
+        var allContactIDs = (UserProfile.users(in: privacyListType, in: context) ?? [])
+            .reduce(into: Set<UserID>()) {
+                $0.insert($1.id)
             }
-        }
 
         return UserProfile.names(from: allContactIDs, in: AppContext.shared.mainDataStore.viewContext)
             .map { MentionableUser(userID: $0.key, fullName: $0.value) }
