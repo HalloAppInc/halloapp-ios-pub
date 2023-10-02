@@ -17,10 +17,6 @@ public struct DeveloperSetting {
         get { AppContext.shared.userDefaults.bool(forKey: "showMLImageRank", defaultValue: false) }
         set { AppContext.shared.userDefaults.set(newValue, forKey: "showMLImageRank") }
     }
-    public static var showPhotoSuggestions: Bool {
-        get { AppContext.shared.userDefaults.bool(forKey: "showPhotoSuggestions", defaultValue: true) }
-        set { AppContext.shared.userDefaults.set(newValue, forKey: "showPhotoSuggestions") }
-    }
 
     @UserDefaultsBackedSetting(key: "shown.photosuggestions.explainer")
     public static var didHidePhotoSuggestionsFirstUse = false

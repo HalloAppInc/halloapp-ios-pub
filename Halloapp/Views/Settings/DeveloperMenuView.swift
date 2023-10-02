@@ -49,7 +49,6 @@ struct DeveloperMenuView: View {
     @State var isShowingWebClientManager = false
     @State var disableMultiCamMoments = MainAppContext.shared.userDefaults.bool(forKey: "moments.force.single.cam.session")
     @State var disableQueueSerialization = MainAppContext.shared.userDefaults.bool(forKey: "disableQueueSerialization")
-    @State var showPhotoSuggestions = DeveloperSetting.showPhotoSuggestions
 
     // TODO: Temporarily turn off and potentially remove
 //    @ObservedObject var videoSettings = VideoSettings.shared
@@ -270,11 +269,7 @@ struct DeveloperMenuView: View {
                     } label: {
                         Text(MenuTitles.resetMomentsFTUX)
                     }
-                    
-                    Toggle(MenuTitles.showPhotoSuggestions, isOn: $showPhotoSuggestions)
-                        .onReceive(Just(showPhotoSuggestions)) { value in
-                            DeveloperSetting.showPhotoSuggestions = value
-                        }
+
                     Button {
                         DeveloperSetting.didHidePhotoSuggestionsFirstUse = false
                         dismiss?()
