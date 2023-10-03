@@ -4429,32 +4429,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return (try? viewContext.fetch(request)) ?? []
     }
 
-    // MARK: - Notifications
-
-    func updateFavoritesPromoNotification() {
-        performSeriallyOnBackgroundContext { (managedObjectContext) in
-            let notifications = AppContext.shared.coreFeedData.notifications(for: "favorites", in: managedObjectContext)
-            if notifications.count > 0 {
-                notifications.forEach {
-                    if $0.timestamp < Date(timeIntervalSinceNow: -FeedPost.defaultExpiration) {
-                        managedObjectContext.delete($0)
-                    }
-                }
-                return
-            }
-            if !AppContext.shared.userDefaults.bool(forKey: "hasFavoritesNotificationBeenSent") {
-                AppContext.shared.userDefaults.set(true, forKey: "hasFavoritesNotificationBeenSent")
-                let userId = self.userData.userId
-                let notification = FeedActivity(context: managedObjectContext)
-                notification.postID = String("favorites")
-                notification.event = .favoritesPromo
-                notification.timestamp = Date()
-                notification.userID = userId
-                self.save(managedObjectContext)
-            }
-        }
-    }
-
     // MARK: Merge Data
     
     let didMergeFeedPost = PassthroughSubject<FeedPostID, Never>()

@@ -87,7 +87,6 @@ struct MediaPickerConfig {
     var isCameraEnabled = false
     var onlyRecentItems = false
     var maxNumberOfItems = ServerProperties.maxPostMediaItems
-    var canShowFavoritesPromo = true
 
     static func config(with destination: ShareDestination) -> MediaPickerConfig {
         switch destination {
@@ -124,7 +123,7 @@ struct MediaPickerConfig {
 #else
         onlyRecentItems = true
 #endif
-        return MediaPickerConfig(destination: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: false, onlyRecentItems: onlyRecentItems, canShowFavoritesPromo: false)
+        return MediaPickerConfig(destination: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: false, onlyRecentItems: onlyRecentItems)
     }
 
     static var image: MediaPickerConfig {
@@ -132,7 +131,7 @@ struct MediaPickerConfig {
     }
 
     static var avatar: MediaPickerConfig {
-        MediaPickerConfig(destination: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: true, maxNumberOfItems: 1, canShowFavoritesPromo: false)
+        MediaPickerConfig(destination: nil, filter: .image, allowsMultipleSelection: false, isCameraEnabled: true, maxNumberOfItems: 1)
     }
 
     static var more: MediaPickerConfig {
@@ -399,16 +398,6 @@ class MediaPickerViewController: UIViewController {
         isAnyCallOngoingCancellable = MainAppContext.shared.callManager.isAnyCallOngoing.sink { [weak self] activeCall in
             let isVideoCallOngoing = activeCall?.isVideoCall ?? false
             self?.cameraButton.isEnabled = !isVideoCallOngoing
-        }
-
-        //Show the favorites education modal only once to the user
-        if config.canShowFavoritesPromo, !AppContext.shared.userDefaults.bool(forKey: "hasFavoritesModalBeenShown") {
-            AppContext.shared.userDefaults.set(true, forKey: "hasFavoritesModalBeenShown")
-            let favoritesVC = FavoritesInformationViewController() { privacyListType in
-                self.config.destination = .feed(privacyListType)
-            }
-
-            self.present(favoritesVC, animated: true)
         }
     }
 

@@ -199,13 +199,6 @@ struct DeveloperMenuView: View {
                 }) {
                     Text(MenuTitles.resetFavoritesZeroState)
                 }
-
-                Button {
-                    MainAppContext.shared.feedData.updateFavoritesPromoNotification()
-                    dismiss?()
-                } label: {
-                    Text(MenuTitles.addFavoritesNotification)
-                }
                 // SwuiftUI supports a maximum of 10 subviews, add any new items to this group.
                 Group {
                     Button {
