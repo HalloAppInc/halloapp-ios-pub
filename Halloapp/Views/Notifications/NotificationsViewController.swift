@@ -105,7 +105,6 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
         navigationItem.rightBarButtonItem = readAll
 
         tableView.delegate = self
-        tableView.register(AllowContactsPermissionTableViewHeader.self, forHeaderFooterViewReuseIdentifier: AllowContactsPermissionTableViewHeader.reuseIdentifier)
         tableView.register(StandardNotificationTableViewCell.self, forCellReuseIdentifier: StandardNotificationTableViewCell.reuseIdentifier)
         tableView.register(FriendNotificationTableViewCell.self, forCellReuseIdentifier: FriendNotificationTableViewCell.reuseIdentifier)
         tableView.separatorStyle = .none
@@ -396,14 +395,6 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
             let viewController = UserFeedViewController(userId: activity.userID)
             navigationController?.pushViewController(viewController, animated: true)
         }
-    }
-
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        guard !ContactStore.contactsAccessAuthorized else {
-            return nil
-        }
-
-        return tableView.dequeueReusableHeaderFooterView(withIdentifier: AllowContactsPermissionTableViewHeader.reuseIdentifier)
     }
 
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {

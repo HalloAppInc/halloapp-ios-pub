@@ -24,10 +24,7 @@ fileprivate struct Constants {
 class ChatListViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     private lazy var tableView: UITableView = {
-        // a table view's headers are sticky only when its style is `.plain`
-        // when there aren't contact permissions, we display a sticky banner
-        let style: UITableView.Style = ContactStore.contactsAccessAuthorized ? .grouped : .plain
-        return UITableView(frame: .zero, style: style)
+        UITableView(frame: .zero, style: .grouped)
     }()
 
     private static let cellReuseIdentifier = "ThreadListCell"
@@ -102,7 +99,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
         installEmptyView()
 
-        tableView.register(AllowContactsPermissionTableViewHeader.self, forHeaderFooterViewReuseIdentifier: AllowContactsPermissionTableViewHeader.reuseIdentifier)
         tableView.register(ChatListHeaderView.self, forHeaderFooterViewReuseIdentifier: ChatListHeaderView.reuseIdentifier)
         tableView.register(ThreadListCell.self, forCellReuseIdentifier: ChatListViewController.cellReuseIdentifier)
         tableView.register(ChatListInviteFriendsTableViewCell.self, forCellReuseIdentifier: ChatListViewController.inviteFriendsReuseIdentifier)
@@ -205,41 +201,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
                 self.navigationController?.pushViewController(vc, animated: true)
             })
         )
-
-        if !ContactStore.contactsAccessAuthorized, !showThreadsWithoutContactsPermission {
-            showPermissionsViewController()
-        }
-    }
-
-    private var showThreadsWithoutContactsPermission: Bool {
-        guard let results = fetchedResultsController?.fetchedObjects else {
-            return false
-        }
-
-        return results.contains(where: { thread in
-            switch thread.type {
-            case .oneToOne where thread.userID != MainAppContext.shared.userData.userId:
-                return true
-            case .groupChat:
-                return true
-            default:
-                return false
-            }
-        })
-    }
-
-    private func showPermissionsViewController() {
-        let vc = InAppPermissionsViewController(configuration: .chat)
-        vc.view.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(vc.view)
-        addChild(vc)
-
-        NSLayoutConstraint.activate([
-            vc.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            vc.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            vc.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            vc.view.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-        ])
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -324,11 +285,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     // MARK: New Chat
 
     private func showComposeChat() {
-        guard ContactStore.contactsAccessAuthorized else {
-            present(UINavigationController(rootViewController: NewChatPermissionDeniedController()), animated: true)
-            return
-        }
-
         let sharedNux = MainAppContext.shared.nux
         let isZeroZone = sharedNux.state == .zeroZone
 
@@ -601,13 +557,6 @@ extension ChatListViewController: UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        guard ContactStore.contactsAccessAuthorized else {
-            let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: AllowContactsPermissionTableViewHeader.reuseIdentifier)
-            let inset = tableView.contentInset.top
-            header?.layoutMargins.top = inset < 0 ? -inset : inset
-            return header
-        }
-
         let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: ChatListHeaderView.reuseIdentifier)
         (header as? ChatListHeaderView)?.delegate = self
 
