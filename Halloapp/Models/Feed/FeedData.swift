@@ -94,11 +94,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         )
 
-        cancellableSet.insert(
-            self.contactStore.didDiscoverNewUsers.sink { (userIds) in
-                userIds.forEach({ self.sharePastPostsWith(userId: $0) })
-            })
-
         NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification, object: nil).sink { [weak self] _ in
             // on the app's enter, we check the status of the user's moment
             self?.refreshValidMoment()

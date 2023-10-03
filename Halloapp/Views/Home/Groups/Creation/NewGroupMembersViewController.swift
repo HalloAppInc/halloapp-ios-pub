@@ -141,15 +141,6 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
 
         updateMemberAvatarsRowVisibility()
-
-        cancellableSet.insert(
-            MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] _ in
-                guard let self = self else { return }
-                guard self.isFiltering else { return }
-                DDLogInfo("NewGroupMembersViewController/didDiscoverNewUsers")
-                self.searchController.isActive = true  // edge case: refresh search if user is searching and then add contact in address book
-            }
-        )
     }
 
     override func viewWillAppear(_ animated: Bool) {

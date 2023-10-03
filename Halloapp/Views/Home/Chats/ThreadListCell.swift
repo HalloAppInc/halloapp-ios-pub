@@ -262,18 +262,6 @@ class ThreadListCell: UITableViewCell {
                 DDLogDebug("ThreadListCell/configureForChatsList/id: \(userID)/groupID: \(String(describing: chatThread.groupId))/unreadCount: \(chatThread.unreadCount)")
 
                 avatarView.configure(userId: chatThread.userID ?? "", using: MainAppContext.shared.avatarStore)
-
-                if !MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID, in: MainAppContext.shared.contactStore.viewContext) {
-                    cancellableSet.forEach { $0.cancel() }
-                    cancellableSet.removeAll()
-                    cancellableSet.insert(
-                        MainAppContext.shared.contactStore.didDiscoverNewUsers.sink { [weak self] (newUserIDs) in
-                            if let self, newUserIDs.contains(userID) {
-                                self.titleLabel.text = UserProfile.find(with: userID, in: AppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
-                            }
-                        }
-                    )
-                }
             }
         case .groupChat:
             if let groupId = chatThread.groupId {
