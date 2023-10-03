@@ -1,7 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "magic_posts_empty_state_icon.svg",
+      "filename" : "illistrationLM.svg",
+      "idiom" : "universal"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "filename" : "illistrationDM.svg",
       "idiom" : "universal"
     }
   ],
