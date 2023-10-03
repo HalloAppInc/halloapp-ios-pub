@@ -123,15 +123,10 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Sh
                 self.feedDataSource.refresh()
         })
 
-        // feed view needs to know when unread count changes when user is not on view
-        cancellableSet.insert(
-            AppContext.shared.coreFeedData.didGetUnreadFeedCount.sink { [weak self] (count) in
-                guard let self = self else { return }
-                guard count == 0 else { return }
-                DispatchQueue.main.async {
-                    self.removeNewPostsIndicator()
-                }
-        })
+        CountPublisher<FeedPost>(context: MainAppContext.shared.mainDataStore.viewContext, predicate: FeedPost.unreadPostsPredicate)
+            .filter { $0 == 0 }
+            .sink { [weak self] _ in self?.removeNewPostsIndicator() }
+            .store(in: &cancellableSet)
 
         cancellableSet.insert(
             MainAppContext.shared.service.didDisconnect.sink { [weak self] in

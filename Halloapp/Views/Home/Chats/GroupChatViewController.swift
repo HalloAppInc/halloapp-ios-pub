@@ -472,7 +472,6 @@ class GroupChatViewController: UIViewController, NSFetchedResultsControllerDeleg
         pauseVoiceNotes()
         jumpButton.removeFromSuperview()
         MainAppContext.shared.chatData.markThreadAsRead(type: .groupChat, for: groupId)
-        MainAppContext.shared.chatData.updateUnreadChatsThreadCount()
         MainAppContext.shared.chatData.setCurrentlyChattingInGroup(in: nil)
     }
 

@@ -94,23 +94,7 @@ class HomeViewController: UITabBarController {
          It's removed when the user scrolls to the top of the main feed or when the total unseen posts is 0
          (ie. user scrolls to middle of feed, goes to groups tab, views all unread, indicator should go away)
          */
-        cancellableSet.insert(MainAppContext.shared.feedData.didGetNewFeedPost.receive(on: DispatchQueue.main).sink { [weak self] _ in
-            self?.showHomeTabIndicatorIfNeeded()
-        })
-        // Can ignore shared (old) merged feed posts as they will not be sent when connection is passive
-        cancellableSet.insert(MainAppContext.shared.feedData.didMergeFeedPost.receive(on: DispatchQueue.main).sink { [weak self] feedPostID in
-            let viewContext = MainAppContext.shared.feedData.viewContext
-            guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostID, in: viewContext) else { return }
-            let isInbound = feedPost.userId != MainAppContext.shared.userData.userId
-            if isInbound {
-                self?.showHomeTabIndicatorIfNeeded()
-            }
-        })
         cancellableSet.insert(MainAppContext.shared.feedData.didGetRemoveHomeTabIndicator.receive(on: DispatchQueue.main).sink { [weak self] in
-            self?.removeHomeTabIndicator()
-        })
-        cancellableSet.insert(AppContext.shared.coreFeedData.didGetUnreadFeedCount.receive(on: DispatchQueue.main).sink { [weak self] (count) in
-            guard count == 0 else { return }
             self?.removeHomeTabIndicator()
         })
 
@@ -118,12 +102,6 @@ class HomeViewController: UITabBarController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] count in self?.updateGroupsNavigationControllerBadge(count) }
             .store(in: &cancellableSet)
-
-        cancellableSet.insert(
-            MainAppContext.shared.chatData.didChangeUnreadThreadCount.receive(on: DispatchQueue.main).sink { [weak self] (count) in
-                self?.updateChatNavigationControllerBadge(count)
-        })
-        MainAppContext.shared.chatData.updateUnreadChatsThreadCount()
 
         let context = MainAppContext.shared.mainDataStore.viewContext
         var feedActivityCount = 0
@@ -140,6 +118,20 @@ class HomeViewController: UITabBarController {
             .sink { [weak self] in
                 friendActivityCount = $0
                 self?.updateActivityNavigationControllerBadge(feedActivityCount + friendActivityCount)
+            }
+            .store(in: &cancellableSet)
+
+        CountPublisher<ChatThread>(context: context, predicate: ChatThread.unreadCountPredicate)
+            .sink { [weak self] in self?.updateChatNavigationControllerBadge($0) }
+            .store(in: &cancellableSet)
+
+        CountPublisher<FeedPost>(context: context, predicate: FeedPost.unreadPostsPredicate)
+            .sink { [weak self] count in
+                if count == 0 {
+                    self?.removeHomeTabIndicator()
+                } else {
+                    self?.showHomeTabIndicatorIfNeeded()
+                }
             }
             .store(in: &cancellableSet)
 

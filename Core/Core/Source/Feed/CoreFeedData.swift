@@ -662,20 +662,6 @@ open class CoreFeedData: NSObject {
         }
     }
 
-
-    // MARK: Unread count
-
-    public let didGetUnreadFeedCount = PassthroughSubject<Int, Never>()
-
-    public func checkForUnreadFeed() {
-        mainDataStore.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            guard let self = self else { return }
-            let predicate = NSPredicate(format: "statusValue = %d", FeedPost.Status.incoming.rawValue)
-            let unreadFeedPosts = self.feedPosts(predicate: predicate, in: managedObjectContext)
-            self.didGetUnreadFeedCount.send(unreadFeedPosts.count)
-        }
-    }
-
     // MARK: Read Receipts
 
     public func resendPendingReadReceipts() {
@@ -740,7 +726,6 @@ open class CoreFeedData: NSObject {
             // Check status again in case one of these blocks was already queued
             guard post.status == .incoming || postStatus == .rerequesting else { return }
             self.internalSendSeenReceipt(for: post)
-            self.checkForUnreadFeed()
         }
     }
 

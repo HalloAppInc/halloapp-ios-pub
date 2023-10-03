@@ -731,8 +731,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         if let chatWithUserId = fromUserId {
             // TODO only if jump button is not visible.. call below line
             MainAppContext.shared.chatData.markThreadAsRead(type: .oneToOne, for: chatWithUserId)
-            // updates the number of chat threads with unread messages
-            MainAppContext.shared.chatData.updateUnreadChatsThreadCount()
             // Remove chat notifications from this user when chatViewController for this user is active.
             UNUserNotificationCenter.current().removeDeliveredChatNotifications(fromUserId: chatWithUserId)
         }

@@ -33,14 +33,12 @@ class ChatData: NSObject, ObservableObject {
 
     public var currentPage: Int = 0
 
-    let didChangeUnreadThreadCount = PassthroughSubject<Int, Never>()
     let didGetCurrentChatPresence = PassthroughSubject<(UserID, UserPresenceType, Date?), Never>()
     let didGetChatStateInfo = PassthroughSubject<ChatStateInfo?, Never>()
     
     let didGetMediaUploadProgress = PassthroughSubject<(String, Float), Never>()
     
     let didGetAGroupFeed = PassthroughSubject<GroupID, Never>()
-    let didGetAChatMsg = PassthroughSubject<UserID, Never>()
     let didGetAGroupEvent = PassthroughSubject<GroupID, Never>()
     let didResetGroupInviteLink = PassthroughSubject<GroupID, Never>()
     let didUserPresenceChange = PassthroughSubject<PresenceType, Never>()
@@ -81,15 +79,6 @@ class ChatData: NSObject, ObservableObject {
     
     private var chatStateInfoList: [ChatStateInfo] = []
     private var chatStateDebounceTimer: Timer? = nil
-    
-    private var unreadThreadCount: Int = 0 {
-        didSet {
-            didChangeUnreadThreadCount.send(unreadThreadCount)
-//            DispatchQueue.main.async {
-//                UIApplication.shared.applicationIconBadgeNumber = self.unreadThreadCount
-//            }
-        }
-    }
 
     private let uploadQueue = DispatchQueue(label: "com.halloapp.chat.upload")
     
@@ -323,7 +312,6 @@ class ChatData: NSObject, ObservableObject {
                             if isMissedCall {
                                 if !coreChatData.isCurrentlyChatting(with: peerUserID) {
                                     $0.unreadCount += 1
-                                    self.updateUnreadChatsThreadCount()
                                 }
                             }
                             $0.lastMsgId = callID
@@ -1354,9 +1342,7 @@ class ChatData: NSObject, ObservableObject {
                         mergedMessages.append(contentsOf: sharedMessages)
                         let mergedMessageIds = mergedMessages.map { $0.id }
 
-                        updateUnreadChatsThreadCount()
                         mergedMessages.forEach { chatMsg in
-                            didGetAChatMsg.send(chatMsg.fromUserId)
                             chatMsg.hasBeenProcessed = true
                         }
 
@@ -1630,7 +1616,6 @@ class ChatData: NSObject, ObservableObject {
         save(managedObjectContext)
 
         mergedMessages.forEach({ (sharedMsg, chatMsg) in
-            updateUnreadChatsThreadCount()
             if let senderClientVersion = sharedMsg.senderClientVersion, let chatTimestamp = chatMsg.timestamp, let serverMsgPb = sharedMsg.serverMsgPb {
                 do {
                     var error: DecryptionError? = nil
@@ -1652,7 +1637,6 @@ class ChatData: NSObject, ObservableObject {
             } else {
                 DDLogError("ChatData/mergeSharedData/could not report decryption result, messageId: \(chatMsg.id)")
             }
-            didGetAChatMsg.send(chatMsg.fromUserId)
         })
 
         // send pending chat messages
@@ -1847,14 +1831,6 @@ extension ChatData {
             guard let self = self else { return }
             DDLogInfo("ChatData/markSeenMessages/type: \(type)/id: \(id)/without setting unreadCount to zero")
             self.coreChatData.markSeenMessages(type: type, for: id, in: managedObjectContext)
-        }
-    }
-
-    func updateUnreadChatsThreadCount() {
-        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
-            guard let self = self else { return }
-            let threads = self.commonThreads(predicate: NSPredicate(format: "(typeValue = %d || typeValue = %d) && unreadCount > 0", GroupType.oneToOne.rawValue, GroupType.groupChat.rawValue), in: managedObjectContext)
-            self.unreadThreadCount = Int(threads.count)
         }
     }
 
@@ -3048,11 +3024,6 @@ extension ChatData {
             }
             
             self.save(managedObjectContext)
-
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.updateUnreadChatsThreadCount()
-            }
         }
 
         MainAppContext.shared.mainDataStore.deleteCalls(with: chatThreadId)
@@ -3212,12 +3183,10 @@ extension ChatData {
                         self.processInboundReaction(xmppReaction: chatMessage, using: managedObjectContext, isAppActive: isAppActive)
                     case .album, .text, .voiceNote, .location, .files, .unsupported:
                         self.processInboundChatMessage(xmppChatMessage: chatMessage, using: managedObjectContext, isAppActive: isAppActive)
-                        self.didGetAChatMsg.send(chatMessage.fromUserId)
                     }
                 case .notDecrypted(let tombstone):
                     DDLogInfo("ChatData/processIncomingChatMessage/tombstone \(tombstone.id)")
                     self.processInboundTombstone(tombstone, using: managedObjectContext)
-                    self.didGetAChatMsg.send(tombstone.chatMessageRecipient.fromUserId)
                 }
             }
         }
@@ -3417,8 +3386,6 @@ extension ChatData {
             self.updateChatMessage(with: chatMessage.id) { (chatMessage) in
                 chatMessage.incomingStatus = .haveSeen
             }
-        } else {
-            self.updateUnreadChatsThreadCount()
         }
 
         showChatNotification(for: xmppChatMessage)

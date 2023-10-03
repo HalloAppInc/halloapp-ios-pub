@@ -257,3 +257,10 @@ public extension FeedPost {
         set { groupID = newValue }
     }
 }
+
+extension FeedPost {
+
+    public class var unreadPostsPredicate: NSPredicate {
+        NSPredicate(format: "statusValue == %d", FeedPost.Status.incoming.rawValue)
+    }
+}

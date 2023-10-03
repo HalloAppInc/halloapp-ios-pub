@@ -976,7 +976,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     // MARK: Process Incoming Feed Data
 
     let didReceiveFeedPost = PassthroughSubject<FeedPost, Never>()  // feed post that is not a duplicate but can be shared (old)
-    let didGetNewFeedPost = PassthroughSubject<FeedPostID, Never>() // feed post that is not a duplicate or shared (old)
 
     let didReceiveFeedPostComment = PassthroughSubject<FeedPostComment, Never>()
 
@@ -1190,13 +1189,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             // Notify about new posts all interested parties.
             feedPosts.forEach({
                 self.didReceiveFeedPost.send($0)
-                if !sharedPosts.contains($0.id) {
-                    self.didGetNewFeedPost.send($0.id)
-                }
             })
         }
 
-        coreFeedData.checkForUnreadFeed()
         return newPosts
     }
 
@@ -2110,8 +2105,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             if feedPost.groupId != nil {
                 self.didProcessGroupFeedPostRetract.send(feedPost.id)
             }
-            
-            self.coreFeedData.checkForUnreadFeed()
             completion()
         }
     }
@@ -4556,7 +4549,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     DDLogDebug("FeedData/mergeData/error: \(error)")
                 }
                 DDLogInfo("FeedData/mergeData - \(sharedDataStore.source)/done")
-                coreFeedData.checkForUnreadFeed()
                 completion()
             }
         }

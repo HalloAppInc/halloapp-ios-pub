@@ -225,3 +225,10 @@ public extension CommonThread {
         }
     }
 }
+
+extension CommonThread {
+
+    public class var unreadCountPredicate: NSPredicate {
+        NSPredicate(format: "(typeValue == %d || typeValue == %d) && unreadCount > 0", GroupType.oneToOne.rawValue, GroupType.groupChat.rawValue)
+    }
+}
