@@ -501,7 +501,8 @@ extension PhotoSuggestions {
                                     mediaSource: .library,
                                     pendingInput: MentionInput(text: location?.name ?? "", mentions: MentionRangeMap(), selectedRange: NSRange()),
                                     highlightedAssetCollection: highlightedAssetCollection,
-                                    mediaDebugInfo: debugInfo)
+                                    mediaDebugInfo: debugInfo,
+                                    rankedAssetIdentifiers: selectedMedia.compactMap(\.asset?.localIdentifier))
             }
         }
     }

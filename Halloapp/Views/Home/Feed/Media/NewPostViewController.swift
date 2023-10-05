@@ -47,6 +47,7 @@ struct NewPostState {
     var pendingVoiceNote: PendingMedia?
     var highlightedAssetCollection: PHAssetCollection?
     var mediaDebugInfo: DebugInfoMap?
+    var rankedAssetIdentifiers: [String]? // stores preselected assets in highlightedAssetCollection for analytics
 
     var isPostComposerCancellable: Bool {
         // We can only return to the library picker (UIImagePickerController freezes after choosing an image 🙄).
@@ -98,7 +99,14 @@ final class NewPostViewController: UINavigationController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        Analytics.openScreen(usedInTabBar ? .camera : .composer)
+        if let highlightedAssetCollection = state.highlightedAssetCollection {
+            Analytics.openScreen(.composer, properties: [
+                .numPhotoSuggestions: highlightedAssetCollection.estimatedAssetCount,
+                .numRankedPhotos: state.rankedAssetIdentifiers?.count ?? 0,
+            ])
+        } else {
+            Analytics.openScreen(usedInTabBar ? .camera : .composer)
+        }
     }
 
     // MARK: Private
@@ -250,6 +258,24 @@ final class NewPostViewController: UINavigationController {
         if result.linkPreviewData != nil {
             postProperties[.attachedLinkPreviewCount] = 1
         }
+
+        if let highlightedAssetCollection = state.highlightedAssetCollection {
+            let selectedAssetIDs = Set(state.pendingMedia.compactMap(\.asset?.localIdentifier))
+            let highlightedAssetIDs = {
+                var assetIDs: Set<String> = []
+                PHAsset.fetchAssets(in: highlightedAssetCollection, options: nil).enumerateObjects { asset, _, _ in
+                    assetIDs.insert(asset.localIdentifier)
+                }
+                return assetIDs
+            }()
+            let rankedAssetIDs = Set(state.rankedAssetIdentifiers ?? [])
+
+            postProperties[.numPhotoSuggestions] = highlightedAssetIDs.count
+            postProperties[.numSuggestedPhotosSelected] = selectedAssetIDs.intersection(highlightedAssetIDs).count
+            postProperties[.numRankedPhotos] = rankedAssetIDs.count
+            postProperties[.numRankedPhotosSelected] = selectedAssetIDs.intersection(rankedAssetIDs).count
+        }
+
         destinations.forEach { destination in
             switch destination {
             case .feed(let privacyListType):

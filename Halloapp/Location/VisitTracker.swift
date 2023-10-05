@@ -92,6 +92,7 @@ class VisitTracker: NSObject {
             do {
                 try await UNUserNotificationCenter.current().add(request)
                 DDLogInfo("VisitTracker/notified user of suggestion for \(String(describing: closestSuggestion.location?.name))")
+                Analytics.log(event: .notificationReceived, properties: [.notificationType: NotificationContentType.photoSuggestion.rawValue])
                 backgroundTaskCompletion()
             } catch {
                 DDLogError("VisitTracker/error adding notification: \(error)")
@@ -133,6 +134,8 @@ class VisitTracker: NSObject {
                 newPostViewController.modalPresentationStyle = .fullScreen
                 UIViewController.currentViewController?.present(newPostViewController, animated: true)
             }
+
+            Analytics.log(event: .notificationOpened, properties: [.notificationType: NotificationContentType.photoSuggestion.rawValue])
 
             completionHandler()
         }

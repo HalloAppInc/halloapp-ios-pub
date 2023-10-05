@@ -66,6 +66,7 @@ class SharedAlbumViewController: UIViewController {
         return UICollectionView(frame: .zero, collectionViewLayout: layout)
     }()
 
+    private var refreshTask: Task<Void, Never>?
     private var cancellables: Set<AnyCancellable> = []
 
     override func viewDidLoad() {
@@ -112,6 +113,28 @@ class SharedAlbumViewController: UIViewController {
         refreshSuggestions()
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        Task {
+            // Wait for refresh to complete to get accurate suggestion count
+            if let refreshTask {
+                _ = await refreshTask.result
+            }
+            let numberOfSuggestions = dataSource.snapshot().itemIdentifiers
+                .filter {
+                    switch $0 {
+                    case .suggestion:
+                        return true
+                    default:
+                        return false
+                    }
+                }
+                .count
+            Analytics.openScreen(.photoSuggestions, properties: [.numPhotoSuggestions: numberOfSuggestions])
+        }
+    }
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
 
@@ -129,7 +152,7 @@ class SharedAlbumViewController: UIViewController {
             dataSource.apply(snapshot, animatingDifferences: false)
         }
 
-        Task {
+        refreshTask = Task {
             guard let suggestions = try? await MainAppContext.shared.photoSuggestions.generateSuggestions().sorted(by: { $0.end > $1.end }) else {
                 return
             }
@@ -155,6 +178,7 @@ class SharedAlbumViewController: UIViewController {
             await MainActor.run {
                 dataSource.apply(snapshot, animatingDifferences: true)
             }
+            refreshTask = nil
         }
     }
 

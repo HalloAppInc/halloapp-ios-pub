@@ -64,6 +64,7 @@ public class Analytics {
         case camera
         case activity
         case invite
+        case photoSuggestions
     }
 
     public typealias EventProperties = [EventProperty: Any]
@@ -93,6 +94,10 @@ public class Analytics {
         case groupType // createGroup
         case shareDestination // externalShare
         case fabSelection // fabSelect
+        case numPhotoSuggestions // openScreen[photoSuggestions], sendPost
+        case numSuggestedPhotosSelected // sendPost
+        case numRankedPhotosSelected // sendPost
+        case numRankedPhotos // sendPost
     }
 
     public typealias UserProperties = [UserProperty: Any]
