@@ -460,7 +460,7 @@ class MediaPickerViewController: UIViewController {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
             let recent = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumUserLibrary, options: nil).firstObject
-            let isHighlightedAssetCollection = album === highlightedAssetCollection
+            let isHighlightedAssetCollection = album != nil && album === highlightedAssetCollection
 
             let assets: PHFetchResult<PHAsset>
             let options = PHFetchOptions()
