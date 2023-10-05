@@ -34,7 +34,8 @@ class VisitTracker: NSObject {
     }
 
     func startVisitTrackingIfAvailable() {
-        guard ServerProperties.photoSuggestions else {
+        guard ServerProperties.photoSuggestions, NotificationSettings.current.isMagicPostsEnabled else {
+            isMonitoringVisits = false
             locationManager.stopMonitoringVisits()
             return
         }
@@ -57,7 +58,7 @@ class VisitTracker: NSObject {
             return
         }
 
-        guard ServerProperties.photoSuggestions else {
+        guard ServerProperties.photoSuggestions, NotificationSettings.current.isMagicPostsEnabled else {
             DDLogInfo("VisitTracker/suggestions not enabled, aborting")
             return
         }

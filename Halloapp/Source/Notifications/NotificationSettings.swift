@@ -25,12 +25,14 @@ class NotificationSettings: ObservableObject {
         NotificationSettings.migrateSettings()
         MainAppContext.shared.userDefaults.register(defaults: [NotificationUserDefaultKeys.postsEnabled: true,
                                                                NotificationUserDefaultKeys.commentsEnabled: true,
-                                                               NotificationUserDefaultKeys.momentsEnabled: true,])
+                                                               NotificationUserDefaultKeys.momentsEnabled: true,
+                                                               NotificationUserDefaultKeys.magicPostsEnabled: true])
 
         isPostsEnabled = MainAppContext.shared.userDefaults.bool(forKey: NotificationUserDefaultKeys.postsEnabled)
         isCommentsEnabled = MainAppContext.shared.userDefaults.bool(forKey: NotificationUserDefaultKeys.commentsEnabled)
         isMomentsEnabled = MainAppContext.shared.userDefaults.bool(forKey: NotificationUserDefaultKeys.momentsEnabled)
-        DDLogInfo("NotificationSettings/values: \(isPostsEnabled): \(isCommentsEnabled): \(isMomentsEnabled)")
+        isMagicPostsEnabled = MainAppContext.shared.userDefaults.bool(forKey: NotificationUserDefaultKeys.momentsEnabled)
+        DDLogInfo("NotificationSettings/values: \(isPostsEnabled): \(isCommentsEnabled): \(isMomentsEnabled): \(isMagicPostsEnabled)")
     }
 
     static func migrateSettings() {
@@ -81,6 +83,14 @@ class NotificationSettings: ObservableObject {
         didSet {
             if oldValue != isMomentsEnabled {
                 MainAppContext.shared.userDefaults.set(isMomentsEnabled, forKey: NotificationUserDefaultKeys.momentsEnabled)
+            }
+        }
+    }
+
+    var isMagicPostsEnabled: Bool {
+        didSet {
+            if oldValue != isMagicPostsEnabled {
+                MainAppContext.shared.userDefaults.set(isMagicPostsEnabled, forKey: NotificationUserDefaultKeys.magicPostsEnabled)
             }
         }
     }

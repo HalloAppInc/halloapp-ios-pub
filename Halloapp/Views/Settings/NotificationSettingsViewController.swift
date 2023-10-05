@@ -79,6 +79,7 @@ class NotificationSettingsViewController: UIViewController, UICollectionViewDele
         let postsEnabled = NotificationSettings.current.isPostsEnabled
         let commentsEnabled = NotificationSettings.current.isCommentsEnabled
         let momentsEnabled = NotificationSettings.current.isMomentsEnabled
+        let magicPostsEnabled = NotificationSettings.current.isMagicPostsEnabled
         typealias Item = InsetCollectionView.Item
 
         collectionView.apply(InsetCollectionView.Collection {
@@ -97,6 +98,13 @@ class NotificationSettingsViewController: UIViewController, UICollectionViewDele
                      style: .toggle(initial: momentsEnabled,
                                   isEnabled: enabled,
                                   onChanged: { [weak self] in self?.momentsNotificationsChanged(to: $0) }))
+
+                if ServerProperties.photoSuggestions {
+                    Item(title: Localizations.magicPostNotifications,
+                         style: .toggle(initial: magicPostsEnabled,
+                                        isEnabled: enabled,
+                                        onChanged: { [weak self] in self?.magicPostsNotificationsChanged(to: $0) }))
+                }
             }
         }
         .separators())
@@ -131,6 +139,12 @@ class NotificationSettingsViewController: UIViewController, UICollectionViewDele
 
     private func momentsNotificationsChanged(to value: Bool) {
         NotificationSettings.current.isMomentsEnabled = value
+    }
+
+    private func magicPostsNotificationsChanged(to value: Bool) {
+        NotificationSettings.current.isMagicPostsEnabled = value
+        // reset whether we are monitoring visits
+        MainAppContext.shared.visitTracker.startVisitTrackingIfAvailable()
     }
 
     @objc
@@ -236,6 +250,12 @@ private extension Localizations {
         NSLocalizedString("settings.notifications.moments",
                    value: "Moments",
                  comment: "Settings > Notifications: label for the toggle that turns new moment notifications on or off.")
+    }
+
+    static var magicPostNotifications: String {
+        NSLocalizedString("settings.notifications.magicposts",
+                   value: "Magic Posts",
+                 comment: "Settings > Notifications: label for the toggle that turns new magic post notifications on or off.")
     }
 
     static var notificationsDisabledInstructions: String {

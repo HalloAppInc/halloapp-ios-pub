@@ -14,6 +14,7 @@ public struct NotificationUserDefaultKeys {
     public static let postsEnabled = "NotificationSettings2"     // Bool
     public static let commentsEnabled = "NotificationSettings3"  // Bool
     public static let momentsEnabled = "NotificationSettings4"    // Bool
+    public static let magicPostsEnabled = "NotificationSettings5"    // Bool
 }
 
 
@@ -37,5 +38,10 @@ public struct NotificationSettings {
             AppContext.shared.userDefaults.register(defaults: [ NotificationUserDefaultKeys.momentsEnabled: true])
             return AppContext.shared.userDefaults.bool(forKey: NotificationUserDefaultKeys.momentsEnabled)
         }
+    }
+
+    public static var isMagicPostsEnabled: Bool {
+        AppContext.shared.userDefaults.register(defaults: [ NotificationUserDefaultKeys.magicPostsEnabled: true])
+        return AppContext.shared.userDefaults.bool(forKey: NotificationUserDefaultKeys.magicPostsEnabled)
     }
 }
