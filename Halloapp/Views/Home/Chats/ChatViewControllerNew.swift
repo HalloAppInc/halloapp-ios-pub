@@ -971,7 +971,17 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
     override var canBecomeFirstResponder: Bool {
         get {
-            return profile?.friendshipStatus ?? .none == .friends
+            let friendStatus = profile?.friendshipStatus ?? .none
+
+            if case .friends = friendStatus {
+                return true
+            } else if ServerProperties.allowMessagingNonFriends, let id = profile?.id {
+                let contactStore = MainAppContext.shared.contactStore
+                return contactStore.isContactInAddressBook(userId: id,
+                                                           in: contactStore.viewContext)
+            }
+
+            return false
         }
     }
 

@@ -53,6 +53,7 @@ public struct ServerProperties {
         case enableMomentExternalShare = "moment_external_share"
         case relationshipSyncFrequency = "relationship_sync_frequency"
         case photoSuggestions = "photo_suggestions"
+        case allowMessagingNonFriends = "message_non_friends"
     }
 
     private struct UserDefaultsKey {
@@ -103,6 +104,7 @@ public struct ServerProperties {
         static let enableMomentExternalShare = false
         static let relationshipSyncFrequency: TimeInterval = 604800
         static let photoSuggestions = true
+        static let allowMessagingNonFriends = false
     }
 
     // MARK: Storage
@@ -325,6 +327,8 @@ public struct ServerProperties {
                 value = relationshipSyncFrequency
             case .photoSuggestions:
                 value = photoSuggestions
+            case .allowMessagingNonFriends:
+                value = allowMessagingNonFriends
             }
             partialResult[key.rawValue] = value
         }
@@ -488,5 +492,9 @@ public struct ServerProperties {
 
     public static var photoSuggestions: Bool {
         ServerProperties.bool(forKey: .photoSuggestions) ?? Defaults.photoSuggestions
+    }
+
+    public static var allowMessagingNonFriends: Bool {
+        ServerProperties.bool(forKey: .allowMessagingNonFriends) ?? Defaults.allowMessagingNonFriends
     }
 }
