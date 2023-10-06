@@ -12,6 +12,9 @@ import Foundation
 import Photos
 import Vision
 
+/// Maps identifier to debug info for display to internal users
+typealias DebugInfoMap = [String: String]
+
 final class BurstAwareHighlightSelector {
 
     /// Photos taken with a gap shorter than this interval are considered part of the same "burst"
@@ -29,13 +32,15 @@ final class BurstAwareHighlightSelector {
     let FavoriteFactor = CGFloat(1.5)
 
     ///  Faces with an area greater than this fraction of the image are considered significant
-    let SignificantFaceAreaThreshold = CGFloat(0.05)
+    let SignificantFaceAreaThreshold = CGFloat(0.03)
 
     /// We boost images with significant faces by multiplying their score by this factor
     let SignificantFaceFactor = CGFloat(1.3)
 
-    func selectHighlights(_ n: Int, from assets: [PHAsset]) async -> [PHAsset] {
-        
+    func selectHighlights(_ n: Int, from assets: [PHAsset]) async -> ([PHAsset], DebugInfoMap) {
+
+        var debugInfo = DebugInfoMap()
+
         // 1. Divide photos into bursts (sets of photos taken less than BurstThreshold apart)
         
         var bursts = [[PHAsset]]()
@@ -71,28 +76,37 @@ final class BurstAwareHighlightSelector {
         let scoredAssets = await ImageRanker.shared.scoreAssets(assets)
         var scoredAssetMap = [String: CGFloat]()
         for (asset, score) in scoredAssets {
+            appendDebugLine(String(format: "ML: %.2f", score), for: asset.localIdentifier, in: &debugInfo)
             var adjustedScore = score
             let favoriteBoost = asset.isFavorite ? FavoriteFactor : 1
+            if favoriteBoost > 1 {
+                appendDebugLine(String(format: "FavBoost: %.2f", favoriteBoost), for: asset.localIdentifier, in: &debugInfo)
+            }
             adjustedScore *= favoriteBoost
             if let faces = await ImageRanker.shared.faceObservationsForAsset(asset) {
                 let significantArea = SignificantFaceAreaThreshold
                 if faces.contains(where: { $0.boundingBox.height * $0.boundingBox.width > significantArea }) {
                     DDLogInfo("selectHighlights/face/foundSignificantFace")
                     adjustedScore *= SignificantFaceFactor
+                    appendDebugLine(String(format: "FaceBoost: %.2f", SignificantFaceFactor), for: asset.localIdentifier, in: &debugInfo)
                 }
             }
             scoredAssetMap[asset.localIdentifier] = adjustedScore
         }
         
-        let candidates: [(PHAsset, CGFloat)] = bursts.compactMap {
-            guard let asset = $0.max(by: {
+        let candidates: [(PHAsset, CGFloat)] = bursts.enumerated().compactMap { (i, burst) in
+            guard let asset = burst.max(by: {
                 let s0 = scoredAssetMap[$0.localIdentifier] ?? 1
                 let s1 = scoredAssetMap[$1.localIdentifier] ?? 1
                 return s0 < s1
             }) else {
                 return nil
             }
-            let burstBoost = 1.0 + BurstShareFactor * CGFloat($0.count) / CGFloat(assets.count)
+            let burstBoost = 1.0 + BurstShareFactor * CGFloat(burst.count) / CGFloat(assets.count)
+            for rejected in burst.filter({ $0 != asset }) {
+                appendDebugLine(String(format: "[not best of burst %d]", i), for: rejected.localIdentifier, in: &debugInfo)
+            }
+            appendDebugLine(String(format: "BurstBoost [%d]: %.2f", i, burstBoost), for: asset.localIdentifier, in: &debugInfo)
             return (asset, burstBoost * (scoredAssetMap[asset.localIdentifier] ?? 1))
         }.sorted {
             return $0.1 > $1.1
@@ -100,6 +114,7 @@ final class BurstAwareHighlightSelector {
         
         for (c, s) in candidates {
             DDLogInfo("selectHighlights/scoring [\(c.localIdentifier) \(s)")
+            appendDebugLine(String(format: "Final: %.2f", s), for: c.localIdentifier, in: &debugInfo)
         }
         
         // 3. Select up to N highest scoring candidates
@@ -148,6 +163,7 @@ final class BurstAwareHighlightSelector {
                 }
                 if distance < SimilarityThreshold {
                     DDLogInfo("selectHighlights/similarity/tooSimilar [\(distance)]")
+                    appendDebugLine("[too similar]", for: c.localIdentifier, in: &debugInfo)
                     tooSimilar = true
                     break
                 }
@@ -157,10 +173,16 @@ final class BurstAwareHighlightSelector {
                 out.append(c)
             }
         }
-        
-        return out
+
+        return (out, debugInfo)
     }
-    
+
+    private func appendDebugLine(_ line: String, for identifier: String, in dictionary: inout DebugInfoMap) {
+        var info = dictionary[identifier] ?? ""
+        if !info.isEmpty { info += "\n" }
+        dictionary[identifier] = info + line
+    }
+
 }
 
 final class ImageRanker {

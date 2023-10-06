@@ -341,6 +341,14 @@ public struct ServerProperties {
         ServerProperties.bool(forKey: .internalUser) ?? Defaults.internalUser
     }
 
+    public static var isInternalUserOrDebugBuild: Bool {
+#if DEBUG
+        return true
+#else
+        return isInternalUser
+#endif
+    }
+
     public static var maxGroupSize: Int {
         ServerProperties.integer(forKey: .maxGroupSize) ?? Defaults.maxGroupSize
     }

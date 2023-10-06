@@ -159,6 +159,7 @@ class MediaPickerViewController: UIViewController {
     private var updatingSnapshot = false
     private var nextInProgress = false
     private var highlightedAssetCollection: PHAssetCollection?
+    private var mediaDebugInfo: DebugInfoMap?
 
     private lazy var collectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: view.frame, collectionViewLayout: makeLayout())
@@ -325,6 +326,13 @@ class MediaPickerViewController: UIViewController {
         return button
     }()
 
+    private lazy var debugButtonItem: UIBarButtonItem = {
+        let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
+        let image = UIImage(systemName: "list.clipboard", withConfiguration: imageConfig)?
+                    .withTintColor(.white, renderingMode: .alwaysOriginal)
+        return  UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(toggleDebugInfo))
+    }()
+
     private lazy var backButtonItem: UIBarButtonItem = {
         let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
         let image = UIImage(systemName: "chevron.down", withConfiguration: imageConfig)?
@@ -338,10 +346,12 @@ class MediaPickerViewController: UIViewController {
     init(config: MediaPickerConfig,
          selected: [PendingMedia] = [],
          highlightedAssetCollection: PHAssetCollection? = nil,
+         mediaDebugInfo: DebugInfoMap? = nil,
          didFinish: @escaping MediaPickerViewControllerCallback) {
         self.config = config
         self.selected.append(contentsOf: selected)
         self.highlightedAssetCollection = highlightedAssetCollection
+        self.mediaDebugInfo = mediaDebugInfo
         self.didFinish = didFinish
 
         let modeRawValue = MainAppContext.shared.userDefaults.integer(forKey: UserDefaultsKey.MediaPickerMode)
@@ -382,6 +392,9 @@ class MediaPickerViewController: UIViewController {
 
 
         navigationItem.leftBarButtonItem = backButtonItem
+        if let mediaDebugInfo, !mediaDebugInfo.isEmpty, ServerProperties.isInternalUserOrDebugBuild {
+            navigationItem.rightBarButtonItem = debugButtonItem
+        }
 
         title = config.onlyRecentItems ? Localizations.last24Hours : Localizations.fabAccessibilityPhotoLibrary
         albumsButton.isHidden = config.onlyRecentItems
@@ -535,7 +548,7 @@ class MediaPickerViewController: UIViewController {
         
         for cell in collectionView.visibleCells {
             guard let cell = cell as? AssetViewCell else { continue }
-            cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedAssetCollection: highlightedAssetCollection)
+            self.prepareCell(cell)
         }
 
         config.destination = destination
@@ -551,6 +564,17 @@ class MediaPickerViewController: UIViewController {
             let isVideoCallOngoing = MainAppContext.shared.callManager.activeCall?.isVideoCall ?? false
             cameraButton.isEnabled = !isVideoCallOngoing
         }
+    }
+
+    private func prepareCell(_ cell: AssetViewCell) {
+        let debugInfo = showDebugInfo ? mediaDebugInfo : nil
+        cell.prepare(config: config, mode: mode, selection: selected, highlightedAssetCollection: highlightedAssetCollection, debugInfo: debugInfo)
+    }
+
+    private var showDebugInfo = false
+    @objc private func toggleDebugInfo() {
+        showDebugInfo = !showDebugInfo
+        collectionView.reloadData()
     }
 
     private func setupZoom() {
@@ -587,7 +611,7 @@ class MediaPickerViewController: UIViewController {
                 
                 for cell in collectionView.visibleCells {
                     guard let cell = cell as? AssetViewCell else { continue }
-                    cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedAssetCollection: self.highlightedAssetCollection)
+                    self.prepareCell(cell)
                 }
                 
                 transitionState = .inprogress
@@ -923,7 +947,7 @@ extension MediaPickerViewController: UICollectionViewDelegate {
                 cell.image.transform = CGAffineTransform.identity
             })
         }, completion: { _ in
-            cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedAssetCollection: self.highlightedAssetCollection)
+            self.prepareCell(cell)
         })
     }
 
@@ -945,7 +969,7 @@ extension MediaPickerViewController: UICollectionViewDelegate {
         }, completion: { _ in
             for cell in collectionView.visibleCells {
                 guard let cell = cell as? AssetViewCell else { continue }
-                cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedAssetCollection: self.highlightedAssetCollection)
+                self.prepareCell(cell)
             }
         })
     }
@@ -998,7 +1022,7 @@ extension MediaPickerViewController: UICollectionViewDataSource {
                 guard let self = self else { return }
                 guard cell.asset?.localIdentifier == asset.localIdentifier else { return }
                 cell.image.image = image
-                cell.prepare(config: self.config, mode: self.mode, selection: self.selected, highlightedAssetCollection: highlightedAssetCollection)
+                self.prepareCell(cell)
             }
         }
 
@@ -1097,6 +1121,17 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         return image
     }()
 
+    lazy var debugLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .right
+        label.backgroundColor = .black.withAlphaComponent(0.3)
+        label.textColor = .white
+        label.font = .systemFont(ofSize: 12)
+        label.numberOfLines = 0
+        return label
+    }()
+
     lazy var duration: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -1125,6 +1160,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         
         contentView.addSubview(image)
         contentView.addSubview(indicator)
+        contentView.addSubview(debugLabel)
         contentView.addSubview(duration)
         contentView.addSubview(favorite)
         contentView.clipsToBounds = true
@@ -1164,7 +1200,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         return (spacing, column * spacing / columnCount, spacing - ((column + 1) * spacing / columnCount))
     }
     
-    func prepare(config: MediaPickerConfig, mode: MediaPickerMode, selection: [PendingMedia], highlightedAssetCollection: PHAssetCollection?) {
+    func prepare(config: MediaPickerConfig, mode: MediaPickerMode, selection: [PendingMedia], highlightedAssetCollection: PHAssetCollection?, debugInfo: DebugInfoMap? = nil) {
         let (spacingBottom, spacingLead, spacingTrail) = calculateSpacing(mode: mode)
         
         NSLayoutConstraint.deactivate(activeConstraints)
@@ -1176,6 +1212,8 @@ fileprivate class AssetViewCell: UICollectionViewCell {
             image.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -spacingBottom),
             indicator.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 5),
             indicator.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 5),
+            debugLabel.rightAnchor.constraint(equalTo: duration.rightAnchor),
+            debugLabel.bottomAnchor.constraint(equalTo: duration.topAnchor, constant: -6),
             duration.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
             duration.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: -6),
             favorite.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
@@ -1201,6 +1239,8 @@ fileprivate class AssetViewCell: UICollectionViewCell {
             duration.isHidden = false
             duration.text = interval.formatted
         }
+
+        debugLabel.text = debugInfo?[asset?.localIdentifier ?? ""] ?? nil
 
         favorite.isHidden = asset?.isFavorite != true
 
