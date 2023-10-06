@@ -43,18 +43,22 @@ class PrivacyViewController: UIViewController, UICollectionViewDelegate {
         collectionView.backgroundColor = nil
         collectionView.delegate = self
 
-        MainAppContext.shared.privacySettings.$blockedSetting.receive(on: DispatchQueue.main).sink { [weak self] value in
-            self?.buildCollection()
-        }.store(in: &cancellables)
+        let context = MainAppContext.shared.mainDataStore.viewContext
+        let predicate = NSPredicate(format: "isBlocked == YES")
+        CountPublisher<UserProfile>(context: context, predicate: predicate)
+            .sink { [weak self] count in
+                self?.buildCollection(blockedUsers: count)
+            }
+            .store(in: &cancellables)
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
     }
 
-    private func buildCollection() {
+    private func buildCollection(blockedUsers: Int) {
         let title = PrivacyList.name(forPrivacyListType: .blocked)
-        let blockedUsers = MainAppContext.shared.privacySettings.blockedSetting
+        let blockedUsers = String(format: Localizations.userCountFormat, blockedUsers)
 
         collectionView.apply(InsetCollectionView.Collection {
             InsetCollectionView.Section {
@@ -78,24 +82,14 @@ class PrivacyViewController: UIViewController, UICollectionViewDelegate {
     }
 
     private func openBlockedContacts() {
-        guard ContactStore.contactsAccessAuthorized else {
-            let vc = PrivacyPermissionDeniedController()
-            present(UINavigationController(rootViewController: vc), animated: true)
-            return
-        }
-
-        let privacySettings = MainAppContext.shared.privacySettings
-        let vc = ContactSelectionViewController.forPrivacyList(privacySettings.blocked, in: privacySettings, setActiveType: false) { [weak self] in
-            self?.dismiss(animated: true)
-        }
-        
-        present(UINavigationController(rootViewController: vc), animated: true)
+        let viewController = UIHostingController(rootView: FriendSelection(model: BlockedSelectionModel()))
+        present(viewController, animated: true)
     }
 }
 
 // MARK: - localization
 
-private extension Localizations {
+extension Localizations {
     static var privacy: String {
         NSLocalizedString("settings.privacy",
                    value: "Privacy",
@@ -106,5 +100,10 @@ private extension Localizations {
         NSLocalizedString("settings.privacy.posts",
                    value: "Posts",
                  comment: "Settings > Privacy: name of a setting that defines who can see your posts.")
+    }
+
+    static var userCountFormat: String {
+        NSLocalizedString("privacy.n.contacts",
+                          comment: "Generic setting value telling how many contacts are blocked or muted.")
     }
 }

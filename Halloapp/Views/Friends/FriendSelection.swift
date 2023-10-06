@@ -24,6 +24,7 @@ protocol DisplayableFriendSection: Identifiable {
     var friends: [Friend] { get }
 }
 
+@MainActor
 protocol SelectionModel: ObservableObject {
     associatedtype Section: DisplayableFriendSection
     typealias Friend = Section.Friend
@@ -108,7 +109,7 @@ struct FriendSelection<Model: SelectionModel>: View {
                 }
             }
             .onAppear {
-                if model.selected.isEmpty {
+                if model.selected.isEmpty, !model.candidates.isEmpty {
                     // setting the edit mode without the dispatch causes a table view crash on iOS 15
                     DispatchQueue.main.async { editMode = .active }
                 }

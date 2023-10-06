@@ -146,7 +146,7 @@ extension HAMenu {
             return commonGroupsButton(id, handler: handler)
 
         case (.block, _):
-            return blockButton(id, handler: handler)
+            return blockButton(id, isBlocked: profile.isBlocked, handler: handler)
         case (.report, _):
             return reportButton(id, handler: handler)
 
@@ -230,8 +230,8 @@ extension HAMenu {
         }
     }
 
-    private static func blockButton(_ userID: UserID, handler: @escaping UserActionCallback) -> HAMenuButton {
-        if !MainAppContext.shared.privacySettings.isBlocked(userID) {
+    private static func blockButton(_ userID: UserID, isBlocked: Bool, handler: @escaping UserActionCallback) -> HAMenuButton {
+        if !isBlocked {
             return HAMenuButton(title: Localizations.userOptionBlock, image: .init(systemName: "nosign")) {
                 await handler(.block, userID)
             }

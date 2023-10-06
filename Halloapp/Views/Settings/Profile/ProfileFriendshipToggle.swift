@@ -20,6 +20,7 @@ class ProfileFriendshipToggle: UIView {
     var onCancel: (() -> Void)?
     var onIgnore: (() -> Void)?
     var onRemove: (() -> Void)?
+    var onUnblock: (() -> Void)?
 
     private var primaryAction: (() -> Void)?
     private var secondaryAction: (() -> Void)?
@@ -91,17 +92,23 @@ class ProfileFriendshipToggle: UIView {
         fatalError("ProfileFriendshipToggle coder init not implemented...")
     }
 
-    func configure(name: String, status: UserProfile.FriendshipStatus) {
+    func configure(name: String, status: UserProfile.FriendshipStatus, isBlocked: Bool) {
         var messageText = " "
         var primaryText = ""
         var secondaryText = ""
         var hidePrimary = true
         var hideSecondary = true
+        var primaryColor = UIColor.primaryBlue
 
         var primaryAction: (() -> Void)?
         var secondaryAction: (() -> Void)?
 
         switch status {
+        case _ where isBlocked:
+            hidePrimary = false
+            primaryColor = .systemRed
+            primaryText = Localizations.blockSuccess
+            primaryAction = onUnblock
         case .friends:
             hideSecondary = false
             secondaryText = Localizations.friendsTitle
@@ -134,6 +141,7 @@ class ProfileFriendshipToggle: UIView {
             secondaryButton.isHidden = hideSecondary
         }
 
+        primaryButton.configuration?.baseBackgroundColor = primaryColor
         primaryButton.configuration?.attributedTitle = AttributedString(primaryText.uppercased(),
                                                                         attributes: .init([.font: UIFont.scaledSystemFont(ofSize: 17, weight: .medium),
                                                                                            .foregroundColor: UIColor.white]))

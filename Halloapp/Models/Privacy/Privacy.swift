@@ -599,7 +599,7 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
     private static func settingValueText(forPrivacyList privacyList: PrivacyListProtocol) -> String {
         let userCount = privacyList.userIds.count
         // "None" / "1 Contact" / "N Contacts"
-        let formatString = NSLocalizedString("privacy.n.contacts", comment: "Generic setting value telling how many contacts are blocked or muted.")
+        let formatString = Localizations.userCountFormat
         return String.localizedStringWithFormat(formatString, userCount)
     }
 

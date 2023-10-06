@@ -267,6 +267,7 @@
 		A11BA85428C0236D0077F86A /* RegistrationSplashScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11BA85328C0236D0077F86A /* RegistrationSplashScreenViewController.swift */; };
 		A11FA897285BE02900ACDA76 /* MomentsExplainerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11FA896285BE02900ACDA76 /* MomentsExplainerViewController.swift */; };
 		A1382DC12927028900AFEEEB /* CameraTabPlaceholderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1382DC02927028900AFEEEB /* CameraTabPlaceholderViewController.swift */; };
+		A13C08F42ACF4337001DEAEB /* BlockedSelectionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C08F32ACF4337001DEAEB /* BlockedSelectionModel.swift */; };
 		A13C928C28D8D3A40096CE00 /* AllowContactsPermissionCollectionViewHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C928B28D8D3A40096CE00 /* AllowContactsPermissionCollectionViewHeader.swift */; };
 		A13C928E28D915A00096CE00 /* InAppPermissionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C928D28D915A00096CE00 /* InAppPermissionsViewController.swift */; };
 		A13C929028D9255C0096CE00 /* PermissionExplainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C928F28D9255C0096CE00 /* PermissionExplainerView.swift */; };
@@ -1112,6 +1113,7 @@
 		A11BA85328C0236D0077F86A /* RegistrationSplashScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationSplashScreenViewController.swift; sourceTree = "<group>"; };
 		A11FA896285BE02900ACDA76 /* MomentsExplainerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentsExplainerViewController.swift; sourceTree = "<group>"; };
 		A1382DC02927028900AFEEEB /* CameraTabPlaceholderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraTabPlaceholderViewController.swift; sourceTree = "<group>"; };
+		A13C08F32ACF4337001DEAEB /* BlockedSelectionModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedSelectionModel.swift; sourceTree = "<group>"; };
 		A13C928B28D8D3A40096CE00 /* AllowContactsPermissionCollectionViewHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllowContactsPermissionCollectionViewHeader.swift; sourceTree = "<group>"; };
 		A13C928D28D915A00096CE00 /* InAppPermissionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppPermissionsViewController.swift; sourceTree = "<group>"; };
 		A13C928F28D9255C0096CE00 /* PermissionExplainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionExplainerView.swift; sourceTree = "<group>"; };
@@ -2011,6 +2013,7 @@
 				A163A2592AAF778100501DE3 /* SegmentedFriendsViewController.swift */,
 				A16E2B762ABA56A6003C3F85 /* FriendSelection.swift */,
 				A16E2B782ABA5753003C3F85 /* FavoritesSelectionModel.swift */,
+				A13C08F32ACF4337001DEAEB /* BlockedSelectionModel.swift */,
 			);
 			path = Friends;
 			sourceTree = "<group>";
@@ -3643,6 +3646,7 @@
 				F4EFF9112AA7D44800F09C54 /* PhotoSuggestionsEmptyStateView.swift in Sources */,
 				EAA4C0A12739F505002F1628 /* AddGroupMembersWelcomeView.swift in Sources */,
 				F43DF0F628F60E0B008008B7 /* InstagramStoriesShareProvider.swift in Sources */,
+				A13C08F42ACF4337001DEAEB /* BlockedSelectionModel.swift in Sources */,
 				EA039C6326C49BC4002CC4CF /* EditGroupDescViewController.swift in Sources */,
 				EACC34CB24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift in Sources */,
 				F41FAA5227E54F2900FC5090 /* FeedPostMenuViewController.swift in Sources */,

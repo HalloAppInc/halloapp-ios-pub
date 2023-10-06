@@ -659,13 +659,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                 }
             }
         )
-
-        profile?.publisher(for: \.isBlocked)
-            .dropFirst()
-            .sink { [weak self] _ in
-                self?.setupOrRefreshHeaderAndFooter()
-            }
-            .store(in: &cancellableSet)
         
         configureTitleViewWithTypingIndicator()
         loadChatDraft(id: fromUserId)
@@ -690,7 +683,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
             MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: chatWithUserId)
 
             UNUserNotificationCenter.current().removeDeliveredChatNotifications(fromUserId: chatWithUserId)
-            setupOrRefreshHeaderAndFooter()
         }
         // Add jump to last message button
         view.addSubview(jumpButton)
@@ -1086,31 +1078,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
                 } ?? []
         }
     }
-
-    private func setupOrRefreshHeaderAndFooter() {
-        if profile?.isBlocked ?? false {
-            present(blockedContactSheet, animated: true)
-        }
-    }
-
-    private lazy var blockedContactSheet: BlockedContactSheetViewController = {
-        let sheet = BlockedContactSheetViewController()
-
-        sheet.unblockAction = { [weak self] in
-            guard let self = self else { return }
-            self.dismiss(animated: true)
-            guard let userID = self.fromUserId else { return }
-            let privacySettings = MainAppContext.shared.privacySettings
-            privacySettings.unblock(userID: userID)
-        }
-
-        sheet.cancelAction = { [weak self] in
-            self?.dismiss(animated: true)
-            self?.navigationController?.popViewController(animated: true)
-        }
-
-        return sheet
-    }()
 
     private func pauseVoiceNotes() {
         for cell in collectionView.visibleCells {

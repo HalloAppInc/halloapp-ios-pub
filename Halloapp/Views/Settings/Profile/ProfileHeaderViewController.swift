@@ -130,6 +130,24 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
             alert.addAction(cancelAction)
             self.present(alert, animated: true)
         }
+        headerView.friendshipToggle.onUnblock = { [weak self] in
+            guard let self, let profile = self.profile else {
+                return
+            }
+            let alert = UIAlertController(title: Localizations.unblockTitle(name: profile.name),
+                                          message: Localizations.unBlockMessage(username: profile.name),
+                                          preferredStyle: .alert)
+            let removeAction = UIAlertAction(title: Localizations.unBlockButton, style: .default) { _ in
+                template(.none) { id in
+                    try await MainAppContext.shared.userProfileData.unblock(userID: id)
+                }
+            }
+            let cancelAction = UIAlertAction(title: Localizations.buttonCancel, style: .cancel)
+
+            alert.addAction(removeAction)
+            alert.addAction(cancelAction)
+            self.present(alert, animated: true)
+        }
 
         view = headerView
     }
@@ -148,10 +166,23 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
 
         let isOwnProfile = profile.id == MainAppContext.shared.userData.userId
 
+        profile.publisher(for: \.name)
+            .sink { [headerView] name in
+                headerView.nameLabel.text = name
+            }
+            .store(in: &cancellableSet)
+
+        profile.publisher(for: \.username)
+            .sink { [headerView] username in
+                let usernameText = profile.username.isEmpty ? "" : "@\(profile.username)"
+                headerView.usernameButton.setTitle(usernameText, for: .normal)
+            }
+            .store(in: &cancellableSet)
+
         profile.publisher(for: \.friendshipStatusValue)
             .compactMap { UserProfile.FriendshipStatus(rawValue: $0) }
-            .sink { [weak self] status in
-                self?.headerView.friendshipStatus = status
+            .sink { [headerView] status in
+                headerView.friendshipStatus = status
             }
             .store(in: &cancellableSet)
 
@@ -161,10 +192,12 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
             }
             .store(in: &cancellableSet)
 
-        headerView.nameLabel.text = profile.name
+        profile.publisher(for: \.isBlocked)
+            .sink { [headerView] isBlocked in
+                headerView.isBlocked = isBlocked
+            }
+            .store(in: &cancellableSet)
 
-        let usernameText = profile.username.isEmpty ? "" : "@\(profile.username)"
-        headerView.usernameButton.setTitle(usernameText, for: .normal)
         headerView.usernameButton.configureWithMenu {
             HAMenu {
                 HAMenuButton(title: Localizations.userOptionCopyUsername, image: UIImage(systemName: "doc.on.doc")) { [weak self] in
@@ -463,7 +496,9 @@ private final class ProfileHeaderView: UIView {
         }
 
         favoriteButton.isHidden = !isFavorite
-        friendshipToggle.configure(name: nameLabel.text ?? "", status: friendshipStatus)
+        friendshipToggle.configure(name: nameLabel.text ?? "", status: friendshipStatus, isBlocked: isBlocked)
+
+        setNeedsLayout()
     }
 
     var avatarViewButtonHeightAnchor: NSLayoutConstraint?

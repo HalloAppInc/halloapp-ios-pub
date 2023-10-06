@@ -37,7 +37,7 @@ extension UserActionHandler where Self: UIViewController {
         case .block:
             try await block(userID: userID)
         case .unblock:
-            unblock(userID: userID)
+            try await unblock(userID: userID)
         case .report:
             report(userID: userID)
         }
@@ -161,7 +161,7 @@ extension UserActionHandler where Self: UIViewController {
 
         try await withCheckedThrowingContinuation { continuation in
             let blockAction = UIAlertAction(title: Localizations.blockButton, style: .destructive) { _ in
-                Task {
+                Task(priority: .userInitiated) {
                     do {
                         try await MainAppContext.shared.userProfileData.block(userID: userID)
                         continuation.resume()
@@ -185,19 +185,34 @@ extension UserActionHandler where Self: UIViewController {
         }
     }
 
-    private func unblock(userID: UserID) {
-        let name = UserProfile.find(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)?.displayName ?? ""
-        let unblockMessage = Localizations.unBlockMessage(username: name)
-        let alert = UIAlertController(title: nil, message: unblockMessage, preferredStyle: .actionSheet)
-        let unblockButton = UIAlertAction(title: Localizations.unBlockButton, style: .default) { _ in
-            MainAppContext.shared.privacySettings.unblock(userID: userID)
+    private func unblock(userID: UserID) async throws {
+        let profile = UserProfile.find(with: userID, in: MainAppContext.shared.mainDataStore.viewContext)
+        let title = Localizations.unblockTitle(name: profile?.name ?? "")
+        let message = Localizations.unBlockMessage(username: profile?.name ?? "")
+
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+
+        try await withCheckedThrowingContinuation { continuation in
+            let blockAction = UIAlertAction(title: Localizations.unBlockButton, style: .default) { _ in
+                Task(priority: .userInitiated) {
+                    do {
+                        try await MainAppContext.shared.userProfileData.unblock(userID: userID)
+                        continuation.resume()
+                    } catch {
+                        continuation.resume(throwing: error)
+                    }
+                }
+            }
+
+            let cancelAction = UIAlertAction(title: Localizations.buttonCancel, style: .cancel) { _ in
+                continuation.resume(throwing: CancellationError())
+            }
+
+            alert.addAction(blockAction)
+            alert.addAction(cancelAction)
+
+            present(alert, animated: true)
         }
-
-        let cancelButton = UIAlertAction(title: Localizations.buttonCancel, style: .cancel)
-        alert.addAction(unblockButton)
-        alert.addAction(cancelButton)
-
-        present(alert, animated: true)
     }
 
     private func report(userID: UserID) {
@@ -254,6 +269,11 @@ extension Localizations {
 
     static func blockTitle(name: String) -> String {
         let format = NSLocalizedString("block.title", value: "Block %@", comment: "Title of an alert when blocking a user.")
+        return String(format: format, name)
+    }
+
+    static func unblockTitle(name: String) -> String {
+        let format = NSLocalizedString("unblock.title", value: "Unblock %@", comment: "Title of an alert when unblocking a user")
         return String(format: format, name)
     }
 

@@ -111,9 +111,9 @@
 			<key>zero</key>
 			<string>None</string>
 			<key>one</key>
-			<string>%d Contact</string>
+			<string>%d User</string>
 			<key>other</key>
-			<string>%d Contacts</string>
+			<string>%d Users</string>
 		</dict>
 	</dict>
 	<key>feed.privacy.value.n.contacts.excluded</key>
