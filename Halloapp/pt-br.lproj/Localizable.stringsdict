@@ -591,15 +591,15 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>few</key>
-			<string>%d Contacts</string>
+			<string>%d Users</string>
 			<key>many</key>
-			<string>%d Contacts</string>
+			<string>%d Users</string>
 			<key>one</key>
 			<string>%d contato</string>
 			<key>other</key>
 			<string>%d contatos</string>
 			<key>two</key>
-			<string>%d Contacts</string>
+			<string>%d Users</string>
 			<key>zero</key>
 			<string>Nenhum</string>
 		</dict>

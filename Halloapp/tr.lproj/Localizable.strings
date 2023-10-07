@@ -553,18 +553,6 @@
 /* Label for add media button in post composer */
 "composer.addmedia" = "Görsel ekle";
 
-/* Accessibility label for add images button */
-"composer.audio.a11y.addImages" = "Görüntü ekle";
-
-/* Accessibility label for sharing a post */
-"composer.audio.a11y.shareRecording" = "Paylaş";
-
-/* Accessibility label for starting an audio recording */
-"composer.audio.a11y.startRecording" = "Kayda başla";
-
-/* Accessibility label for stopping an audio recording */
-"composer.audio.a11y.stopRecording" = "Kaydı bitir";
-
 /* Instructions for audio post composer */
 "composer.audio.instructions" = "Kaydetmek için dokun";
 

@@ -575,18 +575,6 @@
 /* Label for add media button in post composer */
 "composer.addmedia" = "Agregar archivo multimedia";
 
-/* Accessibility label for add images button */
-"composer.audio.a11y.addImages" = "Agregar imágenes";
-
-/* Accessibility label for sharing a post */
-"composer.audio.a11y.shareRecording" = "Compartir";
-
-/* Accessibility label for starting an audio recording */
-"composer.audio.a11y.startRecording" = "Empezar a grabar";
-
-/* Accessibility label for stopping an audio recording */
-"composer.audio.a11y.stopRecording" = "Parar de grabar";
-
 /* Instructions for audio post composer */
 "composer.audio.instructions" = "Toca para grabar";
 
@@ -928,6 +916,12 @@
 
 /* Explains that as more contacts join the app, they will appear in this list automatically. */
 "fellow.contacts.will.arrive" = "Tus contactos telefónicos que se registren con HalloApp aparecerán aquí automáticamente.";
+
+/* Message displayed in the activity center when someone accepts your friend request. */
+"friend.activity.incoming.accepted" = "<$author$> aceptó tu solicitud de amistad";
+
+/* Message displayed in the activity center when there's an incoming friend request. */
+"friend.activity.incoming.pending" = "<$author$> te envió una solicitud de amistad";
 
 /* Title of a header that appears before a list of contacts that can be invited to register. */
 "friend.invite.header.title" = "¿A quién más quieres ver aquí?";

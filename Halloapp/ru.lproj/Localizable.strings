@@ -550,18 +550,6 @@
 /* Label for add media button in post composer */
 "composer.addmedia" = "Добавить медию";
 
-/* Accessibility label for add images button */
-"composer.audio.a11y.addImages" = "Добавить изображения";
-
-/* Accessibility label for sharing a post */
-"composer.audio.a11y.shareRecording" = "Поделиться";
-
-/* Accessibility label for starting an audio recording */
-"composer.audio.a11y.startRecording" = "Начать запись";
-
-/* Accessibility label for stopping an audio recording */
-"composer.audio.a11y.stopRecording" = "Остановить запись";
-
 /* Instructions for audio post composer */
 "composer.audio.instructions" = "Нажмите, чтобы начать запись";
 

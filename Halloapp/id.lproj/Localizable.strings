@@ -556,18 +556,6 @@
 /* Label for add media button in post composer */
 "composer.addmedia" = "Tambahkan media";
 
-/* Accessibility label for add images button */
-"composer.audio.a11y.addImages" = "Tambahkan Gambar";
-
-/* Accessibility label for sharing a post */
-"composer.audio.a11y.shareRecording" = "Bagikan";
-
-/* Accessibility label for starting an audio recording */
-"composer.audio.a11y.startRecording" = "Mulai Merekam";
-
-/* Accessibility label for stopping an audio recording */
-"composer.audio.a11y.stopRecording" = "Berhenti Merekam";
-
 /* Instructions for audio post composer */
 "composer.audio.instructions" = "Ketuk untuk merekam";
 

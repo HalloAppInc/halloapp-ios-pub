@@ -575,23 +575,11 @@
 /* Label for add media button in post composer */
 "composer.addmedia" = "Media toevoegen";
 
-/* Accessibility label for add images button */
-"composer.audio.a11y.addImages" = "Afbeeldingen Toevoegen";
-
-/* Accessibility label for sharing a post */
-"composer.audio.a11y.shareRecording" = "Delen";
-
-/* Accessibility label for starting an audio recording */
-"composer.audio.a11y.startRecording" = "Opname Starten";
-
-/* Accessibility label for stopping an audio recording */
-"composer.audio.a11y.stopRecording" = "Opname Stoppen";
-
 /* Instructions for audio post composer */
 "composer.audio.instructions" = "Tik om op te nemen";
 
 /* Title for audio post composer */
-"composer.audio.title" = "Nieuwe Audiopost";
+"composer.audio.title" = "Nieuwe Audio";
 
 /* Title on edit button */
 "composer.button.edit" = "Bewerken";
@@ -928,6 +916,12 @@
 
 /* Explains that as more contacts join the app, they will appear in this list automatically. */
 "fellow.contacts.will.arrive" = "Je telefooncontacten die zich registreren op HalloApp verschijnen hier automatisch.";
+
+/* Message displayed in the activity center when someone accepts your friend request. */
+"friend.activity.incoming.accepted" = "<$author$> heeft je vriendschapsverzoek geaccepteerd";
+
+/* Message displayed in the activity center when there's an incoming friend request. */
+"friend.activity.incoming.pending" = "<$author$> heeft je een vriendschapsverzoek gestuurd";
 
 /* Title of a header that appears before a list of contacts that can be invited to register. */
 "friend.invite.header.title" = "Wie wil je hier nog meer zien?";
@@ -2197,6 +2191,9 @@
 
 /* Instructions for enabling notifications permissions */
 "settings.notifications.disabled.instructions" = "Zet meldingen aan in Instellingen.";
+
+/* Settings > Notifications: label for the toggle that turns new magic post notifications on or off. */
+"settings.notifications.magicposts" = "Magische Posts";
 
 /* Settings > Notifications: label for the toggle that turns new moment notifications on or off. */
 "settings.notifications.moments" = "Momenten";
