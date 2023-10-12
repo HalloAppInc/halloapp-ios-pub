@@ -446,6 +446,7 @@
 		EECB00B0286E2396003996B3 /* LocationSharingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EECB00AF286E2396003996B3 /* LocationSharingViewController.swift */; };
 		EECB00B4286E454F003996B3 /* LocationListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EECB00B3286E454F003996B3 /* LocationListViewController.swift */; };
 		EECC0A9128791CF700F5AFFF /* Combine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EECC0A9028791CF700F5AFFF /* Combine.swift */; };
+		F401FABB2AF2DC4B006BD603 /* PHAssetMediaSubtype.swift in Sources */ = {isa = PBXBuildFile; fileRef = F401FABA2AF2DC4B006BD603 /* PHAssetMediaSubtype.swift */; };
 		F402E9F52AC36335008EBDB9 /* UIButtonConfiguration+HalloApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F402E9F42AC36335008EBDB9 /* UIButtonConfiguration+HalloApp.swift */; };
 		F404FC392810B135008313FF /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F404FC372810B135008313FF /* Core.framework */; };
 		F404FC3A2810B135008313FF /* Core.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F404FC372810B135008313FF /* Core.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -475,6 +476,8 @@
 		F43DF0FA28F75C98008008B7 /* ExternalSharePreviewImageGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43DF0F928F75C98008008B7 /* ExternalSharePreviewImageGenerator.swift */; };
 		F445A73927FFB8270046D382 /* ShareMenuPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F445A73827FFB8270046D382 /* ShareMenuPresenter.swift */; };
 		F44FEEF52A9E94FF002F2D02 /* VisitTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F44FEEF42A9E94FF002F2D02 /* VisitTracker.swift */; };
+		F45123C72AF175F6000E9C43 /* AssetRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45123C62AF175F6000E9C43 /* AssetRecord.swift */; };
+		F45123C92AF1761A000E9C43 /* AssetMacroCluster.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45123C82AF1761A000E9C43 /* AssetMacroCluster.swift */; };
 		F451ADA928CFBCE5003D1A76 /* UnifiedComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F451ADA828CFBCE5003D1A76 /* UnifiedComposerView.swift */; };
 		F45D9F762825DEFF005BAD9D /* GroupGridViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D9F752825DEFF005BAD9D /* GroupGridViewController.swift */; };
 		F45D9F792825DF62005BAD9D /* GroupGridCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D9F782825DF62005BAD9D /* GroupGridCollectionViewCell.swift */; };
@@ -493,6 +496,8 @@
 		F49C8E632835A52900E881E3 /* RoundedRectButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49C8E622835A52900E881E3 /* RoundedRectButton.swift */; };
 		F49D2E6427EE6A8900195566 /* URLRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49D2E6027EE6A5300195566 /* URLRouterTests.swift */; };
 		F49FF9F527F53C8B00EC86B2 /* FeedPostDisplayable.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49FF9F227F53C8A00EC86B2 /* FeedPostDisplayable.swift */; };
+		F49FFA192ACF716600EDFC89 /* PhotoSuggestions.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F49FFA172ACF716600EDFC89 /* PhotoSuggestions.xcdatamodeld */; };
+		F49FFA1B2ACF74C900EDFC89 /* PhotoSuggestionsData.swift in Sources */ = {isa = PBXBuildFile; fileRef = F49FFA1A2ACF74C900EDFC89 /* PhotoSuggestionsData.swift */; };
 		F4A273862A993D7600786269 /* ServerGeocoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A273852A993D7600786269 /* ServerGeocoder.swift */; };
 		F4B3FC7C2900A50400D73C9A /* FeedShareCarouselCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B3FC7B2900A50400D73C9A /* FeedShareCarouselCell.swift */; };
 		F4B91DF8278FCEEB00DF70C1 /* CADisplayLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */; };
@@ -1303,6 +1308,7 @@
 		EECB00AF286E2396003996B3 /* LocationSharingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSharingViewController.swift; sourceTree = "<group>"; };
 		EECB00B3286E454F003996B3 /* LocationListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationListViewController.swift; sourceTree = "<group>"; };
 		EECC0A9028791CF700F5AFFF /* Combine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Combine.swift; sourceTree = "<group>"; };
+		F401FABA2AF2DC4B006BD603 /* PHAssetMediaSubtype.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PHAssetMediaSubtype.swift; sourceTree = "<group>"; };
 		F402E9F42AC36335008EBDB9 /* UIButtonConfiguration+HalloApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIButtonConfiguration+HalloApp.swift"; sourceTree = "<group>"; };
 		F404FC372810B135008313FF /* Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F404FC382810B135008313FF /* CoreCommon.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CoreCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1324,6 +1330,8 @@
 		F43DF0F928F75C98008008B7 /* ExternalSharePreviewImageGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalSharePreviewImageGenerator.swift; sourceTree = "<group>"; };
 		F445A73827FFB8270046D382 /* ShareMenuPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareMenuPresenter.swift; sourceTree = "<group>"; };
 		F44FEEF42A9E94FF002F2D02 /* VisitTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitTracker.swift; sourceTree = "<group>"; };
+		F45123C62AF175F6000E9C43 /* AssetRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetRecord.swift; sourceTree = "<group>"; };
+		F45123C82AF1761A000E9C43 /* AssetMacroCluster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetMacroCluster.swift; sourceTree = "<group>"; };
 		F451ADA828CFBCE5003D1A76 /* UnifiedComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedComposerView.swift; sourceTree = "<group>"; };
 		F45D9F752825DEFF005BAD9D /* GroupGridViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridViewController.swift; sourceTree = "<group>"; };
 		F45D9F782825DF62005BAD9D /* GroupGridCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupGridCollectionViewCell.swift; sourceTree = "<group>"; };
@@ -1340,6 +1348,8 @@
 		F49C8E622835A52900E881E3 /* RoundedRectButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedRectButton.swift; sourceTree = "<group>"; };
 		F49D2E6027EE6A5300195566 /* URLRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLRouterTests.swift; sourceTree = "<group>"; };
 		F49FF9F227F53C8A00EC86B2 /* FeedPostDisplayable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedPostDisplayable.swift; sourceTree = "<group>"; };
+		F49FFA182ACF716600EDFC89 /* PhotoSuggestions.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = PhotoSuggestions.xcdatamodel; sourceTree = "<group>"; };
+		F49FFA1A2ACF74C900EDFC89 /* PhotoSuggestionsData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSuggestionsData.swift; sourceTree = "<group>"; };
 		F4A273852A993D7600786269 /* ServerGeocoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerGeocoder.swift; sourceTree = "<group>"; };
 		F4B3FC7B2900A50400D73C9A /* FeedShareCarouselCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedShareCarouselCell.swift; sourceTree = "<group>"; };
 		F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CADisplayLink.swift; sourceTree = "<group>"; };
@@ -2601,7 +2611,7 @@
 				EAC4AF21233E8D9700739B2B /* Network */,
 				146B93702405F2F900768AC6 /* Resources */,
 				EA5AD43C23342B8C00429643 /* Views */,
-				F4BF3DD72A5E1A8F005663FD /* Location */,
+				F4BF3DD72A5E1A8F005663FD /* Photo Suggestions */,
 				EAF3A1C22334191E00805FF9 /* AppDelegate.swift */,
 				EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */,
 				EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */,
@@ -2649,6 +2659,32 @@
 			path = "Location Sharing";
 			sourceTree = "<group>";
 		};
+		F401FAB92AF2DC2D006BD603 /* Util */ = {
+			isa = PBXGroup;
+			children = (
+				F401FABA2AF2DC4B006BD603 /* PHAssetMediaSubtype.swift */,
+			);
+			path = Util;
+			sourceTree = "<group>";
+		};
+		F42258F82AEB464D0039616A /* Geocoders */ = {
+			isa = PBXGroup;
+			children = (
+				F4FA225D2A8C192100654455 /* AppleGeocoder.swift */,
+				F4A273852A993D7600786269 /* ServerGeocoder.swift */,
+			);
+			path = Geocoders;
+			sourceTree = "<group>";
+		};
+		F42258F92AEB465C0039616A /* Visits */ = {
+			isa = PBXGroup;
+			children = (
+				F44FEEF42A9E94FF002F2D02 /* VisitTracker.swift */,
+				F4EFF9162AA9262B00F09C54 /* LocationPermissionsMonitor.swift */,
+			);
+			path = Visits;
+			sourceTree = "<group>";
+		};
 		F43DF0E828F0A642008008B7 /* Share */ = {
 			isa = PBXGroup;
 			children = (
@@ -2685,16 +2721,27 @@
 			path = Routing;
 			sourceTree = "<group>";
 		};
-		F4BF3DD72A5E1A8F005663FD /* Location */ = {
+		F4BF3DD72A5E1A8F005663FD /* Photo Suggestions */ = {
 			isa = PBXGroup;
 			children = (
+				F42258F82AEB464D0039616A /* Geocoders */,
+				F4DE66F52AEAE293003AC357 /* Models */,
+				F42258F92AEB465C0039616A /* Visits */,
+				F401FAB92AF2DC2D006BD603 /* Util */,
 				F4BF3DDA2A5E2018005663FD /* PhotoSuggestions.swift */,
-				F4FA225D2A8C192100654455 /* AppleGeocoder.swift */,
-				F4A273852A993D7600786269 /* ServerGeocoder.swift */,
-				F44FEEF42A9E94FF002F2D02 /* VisitTracker.swift */,
-				F4EFF9162AA9262B00F09C54 /* LocationPermissionsMonitor.swift */,
 			);
-			path = Location;
+			path = "Photo Suggestions";
+			sourceTree = "<group>";
+		};
+		F4DE66F52AEAE293003AC357 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				F49FFA172ACF716600EDFC89 /* PhotoSuggestions.xcdatamodeld */,
+				F49FFA1A2ACF74C900EDFC89 /* PhotoSuggestionsData.swift */,
+				F45123C62AF175F6000E9C43 /* AssetRecord.swift */,
+				F45123C82AF1761A000E9C43 /* AssetMacroCluster.swift */,
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
 		F4F13CBB2A60873B007EFC21 /* Shared Albums */ = {
@@ -3271,6 +3318,7 @@
 				F470251027ED31A6008CD37F /* URLRouter.swift in Sources */,
 				3245AF16284F23B30036CB8E /* MessageMediaView.swift in Sources */,
 				A163A2582AAF74B700501DE3 /* UILayoutPriority.swift in Sources */,
+				F45123C72AF175F6000E9C43 /* AssetRecord.swift in Sources */,
 				F84DF6852851E4FF00BEC721 /* MediaListAnimator.swift in Sources */,
 				A1FF1ED528BE78D40057FC27 /* PermissionsViewController.swift in Sources */,
 				A13C08F62AD8EFDE001DEAEB /* FriendSuggestionsManager.swift in Sources */,
@@ -3464,6 +3512,7 @@
 				A163A2562AAF746B00501DE3 /* FriendHeaderViews.swift in Sources */,
 				A188383928BD5DA6005BBCC2 /* PhoneNumberEntryViewController.swift in Sources */,
 				EAC46556251484FE00783821 /* EditGroupViewController.swift in Sources */,
+				F45123C92AF1761A000E9C43 /* AssetMacroCluster.swift in Sources */,
 				F4C29B16283D5A4C00A4FE08 /* MediaImageView.swift in Sources */,
 				E5B9EAB8265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift in Sources */,
 				A1CD447F291C6AC000623FF6 /* CameraAnimator.swift in Sources */,
@@ -3504,6 +3553,7 @@
 				76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */,
 				EAEE49DA276A76ED0042E654 /* ChatTitleView.swift in Sources */,
 				328305C827D6736E00AD661A /* MessageCellViewBase.swift in Sources */,
+				F49FFA1B2ACF74C900EDFC89 /* PhotoSuggestionsData.swift in Sources */,
 				F4D88F5127D6D8A300D706DA /* InviteContactViewController.swift in Sources */,
 				EA73DF4025E88D9B0070875D /* NewPostsIndicator.swift in Sources */,
 				EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */,
@@ -3523,6 +3573,7 @@
 				A13C929028D9255C0096CE00 /* PermissionExplainerView.swift in Sources */,
 				EAD476F52458F03700EF8591 /* ChatThread+CoreDataProperties.swift in Sources */,
 				EAA34C09270F9EDF00BCF1BD /* StorageViewController.swift in Sources */,
+				F401FABB2AF2DC4B006BD603 /* PHAssetMediaSubtype.swift in Sources */,
 				762EDBDB244E344300986617 /* UIFont.swift in Sources */,
 				F88A5CD927145F0800DFA205 /* PostViewController.swift in Sources */,
 				6A6D50D9270FE56800CD2EFC /* Feed4ToFeed6.xcmappingmodel in Sources */,
@@ -3601,6 +3652,7 @@
 				765EB4EB24D92404002FA5D9 /* SafariView.swift in Sources */,
 				685B76CC24E4A37600BF666A /* FloatingMenu.swift in Sources */,
 				766492252450E04D009BC368 /* BadgeView.swift in Sources */,
+				F49FFA192ACF716600EDFC89 /* PhotoSuggestions.xcdatamodeld in Sources */,
 				EA6DE2CD25C3768C00C83001 /* GroupTitleView.swift in Sources */,
 				EAB533CA26265ED700943FDC /* GroupBackgroundViewController.swift in Sources */,
 				6A91069D262D02170081E337 /* NotificationRequest.swift in Sources */,
@@ -5606,6 +5658,16 @@
 			);
 			currentVersion = 5BD8B042276B620C006755BC /* Chat2.xcdatamodel */;
 			path = Chat.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+		F49FFA172ACF716600EDFC89 /* PhotoSuggestions.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				F49FFA182ACF716600EDFC89 /* PhotoSuggestions.xcdatamodel */,
+			);
+			currentVersion = F49FFA182ACF716600EDFC89 /* PhotoSuggestions.xcdatamodel */;
+			path = PhotoSuggestions.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};

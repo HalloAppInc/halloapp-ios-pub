@@ -170,6 +170,8 @@
 		F4BC5C492888796600160103 /* CommonMediaUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4BC5C482888796600160103 /* CommonMediaUploader.swift */; };
 		F4BE52BA28EFC797001D3A10 /* SentryLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4BE52B928EFC797001D3A10 /* SentryLogger.swift */; };
 		F4CF6FE0290B310D009A45A0 /* Analytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4CF6FDF290B310D009A45A0 /* Analytics.swift */; };
+		F4D886282ADE0734004AE60F /* FindableManagedObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D886262ADE072E004AE60F /* FindableManagedObject.swift */; };
+		F4D886292ADE0734004AE60F /* IdentifiableManagedObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D886272ADE0734004AE60F /* IdentifiableManagedObject.swift */; };
 		F4FDEC9A28A43DC500B151CB /* VideoUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FDEC9928A43DC500B151CB /* VideoUtils.swift */; };
 		F4FDEC9E28A43EBE00B151CB /* NextLevelSessionExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FDEC9D28A43EBE00B151CB /* NextLevelSessionExporter.swift */; };
 		F86919E226397F0C00B01306 /* UIImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F86919E126397F0C00B01306 /* UIImageView.swift */; };
@@ -347,6 +349,8 @@
 		F4BC5C482888796600160103 /* CommonMediaUploader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonMediaUploader.swift; sourceTree = "<group>"; };
 		F4BE52B928EFC797001D3A10 /* SentryLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SentryLogger.swift; sourceTree = "<group>"; };
 		F4CF6FDF290B310D009A45A0 /* Analytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Analytics.swift; sourceTree = "<group>"; };
+		F4D886262ADE072E004AE60F /* FindableManagedObject.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FindableManagedObject.swift; sourceTree = "<group>"; };
+		F4D886272ADE0734004AE60F /* IdentifiableManagedObject.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IdentifiableManagedObject.swift; sourceTree = "<group>"; };
 		F4FDEC9928A43DC500B151CB /* VideoUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoUtils.swift; sourceTree = "<group>"; };
 		F4FDEC9D28A43EBE00B151CB /* NextLevelSessionExporter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NextLevelSessionExporter.swift; sourceTree = "<group>"; };
 		F86919E126397F0C00B01306 /* UIImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageView.swift; sourceTree = "<group>"; };
@@ -738,6 +742,8 @@
 		7681241C2486C133008C5216 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				F4D886262ADE072E004AE60F /* FindableManagedObject.swift */,
+				F4D886272ADE0734004AE60F /* IdentifiableManagedObject.swift */,
 				6A4E228C291332F70047AC09 /* Date.swift */,
 				68A64E7F24D2128300F40F1F /* NSAttributedString.swift */,
 				68A64E8124D22E5500F40F1F /* NSRange.swift */,
@@ -935,6 +941,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6A4E228F291333290047AC09 /* DateFormatter.swift in Sources */,
+				F4D886282ADE0734004AE60F /* FindableManagedObject.swift in Sources */,
 				F8BE61AA27A0640C0061FFC2 /* ChatListSyncItem.swift in Sources */,
 				6A5729772745885500E02BAC /* NotificationStatus+CoreDataClass.swift in Sources */,
 				6A5729782745885500E02BAC /* NotificationStatus+CoreDataProperties.swift in Sources */,
@@ -1063,6 +1070,7 @@
 				68D64BFC25EEE220000AB07C /* Whisper.swift in Sources */,
 				681811D325E9AB6D00F9126C /* MessageCrypter.swift in Sources */,
 				5B5CEEFB278700D3006548E4 /* BlobVersion.swift in Sources */,
+				F4D886292ADE0734004AE60F /* IdentifiableManagedObject.swift in Sources */,
 				689FB94927EB9761005CD6D8 /* ContentPublishInfo+CoreDataProperties.swift in Sources */,
 				76608ECD24EC2B5100DD61C3 /* Chat.swift in Sources */,
 				689FB93F27EA9B62005CD6D8 /* CommonMedia+CoreDataClass.swift in Sources */,

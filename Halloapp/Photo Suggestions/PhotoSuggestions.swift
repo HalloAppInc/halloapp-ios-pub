@@ -536,11 +536,6 @@ extension MKCoordinateRegion {
     }
 }
 
-extension PHAssetMediaSubtype {
-    static let photoAnimated = PHAssetMediaSubtype(rawValue: 1 << 6)
-    static let videoScreenRecording = PHAssetMediaSubtype(rawValue: 1 << 15)
-}
-
 struct PhotoClusterLocation: Hashable {
     let location: CLLocation
     let name: String

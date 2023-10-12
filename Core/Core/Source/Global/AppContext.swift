@@ -36,6 +36,7 @@ open class AppContext: AppContextCommon {
     private static let mediaHashDatabaseFilename = "mediaHash.sqlite"
     private static let notificationsDatabaseFilename = "notifications.sqlite"
     private static let userDefaultsUserIDKey = "main.store.userID"
+    private static let photoSuggestionsFilename = "photoSuggestions.sqlite"
 
     // Key to store content-ids from notification extension - used to refresh ui
     public static let nsePostsKey = "nsePostsKey"
@@ -235,7 +236,11 @@ open class AppContext: AppContextCommon {
     static let notificationStoreURL = {
         sharedDirectoryURL.appendingPathComponent(AppContext.notificationsDatabaseFilename)
     }()
-    
+
+    public static let photoSuggestionsStoreURL = {
+        sharedDirectoryURL.appendingPathComponent(AppContext.photoSuggestionsFilename)
+    }()
+
     public func deleteSharedDirectory() {
         do {
             try FileManager.default.removeItem(at: Self.sharedDirectoryURL.absoluteURL)

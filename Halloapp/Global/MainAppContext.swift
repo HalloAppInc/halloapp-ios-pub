@@ -34,6 +34,7 @@ class MainAppContext: AppContext {
     private(set) var shareExtensionDataStore: ShareExtensionDataStore!
     private(set) var notificationServiceExtensionDataStore: NotificationServiceExtensionDataStore!
     private(set) var geocoder: ServerGeocoder!
+    private(set) var photoSuggestionsData: PhotoSuggestionsData!
     lazy var webClientManager: WebClientManager? = {
         // TODO: Support logout
         guard let keys = userData.credentials?.noiseKeys else { return nil }
@@ -147,6 +148,7 @@ class MainAppContext: AppContext {
         notificationServiceExtensionDataStore = NotificationServiceExtensionDataStore()
         callManager = CallManager(service: service)
         geocoder = ServerGeocoder(service: service)
+        photoSuggestionsData = PhotoSuggestionsData()
         AudioSessionManager.initialize()
 
         // Add observer to notify us when persistentStore records changes.
