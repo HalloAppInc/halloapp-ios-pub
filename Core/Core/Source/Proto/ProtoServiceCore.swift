@@ -105,7 +105,20 @@ open class ProtoServiceCore: ProtoServiceCoreCommon {
 
     // MARK: Receipts
 
-    private var receiptCompletions = [String: ServiceRequestCompletion<Void>]()
+    private var _receiptCompletionLock = NSLock()
+    private var _receiptCompletions = [String: ServiceRequestCompletion<Void>]()
+    private var receiptCompletions: [String: ServiceRequestCompletion<Void>] {
+        get {
+            _receiptCompletionLock.withLock {
+                _receiptCompletions
+            }
+        }
+        set {
+            _receiptCompletionLock.withLock {
+                _receiptCompletions = newValue
+            }
+        }
+    }
 
     private func sendReceipt(_ receipt: HalloReceipt, to toUserID: UserID, messageID: String = PacketID.generate(), completion: @escaping ServiceRequestCompletion<Void>) {
         DDLogInfo("proto/sendReceipt/\(receipt.itemId)/wait to execute when connected")
