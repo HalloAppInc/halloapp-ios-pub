@@ -220,33 +220,46 @@ class FriendRequestsDataSource: FriendsDataSource {
 
     override fileprivate func makeAndApplySnapshot(animated: Bool = true) {
         var snapshot = Snapshot()
+        var seenRequests = Set<UserID>()
+        // avoid a possible server bug where we get duplicate suggestions
+        var seenSuggestions = Set<UserID>()
 
-        let items = friendRequests.compactMap { friend in
+        let requestItems = friendRequests.compactMap { friend in
             switch friend.friendshipStatus {
             case .incomingPending:
+                seenRequests.insert(friend.id)
                 return Item.incoming(friend)
             case .outgoingPending:
+                seenRequests.insert(friend.id)
                 return Item.outgoing(friend)
             default:
                 return nil
             }
         }
 
-        let suggested = friendSuggestions.compactMap { friend in
-            switch friend.friendshipStatus {
-            case .none:
-                return Item.suggested(friend)
-            case .outgoingPending:
-                return Item.outgoing(friend)
-            default:
-                return nil
+        let suggested = friendSuggestions
+            .filter {
+                guard !seenRequests.contains($0.id), !seenSuggestions.contains($0.id) else {
+                    return false
+                }
+                seenSuggestions.insert($0.id)
+                return true
             }
+            .compactMap { friend in
+                switch friend.friendshipStatus {
+                case .none:
+                    return Item.suggested(friend)
+                case .outgoingPending:
+                    return Item.outgoing(friend)
+                default:
+                    return nil
+                }
         }
 
         snapshot.appendSections([.requests])
 
-        if let first = items.first {
-            let final = [first, .allRequests(incoming: items.count - 1)]
+        if let first = requestItems.first {
+            let final = [first, .allRequests(incoming: requestItems.count - 1)]
             snapshot.appendItems(final, toSection: .requests)
         } else {
             snapshot.appendItems([.allRequests(incoming: 0)], toSection: .requests)
