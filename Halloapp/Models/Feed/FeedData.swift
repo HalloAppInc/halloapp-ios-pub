@@ -4223,10 +4223,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
                     // Add push name and avatar if from external user
                     let userID = String(externalSharePostContainer.uid)
-                    var isFriend = false
-                    mainDataStore.performOnBackgroundContextAndWait { context in
-                        isFriend = UserProfile.find(with: userID, in: context)?.friendshipStatus ?? .none == .friends
-                    }
+                    let isFriend = UserProfile.find(with: userID, in: context)?.friendshipStatus ?? .none == .friends
 
                     if !isFriend {
                         UserProfile.updateNames(with: [userID: externalSharePostContainer.name])
