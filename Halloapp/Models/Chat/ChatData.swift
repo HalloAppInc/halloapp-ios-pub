@@ -3463,10 +3463,7 @@ extension ChatData {
         }
 
         let fromUserID = commonReaction.fromUserID
-        var fromUserName = ""
-        mainDataStore.performOnBackgroundContextAndWait { context in
-            fromUserName = UserProfile.find(with: fromUserID, in: context)?.displayName ?? ""
-        }
+        var fromUserName = UserProfile.find(with: fromUserID, in: managedObjectContext)?.displayName ?? ""
         var reactionText = String(format: Localizations.chatListUserReactedMessage, fromUserName, commonReaction.emoji)
         if let message = commonReaction.message {
             if let media = message.media, media.count == 1 {
@@ -3715,8 +3712,8 @@ extension ChatData {
 
             let fromUserID = commonReaction.fromUserID
             var fromUserName = ""
-            mainDataStore.performOnBackgroundContextAndWait { context in
-                fromUserName = UserProfile.find(with: fromUserID, in: context)?.displayName ?? ""
+            if let context = commonReaction.managedObjectContext {
+                fromUserName = UserProfile.find(with: fromUserID, in: context)?.name ?? ""
             }
             var reactionText = String(format: Localizations.chatListUserDeletedReactionMessage, fromUserName, commonReaction.emoji)
             if let message = commonReaction.message {
