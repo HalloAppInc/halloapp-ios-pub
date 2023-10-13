@@ -29,12 +29,10 @@ extension Mentions {
             if let audience = post.audience {
                 contactSet.formUnion(audience.userIds)
             } else {
-                MainAppContext.shared.mainDataStore.performOnBackgroundContextAndWait { managedObjectContext in
-                    let predicate = NSPredicate(format: "friendshipStatusValue == %d", UserProfile.FriendshipStatus.friends.rawValue)
-                    let friends = UserProfile.find(predicate: predicate, in: managedObjectContext)
+                let predicate = NSPredicate(format: "friendshipStatusValue == %d", UserProfile.FriendshipStatus.friends.rawValue)
+                let friends = UserProfile.find(predicate: predicate, in: managedObjectContext)
 
-                    contactSet.formUnion(friends.map { $0.id })
-                }
+                contactSet.formUnion(friends.map { $0.id })
             }
         }
 
