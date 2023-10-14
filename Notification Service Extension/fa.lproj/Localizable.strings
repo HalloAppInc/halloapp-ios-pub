@@ -148,6 +148,12 @@
 /* Title of the daily moment notification. */
 "notification.daily.moment.title" = "لحظه روزانه";
 
+/* Body of a notification for when a friend request is accepted. */
+"notification.friend.request.accept.body" = "@% دعوت دوستی شما را پذیرفت";
+
+/* Body of a notification for a new friend request. */
+"notification.friend.request.body" = "@% به شما دعوت دوستی فرستاده است";
+
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ دعوت شما را به هالواپ قبول کرد 🎉";
 

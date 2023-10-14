@@ -2192,6 +2192,9 @@
 /* Instructions for enabling notifications permissions */
 "settings.notifications.disabled.instructions" = "Por favor, activa las notificaciones en Configuración.";
 
+/* Settings > Notifications: label for the toggle that turns new magic post notifications on or off. */
+"settings.notifications.magicposts" = "Magic Posts";
+
 /* Settings > Notifications: label for the toggle that turns new moment notifications on or off. */
 "settings.notifications.moments" = "Momentos";
 
@@ -2350,6 +2353,9 @@
 
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
 "tutorial.tap.below" = "Toca \"%@\" a continuación.";
+
+/* Title of an alert when unblocking a user */
+"unblock.title" = "desbloquear a %@";
 
 /* Text for action label that lets the user accept messages from unknown contacts */
 "unknown.contact.accept.to.message" = "Acepta el mensaje para responder";

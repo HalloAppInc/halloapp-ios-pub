@@ -2354,6 +2354,9 @@
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
 "tutorial.tap.below" = "Tik op “%@” hieronder.";
 
+/* Title of an alert when unblocking a user */
+"unblock.title" = "%@ deblokkeren";
+
 /* Text for action label that lets the user accept messages from unknown contacts */
 "unknown.contact.accept.to.message" = "Bericht Accepteren";
 

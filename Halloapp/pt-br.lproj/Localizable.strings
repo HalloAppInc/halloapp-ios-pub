@@ -887,6 +887,18 @@
 /* Possible Feed Privacy setting value. Keep short. */
 "feed.privacy.value.n.selected" = "feed.privacidade.valor.n.selecionados";
 
+/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.body.1" = "Um espaço privado sem influenciadores e sem anúncios. Somente você e as pessoas de quem você gosta.";
+
+/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.body.2" = "Seus amigos no HalloApp podem ver suas postagens. Adicione amigos da sua rede e gerencie solicitações de amizade.";
+
+/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.title.1" = "Bem-vindo ao HalloApp! Sua rede social privada";
+
+/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.title.2" = "Quem pode ver minhas postagens?";
+
 /* Text for 'more' cell prompting users to open the invite screen */
 "feedInviteCarousel.searchPrompt" = "Procurar mais amigos e familiares";
 
@@ -904,6 +916,12 @@
 
 /* Explains that as more contacts join the app, they will appear in this list automatically. */
 "fellow.contacts.will.arrive" = "Seus contatos telefônicos que se registrarem no HalloApp aparecerão aqui automaticamente.";
+
+/* Message displayed in the activity center when someone accepts your friend request. */
+"friend.activity.incoming.accepted" = "<$author$> aceitou seu pedido de amizade";
+
+/* Message displayed in the activity center when there's an incoming friend request. */
+"friend.activity.incoming.pending" = "<$author$> te enviei um pedido de amizade";
 
 /* Title of a header that appears before a list of contacts that can be invited to register. */
 "friend.invite.header.title" = "Quem mais você quer ver aqui?";
@@ -1511,6 +1529,12 @@
 /* Title of the daily moment notification. */
 "notification.daily.moment.title" = "Momento Diário";
 
+/* Body of a notification for when a friend request is accepted. */
+"notification.friend.request.accept.body" = "%@ aceitou seu pedido de amizade";
+
+/* Body of a notification for a new friend request. */
+"notification.friend.request.body" = "%@ lhe enviou um pedido de amizade";
+
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ acabou de aceitar o seu convite para se juntar ao HalloApp 🎉";
 
@@ -1937,6 +1961,12 @@
 /* Title of a button to remove a friend. */
 "remove.friend" = "Remover Amigo";
 
+/* Body of an alert that appears when removing a friend. */
+"remove.friend.body" = "%@ e vocês não poderão mais ver as postagens uns dos outros.";
+
+/* Title of an alert that appears when removing a friend. */
+"remove.friend.title" = "Remover %@ dos amigos";
+
 /* Text for the action of removing a contact from the user's favorites list (title case). */
 "remove.from.favorites.title" = "Remover dos favoritos";
 
@@ -2011,6 +2041,9 @@
 
 /* Title of a button that shows all friend requests. */
 "see.all.requests" = "Ver todas as solicitações";
+
+/* Title of a button that displays the users friend list. */
+"see.my.network" = "Ver minha rede";
 
 /* Title of a button that shows sent friend requests. */
 "see.sent.requests" = "Solicitações enviadas";
@@ -2158,6 +2191,9 @@
 
 /* Instructions for enabling notifications permissions */
 "settings.notifications.disabled.instructions" = "Por favor, ative as notificações em Configurações.";
+
+/* Settings > Notifications: label for the toggle that turns new magic post notifications on or off. */
+"settings.notifications.magicposts" = "Postagens Mágicas";
 
 /* Settings > Notifications: label for the toggle that turns new moment notifications on or off. */
 "settings.notifications.moments" = "Momentos";
@@ -2317,6 +2353,9 @@
 
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
 "tutorial.tap.below" = "Toque em “%@” abaixo.";
+
+/* Title of an alert when unblocking a user */
+"unblock.title" = "Desbloquear %@";
 
 /* Text for action label that lets the user accept messages from unknown contacts */
 "unknown.contact.accept.to.message" = "Aceitar Mensagem ";
