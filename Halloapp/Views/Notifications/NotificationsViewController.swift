@@ -269,36 +269,39 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
     /// - Returns: Array of activity center notifications for display
     private func otherCommentItems(for postNotifications: [FeedActivity]) -> [ActivityCenterItem] {
         var items: [ActivityCenterItem] = []
-        
-        // Add an item for each comment made by a contact
-        let contactsViewContext = MainAppContext.shared.contactStore.viewContext
-        let contactNotifications = postNotifications.filter { notification in
-            MainAppContext.shared.contactStore.isContactInAddressBook(userId: notification.userID, in: contactsViewContext)
+        // Add an item for each comment made by a friend
+        var friendNotifications: [FeedActivity] = []
+        var nonFriendNotifications: [FeedActivity] = []
+        let allFriendUserIDs = UserProfile.allUserIDs(friendshipStatus: .friends, in: MainAppContext.shared.mainDataStore.viewContext)
+        postNotifications.forEach { notification in
+            if allFriendUserIDs.contains(notification.userID) {
+                friendNotifications.append(notification)
+            } else {
+                nonFriendNotifications.append(notification)
+            }
         }
-        let itemsForContactComments = contactNotifications.compactMap {
+
+        let itemsForFriendComments = friendNotifications.compactMap {
             ActivityCenterItem(content: .singleNotification($0))
         }
-        items += itemsForContactComments
-        
+        items += itemsForFriendComments
+
         // Aggregate all comments from non-contacts into a single item
-        let nonContactNotifications = postNotifications.filter { notification in
-            !MainAppContext.shared.contactStore.isContactInAddressBook(userId: notification.userID, in: contactsViewContext)
-        }
-        let itemForNonContactComments: ActivityCenterItem? = {
-            let nonContactsWhoCommented = Set<UserID>(nonContactNotifications.map { $0.userID })
-            if nonContactsWhoCommented.count > 1 {
+        let itemForNonFriendComments: ActivityCenterItem? = {
+            let nonFriendsWhoCommented = Set<UserID>(nonFriendNotifications.map { $0.userID })
+            if nonFriendsWhoCommented.count > 1 {
                 // Aggregate comments from multiple non-contacts
-                return ActivityCenterItem(content: .unknownCommenters(nonContactNotifications))
-            } else if let notification = nonContactNotifications.first {
-                // If one non-contact has commented, show his or her latest comment
+                return ActivityCenterItem(content: .unknownCommenters(nonFriendNotifications))
+            } else if let notification = nonFriendNotifications.first {
+                // If one non-friend has commented, show his or her latest comment
                 return ActivityCenterItem(content: .singleNotification(notification))
             } else {
-                // No comments from non-contacts
+                // No comments from non-friends
                 return nil
             }
         }()
-        if let itemForNonContactComments = itemForNonContactComments {
-            items.append(itemForNonContactComments)
+        if let itemForNonFriendComments = itemForNonFriendComments {
+            items.append(itemForNonFriendComments)
         }
 
         return items

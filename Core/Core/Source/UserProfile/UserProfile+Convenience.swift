@@ -56,4 +56,17 @@ extension UserProfile {
 
         return find(predicate: predicate, in: context)
     }
+
+
+    public class func allUserIDs(friendshipStatus: FriendshipStatus, in context: NSManagedObjectContext) -> Set<UserID> {
+        let fetchRequest = NSFetchRequest<NSDictionary>()
+        fetchRequest.entity = UserProfile.entity()
+        fetchRequest.predicate = NSPredicate(format: "%K == %d", #keyPath(UserProfile.friendshipStatusValue), friendshipStatus.rawValue)
+        fetchRequest.propertiesToFetch = [
+            NSExpression(forKeyPath: \UserProfile.id).keyPath,
+        ]
+        fetchRequest.resultType = .dictionaryResultType
+
+        return (try? Set(context.fetch(fetchRequest).compactMap { $0["id"] as? UserID })) ?? []
+    }
 }
