@@ -60,7 +60,7 @@ public final class FeedDataSource: NSObject {
                 return post.id == feedPostID
             case .post(let post):
                 return post.id == feedPostID
-            case .event, .groupWelcome, .inviteCarousel, .welcome, .shareCarousel:
+            case .event, .groupWelcome, .inviteCarousel, .suggestionsCarousel, .welcome, .shareCarousel:
                 return false
             }
         })
@@ -457,6 +457,7 @@ public enum FeedDisplayItem: Hashable, Equatable {
     case welcome
     case groupWelcome(GroupID)
     case inviteCarousel
+    case suggestionsCarousel
     case shareCarousel(FeedPostID)
 
     public var post: FeedPost? {
@@ -468,6 +469,7 @@ public enum FeedDisplayItem: Hashable, Equatable {
         case .welcome: return nil
         case .groupWelcome: return nil
         case .inviteCarousel: return nil
+        case .suggestionsCarousel: return nil
         case .shareCarousel: return nil
         }
     }
@@ -481,6 +483,7 @@ public enum FeedDisplayItem: Hashable, Equatable {
         case .welcome: return nil
         case .groupWelcome: return nil
         case .inviteCarousel: return nil
+        case .suggestionsCarousel: return nil
         case .shareCarousel: return nil
         }
     }
@@ -493,6 +496,7 @@ public enum FeedDisplayItem: Hashable, Equatable {
         case .welcome: return nil
         case .groupWelcome(let groupID): return groupID
         case .inviteCarousel: return nil
+        case .suggestionsCarousel: return nil
         case .momentStack: return nil
         case .shareCarousel: return nil
         }

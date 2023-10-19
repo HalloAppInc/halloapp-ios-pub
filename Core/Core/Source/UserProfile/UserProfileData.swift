@@ -97,7 +97,7 @@ public class UserProfileData: NSObject {
         }
     }
 
-    public func ignoreSuggestions(userID: UserID) async throws {
+    public func ignoreSuggestion(userID: UserID) async throws {
         let updatedProfile = try await perform(action: .rejectSuggestion, for: userID)
         try await perform { context in
             UserProfile.findOrCreate(with: userID, in: context).update(with: updatedProfile)

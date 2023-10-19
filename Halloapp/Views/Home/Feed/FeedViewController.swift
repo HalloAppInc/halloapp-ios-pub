@@ -72,6 +72,28 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         if isNearTop(100) {
             MainAppContext.shared.feedData.didGetRemoveHomeTabIndicator.send()
         }
+
+        if suggestionsManager.suggestions.count < 10 {
+            Task(priority: .userInitiated) { @MainActor in
+                await suggestionsManager.refresh()
+                guard var snapshot = collectionViewDataSource?.snapshot(), !snapshot.itemIdentifiers.isEmpty else {
+                    return
+                }
+
+                let insertionIndex = min(4, snapshot.itemIdentifiers.count) - 1
+                let itemIdentifier = snapshot.itemIdentifiers[insertionIndex]
+
+                if !suggestionsManager.suggestions.isEmpty {
+                    snapshot.insertItems([.suggestionsCarousel], afterItem: itemIdentifier)
+                    snapshot.deleteItems([.inviteCarousel])
+                } else if canInvite, !inviteContactsManager.randomSelection.isEmpty {
+                    snapshot.insertItems([.inviteCarousel], afterItem: itemIdentifier)
+                    snapshot.deleteItems([.suggestionsCarousel])
+                }
+
+                await collectionViewDataSource?.apply(snapshot)
+            }
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -161,6 +183,7 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         let welcomePostExist = sharedNUX.welcomePostExist(id: userID)
         let isEmptyItemsList = items.count == 0
         let showWelcomePostIfNeeded = welcomePostExist || isZeroZone || isEmptyItemsList
+        let showFriendSuggestions = suggestionsManager.suggestions.count >= 5
 
         if isDemoMode {
             result.insert(FeedDisplayItem.welcome, at: 0)
@@ -180,8 +203,12 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         }
 
         // Check original items array to ignore any other nux / promos
-        if canInvite, !items.isEmpty, !inviteContactsManager.randomSelection.isEmpty, !isZeroZone {
-            result.insert(.inviteCarousel, at: min(4, result.count))
+        if !items.isEmpty, !isZeroZone {
+            if showFriendSuggestions {
+                result.insert(.suggestionsCarousel, at: min(4, result.count))
+            } else if canInvite, !inviteContactsManager.randomSelection.isEmpty {
+                result.insert(.inviteCarousel, at: min(4, result.count))
+            }
         }
 
         if MainAppContext.shared.feedData.validMoment.value == nil {

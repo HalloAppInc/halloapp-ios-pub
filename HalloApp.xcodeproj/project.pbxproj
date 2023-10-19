@@ -268,6 +268,10 @@
 		A11FA897285BE02900ACDA76 /* MomentsExplainerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11FA896285BE02900ACDA76 /* MomentsExplainerViewController.swift */; };
 		A1382DC12927028900AFEEEB /* CameraTabPlaceholderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1382DC02927028900AFEEEB /* CameraTabPlaceholderViewController.swift */; };
 		A13C08F42ACF4337001DEAEB /* BlockedSelectionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C08F32ACF4337001DEAEB /* BlockedSelectionModel.swift */; };
+		A13C08F62AD8EFDE001DEAEB /* FriendSuggestionsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C08F52AD8EFDE001DEAEB /* FriendSuggestionsManager.swift */; };
+		A13C08F82ADDAA93001DEAEB /* FeedSuggestionsCarouselCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C08F72ADDAA93001DEAEB /* FeedSuggestionsCarouselCell.swift */; };
+		A13C08FA2ADDACD7001DEAEB /* FeedCarouselCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C08F92ADDACD7001DEAEB /* FeedCarouselCell.swift */; };
+		A13C08FC2ADDBC10001DEAEB /* FeedCarouselCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C08FB2ADDBC10001DEAEB /* FeedCarouselCollectionView.swift */; };
 		A13C928C28D8D3A40096CE00 /* AllowContactsPermissionCollectionViewHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C928B28D8D3A40096CE00 /* AllowContactsPermissionCollectionViewHeader.swift */; };
 		A13C928E28D915A00096CE00 /* InAppPermissionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C928D28D915A00096CE00 /* InAppPermissionsViewController.swift */; };
 		A13C929028D9255C0096CE00 /* PermissionExplainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13C928F28D9255C0096CE00 /* PermissionExplainerView.swift */; };
@@ -1114,6 +1118,10 @@
 		A11FA896285BE02900ACDA76 /* MomentsExplainerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentsExplainerViewController.swift; sourceTree = "<group>"; };
 		A1382DC02927028900AFEEEB /* CameraTabPlaceholderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraTabPlaceholderViewController.swift; sourceTree = "<group>"; };
 		A13C08F32ACF4337001DEAEB /* BlockedSelectionModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedSelectionModel.swift; sourceTree = "<group>"; };
+		A13C08F52AD8EFDE001DEAEB /* FriendSuggestionsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendSuggestionsManager.swift; sourceTree = "<group>"; };
+		A13C08F72ADDAA93001DEAEB /* FeedSuggestionsCarouselCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedSuggestionsCarouselCell.swift; sourceTree = "<group>"; };
+		A13C08F92ADDACD7001DEAEB /* FeedCarouselCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedCarouselCell.swift; sourceTree = "<group>"; };
+		A13C08FB2ADDBC10001DEAEB /* FeedCarouselCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedCarouselCollectionView.swift; sourceTree = "<group>"; };
 		A13C928B28D8D3A40096CE00 /* AllowContactsPermissionCollectionViewHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllowContactsPermissionCollectionViewHeader.swift; sourceTree = "<group>"; };
 		A13C928D28D915A00096CE00 /* InAppPermissionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppPermissionsViewController.swift; sourceTree = "<group>"; };
 		A13C928F28D9255C0096CE00 /* PermissionExplainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionExplainerView.swift; sourceTree = "<group>"; };
@@ -2250,6 +2258,10 @@
 				68629293265C660D00C54367 /* FeedPermissionAlert.swift */,
 				F4D88F6A27D9873E00D706DA /* Toast.swift */,
 				F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */,
+				A13C08F52AD8EFDE001DEAEB /* FriendSuggestionsManager.swift */,
+				A13C08F72ADDAA93001DEAEB /* FeedSuggestionsCarouselCell.swift */,
+				A13C08F92ADDACD7001DEAEB /* FeedCarouselCell.swift */,
+				A13C08FB2ADDBC10001DEAEB /* FeedCarouselCollectionView.swift */,
 				F41FAA5127E54F2800FC5090 /* FeedPostMenuViewController.swift */,
 				F445A73827FFB8270046D382 /* ShareMenuPresenter.swift */,
 				6833309F28A71DFB0086491E /* ReactionPicker.swift */,
@@ -3254,6 +3266,7 @@
 				A163A2582AAF74B700501DE3 /* UILayoutPriority.swift in Sources */,
 				F84DF6852851E4FF00BEC721 /* MediaListAnimator.swift in Sources */,
 				A1FF1ED528BE78D40057FC27 /* PermissionsViewController.swift in Sources */,
+				A13C08F62AD8EFDE001DEAEB /* FriendSuggestionsManager.swift in Sources */,
 				F402E9F52AC36335008EBDB9 /* UIButtonConfiguration+HalloApp.swift in Sources */,
 				5B493BCC27FF316500FDEA0D /* ChunkedMediaResourceLoaderDelegate.swift in Sources */,
 				EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */,
@@ -3448,6 +3461,7 @@
 				E5B9EAB8265EEA8700E0B692 /* FeedPermissionTutorialAlert.swift in Sources */,
 				A1CD447F291C6AC000623FF6 /* CameraAnimator.swift in Sources */,
 				F850677826A55DAC00A120EC /* AudioRecorder.swift in Sources */,
+				A13C08FC2ADDBC10001DEAEB /* FeedCarouselCollectionView.swift in Sources */,
 				3243C42B27D7D03300B994F4 /* MessageCellViewMedia.swift in Sources */,
 				76407DF8245CA3F00031F96A /* UIViewController.swift in Sources */,
 				F89589562732A58300874054 /* ChangeDestinationViewController.swift in Sources */,
@@ -3593,6 +3607,7 @@
 				76E00DF624FEC4A800E06252 /* ProfileHeaderViewController.swift in Sources */,
 				EA96D5B626689A0400F85731 /* GroupInviteQRViewController.swift in Sources */,
 				EECB00B0286E2396003996B3 /* LocationSharingViewController.swift in Sources */,
+				A13C08FA2ADDACD7001DEAEB /* FeedCarouselCell.swift in Sources */,
 				68CD603425E463FA0056D13E /* ConnectionBanner.swift in Sources */,
 				68B47B02260DBAD000D675FC /* InviteContactsManager.swift in Sources */,
 				A17CEAD12AAA2D4200FCCECD /* FriendsDataSource.swift in Sources */,
@@ -3649,6 +3664,7 @@
 				A13C08F42ACF4337001DEAEB /* BlockedSelectionModel.swift in Sources */,
 				EA039C6326C49BC4002CC4CF /* EditGroupDescViewController.swift in Sources */,
 				EACC34CB24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift in Sources */,
+				A13C08F82ADDAA93001DEAEB /* FeedSuggestionsCarouselCell.swift in Sources */,
 				F41FAA5227E54F2900FC5090 /* FeedPostMenuViewController.swift in Sources */,
 				76C64E0D24E5AD85007C0F6F /* MediaUploader.swift in Sources */,
 				F8D876332746603700E69F41 /* AudioSessionManager.swift in Sources */,

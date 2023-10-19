@@ -70,6 +70,14 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Sh
         return inviteContactsManager
     }()
 
+    lazy var suggestionsManager: FriendSuggestionsManager = {
+        let suggestionsManager = FriendSuggestionsManager()
+        suggestionsManager.suggestionsDidChange = { [weak self] animate in
+            self?.friendSuggestionsDidChange(animateChanges: animate)
+        }
+        return suggestionsManager
+    }()
+
     var isThemed: Bool {
         return false
     }
@@ -196,6 +204,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Sh
         collectionView.register(FeedWelcomeCell.self, forCellWithReuseIdentifier: FeedWelcomeCell.reuseIdentifier)
         collectionView.register(GroupFeedWelcomeCell.self, forCellWithReuseIdentifier: GroupFeedWelcomeCell.reuseIdentifier)
         collectionView.register(FeedInviteCarouselCell.self, forCellWithReuseIdentifier: FeedInviteCarouselCell.reuseIdentifier)
+        collectionView.register(FeedSuggestionsCarouselCell.self, forCellWithReuseIdentifier: FeedSuggestionsCarouselCell.reuseIdentifier)
         collectionView.register(MomentCollectionViewCell.self, forCellWithReuseIdentifier: MomentCollectionViewCell.reuseIdentifier)
         collectionView.register(StackedMomentCollectionViewCell.self, forCellWithReuseIdentifier: StackedMomentCollectionViewCell.reuseIdentifier)
         collectionView.register(FeedShareCarouselCell.self, forCellWithReuseIdentifier: FeedShareCarouselCell.reuseIdentifier)
@@ -862,6 +871,23 @@ extension FeedCollectionViewController {
                     }
                 }
                 return cell
+            case .suggestionsCarousel:
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedSuggestionsCarouselCell.reuseIdentifier, for: indexPath)
+                
+                if let self, let cell = cell as? FeedSuggestionsCarouselCell {
+                    cell.configure(with: self.suggestionsManager.suggestions, animateChanges: false)
+                    cell.onAdd = { [weak self] suggestion in
+                        self?.suggestionsManager.add(suggestion)
+                    }
+                    cell.onCancel = { [weak self] suggestion in
+                        self?.suggestionsManager.cancelRequest(for: suggestion)
+                    }
+                    cell.onHide = { [weak self] suggestion in
+                        self?.suggestionsManager.hide(suggestion)
+                    }
+                }
+
+                return cell
             case .shareCarousel(let feedPostID):
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedShareCarouselCell.reuseIdentifier, for: indexPath)
                 if let cell = cell as? FeedShareCarouselCell {
@@ -1164,11 +1190,11 @@ extension FeedCollectionViewController: UICollectionViewDelegate {
     }
 
     func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        guard let feedCell = cell as? FeedPostCollectionViewCell else {
-            return
+        if case .suggestionsCarousel = collectionViewDataSource?.itemIdentifier(for: indexPath) {
+            suggestionsManager.clearAddedSuggestions()
         }
 
-        feedCell.stopPlayback()
+        (cell as? FeedPostCollectionViewCell)?.stopPlayback()
     }
 }
 
@@ -1305,6 +1331,38 @@ extension FeedCollectionViewController {
                     cell.configure(with: inviteContactsManager.randomSelection, invitedContacts: invitedContacts, animated: true)
                 } else {
                     snapshot.reconfigureItems([.inviteCarousel])
+                    updateSnapshot = true
+                }
+            }
+        }
+
+        if updateSnapshot {
+            collectionViewDataSource.apply(snapshot)
+        }
+    }
+}
+
+// MARK: - FeedSuggestionsCarouselCell callbacks
+
+extension FeedCollectionViewController {
+
+    private func friendSuggestionsDidChange(animateChanges: Bool) {
+        guard let collectionViewDataSource else {
+            return
+        }
+
+        var snapshot = collectionViewDataSource.snapshot()
+        var updateSnapshot = false
+
+        if suggestionsManager.suggestions.isEmpty {
+            snapshot.deleteItems([.suggestionsCarousel])
+            updateSnapshot = true
+        } else {
+            if let indexPath = collectionViewDataSource.indexPath(for: .suggestionsCarousel) {
+                if let cell = collectionView.cellForItem(at: indexPath) as? FeedSuggestionsCarouselCell {
+                    cell.configure(with: suggestionsManager.suggestions, animateChanges: animateChanges)
+                } else {
+                    snapshot.reconfigureItems([.suggestionsCarousel])
                     updateSnapshot = true
                 }
             }
