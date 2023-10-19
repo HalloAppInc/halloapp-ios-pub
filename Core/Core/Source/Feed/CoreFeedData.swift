@@ -763,47 +763,37 @@ open class CoreFeedData: NSObject {
     }
 
     public func seenReceipts(for feedPost: FeedPost) -> [FeedPostReceipt] {
-        guard let seenReceipts = feedPost.info?.receipts else {
+        guard let context = feedPost.managedObjectContext, let seenReceipts = feedPost.info?.receipts else {
             return []
         }
 
         var receipts = [FeedPostReceipt]()
-
-        let fetchReceipts: (NSManagedObjectContext) -> Void = { managedObjectContext in
-            let profiles = UserProfile.find(with: Array(seenReceipts.keys), in: managedObjectContext)
-            let profilesMap = profiles.reduce(into: [UserID: UserProfile]()) { (map, profile) in
-                map[profile.id] = profile
-            }
-            let reactions: [UserID: String] = Dictionary(
-                feedPost.reactions?.compactMap { ($0.fromUserID, $0.emoji) } ?? [],
-                uniquingKeysWith: { (s1, s2) in s1 })
-
-            for (userId, receipt) in seenReceipts {
-                guard let seenDate = receipt.seenDate else { continue }
-
-                var profileName: String?
-                if let profile = profilesMap[userId] {
-                    profileName = profile.name
-                }
-
-                receipts.append(FeedPostReceipt(userId: userId,
-                                                  type: .seen,
-                                           contactName: profileName,
-                                           phoneNumber: nil,
-                                             timestamp: seenDate,
-                                        savedTimestamp: receipt.savedDate,
-                                   screenshotTimestamp: receipt.screenshotDate,
-                                              reaction: reactions[userId]))
-            }
-            receipts.sort(by: { $0.timestamp > $1.timestamp })
+        let profiles = UserProfile.find(with: Array(seenReceipts.keys), in: context)
+        let profilesMap = profiles.reduce(into: [UserID: UserProfile]()) { (map, profile) in
+            map[profile.id] = profile
         }
+        let reactions: [UserID: String] = Dictionary(
+            feedPost.reactions?.compactMap { ($0.fromUserID, $0.emoji) } ?? [],
+            uniquingKeysWith: { (s1, s2) in s1 })
 
-        // Optimization: if we're on the main thread, attempt to use the view context. This prevents us from being blocked by lengthy contact sync operations.
-        if Thread.isMainThread {
-            fetchReceipts(AppContext.shared.mainDataStore.viewContext)
-        } else {
-            AppContext.shared.mainDataStore.performOnBackgroundContextAndWait(fetchReceipts)
+        for (userId, receipt) in seenReceipts {
+            guard let seenDate = receipt.seenDate else { continue }
+
+            var profileName: String?
+            if let profile = profilesMap[userId] {
+                profileName = profile.name
+            }
+
+            receipts.append(FeedPostReceipt(userId: userId,
+                                              type: .seen,
+                                       contactName: profileName,
+                                       phoneNumber: nil,
+                                         timestamp: seenDate,
+                                    savedTimestamp: receipt.savedDate,
+                               screenshotTimestamp: receipt.screenshotDate,
+                                          reaction: reactions[userId]))
         }
+        receipts.sort(by: { $0.timestamp > $1.timestamp })
 
         return receipts
     }

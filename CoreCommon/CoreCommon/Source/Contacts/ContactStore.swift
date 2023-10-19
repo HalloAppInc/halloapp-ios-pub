@@ -647,39 +647,6 @@ open class ContactStore {
         return nil
     }
 
-    public func fullNames(forUserIds userIds: Set<UserID>) -> [UserID : String] {
-        guard !userIds.isEmpty else { return [:] }
-
-        var results: [UserID : String] = [:]
-
-        // 1. Try finding address book names.
-        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "userId in %@", userIds)
-        fetchRequest.returnsObjectsAsFaults = false
-
-        performOnBackgroundContextAndWait { managedObjectContext in
-            do {
-                let contacts = try managedObjectContext.fetch(fetchRequest)
-                results = contacts.reduce(into: [:]) { (names, contact) in
-                    names[contact.userId!] = contact.fullName
-                }
-            }
-            catch {
-                fatalError("Unable to fetch contacts: \(error)")
-            }
-        }
-
-        // 2. Get push names for everyone else.
-        let pushNames = self.pushNames // TODO: probably need a lock here
-        userIds.forEach { (userId) in
-            if results[userId] == nil {
-                results[userId] = pushNames[userId]
-            }
-        }
-
-        return results
-    }
-
     /// Name appropriate for use in mention. Does not contain "@" prefix.
     public func mentionNameIfAvailable(for userID: UserID, pushName: String?, in managedObjectContext: NSManagedObjectContext) -> String? {
         if let fullName = fullNameIfAvailable(for: userID, ownName: userData.name, in: managedObjectContext) {

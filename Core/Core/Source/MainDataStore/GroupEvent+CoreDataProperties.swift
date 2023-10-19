@@ -98,9 +98,7 @@ public extension GroupEvent {
             }
 
             let name = managedObjectContext.flatMap { context in
-                context.performAndWait {
-                    UserProfile.find(with: userId, in: context)?.displayName ?? ""
-                }
+                UserProfile.find(with: userId, in: context)?.displayName ?? ""
             }
 
             return .other(name ?? "")
@@ -115,9 +113,7 @@ public extension GroupEvent {
             }
 
             return managedObjectContext.flatMap { context in
-                context.performAndWait {
-                    UserProfile.find(with: userId, in: context)?.displayName ?? ""
-                }
+                UserProfile.find(with: userId, in: context)?.displayName ?? ""
             }
         }
     }
