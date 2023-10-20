@@ -967,7 +967,7 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
 
             if case .friends = friendStatus {
                 return true
-            } else if ServerProperties.allowMessagingNonFriends, let id = profile?.id {
+            } else if ServerProperties.allowMessagingNonFriends, let id = fromUserId {
                 let contactStore = MainAppContext.shared.contactStore
                 return contactStore.isContactInAddressBook(userId: id,
                                                            in: contactStore.viewContext)
