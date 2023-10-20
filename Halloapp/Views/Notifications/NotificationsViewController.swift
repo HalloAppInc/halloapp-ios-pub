@@ -138,6 +138,14 @@ class NotificationsViewController: UIViewController, UITableViewDelegate, NSFetc
                 cell.onIgnore = { [weak self] in
                     self?.ignoreRequest(using: notification)
                 }
+                cell.onOpen = { [weak self] in
+                    guard case let .incomingFriendNotification(activity) = notification.content else {
+                        return
+                    }
+                    MainAppContext.shared.userProfileData.markFriendEventAsRead(userID: activity.userID)
+                    let viewController = UserFeedViewController(userId: activity.userID)
+                    self?.navigationController?.pushViewController(viewController, animated: true)
+                }
                 cell.selectionStyle = .none
             default:
                 cell = tableView.dequeueReusableCell(withIdentifier: StandardNotificationTableViewCell.reuseIdentifier, for: indexPath)
@@ -484,13 +492,13 @@ fileprivate class BaseNotificationTableViewCell: UITableViewCell {
         setupView()
     }
 
-    private lazy var contactImage: AvatarView = {
+    lazy var contactImage: AvatarView = {
         let imageView = AvatarView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
 
-    private lazy var notificationTextLabel: UILabel = {
+    lazy var notificationTextLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 0
         label.textColor = .label
@@ -646,6 +654,7 @@ fileprivate class FriendNotificationTableViewCell: BaseNotificationTableViewCell
 
     var onConfirm: (() -> Void)?
     var onIgnore: (() -> Void)?
+    var onOpen: (() -> Void)?
 
     private let confirmButton: UIButton = {
         let button = UIButton()
@@ -694,6 +703,11 @@ fileprivate class FriendNotificationTableViewCell: BaseNotificationTableViewCell
 
         confirmButton.addAction(.init { [weak self] _ in self?.onConfirm?() }, for: .touchUpInside)
         ignoreButton.addAction(.init { [weak self] _ in self?.onIgnore?() }, for: .touchUpInside)
+
+        [contactImage, notificationTextLabel].forEach { $0.isUserInteractionEnabled = true }
+
+        let tap = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture))
+        contentView.addGestureRecognizer(tap)
     }
 
     required init?(coder: NSCoder) {
@@ -702,6 +716,16 @@ fileprivate class FriendNotificationTableViewCell: BaseNotificationTableViewCell
 
     override func configure(with item: ActivityCenterItem) {
         super.configure(with: item)
+    }
+
+    @objc
+    private func handleTapGesture(_ gesture: UITapGestureRecognizer) {
+        let location = gesture.location(in: contentView)
+        let hit = contentView.hitTest(location, with: nil)
+
+        if hit === contactImage || hit === notificationTextLabel {
+            onOpen?()
+        }
     }
 }
 

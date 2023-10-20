@@ -28,6 +28,7 @@ class FeedSuggestionsCarouselCell: UICollectionViewCell {
     var onAdd: ((Suggestion) -> Void)?
     var onCancel: ((Suggestion) -> Void)?
     var onHide: ((Suggestion) -> Void)?
+    var onOpen: ((Suggestion) -> Void)?
 
     private lazy var collectionView: UICollectionView = {
         let collectionView = FeedCarouselCollectionView(frame: .zero, collectionViewLayout: FeedCarouselCollectionView.layout)
@@ -172,6 +173,20 @@ extension FeedSuggestionsCarouselCell: FeedCarouselCellDelegate {
         switch item {
         case .suggestion(let suggestion), .added(let suggestion):
             onHide?(suggestion)
+        default:
+            break
+        }
+    }
+
+    func feedCarouselCellDidTapUser(_ cell: FeedCarouselCell) {
+        guard let indexPath = collectionView.indexPath(for: cell),
+              let item = dataSource.itemIdentifier(for: indexPath) else {
+            return
+        }
+
+        switch item {
+        case .suggestion(let suggestion), .added(let suggestion):
+            onOpen?(suggestion)
         default:
             break
         }

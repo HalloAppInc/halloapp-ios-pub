@@ -12,6 +12,7 @@ import CoreCommon
 protocol FeedCarouselCellDelegate: AnyObject {
     func feedCarouselCellDidTapPrimaryButton(_ cell: FeedCarouselCell)
     func feedCarouselCellDidDismiss(_ cell: FeedCarouselCell)
+    func feedCarouselCellDidTapUser(_ cell: FeedCarouselCell)
 }
 
 class FeedCarouselCell: UICollectionViewCell {
@@ -225,6 +226,10 @@ class FeedCarouselCell: UICollectionViewCell {
             dismissButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
         ])
 
+        [avatarView, nameLabel, usernameLabel].forEach { $0.isUserInteractionEnabled = true }
+        let tap = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture))
+        contentView.addGestureRecognizer(tap)
+
         updateBorderColor()
     }
 
@@ -263,6 +268,16 @@ class FeedCarouselCell: UICollectionViewCell {
     @objc
     private func dismissButtonTapped(_ button: UIButton) {
         delegate?.feedCarouselCellDidDismiss(self)
+    }
+
+    @objc
+    private func handleTapGesture(_ gesture: UITapGestureRecognizer) {
+        let location = gesture.location(in: contentView)
+        let hit = contentView.hitTest(location, with: nil)
+
+        if hit === avatarView || hit === nameLabel || hit === usernameLabel {
+            delegate?.feedCarouselCellDidTapUser(self)
+        }
     }
 }
 

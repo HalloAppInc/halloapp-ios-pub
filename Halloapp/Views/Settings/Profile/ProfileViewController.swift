@@ -16,6 +16,9 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate {
     private typealias Section = InsetCollectionView.Section
     private typealias Item = InsetCollectionView.Item
 
+    private let dataSource: ProfileDataSource = ProfileDataSource(id: MainAppContext.shared.userData.userId)
+    private weak var profileHeader: ProfileHeaderViewController?
+
     private lazy var collectionView: InsetCollectionView = {
         let collectionView = InsetCollectionView()
         let layout = InsetCollectionView.defaultLayout
@@ -240,9 +243,21 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate {
                                                         withReuseIdentifier: CollectionProfileHeader.reuseIdentifier,
                                                                         for: indexPath)
 
-        if let profileHeader = (header as? CollectionProfileHeader)?.header {
-            addChild(profileHeader)
-            profileHeader.didMove(toParent: self)
+        if let header = (header as? CollectionProfileHeader)?.header, header !== profileHeader {
+            profileHeader?.willMove(toParent: nil)
+            profileHeader?.removeFromParent()
+            profileHeader?.didMove(toParent: nil)
+
+            header.willMove(toParent: self)
+            addChild(header)
+            header.didMove(toParent: self)
+
+            let publisher = dataSource.$profile
+                .compactMap { $0 }
+                .eraseToAnyPublisher()
+            
+            header.configure(with: publisher)
+            profileHeader = header
         }
 
         return header
@@ -285,8 +300,6 @@ fileprivate class CollectionProfileHeader: UICollectionReusableView {
             line.bottomAnchor.constraint(equalTo: header.view.bottomAnchor),
             line.heightAnchor.constraint(equalToConstant: 1.0 / UIScreen.main.scale)
         ])
-
-        header.configureForOwnProfile()
 
         let mask = CACornerMask([.layerMinXMinYCorner, .layerMaxXMinYCorner])
         header.view.layer.cornerRadius = InsetCollectionView.cornerRadius

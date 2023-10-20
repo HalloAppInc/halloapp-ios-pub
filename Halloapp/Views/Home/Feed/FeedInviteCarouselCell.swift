@@ -160,6 +160,10 @@ extension FeedInviteCarouselCell: FeedCarouselCellDelegate {
             break
         }
     }
+
+    func feedCarouselCellDidTapUser(_ cell: FeedCarouselCell) {
+        // no-op
+    }
 }
 
 extension Localizations {

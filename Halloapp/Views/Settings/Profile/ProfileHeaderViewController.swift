@@ -39,7 +39,7 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
     private let configuration: Configuration
     private var cancellableSet: Set<AnyCancellable> = []
 
-    private var profile: UserProfile?
+    private var userID: UserID?
     weak var delegate: ProfileHeaderDelegate?
 
     private var headerView: ProfileHeaderView {
@@ -48,6 +48,10 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
 
     var name: String? {
         headerView.nameLabel.text
+    }
+
+    var isOwnProfile: Bool {
+        userID == MainAppContext.shared.userData.userId
     }
 
     private lazy var editTapGesture: UITapGestureRecognizer = {
@@ -73,7 +77,7 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
         headerView.nameLabel.addGestureRecognizer(editTapGesture)
 
         let template = { [weak self] (status: UserProfile.FriendshipStatus, block: @escaping ((UserID) async throws -> Void)) in
-            guard let self, let header = self.view as? ProfileHeaderView, let id = self.profile?.id else {
+            guard let self, let header = self.view as? ProfileHeaderView, let id = self.userID else {
                 return
             }
 
@@ -113,11 +117,11 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
             }
         }
         headerView.friendshipToggle.onRemove = { [weak self] in
-            guard let self, let profile = self.profile else {
+            guard let self, let name = self.name else {
                 return
             }
-            let alert = UIAlertController(title: Localizations.removeFriendTitle(name: profile.name),
-                                          message: Localizations.removeFriendBody(name: profile.name),
+            let alert = UIAlertController(title: Localizations.removeFriendTitle(name: name),
+                                          message: Localizations.removeFriendBody(name: name),
                                           preferredStyle: .alert)
             let removeAction = UIAlertAction(title: Localizations.buttonRemove, style: .destructive) { _ in
                 template(.none) { id in
@@ -131,11 +135,11 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
             self.present(alert, animated: true)
         }
         headerView.friendshipToggle.onUnblock = { [weak self] in
-            guard let self, let profile = self.profile else {
+            guard let self, let name = self.name else {
                 return
             }
-            let alert = UIAlertController(title: Localizations.unblockTitle(name: profile.name),
-                                          message: Localizations.unBlockMessage(username: profile.name),
+            let alert = UIAlertController(title: Localizations.unblockTitle(name: name),
+                                          message: Localizations.unBlockMessage(username: name),
                                           preferredStyle: .alert)
             let removeAction = UIAlertAction(title: Localizations.unBlockButton, style: .default) { _ in
                 template(.none) { id in
@@ -154,47 +158,22 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
 
     // MARK: Configuring View
 
-    func configureForOwnProfile() {
-        if let profile = UserProfile.find(with: MainAppContext.shared.userData.userId, in: MainAppContext.shared.mainDataStore.viewContext) {
-            configure(with: profile)
-        }
-    }
-
-    func configure(with profile: UserProfile) {
+    func configure(with profile: AnyPublisher<DisplayableProfile, Never>) {
         cancellableSet = []
-        self.profile = profile
 
-        let isOwnProfile = profile.id == MainAppContext.shared.userData.userId
-
-        profile.publisher(for: \.name)
-            .sink { [headerView] name in
-                headerView.nameLabel.text = name
-            }
-            .store(in: &cancellableSet)
-
-        profile.publisher(for: \.username)
-            .sink { [headerView] username in
+        profile
+            .sink { [weak self] profile in
+                guard let self else {
+                    return
+                }
                 let usernameText = profile.username.isEmpty ? "" : "@\(profile.username)"
-                headerView.usernameButton.setTitle(usernameText, for: .normal)
-            }
-            .store(in: &cancellableSet)
 
-        profile.publisher(for: \.friendshipStatusValue)
-            .compactMap { UserProfile.FriendshipStatus(rawValue: $0) }
-            .sink { [headerView] status in
-                headerView.friendshipStatus = status
-            }
-            .store(in: &cancellableSet)
-
-        profile.publisher(for: \.isFavorite)
-            .sink { [headerView] isFavorite in
-                headerView.isFavorite = isFavorite
-            }
-            .store(in: &cancellableSet)
-
-        profile.publisher(for: \.isBlocked)
-            .sink { [headerView] isBlocked in
-                headerView.isBlocked = isBlocked
+                self.userID = profile.id
+                self.headerView.nameLabel.text = profile.name
+                self.headerView.usernameButton.setTitle(usernameText, for: .normal)
+                self.headerView.friendshipStatus = profile.friendshipStatus
+                self.headerView.isFavorite = profile.isFavorite
+                self.headerView.isBlocked = profile.isBlocked
             }
             .store(in: &cancellableSet)
 
@@ -216,7 +195,10 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
             headerView.avatarViewButton.addTarget(self, action: #selector(avatarViewTapped), for: .touchUpInside)
         }
 
-        headerView.avatarViewButton.avatarView.configure(with: profile.id, using: MainAppContext.shared.avatarStore)
+        if let userID {
+            headerView.avatarViewButton.avatarView.configure(with: userID, using: MainAppContext.shared.avatarStore)
+        }
+
         editTapGesture.isEnabled = isOwnProfile
     }
     
@@ -267,7 +249,7 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
     }
     
     private func presentAvatar() {
-        guard let userID = profile?.id, headerView.avatarViewButton.avatarView.hasImage else {
+        guard let userID, headerView.avatarViewButton.avatarView.hasImage else {
             // TODO: Support opening avatar view while avatar is being downloaded
             return
         }
@@ -299,21 +281,21 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
     }
 
     @objc private func openChatView() {
-        guard let userID = profile?.id else { return }
+        guard let userID else { return }
         Task {
             try await handle(.message, for: userID)
         }
     }
 
     @objc private func audioCallButtonTapped() {
-        guard let userID = profile?.id else { return }
+        guard let userID else { return }
         Task {
             try await handle(.call(type: .audio), for: userID)
         }
     }
 
     @objc private func videoCallButtonTapped() {
-        guard let userID = profile?.id else { return }
+        guard let userID else { return }
         Task {
             try await handle(.call(type: .video), for: userID)
         }

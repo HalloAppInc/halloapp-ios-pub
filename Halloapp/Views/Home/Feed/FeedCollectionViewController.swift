@@ -885,6 +885,14 @@ extension FeedCollectionViewController {
                     cell.onHide = { [weak self] suggestion in
                         self?.suggestionsManager.hide(suggestion)
                     }
+                    cell.onOpen = { [weak self] suggestion in
+                        guard let self else {
+                            return
+                        }
+                        let viewController = UserFeedViewController(profile: suggestion)
+                        let navigationController = UINavigationController(rootViewController: viewController)
+                        self.present(navigationController, animated: true)
+                    }
                 }
 
                 return cell

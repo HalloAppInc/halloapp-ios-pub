@@ -274,16 +274,21 @@ class FriendRequestsDataSource: FriendsDataSource {
     }
 
     private func fetchAndAssembleSuggestions() async -> [Friend] {
+        var avatars = [UserID: AvatarID]()
         let suggestions = await fetchFriendSuggestions()
             .map {
                 let profile = $0.userProfile
-                return Friend(id: UserID(profile.uid),
+                let userID = UserID(profile.uid)
+                
+                avatars[userID] = profile.avatarID
+                return Friend(id: userID,
                               name: profile.name,
                               username: profile.username,
                               friendshipStatus: profile.status.userProfileFriendshipStatus)
             }
 
         DDLogInfo("FriendsDataSource/fetchFriendSuggestions/fetched [\(suggestions.count)] suggestions")
+        MainAppContext.shared.avatarStore.processContactSync(avatars)
         return suggestions
     }
 

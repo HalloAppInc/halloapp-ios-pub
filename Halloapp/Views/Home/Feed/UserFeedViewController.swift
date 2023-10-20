@@ -33,16 +33,30 @@ class UserFeedViewController: FeedCollectionViewController {
         return NSDirectionalEdgeInsets(top: 8, leading: 0, bottom: 20, trailing: 0)
     }
 
+    private let dataSource: ProfileDataSource
+
     init(userId: UserID, showHeader: Bool = true) {
         self.userId = userId
         self.isUserBlocked = false
-        
+        self.dataSource = ProfileDataSource(id: userId)
+
         if showHeader {
             let configuration: ProfileHeaderViewController.Configuration = userId == MainAppContext.shared.userData.userId ? .ownProfile : .default
             headerViewController = ProfileHeaderViewController(configuration: configuration)
         } else {
             headerViewController = nil
         }
+
+        super.init(title: nil, fetchRequest: FeedDataSource.userFeedRequest(userID: userId))
+    }
+
+    init(profile: DisplayableProfile) {
+        userId = profile.id
+        isUserBlocked = profile.isBlocked
+        dataSource = ProfileDataSource(profile: profile)
+
+        let configuration: ProfileHeaderViewController.Configuration = userId == MainAppContext.shared.userData.userId ? .ownProfile : .default
+        headerViewController = ProfileHeaderViewController(configuration: configuration)
 
         super.init(title: nil, fetchRequest: FeedDataSource.userFeedRequest(userID: userId))
     }
@@ -75,11 +89,10 @@ class UserFeedViewController: FeedCollectionViewController {
             title = Localizations.titleMyPosts
         }
 
-        if let profile {
-            // TODO: save a profile on background context so that it's not optional
-            headerViewController?.configure(with: profile)
-        }
-
+        let publisher = dataSource.$profile
+            .compactMap { $0 }
+            .eraseToAnyPublisher()
+        headerViewController?.configure(with: publisher)
         setupMoreButton()
     }
 

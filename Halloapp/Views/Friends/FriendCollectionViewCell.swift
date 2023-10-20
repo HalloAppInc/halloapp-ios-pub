@@ -56,6 +56,8 @@ class BaseFriendCollectionViewCell: UICollectionViewCell {
 
 class FriendCollectionViewCell: BaseFriendCollectionViewCell {
 
+    var onSelect: (() -> Void)?
+
     private let avatarView: AvatarView = {
         let view = AvatarView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -123,6 +125,11 @@ class FriendCollectionViewCell: BaseFriendCollectionViewCell {
             trailingView.topAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.topAnchor),
             trailingView.centerYAnchor.constraint(equalTo: contentView.layoutMarginsGuide.centerYAnchor),
         ])
+
+        [avatarView, nameLabel, usernameLabel].forEach { $0.isUserInteractionEnabled = true }
+
+        let tap = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture))
+        contentView.addGestureRecognizer(tap)
     }
 
     required init(coder: NSCoder) {
@@ -135,6 +142,16 @@ class FriendCollectionViewCell: BaseFriendCollectionViewCell {
         usernameLabel.text = "@" + friend.username
 
         configure(isFirst: isFirst, isLast: isLast)
+    }
+
+    @objc
+    private func handleTapGesture(_ gesture: UITapGestureRecognizer) {
+        let location = gesture.location(in: contentView)
+        let hit = contentView.hitTest(location, with: nil)
+
+        if hit === avatarView || hit === nameLabel || hit === usernameLabel {
+            onSelect?()
+        }
     }
 }
 

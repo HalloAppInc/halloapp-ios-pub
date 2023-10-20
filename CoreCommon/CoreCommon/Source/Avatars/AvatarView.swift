@@ -107,6 +107,7 @@ public class AvatarView: UIView {
     
     private func commonInit() {
         isUserInteractionEnabled = false
+        avatarContainerView.isUserInteractionEnabled = false
         contentMode = .scaleAspectFit
         avatar.image = AvatarView.defaultImage
         avatarContainerView.addSubview(avatar)

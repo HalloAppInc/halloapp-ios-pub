@@ -603,7 +603,6 @@ class ChatViewControllerNew: UIViewController, NSFetchedResultsControllerDelegat
         } else {
             titleView.update(with: fromUserId, status: UserPresenceType.none, lastSeen: nil)
         }
-        titleView.checkIfUnknownContactWithPushNumber(userID: fromUserId)
         
         view.addSubview(collectionView)
         collectionView.constrain(to: view)

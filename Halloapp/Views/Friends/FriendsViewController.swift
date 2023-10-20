@@ -178,6 +178,9 @@ class FriendsViewController: UIViewController, UserActionHandler {
             cell.onIgnore = { [weak self, id = friend.id] in
                 self?.ignoreRequest(userID: id)
             }
+            cell.onSelect = { [weak self, friend] in
+                self?.openProfile(for: friend)
+            }
 
         case .outgoing(let friend):
             cell = collectionView.dequeueReusableCell(withReuseIdentifier: OutgoingFriendCollectionViewCell.reuseIdentifier,
@@ -189,6 +192,9 @@ class FriendsViewController: UIViewController, UserActionHandler {
             cell.onCancel = { [weak self, id = friend.id] in
                 self?.cancelRequest(userID: id)
             }
+            cell.onSelect = { [weak self, friend] in
+                self?.openProfile(for: friend)
+            }
 
         case .suggested(let friend):
             cell = collectionView.dequeueReusableCell(withReuseIdentifier: SuggestedFriendCollectionViewCell.reuseIdentifier,
@@ -199,6 +205,9 @@ class FriendsViewController: UIViewController, UserActionHandler {
             cell.configure(with: friend, isFirst: isFirst, isLast: isLast)
             cell.onAdd = { [weak self, id = friend.id] in
                 self?.addFriend(userID: id)
+            }
+            cell.onSelect = { [weak self, friend] in
+                self?.openProfile(for: friend)
             }
 
         case .existing(let friend):
@@ -224,6 +233,9 @@ class FriendsViewController: UIViewController, UserActionHandler {
                         Task { try await self.handle(action, for: userID) }
                     }
                 }
+            }
+            cell.onSelect = { [weak self, friend] in
+                self?.openProfile(for: friend)
             }
 
         case .allRequests(let count):
@@ -394,6 +406,19 @@ class FriendsViewController: UIViewController, UserActionHandler {
                 dataSource.update(userID, to: previousStatus)
             }
         }
+    }
+
+    private func openProfile(for friend: FriendsDataSource.Friend) {
+        let viewController: UIViewController
+        switch friend.friendshipStatus {
+        case .none, .incomingPending, .outgoingPending:
+            viewController = UserFeedViewController(profile: friend)
+        case .friends:
+            viewController = UserFeedViewController(userId: friend.id, showHeader: true)
+        }
+
+        let navigationController = UINavigationController(rootViewController: viewController)
+        present(navigationController, animated: true)
     }
 }
 

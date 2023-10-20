@@ -85,34 +85,10 @@ class ChatTitleView: UIView {
 
     func refreshName(for userID: String) {
         setNameLabel(for: userID)
-        checkIfUnknownContactWithPushNumber(userID: userID)
     }
 
     func refreshName(groupId: GroupID) {
         setNameLabel(groupId: groupId)
-    }
-
-    func checkIfUnknownContactWithPushNumber(userID: UserID) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            let isUserBlocked = MainAppContext.shared.privacySettings.blocked.userIds.contains(userID)
-            let isContactInAddressBook = MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID, in: MainAppContext.shared.contactStore.viewContext)
-            let pushNumberExist = MainAppContext.shared.contactStore.pushNumber(userID) != nil
-
-            self.isUnknownContactWithPushNumber = !isUserBlocked && !isContactInAddressBook && pushNumberExist
-
-            guard self.isUnknownContactWithPushNumber else {
-                self.phoneLabel.isHidden = true
-                return
-            }
-
-            if let pushNumber = MainAppContext.shared.contactStore.pushNumber(userID) {
-                self.lastSeenLabel.isHidden = true
-                self.typingLabel.isHidden = true
-                self.phoneLabel.isHidden = false
-                self.phoneLabel.text = pushNumber.formattedPhoneNumber
-            }
-        }
     }
 
     public func configureGroupTitleViewWithTypingIndicator(chatStateInfo: ChatStateInfo) {
@@ -186,7 +162,7 @@ class ChatTitleView: UIView {
     }
 
     private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [nameLabel, phoneLabel, lastSeenLabel, typingLabel])
+        let view = UIStackView(arrangedSubviews: [nameLabel, lastSeenLabel, typingLabel])
         view.axis = .vertical
         view.spacing = 0
         
@@ -200,16 +176,6 @@ class ChatTitleView: UIView {
         label.font = UIFont.gothamFont(ofFixedSize: 17, weight: .medium)
         label.textColor = .label
         label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-
-    private lazy var phoneLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.systemFont(ofSize: 12)
-        label.textColor = .secondaryLabel
-        label.isHidden = true
         return label
     }()
     
