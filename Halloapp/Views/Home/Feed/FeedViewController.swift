@@ -84,11 +84,23 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
                 let itemIdentifier = snapshot.itemIdentifiers[insertionIndex]
 
                 if !suggestionsManager.suggestions.isEmpty {
-                    snapshot.insertItems([.suggestionsCarousel], afterItem: itemIdentifier)
-                    snapshot.deleteItems([.inviteCarousel])
+                    if !snapshot.itemIdentifiers.contains(.suggestionsCarousel) {
+                        snapshot.insertItems([.suggestionsCarousel], afterItem: itemIdentifier)
+                    } else {
+                        snapshot.moveItem(.suggestionsCarousel, afterItem: itemIdentifier)
+                    }
+                    if snapshot.itemIdentifiers.contains(.inviteCarousel) {
+                        snapshot.deleteItems([.inviteCarousel])
+                    }
                 } else if canInvite, !inviteContactsManager.randomSelection.isEmpty {
-                    snapshot.insertItems([.inviteCarousel], afterItem: itemIdentifier)
-                    snapshot.deleteItems([.suggestionsCarousel])
+                    if !snapshot.itemIdentifiers.contains(.inviteCarousel) {
+                        snapshot.insertItems([.inviteCarousel], afterItem: itemIdentifier)
+                    } else {
+                        snapshot.moveItem(.inviteCarousel, afterItem: itemIdentifier)
+                    }
+                    if snapshot.itemIdentifiers.contains(.suggestionsCarousel) {
+                        snapshot.deleteItems([.suggestionsCarousel])
+                    }
                 }
 
                 await collectionViewDataSource?.apply(snapshot)
