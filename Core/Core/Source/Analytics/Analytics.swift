@@ -109,6 +109,10 @@ public class Analytics {
         case notificationPermissionEnabled
         case contactPermissionEnabled
         case clientVersion
+        case locationPermissionsEnabled
+        case photoPermissionsEnabled
+        case iOSLocationAccess = "ios_location_access"
+        case iOSPhotoAccess = "ios_photo_access"
     }
 
     private static var userIDUpdateCancellable: AnyCancellable?

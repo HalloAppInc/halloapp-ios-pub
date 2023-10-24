@@ -6,6 +6,7 @@
 //  Copyright © 2023 HalloApp, Inc. All rights reserved.
 //
 
+import Core
 import Photos
 
 extension PHAuthorizationStatus {
@@ -47,6 +48,7 @@ class PhotoPermissionsHelper {
 
     class func requestAuthorization(for accessLevel: AccessLevel, handler: ((PHAuthorizationStatus) -> Void)? = nil) {
         let notificationHandler: (PHAuthorizationStatus) -> Void = { status in
+            Self.reportCurrentPhotoPermissions()
             NotificationCenter.default.post(Notification(name: PhotoPermissionsHelper.photoAuthorizationDidChange))
             handler?(status)
         }
@@ -60,5 +62,33 @@ class PhotoPermissionsHelper {
                 continuation.resume(returning: status)
             }
         }
+    }
+
+    class func reportCurrentPhotoPermissions() {
+        let permissionString: String
+        let hasPermission: Bool
+
+        switch authorizationStatus(for: .readWrite) {
+        case .notDetermined:
+            permissionString = "notDetermined"
+            hasPermission = false
+        case .restricted:
+            permissionString = "restricted"
+            hasPermission = false
+        case .denied:
+            permissionString = "denied"
+            hasPermission = false
+        case .authorized:
+            permissionString = "authorized"
+            hasPermission = true
+        case .limited:
+            permissionString = "limited"
+            hasPermission = true
+        @unknown default:
+            permissionString = "unknown"
+            hasPermission = false
+        }
+
+        Analytics.setUserProperties([.photoPermissionsEnabled: hasPermission, .iOSPhotoAccess: permissionString])
     }
 }

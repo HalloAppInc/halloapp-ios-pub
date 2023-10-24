@@ -218,6 +218,9 @@ class MainAppContext: AppContext {
             migrateGroupLastUpdatedIfNecessary()
         }
 
+        PhotoPermissionsHelper.reportCurrentPhotoPermissions()
+        LocationPermissionsMonitor.shared.reportCurrentLocationPermissions()
+
         NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
             .sink { [weak mediaUploader] _ in
                 mediaUploader?.resumeBackgroundURLSessions()

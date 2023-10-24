@@ -259,7 +259,7 @@ class ContactStoreMain: ContactStoreCore {
         let syncManager = MainAppContext.shared.syncManager!
         let contactsAccessEnabled = ContactStore.contactsAccessAuthorized
 
-        Analytics.setUserProperties([.notificationPermissionEnabled: contactsAccessEnabled])
+        Analytics.setUserProperties([.contactPermissionEnabled: contactsAccessEnabled])
         
         guard contactsAccessEnabled else {
             // TODO: delete local contact cache
