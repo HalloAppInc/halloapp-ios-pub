@@ -1215,7 +1215,11 @@ public class CoreChatData {
                 chatReaction.retractID = retractID
                 self.service.retractChatMessage(messageID: retractID, toUserID: userID, messageToRetractID: reactionID, completion: completion)
             default:
-                let xmppReaction = XMPPReaction(reaction: chatReaction)
+                guard let xmppReaction = XMPPReaction(chatReaction: chatReaction) else {
+                    DDLogError("CoreChatData/handleReactionRerequest/\(reactionID)/could not create XMPP reaction to send")
+                    completion(.failure(.aborted))
+                    return
+                }
                 self.service.sendChatMessage(xmppReaction, completion: completion)
             }
         }
@@ -1272,7 +1276,11 @@ public class CoreChatData {
                 chatReaction.retractID = retractID
                 self.service.retractGroupChatMessage(messageID: retractID, groupID: groupID, to: userID, messageToRetractID: reactionID, completion: completion)
             default:
-                let xmppReaction = XMPPReaction(reaction: chatReaction)
+                guard let xmppReaction = XMPPReaction(chatReaction: chatReaction) else {
+                    DDLogError("CoreChatData/handleReactionRerequest/\(reactionID)/could not create XMPP reaction to send")
+                    completion(.failure(.aborted))
+                    return
+                }
                 self.service.resendGroupChatMessage(xmppReaction, groupId: groupID, to: userID, rerequestCount: resendInfo.retryCount, completion: completion)
             }
         }

@@ -39,10 +39,13 @@ extension XMPPReaction: ChatMessageProtocol {
 extension XMPPReaction {
 
     // for outbound message
-    public init(reaction: CommonReaction) {
+    public init?(chatReaction reaction: CommonReaction) {
+        guard let chatMessageRecipient = reaction.chatMessageRecipient else {
+            return nil
+        }
         self.id = reaction.id
         self.fromUserId = reaction.fromUserID
-        self.chatMessageRecipient = reaction.chatMessageRecipient
+        self.chatMessageRecipient = chatMessageRecipient
         self.context = ChatContext(
             feedPostID: nil,
             feedPostMediaIndex: 0,

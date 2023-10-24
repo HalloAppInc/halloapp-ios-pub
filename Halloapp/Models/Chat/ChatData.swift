@@ -2423,7 +2423,7 @@ extension ChatData {
 
         // Update Chat Thread
         let lastMsgStatus = isMsgToYourself ? ChatThread.LastMsgStatus.seen : ChatThread.LastMsgStatus.pending
-        switch commonReaction.chatMessageRecipient {
+        switch chatMessageRecipient {
         case .oneToOneChat(let toUserId, _):
             updateChatThread(chatType: .oneToOne, with: commonReaction,
                              recipientId: toUserId,
@@ -2452,7 +2452,7 @@ extension ChatData {
         let retractID = PacketID.generate()
 
         updateReaction(with: reactionToRetractID) { [weak self] (commonReaction) in
-            guard let self = self else { return }
+            guard let self = self, let chatMessageRecipient = commonReaction.chatMessageRecipient else { return }
 
             commonReaction.retractID = retractID
             commonReaction.outgoingStatus = .retracting
@@ -2479,15 +2479,15 @@ extension ChatData {
             }
             
             self.deleteReaction(commonReaction: commonReaction)
-            self.updateChatThreadStatus(chatMessageRecipient: commonReaction.chatMessageRecipient, messageId: commonReaction.id) { (chatThread) in
+            self.updateChatThreadStatus(chatMessageRecipient: chatMessageRecipient, messageId: commonReaction.id) { (chatThread) in
                 chatThread.lastMsgStatus = .retracting
                 chatThread.lastMsgText = reactionText
                 chatThread.lastMsgMediaType = .none
             }
         }
 
-        if let toUserId = commonReaction.chatMessageRecipient.toUserId {
-            self.service.retractChatMessage(messageID: retractID, toUserID: toUserId, messageToRetractID: reactionToRetractID) { result in
+        if let toUserID = commonReaction.toUserID {
+            self.service.retractChatMessage(messageID: retractID, toUserID: toUserID, messageToRetractID: reactionToRetractID) { result in
                 switch result {
                 case .failure(let error):
                     DDLogError("ChatData/retractChatReaction: \(reactionToRetractID)/failed: \(error)")
@@ -2495,8 +2495,8 @@ extension ChatData {
                     DDLogInfo("ChatData/retractChatReaction: \(reactionToRetractID)/success")
                 }
             }
-        } else if let toGroupId = commonReaction.chatMessageRecipient.toGroupId {
-            self.service.retractGroupChatMessage(messageID: retractID, groupID: toGroupId, messageToRetractID: reactionToRetractID) { result in
+        } else if let toGroupID = commonReaction.toGroupID {
+            self.service.retractGroupChatMessage(messageID: retractID, groupID: toGroupID, messageToRetractID: reactionToRetractID) { result in
                 switch result {
                 case .failure(let error):
                     DDLogError("ChatData/retractGroupChatReaction: \(reactionToRetractID)/failed: \(error)")
@@ -2608,7 +2608,7 @@ extension ChatData {
         let sortDescriptors = [
             NSSortDescriptor(keyPath: \CommonReaction.timestamp, ascending: true)
         ]
-        return commonReactions(predicate: NSPredicate(format: "fromUserID = %@ && outgoingStatusValue = %d", userData.userId, CommonReaction.OutgoingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+        return commonReactions(predicate: NSPredicate(format: "fromUserID = %@ && outgoingStatusValue = %d && message != nil", userData.userId, CommonReaction.OutgoingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
     
     func pendingOutgoingSeenReceipts(in managedObjectContext: NSManagedObjectContext) -> [ChatMessage] {
@@ -2708,7 +2708,8 @@ extension ChatData {
         }
     }
     
-    private func updateChatThread(chatType: ChatType, with commonReaction: CommonReaction,
+    private func updateChatThread(chatType: ChatType,
+                                  with commonReaction: CommonReaction,
                                   recipientId: String,
                                   reactionText: String,
                                   in context: NSManagedObjectContext,
@@ -2731,12 +2732,12 @@ extension ChatData {
             let chatThread = ChatThread(context: context)
             switch chatType {
             case .oneToOne:
-                chatThread.userID = commonReaction.chatMessageRecipient.recipientId
+                chatThread.userID = recipientId
                 chatThread.groupId = nil
                 chatThread.type = chatType
             case .groupChat, .groupFeed:
                 chatThread.userID = nil
-                chatThread.groupId = commonReaction.chatMessageRecipient.toGroupId
+                chatThread.groupId = recipientId
                 chatThread.type = chatType
             }
 
@@ -3463,7 +3464,7 @@ extension ChatData {
         }
 
         let fromUserID = commonReaction.fromUserID
-        var fromUserName = UserProfile.find(with: fromUserID, in: managedObjectContext)?.displayName ?? ""
+        let fromUserName = UserProfile.find(with: fromUserID, in: managedObjectContext)?.displayName ?? ""
         var reactionText = String(format: Localizations.chatListUserReactedMessage, fromUserName, commonReaction.emoji)
         if let message = commonReaction.message {
             if let media = message.media, media.count == 1 {
@@ -3485,7 +3486,7 @@ extension ChatData {
             }
         }
         // Update Chat Thread
-        switch commonReaction.chatMessageRecipient {
+        switch xmppReaction.chatMessageRecipient {
         case .oneToOneChat(_, let fromUserId):
             updateChatThread(chatType: .oneToOne, with: commonReaction,
                              recipientId: fromUserId,
@@ -3704,7 +3705,7 @@ extension ChatData {
         DDLogInfo("ChatData/processInboundReactionRetract")
 
         updateReaction(with: chatRetractInfo.messageID) { [weak self] (commonReaction) in
-            guard let self = self else { return }
+            guard let self = self, let chatMessageRecipient = commonReaction.chatMessageRecipient else { return }
 
             commonReaction.incomingStatus = .retracted
 
@@ -3736,7 +3737,7 @@ extension ChatData {
                 }
             }
             self.createNewChatThreadIfMissing(chatRetractInfo: chatRetractInfo, status: .retracted)
-            self.updateChatThreadStatus(chatMessageRecipient: commonReaction.chatMessageRecipient, messageId: commonReaction.id) { (chatThread) in
+            self.updateChatThreadStatus(chatMessageRecipient: chatMessageRecipient, messageId: commonReaction.id) { (chatThread) in
                 chatThread.lastMsgStatus = .retracted
                 chatThread.lastMsgText = reactionText
                 chatThread.lastMsgMediaType = .none
@@ -3840,11 +3841,14 @@ extension ChatData {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
             let pendingOutgoingReactions = self.pendingOutgoingReactions(in: managedObjectContext)
-            DDLogInfo("ChatData/processPendingChatMsgs/num: \(pendingOutgoingReactions.count)")
+            DDLogInfo("ChatData/processPendingReactions/num: \(pendingOutgoingReactions.count)")
 
             pendingOutgoingReactions.forEach { pendingReaction in
-                let xmppReaction = XMPPReaction(reaction: pendingReaction)
-                self.send(message: xmppReaction)
+                if let xmppReaction = XMPPReaction(chatReaction: pendingReaction) {
+                    self.send(message: xmppReaction)
+                } else {
+                    DDLogError("ChatData/processPendingReactions/could not send reaction with id \(pendingReaction.id)")
+                }
             }
         }
     }
