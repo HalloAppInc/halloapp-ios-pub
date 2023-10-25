@@ -146,8 +146,11 @@ class PhotoSuggestions: NSObject {
 
     private func generateSuggestionsInternal() async throws -> [PhotoCluster] {
         if let cachedSuggestions {
+            DDLogInfo("PhotoSuggestions/generateSuggestions/returning from cache")
             return cachedSuggestions
         }
+
+        let generateSuggestionsStartDate = Date()
 
         var visitedAssetIdentifiers: Set<String> = []
         var macroClusters: [[PHAsset]] = []
@@ -158,6 +161,8 @@ class PhotoSuggestions: NSObject {
                 filteredAssets.append(asset)
             }
         }
+
+        DDLogInfo("PhotoSuggestions/generateSuggestions/Clustering \(filteredAssets.count) photos...")
 
         // Sanity checks on photos
         guard !filteredAssets.isEmpty else {
@@ -195,6 +200,8 @@ class PhotoSuggestions: NSObject {
 
             macroClusters.append(cluster)
         }
+
+        DDLogInfo("PhotoSuggestions/generateSuggestions/Found \(macroClusters.count) macroClusters (max \(Constants.maxMacroclusters))")
 
         // Parallelize clustering and geocoding each macrocluster
         let clusters = try await withThrowingTaskGroup(of: Array<PhotoCluster>.self) { taskGroup in
@@ -247,10 +254,12 @@ class PhotoSuggestions: NSObject {
                             let reverseGeocodeLocation = try await MainAppContext.shared.geocoder.reverseGeocode(location: clusterLocation)
                             locatedClusters.append((reverseGeocodeLocation, cluster.map(\.asset)))
                         } catch {
-                            DDLogError("PhotoSuggestions/error geocoding cluster: \(error)")
+                            DDLogError("PhotoSuggestions/generateSuggestions/error geocoding cluster: \(error)")
                             locatedClusters.append((nil, cluster.map(\.asset)))
                         }
                     }
+
+                    DDLogInfo("PhotoSuggestions/generateSuggestions/Found \(locatedClusters.count) located clusters, \(unclusteredAssets.count) remaining assets")
 
                     // Unable to find a location, just return the macrocluster
                     guard !locatedClusters.isEmpty else {
@@ -289,6 +298,8 @@ class PhotoSuggestions: NSObject {
             }
             return clusters
         }
+
+        DDLogInfo("PhotoSuggestions/generateSuggestions/Completed with \(clusters.count) clusters in \(-generateSuggestionsStartDate.timeIntervalSinceNow) sec")
 
         cachedSuggestions = clusters
 
