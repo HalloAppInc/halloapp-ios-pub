@@ -1069,16 +1069,30 @@ class ChatData: NSObject, ObservableObject {
     // TODO: Will unify the download logic for media-items across the entire app.
     // Should be called on the same queue with the coreDataObject since objects are not supposed to be accessed across queues.
     func downloadMedia(in chatMessage: ChatMessage) {
-        let contentID = chatMessage.id
-        downloadChatMedia(mediaItems: chatMessage.media, contentID: contentID)
+        let chatMessageObjectID = chatMessage.objectID
+        performSeriallyOnBackgroundContext { [weak self] context in
+            guard let self, let chatMessage = try? context.existingObject(with: chatMessageObjectID) as? ChatMessage else {
+                DDLogError("ChatData/downloadMedia/could not find chatMessage")
+                return
+            }
+            let contentID = chatMessage.id
+            self.downloadChatMedia(mediaItems: chatMessage.media, contentID: contentID)
+        }
     }
 
     func downloadMedia(in linkPreview: CommonLinkPreview) {
-        let contentID = linkPreview.id
-        downloadChatMedia(mediaItems: linkPreview.media, contentID: contentID)
+        let linkPreviewObjectID = linkPreview.objectID
+        performSeriallyOnBackgroundContext { [weak self] context in
+            guard let self, let linkPreview = try? context.existingObject(with: linkPreviewObjectID) as? CommonLinkPreview else {
+                DDLogError("ChatData/downloadMedia/could not find linkPreview")
+                return
+            }
+            let contentID = linkPreview.id
+            self.downloadChatMedia(mediaItems: linkPreview.media, contentID: contentID)
+        }
     }
 
-    func downloadChatMedia(mediaItems: Set<CommonMedia>?, contentID: String) {
+    private func downloadChatMedia(mediaItems: Set<CommonMedia>?, contentID: String) {
         guard let mediaItems = mediaItems,
               !mediaItems.isEmpty else {
             return
