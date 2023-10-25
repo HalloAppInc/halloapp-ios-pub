@@ -508,6 +508,18 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             } catch {
                 DDLogError("FeedData/stuck-posts/error [\(error)]")
             }
+
+            let reactionsFetchRequest: NSFetchRequest<CommonReaction> = CommonReaction.fetchRequest()
+            reactionsFetchRequest.predicate = NSPredicate(format: "outgoingStatusValue = %d OR outgoingStatusValue = %d", CommonReaction.OutgoingStatus.pending.rawValue, CommonReaction.OutgoingStatus.error.rawValue)
+            do {
+                let stuckReactions = try managedObjectContext.fetch(reactionsFetchRequest)
+                for reaction in stuckReactions {
+                    DDLogInfo("FeedData/stuck-reactions/\(reaction.id)/resending")
+                    self.send(reaction: reaction)
+                }
+            } catch {
+                DDLogError("FeedData/stuck-reactions/error [\(error)]")
+            }
         }
     }
 
@@ -3115,7 +3127,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     
     private func send(reaction: CommonReaction) {
         guard let post = reaction.post ?? reaction.comment?.post else {
-            DDLogError("FeedData/send-reaction/error [no associated post]")
+            DDLogInfo("FeedData/send-reaction/skipping [no associated post]")
             return
         }
 
