@@ -328,8 +328,7 @@ class MediaPickerViewController: UIViewController {
 
     private lazy var debugButtonItem: UIBarButtonItem = {
         let imageConfig = UIImage.SymbolConfiguration(weight: .bold)
-        let image = UIImage(systemName: "list.clipboard", withConfiguration: imageConfig)?
-                    .withTintColor(.white, renderingMode: .alwaysOriginal)
+        let image = UIImage(systemName: "list.clipboard", withConfiguration: imageConfig)
         return  UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(toggleDebugInfo))
     }()
 
