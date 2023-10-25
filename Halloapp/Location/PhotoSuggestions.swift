@@ -108,7 +108,7 @@ class PhotoSuggestions: NSObject {
             return
         }
 
-        let updatedAssets = PhotoSuggestions.queryAssets(start: Date().advanced(by: -30 * 24 * 60 * 60), limit: 1000)
+        let updatedAssets = PhotoSuggestions.queryAssets(start: Date().advanced(by: -90 * 24 * 60 * 60), limit: 1000)
 
         var currentAssetIDs: Set<String> = []
         var previousAssetIDs: Set<String> = []
