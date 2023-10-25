@@ -501,6 +501,7 @@
 		F4C29B16283D5A4C00A4FE08 /* MediaImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C29B15283D5A4C00A4FE08 /* MediaImageView.swift */; };
 		F4D88F5127D6D8A300D706DA /* InviteContactViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */; };
 		F4D88F6B27D9873F00D706DA /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F6A27D9873E00D706DA /* Toast.swift */; };
+		F4DE66F12AE891B8003AC357 /* PhotosUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4DE66F02AE891B8003AC357 /* PhotosUI.framework */; };
 		F4EFF9112AA7D44800F09C54 /* PhotoSuggestionsEmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4EFF9102AA7D44800F09C54 /* PhotoSuggestionsEmptyStateView.swift */; };
 		F4EFF9132AA7F46500F09C54 /* PhotoPermissionsHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4EFF9122AA7F46500F09C54 /* PhotoPermissionsHelper.swift */; };
 		F4EFF9152AA90AC000F09C54 /* AlbumSuggestionCallToActionCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4EFF9142AA90ABF00F09C54 /* AlbumSuggestionCallToActionCollectionViewCell.swift */; };
@@ -1347,6 +1348,7 @@
 		F4C29B15283D5A4C00A4FE08 /* MediaImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaImageView.swift; sourceTree = "<group>"; };
 		F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteContactViewController.swift; sourceTree = "<group>"; };
 		F4D88F6A27D9873E00D706DA /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
+		F4DE66F02AE891B8003AC357 /* PhotosUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PhotosUI.framework; path = System/Library/Frameworks/PhotosUI.framework; sourceTree = SDKROOT; };
 		F4EFF9102AA7D44800F09C54 /* PhotoSuggestionsEmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSuggestionsEmptyStateView.swift; sourceTree = "<group>"; };
 		F4EFF9122AA7F46500F09C54 /* PhotoPermissionsHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoPermissionsHelper.swift; sourceTree = "<group>"; };
 		F4EFF9142AA90ABF00F09C54 /* AlbumSuggestionCallToActionCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumSuggestionCallToActionCollectionViewCell.swift; sourceTree = "<group>"; };
@@ -1457,6 +1459,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F404FC3B2810B135008313FF /* CoreCommon.framework in Frameworks */,
+				F4DE66F12AE891B8003AC357 /* PhotosUI.framework in Frameworks */,
 				F404FC392810B135008313FF /* Core.framework in Frameworks */,
 				6A081C51273C154600E9E29A /* WebRTC in Frameworks */,
 				68929F9F2734AD3C00F79288 /* MarkdownKit in Frameworks */,
@@ -1953,6 +1956,7 @@
 		8295BD88471C9D5DC2D30C41 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F4DE66F02AE891B8003AC357 /* PhotosUI.framework */,
 				F49B3C152922D7B60047F597 /* SCSDKCoreKit.xcframework */,
 				F49B3C142922D7B50047F597 /* SCSDKCreativeKit.xcframework */,
 				F404FC372810B135008313FF /* Core.framework */,
