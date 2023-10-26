@@ -1,4 +1,7 @@
 /* No comment provided by engineer. */
+"@%@" = "@%@";
+
+/* No comment provided by engineer. */
 "%" = "%";
 
 /* No comment provided by engineer. */
@@ -39,6 +42,9 @@
 
 /* First tab in the main app interface. */
 "activityCenter.promo.favorites" = "Lihat fitur Favorit baru!";
+
+/* Title of a button to send a friend request. */
+"add.friend" = "Tambah Teman";
 
 /* Title of a button that allows a location to be added. */
 "add.location.title" = "Tambah Lokasi";
@@ -108,6 +114,13 @@
 
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Tidak Ada Sambungan";
+
+/* Failure message displayed after trying to block a user.
+   Success message displayed after blocking a user. */
+"block.success" = "Diblokir";
+
+/* Title of an alert when blocking a user. */
+"block.title" = "Blokir %@";
 
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Tambahkan";
@@ -297,6 +310,9 @@
 
 /* No comment provided by engineer. */
 "Cancel" = "Batalkan";
+
+/* Title of a button to cancel a friendship request. */
+"cancel.request" = "Batalkan Permintaan";
 
 /* Text shown in the chat interface informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "Anda memblokir kontak ini";
@@ -526,6 +542,9 @@
 /* Prompts the user to choose a photo. */
 "choose.photo" = "Pilih Foto";
 
+/* Title of a button to close a screen. */
+"close.title" = "Tutup";
+
 /* Title for the button in comment deletion confirmation prompt. */
 "comment.delete.action" = "Hapus Komentar";
 
@@ -573,6 +592,9 @@
 
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "Buang Postingan?";
+
+/* Share to all friends */
+"composer.destination.friendsShare" = "Teman Saya";
 
 /* Label above the list with whom you share */
 "composer.destinations.label" = "Bagikan dengan";
@@ -865,6 +887,18 @@
 /* Possible Feed Privacy setting value. Keep short. */
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
+/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.body.1" = "Ruang personal tanpa para pemengaruh dan iklan. Hanya Anda dan orang-orang terdekat.";
+
+/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.body.2" = "Teman-teman di HalloApp bisa melihat postingan Anda. Tambahkan teman dari jejaring Anda dan atur permintaan pertemanan.";
+
+/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.title.1" = "Selamat Datang di HalloApp! Jejaring sosial personal Anda";
+
+/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.title.2" = "Siapa yang bisa melihat postingan saya?";
+
 /* Text for 'more' cell prompting users to open the invite screen */
 "feedInviteCarousel.searchPrompt" = "Cari teman dan keluarga lainnya";
 
@@ -883,8 +917,20 @@
 /* Explains that as more contacts join the app, they will appear in this list automatically. */
 "fellow.contacts.will.arrive" = "Kontak ponsel Anda yang terdaftar dengan HalloApp akan otomatis muncul di sini.";
 
+/* Message displayed in the activity center when someone accepts your friend request. */
+"friend.activity.incoming.accepted" = "<$author$> menerima pertemanan";
+
+/* Message displayed in the activity center when there's an incoming friend request. */
+"friend.activity.incoming.pending" = "<$author$> meminta pertemanan";
+
 /* Title of a header that appears before a list of contacts that can be invited to register. */
 "friend.invite.header.title" = "Siapa lagi yang ingin Anda lihat di sini?";
+
+/* Message explaining the new friend network. */
+"friend.migration.message" = "Kini Anda bisa mencari orang di HalloApp menggunakan nama atau @username mereka. Daftar kontak di HalloApp adalah teman Anda sekarang. Anda bisa menghapus daftar kontak dari teman kapan saja.";
+
+/* Title when explaining the new friend network. */
+"friend.migration.title" = "Model Pertemanan Baru di HalloApp";
 
 /* Indicating friend requests */
 "friend.requests" = "Permintaan Pertemanan";
@@ -894,6 +940,12 @@
 
 /* Disclaimer telling users that their posts can be seen by their friends. */
 "friends.privacy.disclaimer" = "Orang-orang yang Anda tambahkan akan bisa melihat postingan yang dibagikan kepada semua teman di  HalloApp.";
+
+/* Indicating the user's friends. */
+"friends.title" = "Teman";
+
+/* When displaying a generic error message. */
+"generic.error" = "Terjadi Kesalahan";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Tambahkan deskripsi grup";
@@ -1097,7 +1149,7 @@
 "groups.title" = "Dengan %@";
 
 /* Text shown in the email body when sending logs from the help screen */
-"help.send.logs.email.body" = "\n\n\nTinggalkan saran atau deskripsi masalah pada\nkotak di atas. \n\nVersi %1$@ - %2$@\n%3$@";
+"help.send.logs.email.body" = "\n\n\nTulis saran atau deskripsi masalah pada\nkolom di atas. \n\nVersi %1$@ - %2$@\n%3$@";
 
 /* Text shown to users on failed audio capture alert during a call. */
 "home.calls.fail.audio.text" = "Coba lagi nanti.";
@@ -1134,6 +1186,12 @@
 
 /* Title of failed video call screen alert. */
 "home.video.calls.fail.title" = "Panggilan video saat ini tidak didukung.";
+
+/* Title of a button to ignore a friendship request. */
+"ignore.title" = "Acuhkan";
+
+/* Message displayed next to an incoming friend request. */
+"incoming.friend.request.format" = "%@ meminta pertemanan";
 
 /* Title of the bottom sheet that is presented only once to explain the moments feature. */
 "introducing.moments" = "Memperkenalkan Momen";
@@ -1471,6 +1529,12 @@
 /* Title of the daily moment notification. */
 "notification.daily.moment.title" = "Momen Harian";
 
+/* Body of a notification for when a friend request is accepted. */
+"notification.friend.request.accept.body" = "%@menerima pertemanan";
+
+/* Body of a notification for a new friend request. */
+"notification.friend.request.body" = "%@ meminta pertemanan";
+
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ baru saja menerima undangan Anda untuk bergabung dengan HalloApp 🎉";
 
@@ -1597,6 +1661,9 @@
 /* Title denoting something that is optional. */
 "optional.title" = "Opsional";
 
+/* Message displayed next to an outgoing friend request. */
+"outgoing.friend.request.format" = "Anda mengirim %@ permintaan pertemanan";
+
 /* button to launch photo and video library */
 "photo.and.video.library" = "Perpustakaan Foto & Video";
 
@@ -1606,17 +1673,35 @@
 /* Button to link to settings to enable location permission for HalloApp */
 "photosuggestions.cta.alwaysonlocation.action" = "Beri lokasi akses";
 
+/* explanation of why we want always location access */
+"photosuggestions.cta.alwaysonlocation.subtitle" = "Ketika Anda memotret foto baru, kami memilah hasil terbaik dan mengaturnya ke dalam draf postingan, sehingga siap diposting jika berkenan.";
+
+/* title for explanation of why we want always location access */
+"photosuggestions.cta.alwaysonlocation.title" = "Untuk Menggunakan Sulap Postingan, Beri HalloApp Akses Lokasi";
+
 /* Button to link to settings to enable location permission for Photos app */
-"photosuggestions.cta.photolocation.action" = "Akses Pengaturan";
+"photosuggestions.cta.photolocation.action" = "Buka Pengaturan";
+
+/* explanation for why we need to turn on location access for photos */
+"photosuggestions.cta.photolocation.subtitle1" = "Beri akses Lokasi bagi aplikasi Kamera demi memaksimalkan Sulap Postingan. HalloApp memakai metadata lokasi dari foto-foto Anda untuk bantu memilah dan menamainya.";
+
+/* instructions for enabling location access for photos app. maintain '*' to indicate bold text. */
+"photosuggestions.cta.photolocation.subtitle2" = "Untuk memberi Lokasi akses, buka: *Pengaturan* > *Privasi & Keamanan* > *Servis Lokasi* > *Kamera*";
 
 /* title for explanation of why we want location access for photos app */
-"photosuggestions.cta.photolocation.title" = "Beri Lokasi akses di aplikasi Foto";
+"photosuggestions.cta.photolocation.title" = "Beri Lokasi Akses untuk Aplikasi Kamera";
 
 /* Button to allow access to photos */
 "photosuggestions.emptystate.photopermission.action" = "Beri akses";
 
+/* Explanatory text on empty state view */
+"photosuggestions.emptystate.photopermission.title" = "Beri akses penuh ke Foto untuk menggunakan Sulap Postingan";
+
 /* explanation for photo suggestions */
-"photosuggestions.explainer.subtitle" = "Ketika Anda baru selesai memotret, kami memilah foto-foto terbaik ke dalam sebuah draf postingan, sehingga siap diposting jika berkenan.";
+"photosuggestions.explainer.subtitle" = "Ketika Anda memotret foto baru, kami memilah hasil terbaik dan mengaturnya ke dalam draf postingan, sehingga siap diposting jika berkenan.";
+
+/* title for explanation of photo suggestions */
+"photosuggestions.explainer.title" = "Coba Sulap Postingan";
 
 /* title for photo suggestions section */
 "photosuggestionsheader.title" = "Usulan postingan baru";
@@ -1727,7 +1812,7 @@
 "profile.help.faq" = "Tanya Jawab";
 
 /* Item in Profile > Help screen. */
-"profile.help.feedback" = "Bagikan Saran & Log";
+"profile.help.feedback" = "Bagikan Saran & Catatan";
 
 /* Item in Profile > Help screen. */
 "profile.help.pp" = "Kebijakan Privasi";
@@ -1841,7 +1926,7 @@
 "registration.nameEntry.placeholder" = "Nama Anda";
 
 /* An explainer during registration for why we'd like notification permissions. */
-"registration.notification.permissions.mesage" = "Dapatkan pembaruan pesan, panggilan, dan postingan. Anda dapat menyesuaikan notifikasi kapan pun.";
+"registration.notification.permissions.mesage" = "Dapatkan pembaruan pesan, panggilan, dan postingan. Anda dapat menyesuaikan notifikasi kapan saja.";
 
 /* Text that is above the field for the user's phone number during registration. */
 "registration.phone.number.prompt" = "Berapa nomor telepon anda?";
@@ -1875,6 +1960,12 @@
 
 /* Title of a button to remove a friend. */
 "remove.friend" = "Hapus Teman";
+
+/* Body of an alert that appears when removing a friend. */
+"remove.friend.body" = "%@ and Anda tidak akan bisa melihat postingan satu sama lain.";
+
+/* Title of an alert that appears when removing a friend. */
+"remove.friend.title" = "Hapus %@ sebagai Teman";
 
 /* Text for the action of removing a contact from the user's favorites list (title case). */
 "remove.from.favorites.title" = "Hapus dari Favorit";
@@ -1921,6 +2012,9 @@
 /* Format string to display how many incoming friend requests there are. */
 "requests.received" = "(%d) Permintaan Diterima";
 
+/* Indicating the user's friend requests. */
+"requests.title" = "Permintaan Pertemanan";
+
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Untuk memverifikasi keamanan hubungan Anda dengan %@, pastikan angka di atas sama dengan yang ditampilkan di perangkat mereka, atau pindai kode QR di ponsel mereka.";
 
@@ -1947,6 +2041,9 @@
 
 /* Title of a button that shows all friend requests. */
 "see.all.requests" = "Lihat Semua Permintaan";
+
+/* Title of a button that displays the users friend list. */
+"see.my.network" = "Teman Saya";
 
 /* Title of a button that shows sent friend requests. */
 "see.sent.requests" = "Permintaan Dikirim";
@@ -2095,6 +2192,9 @@
 /* Instructions for enabling notifications permissions */
 "settings.notifications.disabled.instructions" = "Aktifkan notifikasi di Pengaturan.";
 
+/* Settings > Notifications: label for the toggle that turns new magic post notifications on or off. */
+"settings.notifications.magicposts" = "Sulap Postingan";
+
 /* Settings > Notifications: label for the toggle that turns new moment notifications on or off. */
 "settings.notifications.moments" = "Momen";
 
@@ -2210,7 +2310,7 @@
 "title.groups" = "Grup";
 
 /* First tab in the main app interface. */
-"title.home" = "Laman";
+"title.home" = "Beranda";
 
 /* Row in Settings screen */
 "title.notifications" = "Notifikasi";
@@ -2233,6 +2333,9 @@
 /* Row in Settings screen */
 "title.storage" = "Penyimpanan";
 
+/* Tab for suggestions tab in main interface */
+"title.suggestions" = "Sulap Postingan";
+
 /* Title for the screen with information about who saw your moment. */
 "title.your.moment" = "Dilihat Oleh";
 
@@ -2250,6 +2353,9 @@
 
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
 "tutorial.tap.below" = "Ketuk “%@” di bawah.";
+
+/* Title of an alert when unblocking a user */
+"unblock.title" = "Buka Blokir %@";
 
 /* Text for action label that lets the user accept messages from unknown contacts */
 "unknown.contact.accept.to.message" = "Terima Pesan";
@@ -2274,6 +2380,9 @@
 
 /* Option when user taps more on profile page */
 "user.option.block" = "Blokir di HalloApp";
+
+/* Option when User clicks on the username on profile page and this can let the user copy the username */
+"user.option.copy.username" = "Salin Username";
 
 /* Option when user taps more on profile page */
 "user.option.unblock" = "Buka Blokir di HalloApp";

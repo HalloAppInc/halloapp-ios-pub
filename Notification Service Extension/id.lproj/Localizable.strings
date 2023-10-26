@@ -148,6 +148,12 @@
 /* Title of the daily moment notification. */
 "notification.daily.moment.title" = "Momen Harian";
 
+/* Body of a notification for when a friend request is accepted. */
+"notification.friend.request.accept.body" = "%@ menerima pertemanan";
+
+/* Body of a notification for a new friend request. */
+"notification.friend.request.body" = "%@ meminta pertemanan";
+
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ baru saja menerima undangan Anda untuk bergabung dengan HalloApp 🎉";
 

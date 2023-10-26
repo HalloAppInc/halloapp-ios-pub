@@ -1582,6 +1582,12 @@
 /* button to launch photo and video library */
 "photo.and.video.library" = "Fotoğraf & Video Galerisi";
 
+/* Button to link to settings to enable location permission for HalloApp */
+"photosuggestions.cta.alwaysonlocation.action" = "Ayarlardan izin ver";
+
+/* title for photo suggestions section */
+"photosuggestionsheader.title" = "Yeni gönderi önerileri";
+
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Lütfen Ayarlar'dan erişim izni ver";
 
@@ -2247,6 +2253,9 @@
 
 /* Text that indicates a view action. */
 "view.title" = "Gör";
+
+/* Title of notification that a user has a new sharing suggestion */
+"visitTracker.notification.title" = "Yeni paylaşım önerileri";
 
 /* Moment deletion confirmation. Displays as action sheet title. */
 "your.moment.delete.confirmation" = "Bu anlığı sil? Bu işlem geri alınamaz.";

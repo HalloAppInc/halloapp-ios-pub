@@ -7,6 +7,12 @@
 /* Privacy - Contacts Usage Description */
 "NSContactsUsageDescription" = "Izinkan HalloApp mengunggah kontak Anda ke server agar bisa membagi dan melihat postingan teman dan keluarga.";
 
+/* Privacy - Location Always and When In Use Usage Description */
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Fitur ini memungkinkan Anda mengirim lokasi terkini atau tempat terdekat di komentar dan chat, dan memberi notifikasi saran foto baru.";
+
+/* Privacy - Location Always Usage Description */
+"NSLocationAlwaysUsageDescription" = "Fitur ini memungkinkan Anda mengirim lokasi terkini atau tempat terdekat di komentar dan chat, dan memberi notifikasi saran foto baru.";
+
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "Fitur ini menampilkan lokasi Anda kini atau tempat sekitar di komentar dan chat.";
 
