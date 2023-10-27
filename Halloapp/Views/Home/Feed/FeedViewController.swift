@@ -37,10 +37,18 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         installEmptyView()
         installFloatingActionMenu()
 
-        let inviteButton = UIBarButtonItem(title: Localizations.buttonInvite, style: .plain, target: self, action: #selector(didTapInviteButtion))
-        inviteButton.tintColor = .primaryBlue
-        inviteButton.accessibilityLabel = Localizations.inviteFriendsAndFamily
-        navigationItem.rightBarButtonItem = inviteButton
+        let friendsButton = UIBarButtonItem(title: Localizations.friendsTitle, primaryAction: UIAction { [weak self] _ in
+            guard let self else {
+                return
+            }
+
+            let viewController = SegmentedFriendsViewController()
+            let navigationController = UINavigationController(rootViewController: viewController)
+            self.present(navigationController, animated: true)
+        })
+
+        friendsButton.tintColor = .primaryBlue
+        navigationItem.rightBarButtonItem = friendsButton
 
         cancellables.insert(MainAppContext.shared.callManager.isAnyCallOngoing.sink(receiveValue: { [weak self] activeCall in
             let hasActiveCall = activeCall != nil
@@ -242,20 +250,6 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         }
 
         return result
-    }
-
-    // MARK: UI Actions
-
-    @objc private func didTapInviteButtion() {
-        guard ContactStore.contactsAccessAuthorized else {
-            let inviteVC = InvitePermissionDeniedViewController()
-            present(UINavigationController(rootViewController: inviteVC), animated: true)
-            return
-        }
-        InviteManager.shared.requestInvitesIfNecessary()
-        let inviteVC = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
-        let navController = UINavigationController(rootViewController: inviteVC)
-        present(navController, animated: true)
     }
 
     // MARK: NUX
