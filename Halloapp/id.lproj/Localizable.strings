@@ -11,7 +11,7 @@
 "• %@" = "• %@";
 
 /* About screen: body text. */
-"about.body.1" = "HalloApp telah hadir! Kami membuatnya untuk Anda dan orang-orang terdekat Anda. Kami mengembalikan aplikasi sosial ke intinya dengan menambahkan lapisan keamanan dan privasi yang layak dimiliki oleh semua pengguna di dunia. HalloApp tidak akan pernah menggunakan informasi pribadi Anda atau menampilkan iklan. Selain itu, kami berencana akan menawarkan fitur tambahan dengan harga terjangkau.";
+"about.body.1" = "HalloApp kini hadir! Kami membuatnya untuk Anda dan orang-orang terdekat Anda. Kami mengembalikan aplikasi sosial ke intinya dengan menambahkan lapisan keamanan dan privasi yang layak dimiliki oleh semua pengguna di dunia. HalloApp tidak akan pernah menggunakan informasi pribadi Anda atau menampilkan iklan. Kami justru berencana akan menawarkan fitur tambahan dengan harga terjangkau.";
 
 /* About screen: body text. */
 "about.body.2" = "Terima kasih telah menggunakan dan membagikan HalloApp dengan teman dan keluarga Anda. Setiap minggu kami meningkatkan performa aplikasi kami.";
@@ -59,7 +59,7 @@
 "add.to.favorites.title" = "Tambah ke Favorit";
 
 /* Confirmation when a user was successfully added to favorites. */
-"added.user.to.favorites" = "Sudah ditambahkan %@ ke favorit";
+"added.user.to.favorites" = "Ditambah ke Favorit";
 
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "Tidak Ada Sambungan Internet";
@@ -270,13 +270,13 @@
 "camera.error" = "Kesalahan kamera";
 
 /* Error shown when the back camera isn't available. */
-"camera.init.error.1" = "Tidak dapat menggunakan kamera belakang.";
+"camera.init.error.1" = "Tidak bisa menggunakan kamera belakang.";
 
 /* Error shown when the front camera isn't available. */
-"camera.init.error.2" = "Tidak dapat menggunakan kamera depan.";
+"camera.init.error.2" = "Tidak bisa menggunakan kamera depan.";
 
 /* Error shown when the microphone isn't available. */
-"camera.init.error.3" = "Tidak dapat menggunakan mikrofon.";
+"camera.init.error.3" = "Tidak bisa menggunakan mikrofon.";
 
 /* Error shown when photo output setup failed. */
 "camera.init.error.4" = "Pengambilan foto tidak tersedia. Coba lagi nanti.";
@@ -498,7 +498,7 @@
 "chat.mic.access.denied.message" = "Untuk mengaktifkan rekaman audio, silakan ketuk Pengaturan lalu nyalakan Mikrofon";
 
 /* Alert title when missing microphone access */
-"chat.mic.access.denied.title" = "Tidak dapat mengakses mikrofon";
+"chat.mic.access.denied.title" = "Tidak bisa mengakses mikrofon";
 
 /* cta label for creating a new group chat */
 "chat.new.group.label" = "Chat Grup Baru";
@@ -579,7 +579,7 @@
 "composer.audio.instructions" = "Ketuk untuk merekam";
 
 /* Title for audio post composer */
-"composer.audio.title" = "Postingan Audio Baru";
+"composer.audio.title" = "Audio Baru";
 
 /* Title on edit button */
 "composer.button.edit" = "Edit";
@@ -822,13 +822,13 @@
 "feed.posting" = "Memposting...";
 
 /* Describes what 'All Friends' feed privacy setting means. */
-"feed.privacy.descr.all" = "Bagikan ke semua kontak saya";
+"feed.privacy.descr.all" = "Bagikan ke semua teman saya";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.except" = "Bagikan dengan kontak saya kecuali orang yang saya pilih";
 
 /* Describes what 'Favorites' feed privacy setting means. */
-"feed.privacy.descr.only" = "Hanya bagikan dengan kontak yang dipilih";
+"feed.privacy.descr.only" = "Hanya bagikan ke teman yang dipilih";
 
 /* Header describing what these options are for */
 "feed.privacy.header" = "Yang akan melihat postingan saya";
@@ -1671,7 +1671,7 @@
 "photoSuggestions.album.title" = "Diusulkan";
 
 /* Button to link to settings to enable location permission for HalloApp */
-"photosuggestions.cta.alwaysonlocation.action" = "Beri lokasi akses";
+"photosuggestions.cta.alwaysonlocation.action" = "Beri Akses di Pengaturan";
 
 /* explanation of why we want always location access */
 "photosuggestions.cta.alwaysonlocation.subtitle" = "Ketika Anda memotret foto baru, kami memilah hasil terbaik dan mengaturnya ke dalam draf postingan, sehingga siap diposting jika berkenan.";
@@ -1704,7 +1704,7 @@
 "photosuggestions.explainer.title" = "Coba Sulap Postingan";
 
 /* title for photo suggestions section */
-"photosuggestionsheader.title" = "Usulan postingan baru";
+"photosuggestionsheader.title" = "Usulan Postingan Baru";
 
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Berikan akses Pengaturan";
@@ -1812,13 +1812,13 @@
 "profile.help.faq" = "Tanya Jawab";
 
 /* Item in Profile > Help screen. */
-"profile.help.feedback" = "Bagikan Saran & Catatan";
+"profile.help.feedback" = "Bagikan Saran & Data Log";
 
 /* Item in Profile > Help screen. */
 "profile.help.pp" = "Kebijakan Privasi";
 
 /* Item in Profile > Help screen. */
-"profile.help.share.logs" = "Bagikan Log";
+"profile.help.share.logs" = "Bagikan Data Log";
 
 /* Item in Profile > Help screen. */
 "profile.help.tos" = "Ketentuan Layanan";
@@ -1971,7 +1971,7 @@
 "remove.from.favorites.title" = "Hapus dari Favorit";
 
 /* Confirmation when a user was successfully removed from favorites. */
-"removed.user.from.favorites" = "Sudah dihapus %@ dari favorit";
+"removed.user.from.favorites" = "Dihapus dari Favorit";
 
 /* Title of the button that both reports and blocks a user. */
 "report.and.block" = "Laporkan dan Blokir";
@@ -2019,7 +2019,7 @@
 "safety.number.instructions" = "Untuk memverifikasi keamanan hubungan Anda dengan %@, pastikan angka di atas sama dengan yang ditampilkan di perangkat mereka, atau pindai kode QR di ponsel mereka.";
 
 /* Message to show when safety number cannot be succesfully verified */
-"safety.number.not.verified" = "Gagal memverifikasi nomor keamanan untuk %@";
+"safety.number.not.verified" = "Tidak bisa memverifikasi nomor keamanan untuk %@";
 
 /* Title for button that will open QR code scanner used to verify a contact's safety number */
 "safety.number.scan" = "Ketuk untuk Memindai";
@@ -2379,13 +2379,13 @@
 "user.chat.typing" = "%@ mengetik...";
 
 /* Option when user taps more on profile page */
-"user.option.block" = "Blokir di HalloApp";
+"user.option.block" = "Blokir";
 
 /* Option when User clicks on the username on profile page and this can let the user copy the username */
 "user.option.copy.username" = "Salin Username";
 
 /* Option when user taps more on profile page */
-"user.option.unblock" = "Buka Blokir di HalloApp";
+"user.option.unblock" = "Buka Blokir";
 
 /* Button to confirm unblocking user via profile page */
 "user.unblock" = "Buka Blokir";

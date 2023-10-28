@@ -354,7 +354,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>%d Kontak</string>
+			<string>%d Pengguna</string>
 			<key>zero</key>
 			<string>Tidak ada</string>
 		</dict>

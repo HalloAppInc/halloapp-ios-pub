@@ -83,19 +83,19 @@
 "chat.mic.access.denied.message" = "Untuk mengaktifkan rekaman audio, silakan ketuk Pengaturan lalu nyalakan Mikrofon";
 
 /* Alert title when missing microphone access */
-"chat.mic.access.denied.title" = "Tidak dapat mengakses mikrofon";
+"chat.mic.access.denied.title" = "Tidak bisa mengakses mikrofon";
 
 /* Title for generic delete button. */
 "Delete" = "Hapus";
 
 /* Describes what 'All Friends' feed privacy setting means. */
-"feed.privacy.descr.all" = "Bagikan dengan semua kontak saya";
+"feed.privacy.descr.all" = "Bagikan ke semua teman saya";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.except" = "Bagikan dengan kontak saya kecuali orang yang saya pilih";
 
 /* Describes what 'Favorites' feed privacy setting means. */
-"feed.privacy.descr.only" = "Hanya bagikan dengan kontak yang dipilih";
+"feed.privacy.descr.only" = "Hanya bagikan ke teman yang dipilih";
 
 /* Button to dismiss edit favorites modal */
 "feed.privacy.list.dismiss.edit.favorites" = "Nanti";

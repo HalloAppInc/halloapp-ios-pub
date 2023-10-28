@@ -5,16 +5,16 @@
 "NSCameraUsageDescription" = "Fitur bisa membuat panggilan video, dan mengambil foto serta video dari HalloApp";
 
 /* Privacy - Contacts Usage Description */
-"NSContactsUsageDescription" = "Izinkan HalloApp mengunggah kontak Anda ke server agar bisa membagi dan melihat postingan teman dan keluarga.";
+"NSContactsUsageDescription" = "Agar bisa membagi dan melihat postingan teman dan keluarga, beri izin HalloApp mengunggah kontak Anda ke server.";
 
 /* Privacy - Location Always and When In Use Usage Description */
-"NSLocationAlwaysAndWhenInUseUsageDescription" = "Fitur ini memungkinkan Anda mengirim lokasi terkini atau tempat terdekat di komentar dan chat, dan memberi notifikasi saran foto baru.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Akses ini mengirim lokasi Anda terkini atau tempat terdekat di komentar dan chat, serta memberi notifikasi usulan Sulap Postingan baru.";
 
 /* Privacy - Location Always Usage Description */
-"NSLocationAlwaysUsageDescription" = "Fitur ini memungkinkan Anda mengirim lokasi terkini atau tempat terdekat di komentar dan chat, dan memberi notifikasi saran foto baru.";
+"NSLocationAlwaysUsageDescription" = "Akses ini mengirim lokasi Anda terkini atau tempat terdekat di komentar dan chat, serta memberi notifikasi usulan Sulap Postingan baru.";
 
 /* Privacy - Location When In Use Usage Description */
-"NSLocationWhenInUseUsageDescription" = "Fitur ini menampilkan lokasi Anda kini atau tempat sekitar di komentar dan chat.";
+"NSLocationWhenInUseUsageDescription" = "Akses ini mengirim lokasi Anda terkini atau tempat sekitar di komentar dan chat.";
 
 /* Privacy - Microphone Usage Description */
 "NSMicrophoneUsageDescription" = "Fitur bisa membuat panggilan, mengirim postingan dan pesan audio, serta merekam video dengan suara.";
