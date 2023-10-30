@@ -284,7 +284,7 @@ extension Localizations {
     }
 
     static var blockFailure: String {
-        NSLocalizedString("block.success",
+        NSLocalizedString("block.failure",
                           value: "Failed to Block",
                           comment: "Failure message displayed after trying to block a user.")
     }
