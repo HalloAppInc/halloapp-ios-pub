@@ -107,8 +107,9 @@ class FriendsDataSource: NSObject {
              the items that are different.
              */
             var snapshot = collectionViewDataSource.snapshot()
-            snapshot.reconfigureItems(itemsToReconfigure)
+            let filtered = itemsToReconfigure.filter { snapshot.indexOfItem($0) != nil }
 
+            snapshot.reconfigureItems(filtered)
             collectionViewDataSource.apply(snapshot, animatingDifferences: animated)
         }
     }
@@ -135,7 +136,7 @@ class FriendsDataSource: NSObject {
                     forReconfigure += [existingFinal, upcomingFinal]
                 }
 
-                return forReconfigure.filter { upcomingSnapshot.indexOfItem($0) != nil }
+                return forReconfigure
             }
             .reduce(into: Set<Item>()) { reconfigureSet, reconfigureItems in
                 reconfigureSet.formUnion(reconfigureItems)
