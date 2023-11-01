@@ -115,8 +115,10 @@
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Sem Conexão à Internet";
 
-/* Failure message displayed after trying to block a user.
-   Success message displayed after blocking a user. */
+/* Failure message displayed after trying to block a user. */
+"block.failure" = "Falha a bloquear";
+
+/* Success message displayed after blocking a user. */
 "block.success" = "Bloqueado";
 
 /* Title of an alert when blocking a user. */

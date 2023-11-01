@@ -10,6 +10,9 @@
 /* Privacy - Location Always and When In Use Usage Description */
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "Bu, yorumlarda ve sohbetlerde, mevcut konumuna göre sana yeni fotoğraf önerileri sunmamızı sağlar.";
 
+/* Privacy - Location Always Usage Description */
+"NSLocationAlwaysUsageDescription" = "Bu, yorumlarda ve sohbetlerde, mevcut konumuna göre sana yeni fotoğraf önerileri sunmamızı sağlar.";
+
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "Bu, mevcut konumunu veya yakındaki yerleri yorumlarda ve sohbetlerde göndermeni sağlar.";
 
