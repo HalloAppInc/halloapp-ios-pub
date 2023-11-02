@@ -80,45 +80,18 @@ class FeedViewController: FeedCollectionViewController, FloatingMenuPresenter {
         if isNearTop(100) {
             MainAppContext.shared.feedData.didGetRemoveHomeTabIndicator.send()
         }
-
-        if suggestionsManager.suggestions.count < 10 {
-            Task(priority: .userInitiated) { @MainActor in
-                await suggestionsManager.refresh()
-                guard var snapshot = collectionViewDataSource?.snapshot(), !snapshot.itemIdentifiers.isEmpty else {
-                    return
-                }
-
-                let insertionIndex = min(4, snapshot.itemIdentifiers.count) - 1
-                let itemIdentifier = snapshot.itemIdentifiers[insertionIndex]
-
-                if !suggestionsManager.suggestions.isEmpty {
-                    if !snapshot.itemIdentifiers.contains(.suggestionsCarousel) {
-                        snapshot.insertItems([.suggestionsCarousel], afterItem: itemIdentifier)
-                    } else {
-                        snapshot.moveItem(.suggestionsCarousel, afterItem: itemIdentifier)
-                    }
-                    if snapshot.itemIdentifiers.contains(.inviteCarousel) {
-                        snapshot.deleteItems([.inviteCarousel])
-                    }
-                } else if canInvite, !inviteContactsManager.randomSelection.isEmpty {
-                    if !snapshot.itemIdentifiers.contains(.inviteCarousel) {
-                        snapshot.insertItems([.inviteCarousel], afterItem: itemIdentifier)
-                    } else {
-                        snapshot.moveItem(.inviteCarousel, afterItem: itemIdentifier)
-                    }
-                    if snapshot.itemIdentifiers.contains(.suggestionsCarousel) {
-                        snapshot.deleteItems([.suggestionsCarousel])
-                    }
-                }
-
-                await collectionViewDataSource?.apply(snapshot)
-            }
-        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         DDLogInfo("FeedViewController/viewWillAppear")
+
+        if suggestionsManager.suggestions.count < 10 {
+            Task(priority: .userInitiated) { @MainActor in
+                await suggestionsManager.refresh()
+                feedDataSource.refresh()
+            }
+        }
     }
     
     override func viewDidLayoutSubviews() {

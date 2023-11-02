@@ -1330,14 +1330,16 @@ extension FeedCollectionViewController {
         var snapshot = collectionViewDataSource.snapshot()
         var updateSnapshot = false
         if inviteContactsManager.randomSelection.isEmpty {
-            snapshot.deleteItems([.inviteCarousel])
-            updateSnapshot = true
+            if snapshot.itemIdentifiers.contains(.inviteCarousel) {
+                snapshot.deleteItems([.inviteCarousel])
+                updateSnapshot = true
+            }
         } else {
             if let indexPath = collectionViewDataSource.indexPath(for: .inviteCarousel) {
                 // If the cell is visible, update directly.
                 if let cell = collectionView.cellForItem(at: indexPath) as? FeedInviteCarouselCell {
                     cell.configure(with: inviteContactsManager.randomSelection, invitedContacts: invitedContacts, animated: true)
-                } else {
+                } else if snapshot.itemIdentifiers.contains(.inviteCarousel) {
                     snapshot.reconfigureItems([.inviteCarousel])
                     updateSnapshot = true
                 }
@@ -1363,13 +1365,15 @@ extension FeedCollectionViewController {
         var updateSnapshot = false
 
         if suggestionsManager.suggestions.isEmpty {
-            snapshot.deleteItems([.suggestionsCarousel])
-            updateSnapshot = true
+            if snapshot.itemIdentifiers.contains(.suggestionsCarousel) {
+                snapshot.deleteItems([.suggestionsCarousel])
+                updateSnapshot = true
+            }
         } else {
             if let indexPath = collectionViewDataSource.indexPath(for: .suggestionsCarousel) {
                 if let cell = collectionView.cellForItem(at: indexPath) as? FeedSuggestionsCarouselCell {
                     cell.configure(with: suggestionsManager.suggestions, animateChanges: animateChanges)
-                } else {
+                } else if snapshot.itemIdentifiers.contains(.suggestionsCarousel) {
                     snapshot.reconfigureItems([.suggestionsCarousel])
                     updateSnapshot = true
                 }
