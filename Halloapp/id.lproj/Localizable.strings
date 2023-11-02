@@ -115,6 +115,9 @@
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Tidak Ada Sambungan";
 
+/* Failure message displayed after trying to block a user. */
+"block.failure" = "Gagal Memblokir";
+
 /* Success message displayed after blocking a user. */
 "block.success" = "Diblokir";
 

@@ -115,6 +115,9 @@
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Geen Verbinding";
 
+/* Failure message displayed after trying to block a user. */
+"block.failure" = "Blokkeren is mislukt";
+
 /* Success message displayed after blocking a user. */
 "block.success" = "Geblokkeerd";
 
@@ -1982,7 +1985,7 @@
 "report.post.and.remove" = "Post Rapporteren en Verwijderen";
 
 /* Message that's displayed when reporting a post failed. */
-"report.post.failure" = "Rapporteren van Post Mislukt";
+"report.post.failure" = "Rapporteren van post mislukt";
 
 /* Message confirming if the user wants to report someone's post. */
 "report.post.message" = "Weet je zeker dat je de post van %@ wilt rapporteren?";
@@ -1997,7 +2000,7 @@
 "report.user" = "Gebruiker Rapporteren";
 
 /* Message that's displayed when reporting a user failed. */
-"report.user.failure" = "Rapporteren van %@ Mislukt";
+"report.user.failure" = "Rapporteren van %@ mislukt";
 
 /* Message confirming if the user wants to report someone. */
 "report.user.message" = "Weet je zeker dat je %@ wilt rapporteren?";

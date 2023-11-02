@@ -115,6 +115,9 @@
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Sin conexión a Internet";
 
+/* Failure message displayed after trying to block a user. */
+"block.failure" = "error al bloquear";
+
 /* Success message displayed after blocking a user. */
 "block.success" = "Bloqueado";
 
