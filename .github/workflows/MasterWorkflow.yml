@@ -46,7 +46,7 @@ jobs:
         run: xcodebuild clean build-for-testing
             -workspace "Halloapp.xcworkspace"
             -scheme "Halloapp"
-            -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.0'
+            -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.0.1'
             -clonedSourcePackagesDirPath SourcePackages
             
       - name: Cache build
@@ -61,7 +61,7 @@ jobs:
       needs: compile
       strategy:
           matrix:
-              destination: ['platform=iOS Simulator,name=iPhone 15 Pro,OS=17.0'] # If you want to build for more devices, change this field to include whatever devices you want
+              destination: ['platform=iOS Simulator,name=iPhone 15 Pro,OS=17.0.1'] # If you want to build for more devices, change this field to include whatever devices you want
       steps:
         - name: Checkout
           uses: actions/checkout@master
