@@ -2886,6 +2886,16 @@ extension ProtoServiceCore: CoreService {
         enqueue(request: ProtoUsernameRequest(username: username, action: .isAvailable, completion: completion))
     }
 
+    // MARK: Links
+
+    public func addProfileLink(type: Server_Link.TypeEnum, text: String, completion: @escaping ServiceRequestCompletion<Server_SetLinkResult>) {
+        enqueue(request: ProtoLinkRequest(action: .set, type: type, string: text, completion: completion))
+    }
+
+    public func removeProfileLink(type: Server_Link.TypeEnum, text: String, completion: @escaping ServiceRequestCompletion<Server_SetLinkResult>) {
+        enqueue(request: ProtoLinkRequest(action: .remove, type: type, string: text, completion: completion))
+    }
+
     // MARK: Friendship
 
     public func modifyFriendship(userID: UserID,

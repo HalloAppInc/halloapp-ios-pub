@@ -60,6 +60,10 @@ public protocol CoreService: CoreServiceCommon {
     func updateUsername(username: String, completion: @escaping ServiceRequestCompletion<Server_UsernameResponse>)
     func checkUsernameAvailability(username: String, completion: @escaping ServiceRequestCompletion<Server_UsernameResponse>)
 
+    // MARK: Links
+    func addProfileLink(type: Server_Link.TypeEnum, text: String, completion: @escaping ServiceRequestCompletion<Server_SetLinkResult>)
+    func removeProfileLink(type: Server_Link.TypeEnum, text: String, completion: @escaping ServiceRequestCompletion<Server_SetLinkResult>)
+
     // MARK: UserProfiles
     func modifyFriendship(userID: UserID, action: Server_FriendshipRequest.Action, completion: @escaping ServiceRequestCompletion<Server_HalloappUserProfile>)
     func friendList(action: Server_FriendListRequest.Action,

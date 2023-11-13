@@ -304,6 +304,7 @@ open class AppContext: AppContextCommon {
         // This is needed to encode/decode values in coredata entities
         ValueTransformer.setValueTransformer(FeedPostReceiptInfoTransformer(), forName: .feedPostReceiptInfoTransformer)
         ValueTransformer.setValueTransformer(MentionValueTransformer(), forName: .mentionValueTransformer)
+        ValueTransformer.setValueTransformer(ProfileLinksValueTransformer(), forName: .linksValueTransformer)
         mainDataStoreImpl = MainDataStore(userData: userData, appTarget: appTarget, userDefaults: userDefaults)
         contactStoreImpl = (contactStoreClass.init(userData: userData, userDefaults: userDefaults) as! ContactStoreCore)
         privacySettingsImpl = PrivacySettings(contactStore: contactStoreImpl)

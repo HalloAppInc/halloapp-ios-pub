@@ -12,6 +12,7 @@ import CoreCommon
 
 public extension NSValueTransformerName {
     static let mentionValueTransformer = NSValueTransformerName(rawValue: "MentionValueTransformer")
+    static let linksValueTransformer = NSValueTransformerName(rawValue: "LinksValueTransformer")
 }
 
 @objc(MentionValueTransformer)
@@ -96,6 +97,28 @@ class FeedPostReceiptInfoTransformer: ValueTransformer {
         }
     }
 
+}
+
+@objc(ProfileLinksValueTransformer)
+public final class ProfileLinksValueTransformer: ValueTransformer {
+    
+    public override func reverseTransformedValue(_ value: Any?) -> Any? {
+        guard let data = value as? Data,
+              let links = try? PropertyListDecoder().decode([ProfileLink].self, from: data) else {
+            return nil
+        }
+
+        return links
+    }
+
+    public override func transformedValue(_ value: Any?) -> Any? {
+        guard let links = value as? [ProfileLink],
+              let data = try? PropertyListEncoder().encode(links) else {
+            return nil
+        }
+
+        return data
+    }
 }
 
 extension NSValueTransformerName {

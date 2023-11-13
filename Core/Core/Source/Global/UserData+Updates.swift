@@ -7,6 +7,7 @@
 //
 
 import CoreCommon
+import CocoaLumberjackSwift
 
 extension UserData {
 
@@ -78,6 +79,98 @@ extension UserData {
 
         if username.rangeOfCharacter(from: .username.inverted) != nil {
             throw ChangeUsernameError.invalidCharacters
+        }
+    }
+
+    // MARK: Links
+
+    public func add(link: ProfileLink) async throws {
+        try await withCheckedThrowingContinuation { continuation in
+            AppContext.shared.coreService.addProfileLink(type: link.serverLink.type, text: link.string) { result in
+                switch result {
+                case .success(_):
+                    continuation.resume()
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+
+        await MainActor.run {
+            let userData = AppContext.shared.userData
+            userData.links += [link]
+            userData.save(using: userData.viewContext)
+        }
+    }
+
+    public func remove(link: ProfileLink) async throws {
+        try await withCheckedThrowingContinuation { continuation in
+            AppContext.shared.coreService.removeProfileLink(type: link.serverLink.type, text: link.string) { result in
+                switch result {
+                case .success(_):
+                    continuation.resume()
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+
+        await MainActor.run {
+            let userData = AppContext.shared.userData
+            userData.links = userData.links.filter { $0 != link }
+            userData.save(using: userData.viewContext)
+        }
+    }
+
+    public func update(links: [ProfileLink]) async throws {
+        let pendingLinks = Set(links)
+        let existingLinks = await MainActor.run { Set(AppContext.shared.userData.links) }
+        let forRemoval = existingLinks.subtracting(pendingLinks)
+        let forAdd = pendingLinks.subtracting(existingLinks)
+        DDLogInfo("UserData/update-links/removing [\(forRemoval.count)] adding [\(forAdd.count)]")
+
+        let removed = await withTaskGroup(of: ProfileLink?.self) { group in
+            for link in forRemoval {
+                group.addTask {
+                    await withCheckedContinuation { continuation in
+                        AppContext.shared.coreService.removeProfileLink(type: link.serverLink.type, text: link.string) { result in
+                            continuation.resume(returning: (try? result.get()).flatMap { _ in link })
+                        }
+                    }
+                }
+            }
+            return await group
+                .compactMap { $0 }
+                .reduce(into: []) { $0.append($1) }
+        }
+
+        let added = await withTaskGroup(of: ProfileLink?.self) { group in
+            for link in forAdd {
+                group.addTask {
+                    await withCheckedContinuation { continuation in
+                        AppContext.shared.coreService.addProfileLink(type: link.serverLink.type, text: link.string) { result in
+                            continuation.resume(returning: (try? result.get()).flatMap { _ in link })
+                        }
+                    }
+                }
+            }
+            return await group
+                .compactMap { $0 }
+                .reduce(into: []) { $0.append($1) }
+        }
+
+        DDLogInfo("UserData/update-links/removed [\(removed.count)] added [\(added.count)]")
+        await MainActor.run {
+            let removedSet = Set(removed)
+            let updatedLinks = existingLinks.filter { !removedSet.contains($0) } + added
+            let userData = AppContext.shared.userData
+
+            userData.links = updatedLinks
+            userData.save(using: userData.viewContext)
+        }
+
+        if added.count != forAdd.count || removed.count != forRemoval.count {
+            throw NSError(domain: "Batch link update error", code: 1)
         }
     }
 }

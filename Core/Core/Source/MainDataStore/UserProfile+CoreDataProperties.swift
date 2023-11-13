@@ -24,6 +24,12 @@ extension UserProfile {
     @NSManaged public var name: String
     @NSManaged public var username: String
     @NSManaged public var isFavorite: Bool
+    
+    @NSManaged private var linksValue: Any?
+    public var links: [ProfileLink] {
+        get { linksValue as? [ProfileLink] ?? [] }
+        set { linksValue = newValue }
+    }
 
     @NSManaged public var posts: Set<FeedPost>
     @NSManaged public var comments: Set<FeedPostComment>

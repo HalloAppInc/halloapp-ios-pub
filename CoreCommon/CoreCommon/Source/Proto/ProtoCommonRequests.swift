@@ -118,6 +118,21 @@ public final class ProtoUsernameRequest: ProtoRequest<Server_UsernameResponse> {
     }
 }
 
+public final class ProtoLinkRequest: ProtoRequest<Server_SetLinkResult> {
+
+    public init(action: Server_SetLinkRequest.Action, type: Server_Link.TypeEnum, string: String, completion: @escaping Completion) {
+        var link = Server_Link()
+        link.type = type
+        link.text = string
+        var request = Server_SetLinkRequest()
+        request.action = action
+        request.link = link
+
+        let iqPacket: Server_Packet = .iqPacket(type: .set, payload: .setLinkRequest(request))
+        super.init(iqPacket: iqPacket, transform: { iq in .success(iq.setLinkResult) }, completion: completion)
+    }
+}
+
 public final class ProtoFriendshipRequest: ProtoRequest<Server_HalloappUserProfile> {
 
     public init(userID: UserID, action: Server_FriendshipRequest.Action, completion: @escaping Completion) {

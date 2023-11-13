@@ -67,6 +67,7 @@ public final class UserData: ObservableObject {
         }
     }
     public var username = ""
+    public var links: [ProfileLink] = []
 
     // Provided by the server.
     public var normalizedPhoneNumber: String = ""
@@ -134,6 +135,7 @@ public final class UserData: ObservableObject {
                 self.userId = user.userId ?? ""
                 self.name = user.name ?? ""
                 self.username = user.username ?? ""
+                self.links = user.links as? [ProfileLink] ?? []
 
                 // If this is the main app and noise keys are present in shared container, load noiseKeys from the container
                 if !isAppClip, let storePrivateKey = user.noisePrivateKey, let storePublicKey = user.noisePublicKey {
@@ -242,6 +244,7 @@ public final class UserData: ObservableObject {
         user.userId = userId
         user.name = name
         user.username = username
+        user.links = links
 
         // Clear password (no longer supported)
         user.password = ""

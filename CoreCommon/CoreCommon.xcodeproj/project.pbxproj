@@ -82,6 +82,7 @@
 		A199CC0228AEB33D00E74089 /* Avatar+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = A199CBF728AEB2A300E74089 /* Avatar+CoreDataProperties.swift */; };
 		A199CC0328AEB34000E74089 /* Avatar+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = A199CBF628AEB2A300E74089 /* Avatar+CoreDataClass.swift */; };
 		A199CC0428AEBA9A00E74089 /* Avatars.xcdatamodeld in Resources */ = {isa = PBXBuildFile; fileRef = A199CBF528AEB2A300E74089 /* Avatars.xcdatamodeld */; };
+		A1CD7BD02AFB12C200EE5211 /* ProfileLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CD7BCF2AFB12C200EE5211 /* ProfileLink.swift */; };
 		F404FC292810AD11008313FF /* SwiftNoise in Frameworks */ = {isa = PBXBuildFile; productRef = F404FC282810AD11008313FF /* SwiftNoise */; };
 		F4B361612862821200764454 /* NSManagedObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B361602862821200764454 /* NSManagedObject.swift */; };
 		F4D0C4302AB3B081000F1DC4 /* CoreCommon.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F4D0C42F2AB3B080000F1DC4 /* CoreCommon.xcassets */; };
@@ -156,6 +157,7 @@
 		A199CBF928AEB2A300E74089 /* GroupAvatar+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GroupAvatar+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		A199CBFA28AEB2A300E74089 /* AvatarStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarStore.swift; sourceTree = "<group>"; };
 		A199CBFB28AEB2A300E74089 /* AvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarView.swift; sourceTree = "<group>"; };
+		A1CD7BCF2AFB12C200EE5211 /* ProfileLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileLink.swift; sourceTree = "<group>"; };
 		F404FC262810AC74008313FF /* swift-noise-protocol */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = "swift-noise-protocol"; path = "../swift-noise-protocol"; sourceTree = "<group>"; };
 		F4B361602862821200764454 /* NSManagedObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSManagedObject.swift; sourceTree = "<group>"; };
 		F4D0C42F2AB3B080000F1DC4 /* CoreCommon.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = CoreCommon.xcassets; sourceTree = "<group>"; };
@@ -264,6 +266,7 @@
 				32CE960627CFECCB00B4A2C1 /* Localizations.swift */,
 				32CE960827CFECCB00B4A2C1 /* UserAgent.swift */,
 				32CE960727CFECCB00B4A2C1 /* UserData.swift */,
+				A1CD7BCF2AFB12C200EE5211 /* ProfileLink.swift */,
 				32CE960427CFECCB00B4A2C1 /* UserData.xcdatamodeld */,
 				32A4B71227D0044C00169682 /* AppContextCommon.swift */,
 			);
@@ -518,6 +521,7 @@
 				32CE966027CFF6DB00B4A2C1 /* ProtoServiceCoreCommon.swift in Sources */,
 				32CE965C27CFEE4400B4A2C1 /* UserKeyBundle+CoreDataClass.swift in Sources */,
 				A199CC0228AEB33D00E74089 /* Avatar+CoreDataProperties.swift in Sources */,
+				A1CD7BD02AFB12C200EE5211 /* ProfileLink.swift in Sources */,
 				32CE965A27CFEE4400B4A2C1 /* UserKeyBundle+CoreDataProperties.swift in Sources */,
 				32CE962127CFED0000B4A2C1 /* CommonEvents.swift in Sources */,
 				32CE961427CFECD000B4A2C1 /* KeyData.swift in Sources */,

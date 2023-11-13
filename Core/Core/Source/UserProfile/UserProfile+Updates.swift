@@ -36,6 +36,11 @@ extension UserProfile {
         if serverProfile.blocked != isBlocked {
             isBlocked = serverProfile.blocked
         }
+
+        let serverLinks = serverProfile.links.map { ProfileLink(serverLink: $0) }
+        if serverLinks != links {
+            links = serverLinks
+        }
     }
 
     public class func updateNames(with mapping: [UserID: String]) {
