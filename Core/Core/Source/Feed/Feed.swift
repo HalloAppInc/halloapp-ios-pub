@@ -437,6 +437,13 @@ public class PendingMedia {
     }
 }
 
+extension PendingMedia: Equatable {
+
+    public static func == (lhs: PendingMedia, rhs: PendingMedia) -> Bool {
+        lhs.uuid == rhs.uuid
+    }
+}
+
 public enum MediaURLInfo {
     case getPut(URL, URL)
     case patch(URL)

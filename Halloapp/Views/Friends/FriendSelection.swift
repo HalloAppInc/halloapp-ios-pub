@@ -120,7 +120,7 @@ struct FriendSelection<Model: SelectionModel>: View {
 
     private func row(for friend: Model.Friend) -> some View {
         HStack {
-            Avatar(userID: friend.id, store: MainAppContext.shared.avatarStore)
+            Avatar(userID: friend.id)
                 .frame(width: 34, height: 34)
 
             VStack(alignment: .leading, spacing: 3) {

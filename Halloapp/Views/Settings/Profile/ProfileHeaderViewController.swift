@@ -666,7 +666,7 @@ final class LabeledIconButton: UIControl {
     }
 }
 
-private extension UIImage {
+extension UIImage {
     /// - Author: [StackOverflow](https://stackoverflow.com/a/29046647)
     func circularImage() -> UIImage {
         let minEdge = min(size.height, size.width)

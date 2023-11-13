@@ -108,24 +108,23 @@ class ProfileEditorModel: ObservableObject {
     }
 
     private func handleEdits(name: String, username: String, links: [EditableLink]) {
-        if name.count > 2,
-           name.count <= maximumNameLength,
-           name != MainAppContext.shared.userData.name {
-            return enableDoneButton = true
-        }
+        let name = name.trimmingCharacters(in: .whitespaces)
+        let username = username.trimmingCharacters(in: .whitespaces)
+        let isNameValid = name.count > 2 && name.count <= maximumNameLength
+        let isUsernameValid = username.count > 2 && username.count <= maximumNameLength
 
-        if username.count > 2,
-           username.count <= maximumNameLength,
-           username != MainAppContext.shared.userData.username {
-            return enableDoneButton = true
+        if isNameValid, isUsernameValid {
+            enableDoneButton = true
+        } else {
+            enableDoneButton = false
         }
     }
 
     private func update() async {
         let links = transformAndRemoveDuplicateLinks()
         let userData = MainAppContext.shared.userData
-        let updateName = name != userData.name
-        let updateUsername = username != userData.username
+        let updateName = name.trimmingCharacters(in: .whitespaces) != userData.name
+        let updateUsername = username.trimmingCharacters(in: .whitespaces) != userData.username
         let updateLinks = links != userData.links
 
         await withThrowingTaskGroup(of: Void.self) { [name, username, links] group in
