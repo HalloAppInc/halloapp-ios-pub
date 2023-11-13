@@ -208,6 +208,7 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Sh
         collectionView.register(MomentCollectionViewCell.self, forCellWithReuseIdentifier: MomentCollectionViewCell.reuseIdentifier)
         collectionView.register(StackedMomentCollectionViewCell.self, forCellWithReuseIdentifier: StackedMomentCollectionViewCell.reuseIdentifier)
         collectionView.register(FeedShareCarouselCell.self, forCellWithReuseIdentifier: FeedShareCarouselCell.reuseIdentifier)
+        collectionView.register(ProfileLinksCollectionViewCell.self, forCellWithReuseIdentifier: ProfileLinksCollectionViewCell.reuseIdentifier)
 
         view.addSubview(collectionView)
         collectionView.constrain(to: view)
@@ -905,6 +906,12 @@ extension FeedCollectionViewController {
                         }
                         self.share(postID: feedPostID, mediaIndex: self.postDisplayData[feedPostID]?.currentMediaIndex, with: shareProvider)
                     }
+                }
+                return cell
+            case .profileLinks(let name, let links):
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ProfileLinksCollectionViewCell.reuseIdentifier, for: indexPath)
+                if let cell = cell as? ProfileLinksCollectionViewCell {
+                    cell.configure(with: name, links: links)
                 }
                 return cell
             }

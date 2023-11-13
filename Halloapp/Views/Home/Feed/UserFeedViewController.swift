@@ -66,6 +66,7 @@ class UserFeedViewController: FeedCollectionViewController {
     }
 
     private let userId: UserID
+    private var profile: DisplayableProfile?
     private let headerViewController: ProfileHeaderViewController?
     private var cancellables = Set<AnyCancellable>()
     
@@ -94,6 +95,17 @@ class UserFeedViewController: FeedCollectionViewController {
             .eraseToAnyPublisher()
         headerViewController?.configure(with: publisher)
         setupMoreButton()
+
+        dataSource.$profile
+            .dropFirst()
+            .sink { [weak self] in
+                guard let self else {
+                    return
+                }
+                self.profile = $0
+                self.feedDataSource.refresh()
+            }
+            .store(in: &cancellables)
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -185,11 +197,9 @@ class UserFeedViewController: FeedCollectionViewController {
 
     override func modifyItems(_ items: [FeedDisplayItem]) -> [FeedDisplayItem] {
         var items = super.modifyItems(items)
-        guard isOwnFeed else {
-            return items
-        }
-
-        if MainAppContext.shared.feedData.validMoment.value == nil {
+        if !isOwnFeed, items.isEmpty, let name = profile?.name, let links = profile?.profileLinks, !links.isEmpty {
+            items.insert(.profileLinks(name: name, links.sorted()), at: 0)
+        } else if isOwnFeed, MainAppContext.shared.feedData.validMoment.value == nil {
             items.insert(.momentStack([.prompt]), at: 0)
         }
 

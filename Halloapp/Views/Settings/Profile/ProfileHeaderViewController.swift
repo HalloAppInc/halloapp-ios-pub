@@ -12,6 +12,7 @@ import Core
 import CoreCommon
 import CoreMedia
 import UIKit
+import SwiftUI
 
 fileprivate struct Constants {
     static let MaxFontPointSize: CGFloat = 34
@@ -25,12 +26,24 @@ extension ProfileHeaderViewController {
 
     struct Configuration {
         let isEditable: Bool
-        let displayActions: Bool
+        let displayFriendActions: Bool
+        let displayLinkActions: Bool
         fileprivate let avatarDiameter: CGFloat
 
-        static let `default`: Self = Configuration(isEditable: false, displayActions: true, avatarDiameter: 115)
-        static let ownProfile: Self = Configuration(isEditable: false, displayActions: false, avatarDiameter: 115)
-        static let ownProfileEditable: Self = Configuration(isEditable: true, displayActions: false, avatarDiameter: 165)
+        static let `default`: Self = Configuration(isEditable: false,
+                                                   displayFriendActions: true,
+                                                   displayLinkActions: false,
+                                                   avatarDiameter: 115)
+        
+        static let ownProfile: Self = Configuration(isEditable: false,
+                                                    displayFriendActions: false,
+                                                    displayLinkActions: false,
+                                                    avatarDiameter: 115)
+
+        static let ownProfileEditable: Self = Configuration(isEditable: true, 
+                                                            displayFriendActions: false,
+                                                            displayLinkActions: true,
+                                                            avatarDiameter: 165)
     }
 }
 
@@ -39,6 +52,7 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
     private let configuration: Configuration
     private var cancellableSet: Set<AnyCancellable> = []
 
+    private var profile: DisplayableProfile?
     private var userID: UserID?
     weak var delegate: ProfileHeaderDelegate?
 
@@ -53,11 +67,6 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
     var isOwnProfile: Bool {
         userID == MainAppContext.shared.userData.userId
     }
-
-    private lazy var editTapGesture: UITapGestureRecognizer = {
-        let tap = UITapGestureRecognizer(target: self, action: #selector(editName))
-        return tap
-    }()
 
     init(configuration: Configuration) {
         self.configuration = configuration
@@ -74,7 +83,15 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
         headerView.messageButton.addTarget(self, action: #selector(openChatView), for: .touchUpInside)
         headerView.audioCallButton.addTarget(self, action: #selector(audioCallButtonTapped), for: .touchUpInside)
         headerView.videoCallButton.addTarget(self, action: #selector(videoCallButtonTapped), for: .touchUpInside)
-        headerView.nameLabel.addGestureRecognizer(editTapGesture)
+        headerView.linksButton.addTarget(self, action: #selector(linksButtonTapped), for: .touchUpInside)
+
+        headerView.onEditTap = { [weak self] in
+            let viewController = UIHostingController(rootView: ProfileEditor())
+            self?.present(viewController, animated: true)
+        }
+        headerView.onAvatarTap = { [weak self] in
+            self?.presentAvatar()
+        }
 
         let template = { [weak self] (status: UserProfile.FriendshipStatus, block: @escaping ((UserID) async throws -> Void)) in
             guard let self, let header = self.view as? ProfileHeaderView, let id = self.userID else {
@@ -153,6 +170,26 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
             self.present(alert, animated: true)
         }
 
+        headerView.linksPanel.onTapAdd = { [weak self] in
+            guard let self else {
+                return
+            }
+
+            let viewController = UIHostingController(rootView: ProfileEditor())
+            self.present(viewController, animated: true)
+        }
+        headerView.linksPanel.onTapShow = { [weak self] linkType in
+            guard let self else {
+                return
+            }
+
+            let links = MainAppContext.shared.userData.links
+                .filter { $0.type == linkType }
+                .sorted()
+            let viewController = ProfileLinksViewController(links: links)
+            self.present(viewController, animated: true)
+        }
+
         view = headerView
     }
 
@@ -167,80 +204,20 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
                     return
                 }
                 let usernameText = profile.username.isEmpty ? "" : "@\(profile.username)"
-
                 self.userID = profile.id
+                self.profile = profile
+
                 self.headerView.nameLabel.text = profile.name
-                self.headerView.usernameButton.setTitle(usernameText, for: .normal)
+                self.headerView.usernameLabel.text = usernameText
+                self.headerView.links = profile.profileLinks
                 self.headerView.friendshipStatus = profile.friendshipStatus
                 self.headerView.isFavorite = profile.isFavorite
                 self.headerView.isBlocked = profile.isBlocked
             }
             .store(in: &cancellableSet)
 
-        headerView.usernameButton.configureWithMenu {
-            HAMenu {
-                HAMenuButton(title: Localizations.userOptionCopyUsername, image: UIImage(systemName: "doc.on.doc")) { [weak self] in
-                    self?.copyUsername()
-                }
-            }
-        }
-        
-        if isOwnProfile {
-            headerView.avatarViewButton.configureWithMenu { [weak self] in
-                HAMenu {
-                    self?.editProfilePhotoMenu()
-                }
-            }
-        } else {
-            headerView.avatarViewButton.addTarget(self, action: #selector(avatarViewTapped), for: .touchUpInside)
-        }
-
         if let userID {
-            headerView.avatarViewButton.avatarView.configure(with: userID, using: MainAppContext.shared.avatarStore)
-        }
-
-        editTapGesture.isEnabled = isOwnProfile
-    }
-    
-    // MARK: Profile Name Editing
-
-    @objc private func editName(_ gesture: UITapGestureRecognizer) {
-        DDLogInfo("profile/edit-name Presenting editor")
-        let viewController = NameEditViewController { (controller, nameOrNil) in
-            if let name = nameOrNil, name != MainAppContext.shared.userData.name {
-                DDLogInfo("profile/edit-name Changing name to [\(name)]")
-
-                MainAppContext.shared.userData.name = name
-                MainAppContext.shared.userData.save(using: MainAppContext.shared.userData.viewContext)
-                MainAppContext.shared.service.updateUsername(name)
-            }
-            controller.dismiss(animated: true)
-        }
-        present(UINavigationController(rootViewController: viewController), animated: true)
-    }
-    
-    private func copyUsername() {
-        UIPasteboard.general.string = headerView.usernameButton.title(for: .normal)
-    }
-
-    // MARK: Profile Photo Editing
-
-    @HAMenuContentBuilder
-    private func editProfilePhotoMenu() -> HAMenu.Content {
-        if headerView.avatarViewButton.avatarView.hasImage {
-            HAMenuButton(title: Localizations.viewPhoto) { [weak self] in
-                self?.presentAvatar()
-            }
-        }
-        
-        HAMenuButton(title: Localizations.takeOrChoosePhoto) { [weak self] in
-            self?.presentPhotoPicker()
-        }
-        
-        if headerView.avatarViewButton.avatarView.hasImage {
-            HAMenuButton(title: Localizations.deletePhoto) { [weak self] in
-                self?.promptToDeleteProfilePhoto()
-            }.destructive()
+            headerView.avatarView.configure(with: userID, using: MainAppContext.shared.avatarStore)
         }
     }
     
@@ -249,7 +226,7 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
     }
     
     private func presentAvatar() {
-        guard let userID, headerView.avatarViewButton.avatarView.hasImage else {
+        guard let userID, headerView.avatarView.hasImage else {
             // TODO: Support opening avatar view while avatar is being downloaded
             return
         }
@@ -301,77 +278,22 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
         }
     }
 
-    private func presentPhotoPicker() {
-        DDLogInfo("profile/edit-photo Presenting photo picker")
-
-        let photoPickerViewController = MediaPickerViewController(config: .avatar) { (controller, _, media, canceled) in
-            guard !canceled && !media.isEmpty else {
-                DDLogInfo("profile/edit-photo Photo picker canceled")
-                controller.dismiss(animated: true)
-                return
-            }
-
-            DDLogInfo("profile/edit-photo Presenting photo cropper")
-            let photoCropperViewController = MediaEditViewController(config: .profile, mediaToEdit: media, selected: 0) { (controller, media, index, canceled) in
-                guard let selected = media.first, !canceled else {
-                    DDLogInfo("profile/edit-photo Photo cropper canceled")
-                    controller.dismiss(animated: true)
-                    return
-                }
-
-                if selected.ready.value {
-                    guard let image = selected.image else { return }
-                    self.uploadProfilePhoto(image)
-                } else {
-                    self.cancellableSet.insert(
-                        media[0].ready.sink { [weak self] ready in
-                            guard let self = self else { return }
-                            guard ready else { return }
-                            guard let image = media[0].image else { return }
-                            self.uploadProfilePhoto(image)
-                        }
-                    )
-                }
-
-                self.dismiss(animated: true)
-            }.withNavigationController()
-
-            controller.reset(destination: nil, selected: [])
-            controller.present(photoCropperViewController, animated: true)
+    @objc private func linksButtonTapped() {
+        guard let links = profile?.profileLinks else {
+            return
         }
-        present(UINavigationController(rootViewController: photoPickerViewController), animated: true)
-    }
 
-    private func uploadProfilePhoto(_ image: UIImage) {
-        let userID = MainAppContext.shared.userData.userId
-        MainAppContext.shared.avatarStore.uploadAvatar(image: image, for: userID, using: MainAppContext.shared.service)
-
-        // need to configure again as avatar listens to cached objects and they get evicted once app goes to the background
-        headerView.avatarViewButton.avatarView.configure(with: userID, using: MainAppContext.shared.avatarStore)
-    }
-
-    private func promptToDeleteProfilePhoto() {
-        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        actionSheet.addAction(UIAlertAction(title: Localizations.deletePhoto, style: .destructive, handler: { _ in
-            self.deleteProfilePhoto()
-        }))
-        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: nil))
-        present(actionSheet, animated: true)
-    }
-
-    private func deleteProfilePhoto() {
-        DDLogInfo("profile/edit-photo Deleting photo")
-        let userID = MainAppContext.shared.userData.userId
-        MainAppContext.shared.avatarStore.removeAvatar(for: userID, using: MainAppContext.shared.service)
-
-        // need to configure again as avatar listens to cached objects and they get evicted once app goes to the background
-        headerView.avatarViewButton.avatarView.configure(with: userID, using: MainAppContext.shared.avatarStore)
+        let viewController = ProfileLinksViewController(links: links.sorted())
+        present(viewController, animated: true)
     }
 }
 
 private final class ProfileHeaderView: UIView {
 
     let configuration: ProfileHeaderViewController.Configuration
+
+    var onAvatarTap: (() -> Void)?
+    var onEditTap: (() -> Void)?
 
     let nameLabel: UILabel = {
         let label = UILabel()
@@ -383,32 +305,28 @@ private final class ProfileHeaderView: UIView {
         return label
     }()
 
-    let avatarViewButton: AvatarViewButton = {
-        let button = AvatarViewButton(type: .custom)
-        return button
-    }()
-
-    private let cameraIconImageView: UIImageView = {
-        let view = UIImageView()
-        view.image = UIImage(systemName: "camera.fill")
-        view.contentMode = .center
-        view.backgroundColor = .primaryBlue
-        view.tintColor = .white
+    let avatarView: AvatarView = {
+        let view = AvatarView()
         return view
     }()
 
-    let usernameButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitleColor(.secondaryLabel, for: .normal)
-        button.titleLabel?.numberOfLines = 1
-        button.titleLabel?.font = .scaledSystemFont(ofSize: 16)
-        return button
+    let usernameLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .secondaryLabel
+        label.font = .scaledSystemFont(ofSize: 16)
+        return label
     }()
 
     let friendshipToggle: ProfileFriendshipToggle = {
         let toggle = ProfileFriendshipToggle()
         toggle.translatesAutoresizingMaskIntoConstraints = false
         return toggle
+    }()
+
+    let linksPanel: ProfileLinksPanel = {
+        let view = ProfileLinksPanel()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
     }()
 
     private(set) lazy var favoriteButton: LargeHitButton = {
@@ -445,10 +363,16 @@ private final class ProfileHeaderView: UIView {
         return button
     }()
 
-    private lazy var cameraIconCenterConstraints: [NSLayoutConstraint] = {
-        [cameraIconImageView.centerXAnchor.constraint(equalTo: avatarViewButton.centerXAnchor),
-         cameraIconImageView.centerYAnchor.constraint(equalTo: avatarViewButton.centerYAnchor)]
+    private(set) lazy var linksButton: LabeledIconButton = {
+        let button = Self.makeActionButton(
+            image: .init(systemName: "at")?.withRenderingMode(.alwaysTemplate),
+            title: Localizations.linksTitle)
+        return button
     }()
+
+    var links: [ProfileLink] = [] {
+        didSet { configure() }
+    }
 
     var friendshipStatus: UserProfile.FriendshipStatus = .none {
         didSet { configure() }
@@ -477,13 +401,18 @@ private final class ProfileHeaderView: UIView {
             videoCallButton.disable()
         }
 
+        if links.isEmpty {
+            linksButton.disable()
+        } else {
+            linksButton.enable()
+        }
+
         favoriteButton.isHidden = !isFavorite
+        linksPanel.configure(with: links)
         friendshipToggle.configure(name: nameLabel.text ?? "", status: friendshipStatus, isBlocked: isBlocked)
 
         setNeedsLayout()
     }
-
-    var avatarViewButtonHeightAnchor: NSLayoutConstraint?
 
     init(configuration: ProfileHeaderViewController.Configuration) {
         self.configuration = configuration
@@ -492,8 +421,8 @@ private final class ProfileHeaderView: UIView {
         layoutMargins = UIEdgeInsets(top: 15, left: 15, bottom: 15, right: 15)
 
         let nameStack = UIStackView(arrangedSubviews: [nameLabel, favoriteButton])
-        let buttonStack = UIStackView(arrangedSubviews: [messageButton, audioCallButton, videoCallButton])
-        let stack = UIStackView(arrangedSubviews: [avatarViewButton, nameStack, usernameButton, friendshipToggle, buttonStack])
+        let buttonStack = UIStackView(arrangedSubviews: [messageButton, audioCallButton, videoCallButton, linksButton])
+        let stack = UIStackView(arrangedSubviews: [avatarView, nameStack, usernameLabel, linksPanel, friendshipToggle, buttonStack])
 
         stack.axis = .vertical
         stack.alignment = .center
@@ -501,36 +430,34 @@ private final class ProfileHeaderView: UIView {
         nameStack.spacing = 5
         buttonStack.spacing = 8
 
-        stack.setCustomSpacing(10, after: avatarViewButton)
-        stack.setCustomSpacing(5, after: usernameButton)
+        stack.setCustomSpacing(10, after: avatarView)
+        stack.setCustomSpacing(5, after: nameStack)
+        stack.setCustomSpacing(10, after: usernameLabel)
         stack.setCustomSpacing(20, after: friendshipToggle)
 
-        avatarViewButton.translatesAutoresizingMaskIntoConstraints = false
-        cameraIconImageView.translatesAutoresizingMaskIntoConstraints = false
+        avatarView.translatesAutoresizingMaskIntoConstraints = false
         stack.translatesAutoresizingMaskIntoConstraints = false
 
-        stack.addSubview(cameraIconImageView)
         addSubview(stack)
 
         NSLayoutConstraint.activate([
-            avatarViewButton.heightAnchor.constraint(equalToConstant: 115),
-            avatarViewButton.widthAnchor.constraint(equalTo: avatarViewButton.heightAnchor, multiplier: 1),
-
-            cameraIconImageView.heightAnchor.constraint(equalToConstant: 40),
-            cameraIconImageView.widthAnchor.constraint(equalTo: cameraIconImageView.heightAnchor, multiplier: 1),
+            avatarView.heightAnchor.constraint(equalToConstant: 115),
+            avatarView.widthAnchor.constraint(equalTo: avatarView.heightAnchor, multiplier: 1),
 
             stack.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor),
             stack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor),
             stack.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor),
             stack.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor),
         ])
-        NSLayoutConstraint.activate(cameraIconCenterConstraints)
 
-        cameraIconImageView.layer.cornerRadius = 40 / 2
+        buttonStack.arrangedSubviews.forEach { $0.isHidden = !configuration.displayFriendActions }
+        linksPanel.isHidden = !configuration.displayLinkActions
+        friendshipToggle.isHidden = !configuration.displayFriendActions
 
-        buttonStack.arrangedSubviews.forEach { $0.isHidden = !configuration.displayActions }
-        friendshipToggle.isHidden = !configuration.displayActions
-        cameraIconImageView.isHidden = !configuration.isEditable
+        [nameLabel, usernameLabel, avatarView].forEach { $0.isUserInteractionEnabled = true }
+        let gesture = UITapGestureRecognizer(target: self, action: #selector(tapHandler))
+        gesture.cancelsTouchesInView = false
+        addGestureRecognizer(gesture)
 
         configure()
     }
@@ -538,13 +465,17 @@ private final class ProfileHeaderView: UIView {
     required init?(coder: NSCoder) {
         fatalError("ProfileHeaderView coder init not implemented...")
     }
-    override func layoutSubviews() {
-        super.layoutSubviews()
 
-        avatarViewButton.layoutIfNeeded()
-        let diameter = avatarViewButton.bounds.width
-        let constant = (sqrt(2) * diameter / 2) / 2
-        cameraIconCenterConstraints.forEach { $0.constant = constant }
+    @objc
+    private func tapHandler(_ gesture: UITapGestureRecognizer) {
+        let location = gesture.location(in: gesture.view)
+        let hit = hitTest(location, with: nil)
+
+        if configuration.isEditable, (hit === avatarView || hit === nameLabel || hit === usernameLabel) {
+            onEditTap?()
+        } else if hit === avatarView {
+            onAvatarTap?()
+        }
     }
 
     static func makeActionButton(image: UIImage?, title: String) -> LabeledIconButton {
@@ -563,7 +494,7 @@ private final class ProfileHeaderView: UIView {
 // MARK: MediaListAnimatorDelegate
 extension ProfileHeaderViewController: MediaListAnimatorDelegate {
     func getTransitionView(at index: MediaIndex) -> UIView? {
-        return headerView.avatarViewButton
+        return headerView.avatarView
     }
 
     func scrollToTransitionView(at index: MediaIndex) {
@@ -601,6 +532,12 @@ extension Localizations {
   
     static var groupsInCommonButtonLabel: String {
         NSLocalizedString("profile.groups.in.common", value: "Groups In Common", comment: "A label for the button which leads to the page showing groups in common")
+    }
+
+    static var linksTitle: String {
+        NSLocalizedString("links.title",
+                          value: "Links",
+                          comment: "Indicates a user's social media links.")
     }
 }
 
@@ -646,6 +583,7 @@ final class LabeledIconButton: UIControl {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.constrain([.top, .centerX], to: view)
         imageView.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor).isActive = true
+        imageView.preferredSymbolConfiguration = .init(weight: .medium)
 
         label.translatesAutoresizingMaskIntoConstraints = false
         label.constrain([.bottom, .leading, .trailing], to: view)

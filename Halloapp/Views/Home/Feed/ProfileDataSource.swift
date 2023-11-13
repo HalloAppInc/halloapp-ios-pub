@@ -17,6 +17,7 @@ protocol DisplayableProfile {
     var name: String { get }
     var username: String { get }
     var friendshipStatus: UserProfile.FriendshipStatus { get }
+    var profileLinks: [ProfileLink] { get }
     var isFavorite: Bool { get }
     var isBlocked: Bool { get }
 }
@@ -129,6 +130,9 @@ extension ProfileDataSource: NSFetchedResultsControllerDelegate {
 
 extension UserProfile: DisplayableProfile {
 
+    var profileLinks: [ProfileLink] {
+        links.sorted()
+    }
 }
 
 // MARK: - Server_HalloappUserProfile + DisplayableProfile
@@ -141,6 +145,12 @@ extension Server_HalloappUserProfile: DisplayableProfile {
 
     var friendshipStatus: UserProfile.FriendshipStatus {
         status.userProfileFriendshipStatus
+    }
+
+    var profileLinks: [ProfileLink] {
+        links
+            .map { ProfileLink(serverLink: $0) }
+            .sorted()
     }
 
     var isFavorite: Bool {
@@ -163,6 +173,10 @@ extension FriendsDataSource.Friend: DisplayableProfile {
     var isBlocked: Bool {
         false
     }
+
+    var profileLinks: [ProfileLink] {
+        []
+    }
 }
 
 // MARK: - FriendSuggestionsManager.Suggestion + DisplayableProfile
@@ -175,5 +189,9 @@ extension FriendSuggestionsManager.Suggestion: DisplayableProfile {
     
     var isBlocked: Bool {
         false
+    }
+
+    var profileLinks: [ProfileLink] {
+        []
     }
 }

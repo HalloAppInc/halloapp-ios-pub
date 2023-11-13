@@ -325,6 +325,9 @@
 		A1CA64AA2B020B3700EA4E4C /* LinkTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CA64A92B020B3700EA4E4C /* LinkTextField.swift */; };
 		A1CA64AC2B020B4500EA4E4C /* ProfileEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CA64AB2B020B4500EA4E4C /* ProfileEditor.swift */; };
 		A1CA64AE2B020B6600EA4E4C /* AvatarPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CA64AD2B020B6600EA4E4C /* AvatarPicker.swift */; };
+		A1CA64B02B0210AA00EA4E4C /* ProfileLinksCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CA64AF2B0210AA00EA4E4C /* ProfileLinksCollectionViewCell.swift */; };
+		A1CA64B22B0210C300EA4E4C /* ProfileLinksViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CA64B12B0210C300EA4E4C /* ProfileLinksViewController.swift */; };
+		A1CA64B42B0210D500EA4E4C /* ProfileLinksPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CA64B32B0210D500EA4E4C /* ProfileLinksPanel.swift */; };
 		A1CD447F291C6AC000623FF6 /* CameraAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CD447E291C6AC000623FF6 /* CameraAnimator.swift */; };
 		A1CD4481291C722100623FF6 /* CameraPostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CD4480291C722100623FF6 /* CameraPostViewController.swift */; };
 		A1CD44852924027200623FF6 /* MomentComposerTransitions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CD44842924027200623FF6 /* MomentComposerTransitions.swift */; };
@@ -1187,6 +1190,9 @@
 		A1CA64A92B020B3700EA4E4C /* LinkTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkTextField.swift; sourceTree = "<group>"; };
 		A1CA64AB2B020B4500EA4E4C /* ProfileEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditor.swift; sourceTree = "<group>"; };
 		A1CA64AD2B020B6600EA4E4C /* AvatarPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarPicker.swift; sourceTree = "<group>"; };
+		A1CA64AF2B0210AA00EA4E4C /* ProfileLinksCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileLinksCollectionViewCell.swift; sourceTree = "<group>"; };
+		A1CA64B12B0210C300EA4E4C /* ProfileLinksViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileLinksViewController.swift; sourceTree = "<group>"; };
+		A1CA64B32B0210D500EA4E4C /* ProfileLinksPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileLinksPanel.swift; sourceTree = "<group>"; };
 		A1CD447E291C6AC000623FF6 /* CameraAnimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraAnimator.swift; sourceTree = "<group>"; };
 		A1CD4480291C722100623FF6 /* CameraPostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPostViewController.swift; sourceTree = "<group>"; };
 		A1CD44842924027200623FF6 /* MomentComposerTransitions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentComposerTransitions.swift; sourceTree = "<group>"; };
@@ -2208,6 +2214,9 @@
 				A1CA64A42B0206FD00EA4E4C /* Editor */,
 				A15E6C7F280DD778008CAEA0 /* FeedArchiveViewController.swift */,
 				76E00DF324FEC2FC00E06252 /* ProfileHeaderViewController.swift */,
+				A1CA64AF2B0210AA00EA4E4C /* ProfileLinksCollectionViewCell.swift */,
+				A1CA64B12B0210C300EA4E4C /* ProfileLinksViewController.swift */,
+				A1CA64B32B0210D500EA4E4C /* ProfileLinksPanel.swift */,
 				A16E2B7F2ABCC93F003C3F85 /* ProfileFriendshipToggle.swift */,
 				769CD3AB255CDB8D006F21BB /* NameEditViewController.swift */,
 				68B5C22C264C6F3F004C7939 /* SafetyNumberViewController.swift */,
@@ -3409,6 +3418,7 @@
 				F87CA3DF2891707F001B3B1F /* ComposerDestinationRowView.swift in Sources */,
 				A1AFA979286B6460005B0DEA /* UploadProgressControl.swift in Sources */,
 				761442C9245D4DE500DD9D1A /* UIButton.swift in Sources */,
+				A1CA64B42B0210D500EA4E4C /* ProfileLinksPanel.swift in Sources */,
 				768123A42485C56E008C5216 /* MainAppContext.swift in Sources */,
 				325A0D772863BA9A00223611 /* NewGroupChatHeaderView.swift in Sources */,
 				A15E6C80280DD778008CAEA0 /* FeedArchiveViewController.swift in Sources */,
@@ -3475,6 +3485,7 @@
 				F4063F2F276836F50068B9ED /* ShareButton.swift in Sources */,
 				EABBF72B24E72C6200FE1F1F /* CreateGroupViewController.swift in Sources */,
 				F445A73927FFB8270046D382 /* ShareMenuPresenter.swift in Sources */,
+				A1CA64B22B0210C300EA4E4C /* ProfileLinksViewController.swift in Sources */,
 				A1EA4CCA2A93F5650051DA16 /* RegistrationOnboarder.swift in Sources */,
 				EA796B9B2469DDF100BC795E /* ChatQuotedLegacy+CoreDataClass.swift in Sources */,
 				322DDDE52739A2A6006BE1E0 /* ChatLinkPreviewView.swift in Sources */,
@@ -3734,6 +3745,7 @@
 				6832F4FF24FEE9A500A9C202 /* ProtoRequests.swift in Sources */,
 				76649227245119F2009BC368 /* FeedActivityObserver.swift in Sources */,
 				F45D9F7D282C3ACF005BAD9D /* GroupGridDataSource.swift in Sources */,
+				A1CA64B02B0210AA00EA4E4C /* ProfileLinksCollectionViewCell.swift in Sources */,
 				A1382DC12927028900AFEEEB /* CameraTabPlaceholderViewController.swift in Sources */,
 				681E0DAA24C8E0190073A03E /* NewPostViewController.swift in Sources */,
 				F43DF0F228F5F242008008B7 /* MessagesShareProvider.swift in Sources */,
