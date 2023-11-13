@@ -10410,8 +10410,12 @@ public struct Server_Link {
     public typealias RawValue = Int
     case userDefined // = 0
     case tiktok // = 1
+
+    /// deprecated: using this on HalloApp results in BAD_TYPE error
     case snapchat // = 2
     case instagram // = 3
+    case x // = 4
+    case youtube // = 5
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -10424,6 +10428,8 @@ public struct Server_Link {
       case 1: self = .tiktok
       case 2: self = .snapchat
       case 3: self = .instagram
+      case 4: self = .x
+      case 5: self = .youtube
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -10434,6 +10440,8 @@ public struct Server_Link {
       case .tiktok: return 1
       case .snapchat: return 2
       case .instagram: return 3
+      case .x: return 4
+      case .youtube: return 5
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -10452,6 +10460,8 @@ extension Server_Link.TypeEnum: CaseIterable {
     .tiktok,
     .snapchat,
     .instagram,
+    .x,
+    .youtube,
   ]
 }
 
@@ -10471,12 +10481,54 @@ public struct Server_SetLinkRequest {
   /// Clears the value of `link`. Subsequent reads from it will return its default value.
   public mutating func clearLink() {self._link = nil}
 
+  public var action: Server_SetLinkRequest.Action = .set
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Action: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case set // = 0
+    case remove // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .set
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .set
+      case 1: self = .remove
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .set: return 0
+      case .remove: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
 
   public init() {}
 
   fileprivate var _link: Server_Link? = nil
 }
+
+#if swift(>=4.2)
+
+extension Server_SetLinkRequest.Action: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_SetLinkRequest.Action] = [
+    .set,
+    .remove,
+  ]
+}
+
+#endif  // swift(>=4.2)
 
 public struct Server_SetLinkResult {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -11517,6 +11569,8 @@ public struct Server_HalloappUserProfile {
 
   public var blocked: Bool = false
 
+  public var links: [Server_Link] = []
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -12428,6 +12482,7 @@ extension Server_FollowSuggestionsResponse.Result: @unchecked Sendable {}
 extension Server_Link: @unchecked Sendable {}
 extension Server_Link.TypeEnum: @unchecked Sendable {}
 extension Server_SetLinkRequest: @unchecked Sendable {}
+extension Server_SetLinkRequest.Action: @unchecked Sendable {}
 extension Server_SetLinkResult: @unchecked Sendable {}
 extension Server_SetLinkResult.Result: @unchecked Sendable {}
 extension Server_SetLinkResult.Reason: @unchecked Sendable {}
@@ -24683,6 +24738,8 @@ extension Server_Link.TypeEnum: SwiftProtobuf._ProtoNameProviding {
     1: .same(proto: "TIKTOK"),
     2: .same(proto: "SNAPCHAT"),
     3: .same(proto: "INSTAGRAM"),
+    4: .same(proto: "X"),
+    5: .same(proto: "YOUTUBE"),
   ]
 }
 
@@ -24690,6 +24747,7 @@ extension Server_SetLinkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
   public static let protoMessageName: String = _protobuf_package + ".SetLinkRequest"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "link"),
+    2: .same(proto: "action"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -24699,6 +24757,7 @@ extension Server_SetLinkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularMessageField(value: &self._link) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.action) }()
       default: break
       }
     }
@@ -24712,14 +24771,25 @@ extension Server_SetLinkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     try { if let v = self._link {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
     } }()
+    if self.action != .set {
+      try visitor.visitSingularEnumField(value: self.action, fieldNumber: 2)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Server_SetLinkRequest, rhs: Server_SetLinkRequest) -> Bool {
     if lhs._link != rhs._link {return false}
+    if lhs.action != rhs.action {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
+}
+
+extension Server_SetLinkRequest.Action: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "SET"),
+    1: .same(proto: "REMOVE"),
+  ]
 }
 
 extension Server_SetLinkResult: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
@@ -25575,6 +25645,7 @@ extension Server_HalloappUserProfile: SwiftProtobuf.Message, SwiftProtobuf._Mess
     4: .standard(proto: "avatar_id"),
     5: .same(proto: "status"),
     6: .same(proto: "blocked"),
+    7: .same(proto: "links"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -25589,6 +25660,7 @@ extension Server_HalloappUserProfile: SwiftProtobuf.Message, SwiftProtobuf._Mess
       case 4: try { try decoder.decodeSingularStringField(value: &self.avatarID) }()
       case 5: try { try decoder.decodeSingularEnumField(value: &self.status) }()
       case 6: try { try decoder.decodeSingularBoolField(value: &self.blocked) }()
+      case 7: try { try decoder.decodeRepeatedMessageField(value: &self.links) }()
       default: break
       }
     }
@@ -25613,6 +25685,9 @@ extension Server_HalloappUserProfile: SwiftProtobuf.Message, SwiftProtobuf._Mess
     if self.blocked != false {
       try visitor.visitSingularBoolField(value: self.blocked, fieldNumber: 6)
     }
+    if !self.links.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.links, fieldNumber: 7)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -25623,6 +25698,7 @@ extension Server_HalloappUserProfile: SwiftProtobuf.Message, SwiftProtobuf._Mess
     if lhs.avatarID != rhs.avatarID {return false}
     if lhs.status != rhs.status {return false}
     if lhs.blocked != rhs.blocked {return false}
+    if lhs.links != rhs.links {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
