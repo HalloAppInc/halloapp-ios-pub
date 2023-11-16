@@ -48,7 +48,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>This lets you make video calls, and take photos and videos on HalloApp</string>
 	<key>NSContactsUsageDescription</key>
-	<string>To share and see posts from your friends and family, allow HalloApp upload your contacts to its servers.</string>
+	<string>To share and see posts from your friends and family, allow HalloApp to upload your contacts to its servers.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This lets you send your current location or nearby places in comments and chats and lets us notify you of new magic post suggestions.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
