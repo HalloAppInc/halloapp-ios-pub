@@ -425,8 +425,13 @@ final class CallManager: NSObject, CXProviderDelegate {
 
     public func peerName(for peerUserID: UserID) -> String {
         var peerName: String = Localizations.unknownContact
-        MainAppContext.shared.mainDataStore.performOnBackgroundContextAndWait { context in
-            peerName = UserProfile.find(with: peerUserID, in: context)?.displayName ?? Localizations.unknownContact
+        // We are running into deadlocks requesting on the background queue
+        // Since this is just a read, it should be safe to run on its own context / queue
+        let context = MainAppContext.shared.mainDataStore.persistentContainer.newBackgroundContext()
+        context.performAndWait {
+            if let displayName = UserProfile.find(with: peerUserID, in: context)?.displayName {
+                peerName = displayName
+            }
         }
         return peerName
     }
