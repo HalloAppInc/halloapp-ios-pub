@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/Alamofire/Alamofire.git",
         "state": {
           "branch": null,
-          "revision": "bc268c28fb170f494de9e9927c371b8342979ece",
-          "version": "5.7.1"
+          "revision": "3dc6a42c7727c49bf26508e29b0a0b35f9c7e1ad",
+          "version": "5.8.1"
         }
       },
       {
@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/amplitude/Amplitude-iOS.git",
         "state": {
           "branch": null,
-          "revision": "94160a550835e6f0a1df9fa76ab3902ac4648a9c",
-          "version": "8.17.1"
+          "revision": "dca2c744336e651ee285011282b86accc2ce3704",
+          "version": "8.17.2"
         }
       },
       {
@@ -51,8 +51,8 @@
         "repositoryURL": "https://github.com/CocoaLumberjack/CocoaLumberjack",
         "state": {
           "branch": null,
-          "revision": "67ec5818a757aba4d7c534e21a905d878d128dbf",
-          "version": "3.8.1"
+          "revision": "363ed23d19a931809ea834a7d722da830353806a",
+          "version": "3.8.2"
         }
       },
       {
@@ -87,8 +87,8 @@
         "repositoryURL": "https://github.com/marmelroy/PhoneNumberKit.git",
         "state": {
           "branch": null,
-          "revision": "9bc965a326df8d5115f0b7bb77f09c542b8ec417",
-          "version": "3.6.6"
+          "revision": "736e333d28c85fa4411e5210ded8c48a402b9300",
+          "version": "3.7.5"
         }
       },
       {
@@ -105,8 +105,8 @@
         "repositoryURL": "https://github.com/getsentry/sentry-cocoa",
         "state": {
           "branch": null,
-          "revision": "14aa6e47b03b820fd2b338728637570b9e969994",
-          "version": "8.12.0"
+          "revision": "9e6df4316bf02ada53a602f9fa4382f481ef0176",
+          "version": "8.16.0"
         }
       },
       {
@@ -123,8 +123,8 @@
         "repositoryURL": "https://github.com/apple/swift-protobuf.git",
         "state": {
           "branch": null,
-          "revision": "f25867a208f459d3c5a06935dceb9083b11cd539",
-          "version": "1.22.0"
+          "revision": "07f7f26ded8df9645c072f220378879c4642e063",
+          "version": "1.25.1"
         }
       },
       {
@@ -150,8 +150,8 @@
         "repositoryURL": "https://github.com/stasel/WebRTC",
         "state": {
           "branch": null,
-          "revision": "938564aac1e2e810ffb4931d93cf67e00c5ad679",
-          "version": "114.0.0"
+          "revision": "7a9f5e1abd2c14833e7379a580961817b746e204",
+          "version": "119.0.0"
         }
       },
       {

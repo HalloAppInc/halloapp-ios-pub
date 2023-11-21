@@ -1449,7 +1449,7 @@
 			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
 			requirement = {
 				kind = exactVersion;
-				version = 8.12.0;
+				version = 8.16.0;
 			};
 		};
 		F4A46448290B08CF00280BBF /* XCRemoteSwiftPackageReference "Amplitude-iOS" */ = {
@@ -1457,7 +1457,7 @@
 			repositoryURL = "https://github.com/amplitude/Amplitude-iOS.git";
 			requirement = {
 				kind = exactVersion;
-				version = 8.17.1;
+				version = 8.17.2;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

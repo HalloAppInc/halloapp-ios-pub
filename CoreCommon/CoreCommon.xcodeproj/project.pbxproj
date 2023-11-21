@@ -933,7 +933,7 @@
 			repositoryURL = "https://github.com/apple/swift-protobuf.git";
 			requirement = {
 				kind = exactVersion;
-				version = 1.22.0;
+				version = 1.25.1;
 			};
 		};
 		328D13C627C02CB500AA9F18 /* XCRemoteSwiftPackageReference "PhoneNumberKit" */ = {
@@ -941,7 +941,7 @@
 			repositoryURL = "https://github.com/marmelroy/PhoneNumberKit.git";
 			requirement = {
 				kind = exactVersion;
-				version = 3.6.6;
+				version = 3.7.5;
 			};
 		};
 		328D13C927C02D2600AA9F18 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
@@ -949,7 +949,7 @@
 			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
 			requirement = {
 				kind = exactVersion;
-				version = 5.7.1;
+				version = 5.8.1;
 			};
 		};
 		328D13CF27C02DAE00AA9F18 /* XCRemoteSwiftPackageReference "CocoaLumberjack" */ = {
@@ -957,7 +957,7 @@
 			repositoryURL = "https://github.com/CocoaLumberjack/CocoaLumberjack";
 			requirement = {
 				kind = exactVersion;
-				version = 3.8.1;
+				version = 3.8.2;
 			};
 		};
 		328D13D427C02E5300AA9F18 /* XCRemoteSwiftPackageReference "Zip" */ = {
