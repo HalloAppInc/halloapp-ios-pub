@@ -498,6 +498,8 @@ class ComposerViewController: UIViewController {
 
     private lazy var titleView = ComposerTitleView()
 
+    private let state: NewPostState?
+
     init(
         config: ComposerConfig,
         type: NewPostMediaSource,
@@ -505,6 +507,7 @@ class ComposerViewController: UIViewController {
         input: MentionInput,
         media: [PendingMedia],
         voiceNote: PendingMedia?,
+        state: NewPostState? = nil,
         completion: @escaping ComposerViewControllerCallback)
     {
         self.config = config
@@ -513,6 +516,7 @@ class ComposerViewController: UIViewController {
         self.input = input
         self.media = media
         self.voiceNote = voiceNote
+        self.state = state
         self.completion = completion
 
         super.init(nibName: nil, bundle: nil)
@@ -553,6 +557,48 @@ class ComposerViewController: UIViewController {
         }
 
         handleKeyboardUpdates()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        if let state {
+            var postProperties = Analytics.EventProperties()
+
+            media.forEach { media in
+                switch media.type {
+                case .audio:
+                    postProperties[.attachedAudioCount] = (postProperties[.attachedAudioCount] as? Int ?? 0) + 1
+                case .image:
+                    postProperties[.attachedImageCount] = (postProperties[.attachedImageCount] as? Int ?? 0) + 1
+                case .video:
+                    postProperties[.attachedVideoCount] = (postProperties[.attachedVideoCount] as? Int ?? 0) + 1
+                case .document:
+                    postProperties[.attachedDocumentCount] = (postProperties[.attachedDocumentCount] as? Int ?? 0) + 1
+                }
+            }
+
+            if let highlightedAssetCollection = state.highlightedAssetCollection {
+                let selectedAssetIDs = Set(media.compactMap(\.asset?.localIdentifier))
+                let highlightedAssetIDs = {
+                    var assetIDs: Set<String> = []
+                    PHAsset.fetchAssets(in: highlightedAssetCollection, options: nil).enumerateObjects { asset, _, _ in
+                        assetIDs.insert(asset.localIdentifier)
+                    }
+                    return assetIDs
+                }()
+                let rankedAssetIDs = (state.mediaAssetInfo ?? [:])
+                    .filter { (_, info) in info.isSelected }
+                    .map { (localIdenfifier, _) in localIdenfifier }
+
+                postProperties[.numPhotoSuggestions] = highlightedAssetIDs.count
+                postProperties[.numSuggestedPhotosSelected] = selectedAssetIDs.intersection(highlightedAssetIDs).count
+                postProperties[.numRankedPhotos] = rankedAssetIDs.count
+                postProperties[.numRankedPhotosSelected] = selectedAssetIDs.intersection(rankedAssetIDs).count
+            }
+
+            Analytics.openScreen(.postComposerEditor, properties: postProperties)
+        }
     }
 
     private func configureUI() {

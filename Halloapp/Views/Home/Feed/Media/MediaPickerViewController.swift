@@ -159,7 +159,7 @@ class MediaPickerViewController: UIViewController {
     private var updatingSnapshot = false
     private var nextInProgress = false
     private var highlightedAssetCollection: PHAssetCollection?
-    private var mediaDebugInfo: DebugInfoMap?
+    private var mediaAssetInfo: AssetInfoMap?
 
     private lazy var collectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: view.frame, collectionViewLayout: makeLayout())
@@ -345,12 +345,12 @@ class MediaPickerViewController: UIViewController {
     init(config: MediaPickerConfig,
          selected: [PendingMedia] = [],
          highlightedAssetCollection: PHAssetCollection? = nil,
-         mediaDebugInfo: DebugInfoMap? = nil,
+         mediaAssetInfo: AssetInfoMap? = nil,
          didFinish: @escaping MediaPickerViewControllerCallback) {
         self.config = config
         self.selected.append(contentsOf: selected)
         self.highlightedAssetCollection = highlightedAssetCollection
-        self.mediaDebugInfo = mediaDebugInfo
+        self.mediaAssetInfo = mediaAssetInfo
         self.didFinish = didFinish
 
         let modeRawValue = MainAppContext.shared.userDefaults.integer(forKey: UserDefaultsKey.MediaPickerMode)
@@ -391,7 +391,7 @@ class MediaPickerViewController: UIViewController {
 
 
         navigationItem.leftBarButtonItem = backButtonItem
-        if let mediaDebugInfo, !mediaDebugInfo.isEmpty, ServerProperties.isInternalUserOrDebugBuild {
+        if let mediaAssetInfo, !mediaAssetInfo.isEmpty, ServerProperties.isInternalUserOrDebugBuild {
             navigationItem.rightBarButtonItem = debugButtonItem
         }
 
@@ -439,6 +439,16 @@ class MediaPickerViewController: UIViewController {
         let isFullscreen = navigationController.view.bounds == UIScreen.main.bounds
         if !isFullscreen {
             navigationController.presentationController?.delegate = self
+        }
+
+        if let highlightedAssetCollection, let mediaAssetInfo {
+            let highlightedAssetIDCount = PHAsset.fetchAssets(in: highlightedAssetCollection, options: nil).count
+            let rankedAssetIDCount = mediaAssetInfo.filter { (_, mediaAssetInfo) in mediaAssetInfo.isSelected }.count
+
+            Analytics.openScreen(.postComposerPhotoSelector, properties: [
+                .numPhotoSuggestions: highlightedAssetIDCount,
+                .numRankedPhotos: rankedAssetIDCount,
+            ])
         }
     }
 
@@ -566,8 +576,8 @@ class MediaPickerViewController: UIViewController {
     }
 
     private func prepareCell(_ cell: AssetViewCell) {
-        let debugInfo = showDebugInfo ? mediaDebugInfo : nil
-        cell.prepare(config: config, mode: mode, selection: selected, highlightedAssetCollection: highlightedAssetCollection, debugInfo: debugInfo)
+        let assetInfo = showDebugInfo ? mediaAssetInfo : nil
+        cell.prepare(config: config, mode: mode, selection: selected, highlightedAssetCollection: highlightedAssetCollection, assetInfo: assetInfo)
     }
 
     private var showDebugInfo = false
@@ -1199,7 +1209,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         return (spacing, column * spacing / columnCount, spacing - ((column + 1) * spacing / columnCount))
     }
     
-    func prepare(config: MediaPickerConfig, mode: MediaPickerMode, selection: [PendingMedia], highlightedAssetCollection: PHAssetCollection?, debugInfo: DebugInfoMap? = nil) {
+    func prepare(config: MediaPickerConfig, mode: MediaPickerMode, selection: [PendingMedia], highlightedAssetCollection: PHAssetCollection?, assetInfo: AssetInfoMap? = nil) {
         let (spacingBottom, spacingLead, spacingTrail) = calculateSpacing(mode: mode)
         
         NSLayoutConstraint.deactivate(activeConstraints)
@@ -1239,7 +1249,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
             duration.text = interval.formatted
         }
 
-        debugLabel.text = debugInfo?[asset?.localIdentifier ?? ""] ?? nil
+        debugLabel.text = (asset?.localIdentifier).flatMap { assetInfo?[$0]?.debugInfo }
 
         favorite.isHidden = asset?.isFavorite != true
 

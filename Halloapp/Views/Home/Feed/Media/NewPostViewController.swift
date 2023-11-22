@@ -46,8 +46,7 @@ struct NewPostState {
     var pendingInput = MentionInput(text: "", mentions: MentionRangeMap(), selectedRange: NSRange())
     var pendingVoiceNote: PendingMedia?
     var highlightedAssetCollection: PHAssetCollection?
-    var mediaDebugInfo: DebugInfoMap?
-    var rankedAssetIdentifiers: [String]? // stores preselected assets in highlightedAssetCollection for analytics
+    var mediaAssetInfo: AssetInfoMap?
 
     var isPostComposerCancellable: Bool {
         // We can only return to the library picker (UIImagePickerController freezes after choosing an image 🙄).
@@ -102,7 +101,7 @@ final class NewPostViewController: UINavigationController {
         if let highlightedAssetCollection = state.highlightedAssetCollection {
             Analytics.openScreen(.composer, properties: [
                 .numPhotoSuggestions: highlightedAssetCollection.estimatedAssetCount,
-                .numRankedPhotos: state.rankedAssetIdentifiers?.count ?? 0,
+                .numRankedPhotos: state.mediaAssetInfo?.filter { (_, info) in info.isSelected }.count ?? 0,
             ])
         } else {
             Analytics.openScreen(usedInTabBar ? .camera : .composer)
@@ -191,7 +190,8 @@ final class NewPostViewController: UINavigationController {
                                       showDestinationPicker: showDestinationPicker,
                                       input: state.pendingInput,
                                       media: state.pendingMedia,
-                                      voiceNote: state.pendingVoiceNote) { [weak self] controller, result , success in
+                                      voiceNote: state.pendingVoiceNote,
+                                      state: state) { [weak self] controller, result , success in
             guard let self = self else { return }
 
             self.state.pendingInput = result.input
@@ -268,7 +268,9 @@ final class NewPostViewController: UINavigationController {
                 }
                 return assetIDs
             }()
-            let rankedAssetIDs = Set(state.rankedAssetIdentifiers ?? [])
+            let rankedAssetIDs = (state.mediaAssetInfo ?? [:])
+                .filter { (_, info) in info.isSelected }
+                .map { (localIdenfifier, _) in localIdenfifier }
 
             postProperties[.numPhotoSuggestions] = highlightedAssetIDs.count
             postProperties[.numSuggestedPhotosSelected] = selectedAssetIDs.intersection(highlightedAssetIDs).count
@@ -401,7 +403,7 @@ final class NewPostViewController: UINavigationController {
         let pickerController = MediaPickerViewController(config: config,
                                                          selected: state.pendingMedia,
                                                          highlightedAssetCollection: state.highlightedAssetCollection,
-                                                         mediaDebugInfo: state.mediaDebugInfo) { [weak self] controller, destination, media, cancel in
+                                                         mediaAssetInfo: state.mediaAssetInfo) { [weak self] controller, destination, media, cancel in
             guard let self = self else { return }
 
             if cancel {

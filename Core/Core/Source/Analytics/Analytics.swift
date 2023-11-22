@@ -65,6 +65,9 @@ public class Analytics {
         case activity
         case invite
         case photoSuggestions
+        case postComposerEditor
+        case postComposerAudienceSelector
+        case postComposerPhotoSelector
     }
 
     public typealias EventProperties = [EventProperty: Any]

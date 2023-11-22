@@ -503,7 +503,7 @@ extension PhotoSuggestions {
 
         var newPostState: NewPostState {
             get async {
-                let (scoreSortedAssets, debugInfo) = await BurstAwareHighlightSelector().selectHighlights(10, from: Array(assets))
+                let (scoreSortedAssets, assetInfo) = await BurstAwareHighlightSelector().selectHighlights(10, from: Array(assets))
                 let selectedMedia = scoreSortedAssets.prefix(ServerProperties.maxPostMediaItems).compactMap { PendingMedia(asset: $0) }
                 let createdAtSortedAssets = assets.sorted { $0.creationDate ?? .distantFuture < $1.creationDate ?? .distantFuture }
                 let albumTitle = location?.name ?? location?.address ?? Localizations.suggestionAlbumTitle
@@ -512,8 +512,7 @@ extension PhotoSuggestions {
                                     mediaSource: .library,
                                     pendingInput: MentionInput(text: location?.name ?? "", mentions: MentionRangeMap(), selectedRange: NSRange()),
                                     highlightedAssetCollection: highlightedAssetCollection,
-                                    mediaDebugInfo: debugInfo,
-                                    rankedAssetIdentifiers: selectedMedia.compactMap(\.asset?.localIdentifier))
+                                    mediaAssetInfo: assetInfo)
             }
         }
     }

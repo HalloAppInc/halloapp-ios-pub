@@ -12,8 +12,13 @@ import Foundation
 import Photos
 import Vision
 
+struct ImageRankerAssetInfo {
+    let isSelected: Bool
+    let debugInfo: String
+}
+
 /// Maps identifier to debug info for display to internal users
-typealias DebugInfoMap = [String: String]
+typealias AssetInfoMap = [String: ImageRankerAssetInfo]
 
 final class BurstAwareHighlightSelector {
 
@@ -37,9 +42,9 @@ final class BurstAwareHighlightSelector {
     /// We boost images with significant faces by multiplying their score by this factor
     let SignificantFaceFactor = CGFloat(1.3)
 
-    func selectHighlights(_ n: Int, from assets: [PHAsset]) async -> ([PHAsset], DebugInfoMap) {
+    func selectHighlights(_ n: Int, from assets: [PHAsset]) async -> ([PHAsset], AssetInfoMap) {
 
-        var debugInfo = DebugInfoMap()
+        var debugInfo = [String: String]()
 
         // 1. Divide photos into bursts (sets of photos taken less than BurstThreshold apart)
         
@@ -174,10 +179,16 @@ final class BurstAwareHighlightSelector {
             }
         }
 
-        return (out, debugInfo)
+        let assetInfo = debugInfo.reduce(into: AssetInfoMap()) { assetInfo, kv in
+            let (localIdentifier, info) = kv
+            let isSelected = out.contains { $0.localIdentifier == localIdentifier }
+            assetInfo[localIdentifier] = ImageRankerAssetInfo(isSelected: isSelected, debugInfo: info)
+        }
+
+        return (out, assetInfo)
     }
 
-    private func appendDebugLine(_ line: String, for identifier: String, in dictionary: inout DebugInfoMap) {
+    private func appendDebugLine(_ line: String, for identifier: String, in dictionary: inout [String: String]) {
         var info = dictionary[identifier] ?? ""
         if !info.isEmpty { info += "\n" }
         dictionary[identifier] = info + line

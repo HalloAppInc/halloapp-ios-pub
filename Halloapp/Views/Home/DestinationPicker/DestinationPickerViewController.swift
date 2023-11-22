@@ -328,6 +328,8 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
     }
 
     override func viewDidLoad() {
+        super.viewDidLoad()
+
         view.backgroundColor = .primaryBg
 
         navigationItem.title = Localizations.sendTo
@@ -365,6 +367,14 @@ class DestinationPickerViewController: UIViewController, NSFetchedResultsControl
         updateNextBtn()
 
         handleKeyboardUpdates()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        if config == .composer {
+            Analytics.openScreen(.postComposerAudienceSelector)
+        }
     }
 
     private func updateData(searchString: String? = nil) {
