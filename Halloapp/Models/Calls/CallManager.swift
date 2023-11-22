@@ -412,8 +412,10 @@ final class CallManager: NSObject, CXProviderDelegate {
     private func handle(for peerUserID: UserID) -> CXHandle {
         var peerPhoneNumber = ""
 
-        MainAppContext.shared.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-            if let phoneNumber = MainAppContext.shared.contactStore.normalizedPhoneNumber(for: peerUserID, using: managedObjectContext) {
+        // Read only, do not rely on internal contactStore queue to synchronize access
+        let context = MainAppContext.shared.contactStore.persistentContainer.newBackgroundContext()
+        context.performAndWait {
+            if let phoneNumber = MainAppContext.shared.contactStore.normalizedPhoneNumber(for: peerUserID, using: context) {
                 peerPhoneNumber = "+" + phoneNumber
             }
         }
