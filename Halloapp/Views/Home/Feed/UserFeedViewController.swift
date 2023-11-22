@@ -84,7 +84,6 @@ class UserFeedViewController: FeedCollectionViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        let profile = UserProfile.find(with: userId, in: MainAppContext.shared.mainDataStore.viewContext)
 
         if isOwnFeed {
             title = Localizations.titleMyPosts
