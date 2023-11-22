@@ -1,4 +1,7 @@
 /* No comment provided by engineer. */
+"@" = "@";
+
+/* No comment provided by engineer. */
 "%" = "%";
 
 /* No comment provided by engineer. */
@@ -42,6 +45,9 @@
 
 /* Title of a button to send a friend request. */
 "add.friend" = "Arkadaşı ekle";
+
+/* Encourages the user to add a link to another social media platform. */
+"add.link" = "ilişim ekle";
 
 /* Title of a button that allows a location to be added. */
 "add.location.title" = "Konum ekle";
@@ -111,6 +117,9 @@
 
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "İnternet bağlantısı yok";
+
+/* Failure message displayed after trying to block a user. */
+"block.failure" = "Engellenemedi";
 
 /* Success message displayed after blocking a user. */
 "block.success" = "Engellendi";
@@ -700,6 +709,9 @@
 /* link, tapping on which launched the flow to edit favorites */
 "edit.favorites" = "Yakınları düzenle";
 
+/* Title of a screen that allows editing of profile details. */
+"edit.profile" = "Profili düzenle";
+
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "İletişim kurmak için birbirinize telefon numaralarınızı vermelisiniz";
 
@@ -1189,6 +1201,9 @@
 /* Message displayed next to an incoming friend request. */
 "incoming.friend.request.format" = "%@, sana arkadaşlık isteği gönderdi";
 
+/* Refers to the social network Instagram. */
+"instagram.name" = "Instagram";
+
 /* Title of the bottom sheet that is presented only once to explain the moments feature. */
 "introducing.moments" = "Anlık tanıtımı";
 
@@ -1263,6 +1278,9 @@
 
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Daha fazlasını öğren";
+
+/* Refers to a URL. */
+"link.title" = "İlişim";
 
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Uygulamanı güncelle.";
@@ -1686,6 +1704,9 @@
 
 /* explanation for photo suggestions */
 "photosuggestions.explainer.subtitle" = "Yeni fotoğraflar çektiğinde en iyilerini seçip sana bir taslak sunarız. Böylece paylaşmak için hazır bir gönderi bulursun.";
+
+/* title for explanation of photo suggestions */
+"photosuggestions.explainer.title" = "Sihirli gönderiyi dene";
 
 /* title for photo suggestions section */
 "photosuggestionsheader.title" = "Yeni gönderi önerileri";
@@ -2266,6 +2287,9 @@
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
 "thread.list.preview.new.user.default" = "%@ HalloApp'te! 🎉";
 
+/* Refers to the social network TikTok. */
+"tiktok.name" = "TikTok";
+
 /* Camera screen title */
 "title.camera" = "Kamera";
 
@@ -2314,6 +2338,9 @@
 /* Row in Settings screen */
 "title.storage" = "Depolama";
 
+/* Tab for suggestions tab in main interface */
+"title.suggestions" = "Sihirli gönderi";
+
 /* Title for the screen with information about who saw your moment. */
 "title.your.moment" = "Görenler";
 
@@ -2331,6 +2358,9 @@
 
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
 "tutorial.tap.below" = "Aşağıdaki “%@” butonuna bas";
+
+/* Refers to the social network formerly known as Twitter. */
+"twitter.name" = "x.com";
 
 /* Title of an alert when unblocking a user */
 "unblock.title" = " %@ kişisinin engelini kaldır";

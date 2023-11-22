@@ -1,4 +1,7 @@
 /* No comment provided by engineer. */
+"@" = "@";
+
+/* No comment provided by engineer. */
 "@%@" = "@%@";
 
 /* No comment provided by engineer. */
@@ -45,6 +48,12 @@
 
 /* Title of a button to send a friend request. */
 "add.friend" = "Vriend toevoegen";
+
+/* Encourages the user to add a link to another social media platform. */
+"add.link" = "link toevoegen";
+
+/* Displayed when the user has not added any links to their profile. */
+"add.links.prompt" = "@ Mijn sociale media toevoegen";
 
 /* Title of a button that allows a location to be added. */
 "add.location.title" = "Locatie Toevoegen";
@@ -706,6 +715,9 @@
 /* link, tapping on which launched the flow to edit favorites */
 "edit.favorites" = "Favorieten Bewerken";
 
+/* Title of a screen that allows editing of profile details. */
+"edit.profile" = "Profiel bewerken";
+
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Om connectie te maken, moeten jullie telefoonnummers uitwisselen";
 
@@ -1195,6 +1207,9 @@
 /* Message displayed next to an incoming friend request. */
 "incoming.friend.request.format" = "%@ heeft je een vriendschapsverzoek gestuurd";
 
+/* Refers to the social network Instagram. */
+"instagram.name" = "Instagram";
+
 /* Title of the bottom sheet that is presented only once to explain the moments feature. */
 "introducing.moments" = "Introductie van Momenten";
 
@@ -1270,8 +1285,14 @@
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Meer informatie";
 
+/* Refers to a URL. */
+"link.title" = "Link";
+
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "App bijwerken.";
+
+/* Indicates a user's social media links. */
+"links.title" = "Links";
 
 /* Shown to the user when suggestions are being loaded. */
 "loading.suggestions" = "Suggesties worden geladen";
@@ -1825,6 +1846,9 @@
 /* Item in Profile > Help screen. */
 "profile.help.tos" = "Gebruiksvoorwaarden";
 
+/* Indicates a user's social media links where the variable is the user's name. */
+"profile.links.format" = "Links van %@:";
+
 /* Displays remaining number of characters user is allowed to enter while editing their profile name, as well as maximum allowed name length. */
 "profile.name.length" = "%1$d/%2$d";
 
@@ -2287,6 +2311,9 @@
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
 "thread.list.preview.new.user.default" = "%@ gebruikt HalloApp🎉";
 
+/* Refers to the social network TikTok. */
+"tiktok.name" = "TikTok";
+
 /* Camera screen title */
 "title.camera" = "Camera";
 
@@ -2355,6 +2382,9 @@
 
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
 "tutorial.tap.below" = "Tik op “%@” hieronder.";
+
+/* Refers to the social network formerly known as Twitter. */
+"twitter.name" = "X.com";
 
 /* Title of an alert when unblocking a user */
 "unblock.title" = "%@ deblokkeren";
@@ -2463,4 +2493,7 @@
 
 /* Text that appears on the splash screen prior to registration. */
 "your.private.social.network" = "Welkom bij je privé sociale netwerk";
+
+/* Refers to the social network YouTube. */
+"youtube.name" = "YouTube";
 

@@ -5,7 +5,13 @@
 "NSCameraUsageDescription" = "So kannst du auf HalloApp Videoanrufe tätigen und Fotos und Videos aufnehmen";
 
 /* Privacy - Contacts Usage Description */
-"NSContactsUsageDescription" = "Erlaube HalloApp den Zugriff auf deine Kontakte, um Beiträge zu teilen und die deiner Freunde und Familie zu sehen.";
+"NSContactsUsageDescription" = "Damit du Beiträge deiner Freunde und Familie sehen und teilen kannst, erlaube HalloApp den Kontakt-upload auf die HalloApp-Server.";
+
+/* Privacy - Location Always and When In Use Usage Description */
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Hiermit kannst du deinen aktuellen Standort oder Orte in der Nähe in Kommentaren und Chats angeben und wir können dich über magische Beiträge informieren.";
+
+/* Privacy - Location Always Usage Description */
+"NSLocationAlwaysUsageDescription" = "Hiermit kannst du deinen aktuellen Standort oder Orte in der Nähe über Kommentare und Chats versenden und wir können dir neue Magic Posts vorschlagen.";
 
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "So kannst du in Kommentaren und Chats deinen aktuellen Standort oder Orte in der Nähe teilen.";

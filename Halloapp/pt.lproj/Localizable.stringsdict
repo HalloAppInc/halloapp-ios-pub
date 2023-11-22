@@ -239,11 +239,11 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>Você está conectado a %d pessoa no HalloApp</string>
+			<string>1 pessoa dos seus contatos está no HalloApp. Adicioná-lo como amigos?</string>
 			<key>other</key>
-			<string>Você está conectado a %d pessoas no HalloApp</string>
+			<string>%d pessoas dos seus contatos estão no HalloApp. Adicioná-los como amigos?</string>
 			<key>zero</key>
-			<string>Você ainda não está conectado a ninguém no HalloApp</string>
+			<string>Nenhum dos seus contatos está no HalloApp</string>
 		</dict>
 	</dict>
 	<key>n.invites.count</key>
@@ -401,9 +401,9 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>%d contato</string>
+			<string>%d usuário</string>
 			<key>other</key>
-			<string>%d contatos</string>
+			<string>%d usuários</string>
 			<key>zero</key>
 			<string>Nenhum</string>
 		</dict>

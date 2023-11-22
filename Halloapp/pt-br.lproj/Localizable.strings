@@ -1,4 +1,7 @@
 /* No comment provided by engineer. */
+"@" = "@";
+
+/* No comment provided by engineer. */
 "@%@" = "@%@";
 
 /* No comment provided by engineer. */
@@ -46,6 +49,12 @@
 /* Title of a button to send a friend request. */
 "add.friend" = "Adicionar Amigo";
 
+/* Encourages the user to add a link to another social media platform. */
+"add.link" = "adicionar link";
+
+/* Displayed when the user has not added any links to their profile. */
+"add.links.prompt" = "@ Adicionar minhas mídias sociais";
+
 /* Title of a button that allows a location to be added. */
 "add.location.title" = "Adicionar local";
 
@@ -59,7 +68,7 @@
 "add.to.favorites.title" = "Adicionar aos favoritos";
 
 /* Confirmation when a user was successfully added to favorites. */
-"added.user.to.favorites" = "Adicionado %@ aos favoritos";
+"added.user.to.favorites" = "Adicionado aos Favoritos";
 
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "Sem conexão com a internet";
@@ -581,7 +590,7 @@
 "composer.audio.instructions" = "Toque para gravar";
 
 /* Title for audio post composer */
-"composer.audio.title" = "Nova postagem de áudio";
+"composer.audio.title" = "Novo áudio";
 
 /* Title on edit button */
 "composer.button.edit" = "Editar";
@@ -706,6 +715,9 @@
 /* link, tapping on which launched the flow to edit favorites */
 "edit.favorites" = "Editar Favoritos ";
 
+/* Title of a screen that allows editing of profile details. */
+"edit.profile" = "Editar Perfil";
+
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Para se conectar, você deve trocar os números de telefone";
 
@@ -824,13 +836,13 @@
 "feed.posting" = "Postando...";
 
 /* Describes what 'All Friends' feed privacy setting means. */
-"feed.privacy.descr.all" = "Compartilhar com todos os meus contatos";
+"feed.privacy.descr.all" = "Compartilhe com todos os meus amigos";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.except" = "Compartilhar com meus contatos, exceto pessoas selecionadas";
 
 /* Describes what 'Favorites' feed privacy setting means. */
-"feed.privacy.descr.only" = "Compartilhar apenas com contatos selecionados";
+"feed.privacy.descr.only" = "Compartilhe apenas com amigos selecionados";
 
 /* Header describing what these options are for */
 "feed.privacy.header" = "Quem verá minhas postagens";
@@ -1195,6 +1207,9 @@
 /* Message displayed next to an incoming friend request. */
 "incoming.friend.request.format" = "%@ enviou-lhe um pedido de amizade";
 
+/* Refers to the social network Instagram. */
+"instagram.name" = "Instagram";
+
 /* Title of the bottom sheet that is presented only once to explain the moments feature. */
 "introducing.moments" = "Apresentando Momentos";
 
@@ -1270,8 +1285,14 @@
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Saiba mais";
 
+/* Refers to a URL. */
+"link.title" = "Link";
+
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Atualize seu aplicativo.";
+
+/* Indicates a user's social media links. */
+"links.title" = "Links";
 
 /* Shown to the user when suggestions are being loaded. */
 "loading.suggestions" = "Carregando sugestões";
@@ -1673,16 +1694,16 @@
 "photoSuggestions.album.title" = "Sugerido";
 
 /* Button to link to settings to enable location permission for HalloApp */
-"photosuggestions.cta.alwaysonlocation.action" = "Permitir acesso à localização";
+"photosuggestions.cta.alwaysonlocation.action" = "Permitir nas configurações";
 
 /* explanation of why we want always location access */
-"photosuggestions.cta.alwaysonlocation.subtitle" = "HalloApp irá notificá-lo sobre novos Magic Posts quando você tirar fotos e sair de um local";
+"photosuggestions.cta.alwaysonlocation.subtitle" = "Quando você tira novas fotos, nós encontramos as melhores fotos e as organizamos em um rascunho de postagem, para que esteja pronto para você se desejar postar.";
 
 /* title for explanation of why we want always location access */
-"photosuggestions.cta.alwaysonlocation.title" = "Permitir que HalloApp acesse o local para ser notificado sobre novos Magic Posts";
+"photosuggestions.cta.alwaysonlocation.title" = "Para usar postagens mágicas, permita que HalloApp acesse o local";
 
 /* Button to link to settings to enable location permission for Photos app */
-"photosuggestions.cta.photolocation.action" = "Permitir nas configurações";
+"photosuggestions.cta.photolocation.action" = "Abrir configurações";
 
 /* explanation for why we need to turn on location access for photos */
 "photosuggestions.cta.photolocation.subtitle1" = "Permita o acesso à localização para o aplicativo Câmera para melhorar as postagens mágicas. HalloApp usa metadados de localização de suas fotos para ajudar a classificá-las e nomeá-las.";
@@ -1691,7 +1712,7 @@
 "photosuggestions.cta.photolocation.subtitle2" = "Para permitir o acesso à localização, vá para: *Configurações* > *Privacidade e segurança* > *Serviços de localização* > *Câmera*";
 
 /* title for explanation of why we want location access for photos app */
-"photosuggestions.cta.photolocation.title" = "Permitir acesso à localização para o aplicativo Fotos";
+"photosuggestions.cta.photolocation.title" = "Permitir acesso à localização para o aplicativo da câmera";
 
 /* Button to allow access to photos */
 "photosuggestions.emptystate.photopermission.action" = "Habilitar";
@@ -1824,6 +1845,9 @@
 
 /* Item in Profile > Help screen. */
 "profile.help.tos" = "Termos de serviço";
+
+/* Indicates a user's social media links where the variable is the user's name. */
+"profile.links.format" = "Links de %@:";
 
 /* Displays remaining number of characters user is allowed to enter while editing their profile name, as well as maximum allowed name length. */
 "profile.name.length" = "%1$d/%2$d";
@@ -1973,7 +1997,7 @@
 "remove.from.favorites.title" = "Remover dos favoritos";
 
 /* Confirmation when a user was successfully removed from favorites. */
-"removed.user.from.favorites" = "Removido %@ dos favoritos";
+"removed.user.from.favorites" = "Removido dos favoritos";
 
 /* Title of the button that both reports and blocks a user. */
 "report.and.block" = "Denunciar e Bloquear";
@@ -2287,6 +2311,9 @@
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
 "thread.list.preview.new.user.default" = "%@ está no HalloApp! 🎉";
 
+/* Refers to the social network TikTok. */
+"tiktok.name" = "TikTok";
+
 /* Camera screen title */
 "title.camera" = "Câmera";
 
@@ -2356,6 +2383,9 @@
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
 "tutorial.tap.below" = "Toque em “%@” abaixo.";
 
+/* Refers to the social network formerly known as Twitter. */
+"twitter.name" = "x.com";
+
 /* Title of an alert when unblocking a user */
 "unblock.title" = "Desbloquear %@";
 
@@ -2381,13 +2411,13 @@
 "user.chat.typing" = "%@ está digitando...";
 
 /* Option when user taps more on profile page */
-"user.option.block" = "Bloquear no HalloApp";
+"user.option.block" = "Bloquear";
 
 /* Option when User clicks on the username on profile page and this can let the user copy the username */
 "user.option.copy.username" = "Copiar nome de usuário";
 
 /* Option when user taps more on profile page */
-"user.option.unblock" = "Desbloquear no HalloApp";
+"user.option.unblock" = "Desbloquear";
 
 /* Button to confirm unblocking user via profile page */
 "user.unblock" = "Desbloquear";
@@ -2463,4 +2493,7 @@
 
 /* Text that appears on the splash screen prior to registration. */
 "your.private.social.network" = "Bem-vindo à sua rede social privada";
+
+/* Refers to the social network YouTube. */
+"youtube.name" = "Youtube";
 

@@ -1,4 +1,10 @@
 /* No comment provided by engineer. */
+"@" = "@";
+
+/* No comment provided by engineer. */
+"@%@" = "@%@";
+
+/* No comment provided by engineer. */
 "%" = "%";
 
 /* No comment provided by engineer. */
@@ -40,6 +46,15 @@
 /* First tab in the main app interface. */
 "activityCenter.promo.favorites" = "Schau dir die neue Favoritenfunktion an!";
 
+/* Title of a button to send a friend request. */
+"add.friend" = "Als Freund hinzufügen";
+
+/* Encourages the user to add a link to another social media platform. */
+"add.link" = "Link hinzufügen";
+
+/* Displayed when the user has not added any links to their profile. */
+"add.links.prompt" = "@ meine sozialen Medien hinzufügen";
+
 /* Title of a button that allows a location to be added. */
 "add.location.title" = "Ort hinzufügen";
 
@@ -53,13 +68,16 @@
 "add.to.favorites.title" = "Zu Favoriten hinzufügen";
 
 /* Confirmation when a user was successfully added to favorites. */
-"added.user.to.favorites" = "%@ zu Favoriten hinzugefügt";
+"added.user.to.favorites" = "Zu Favoriten hinzugefügt";
 
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "Keine Internetverbindung";
 
 /* Message to tell the user to try again when they have internet connectivity again */
 "alert.no.internet.try.again" = "Bitte überprüfe, ob du eine Internetverbindung hast, und versuche es dann noch einmal.";
+
+/* Indicating all pending friend requests. */
+"all.requests" = "Alle Anfragen";
 
 /* Title of the activity tab when contacts permissions aren't given. */
 "allow.contacts.for.activity" = "Um Updates von deinen Freunden zu erhalten, erlaube den Zugriff auf deine Kontakte";
@@ -105,6 +123,15 @@
 
 /* Text to show on banner when no connection is available */
 "banner.no.connection" = "Keine Verbindung";
+
+/* Failure message displayed after trying to block a user. */
+"block.failure" = "Blocken fehlgeschlagen";
+
+/* Success message displayed after blocking a user. */
+"block.success" = "Geblockt";
+
+/* Title of an alert when blocking a user. */
+"block.title" = "Blockiere %@";
 
 /* Title for generic Add button. Used to add more items to current selection (e.g., add more members to a group) */
 "button.add" = "Hinzufügen";
@@ -294,6 +321,9 @@
 
 /* No comment provided by engineer. */
 "Cancel" = "Abbrechen";
+
+/* Title of a button to cancel a friendship request. */
+"cancel.request" = "Anfrage löschen";
 
 /* Text shown in the chat interface informing the user that the contact is blocked */
 "chat.blocked.contact.label" = "Du hast diesen Kontakt geblockt";
@@ -520,6 +550,12 @@
 /* Text shown when user is about to remove the chat */
 "chats.list.remove.message" = "Wenn du diesen Chat entfernst löscht du den Chatverlauf und den Inhalt von deinem Gerät.";
 
+/* Prompts the user to choose a photo. */
+"choose.photo" = "Foto auswählen";
+
+/* Title of a button to close a screen. */
+"close.title" = "Schließen";
+
 /* Title for the button in comment deletion confirmation prompt. */
 "comment.delete.action" = "Kommentar löschen";
 
@@ -568,6 +604,9 @@
 /* Title for alert when closing the post composer with a voice note */
 "composer.deletevoicenote.title" = "Beitrag verwerfen?";
 
+/* Share to all friends */
+"composer.destination.friendsShare" = "Meine Freunde";
+
 /* Label above the list with whom you share */
 "composer.destinations.label" = "Teilen mit";
 
@@ -612,6 +651,9 @@
 
 /* Show the user that the title is tappable */
 "composer.subtitle.cta" = "Zum Ändern hier tippen";
+
+/* Title of a button to confirm a friend request. */
+"confirm.title" = "Bestätigen";
 
 /* No comment provided by engineer. */
 "CONNECTION" = "VERBINDUNG";
@@ -672,6 +714,9 @@
 
 /* link, tapping on which launched the flow to edit favorites */
 "edit.favorites" = "Favoriten bearbeiten";
+
+/* Title of a screen that allows editing of profile details. */
+"edit.profile" = "Profil bearbeiten";
 
 /* Text to show on profile for users you are not connected with */
 "exchange.phone.numbers.to.connect" = "Einfach Handynummern austauschen, um den Kontakt herzustellen";
@@ -791,13 +836,13 @@
 "feed.posting" = "Beitrag wird geposted...";
 
 /* Describes what 'All Friends' feed privacy setting means. */
-"feed.privacy.descr.all" = "Mit all meinen Kontakten teilen";
+"feed.privacy.descr.all" = "Mit all meinen Freunden teilen";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.except" = "Mit meinen Kontakten teilen außer Ausgewählten";
 
 /* Describes what 'Favorites' feed privacy setting means. */
-"feed.privacy.descr.only" = "Nur mit ausgewählten Kontakten teilen";
+"feed.privacy.descr.only" = "Nur mit ausgewählten Freunden teilen";
 
 /* Header describing what these options are for */
 "feed.privacy.header" = "Wer sieht meine Beiträge";
@@ -856,6 +901,18 @@
 /* Possible Feed Privacy setting value. Keep short. */
 "feed.privacy.value.n.selected" = "feed.privacy.value.n.selected";
 
+/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.body.1" = "Ein privater digitaler Raum ohne Influencer und Werbung - nur du und die Menschen, die dir wichtig sind.";
+
+/* Body text of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.body.2" = "Deine Freunde auf HalloApp können deine Beiträge sehen. Füge Freunde aus deinem Netzwerk hinzu und verwalte Freundschaftsanfragen.";
+
+/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.title.1" = "Willkommen bei HalloApp! Dein privates soziales Netzwerk";
+
+/* Title of welcome post shown to users who have no contacts and no content (zero zone) in their feed */
+"feed.welcome.post.title.2" = "Wer kann meine Beiträge sehen?";
+
 /* Text for 'more' cell prompting users to open the invite screen */
 "feedInviteCarousel.searchPrompt" = "Suche nach mehr Freunden und Familie";
 
@@ -873,6 +930,36 @@
 
 /* Explains that as more contacts join the app, they will appear in this list automatically. */
 "fellow.contacts.will.arrive" = "Deine Kontakte, die sich bei HalloApp registrieren, werden hier automatisch angezeigt.";
+
+/* Message displayed in the activity center when someone accepts your friend request. */
+"friend.activity.incoming.accepted" = "<$author$>  hat deine Freundschaftsanfrage angenommen";
+
+/* Message displayed in the activity center when there's an incoming friend request. */
+"friend.activity.incoming.pending" = "<$author$> hat dir eine Freundschaftsanfrage geschickt";
+
+/* Title of a header that appears before a list of contacts that can be invited to register. */
+"friend.invite.header.title" = "Wen möchtest du hier noch sehen?";
+
+/* Message explaining the new friend network. */
+"friend.migration.message" = "Du kannst nun auf HalloApp Personen über ihren Namen oder @Benutzernamen suchen. Deine HalloApp-Kontakte werden jetzt deine Freunde. Du kannst bestehende Kontakte jederzeit aus Freunde entfernen.";
+
+/* Title when explaining the new friend network. */
+"friend.migration.title" = "Neues Freundschaftsmodell auf HalloApp";
+
+/* Indicating friend requests */
+"friend.requests" = "Freundschaftsanfrage";
+
+/* Indicating suggested friends. */
+"friend.suggestions" = "Freundesvorschläge";
+
+/* Disclaimer telling users that their posts can be seen by their friends. */
+"friends.privacy.disclaimer" = "Die von dir hinzugefügten Personen können deine mit allen HalloApp-Freunden geteilten Beiträge sehen.";
+
+/* Indicating the user's friends. */
+"friends.title" = "Freunde";
+
+/* When displaying a generic error message. */
+"generic.error" = "Ein Fehler ist aufgetreten";
 
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Gruppenbeschreibung hinzufügen";
@@ -911,7 +998,7 @@
 "group.invite.link.copied" = "In die Zwischenablage kopiert";
 
 /* Text to describe what the group invite link is */
-"group.invite.link.description" = "Über diesen Link können HalloApp-Nutzer dieser Gruppe beitreten. Sie erhalten jedoch nicht automatisch alle Inhalte, die vor dem Beitritt zur Gruppe gepostet wurden.";
+"group.invite.link.description" = "Alle auf HalloApp können dieser Gruppe beitreten. Sie erhalten jedoch nicht automatisch alle Inhalte, die vor dem Beitritt zur Gruppe gepostet wurden.";
 
 /* Text label above the group link section in group invite screen */
 "group.invite.link.label" = "GRUPPENLINK";
@@ -1114,6 +1201,15 @@
 /* Title of failed video call screen alert. */
 "home.video.calls.fail.title" = "Videoanrufe werden derzeit nicht unterstützt.";
 
+/* Title of a button to ignore a friendship request. */
+"ignore.title" = "Ignorieren";
+
+/* Message displayed next to an incoming friend request. */
+"incoming.friend.request.format" = "%@ hat dir eine Freundschaftsanfrage geschickt";
+
+/* Refers to the social network Instagram. */
+"instagram.name" = "Instagram";
+
 /* Title of the bottom sheet that is presented only once to explain the moments feature. */
 "introducing.moments" = "Neu: Momente";
 
@@ -1189,8 +1285,17 @@
 /* Generic 'learn more' link. Mostly used to present additional information about topic. */
 "link.learnMore" = "Mehr erfahren";
 
+/* Refers to a URL. */
+"link.title" = "Link";
+
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Meine App aktualisieren.";
+
+/* Indicates a user's social media links. */
+"links.title" = "Links";
+
+/* Shown to the user when suggestions are being loaded. */
+"loading.suggestions" = "Vorschläge werden geladen";
 
 /* Title to indicate that a fetch operation is in progress. */
 "locating.title" = "Lokalisierung";
@@ -1381,7 +1486,7 @@
 "mypost.hide.posts.confirmation" = "Bist du dir sicher, dass du alle deine zukünftigen Beiträge vor %@ verbergen möchtest? Du kannst dies später jederzeit ändern.";
 
 /* Placeholder text displayed in My Post Info screen when no one has seen the post yet. */
-"mypost.not.viewed.yet" = "Bislang hat keiner deinen Beitrag gesehen";
+"mypost.not.viewed.yet" = "Dein Beitrag wurde noch nicht angesehen";
 
 /* Your Post screen: label for the row that opens the invite screen */
 "mypost.row.invite.to.halloapp" = "Zu HalloApp einladen";
@@ -1414,6 +1519,9 @@
 /* Header that appears above unread messages in the chats view. */
 "n.unread.messages.title" = "n.unread.messages.title";
 
+/* Indicates the user's name. */
+"name.title" = "Name";
+
 /* Placeholder text shown in the middle of the Add New Group Members screen when user have no contacts (in ZeroZone) to add */
 "new.group.members.empty.placeholder" = "Deine Kontakte, die auf HalloApp sind, werden hier angezeigt";
 
@@ -1422,6 +1530,9 @@
 
 /* Title for alert that pops up when user attempts to save an empty contact list */
 "no.contact.selected" = "Kein Kontakt ausgewählt";
+
+/* Displayed when the user's friends list is empty. */
+"no.friends.message" = "Bislang bist du mit niemandem auf HalloApp verbunden";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Du bist nicht mehr in dieser Gruppe";
@@ -1440,6 +1551,12 @@
 
 /* Title of the daily moment notification. */
 "notification.daily.moment.title" = "Täglicher Moment";
+
+/* Body of a notification for when a friend request is accepted. */
+"notification.friend.request.accept.body" = "%@ hat deine Freundschaftsanfrage angenommen";
+
+/* Body of a notification for a new friend request. */
+"notification.friend.request.body" = "%@ hat dir eine Freundschaftsanfrage geschickt";
 
 /* Content for inviter notification. */
 "notification.invite.accepted.content" = "%@ hat deine HalloApp-Einladung angenommen 🎉";
@@ -1567,8 +1684,50 @@
 /* Title denoting something that is optional. */
 "optional.title" = "Optional";
 
+/* Message displayed next to an outgoing friend request. */
+"outgoing.friend.request.format" = "Du hast %@ eine Freundschaftsanfrage geschickt";
+
 /* button to launch photo and video library */
 "photo.and.video.library" = "Foto- und Videothek";
+
+/* fallback title for suggested photo album */
+"photoSuggestions.album.title" = "Vorschlag";
+
+/* Button to link to settings to enable location permission for HalloApp */
+"photosuggestions.cta.alwaysonlocation.action" = "In den Einstellungen erlauben";
+
+/* explanation of why we want always location access */
+"photosuggestions.cta.alwaysonlocation.subtitle" = "Wenn du neue Fotos aufnimmst, stellen wir dir die besten Aufnahmen in einem Entwurf zusammen, den du, wenn du Lust hast, ganz einfach teilen kannst.";
+
+/* title for explanation of why we want always location access */
+"photosuggestions.cta.alwaysonlocation.title" = "Um Magic-Posts zu verwenden, erlaube HalloApp den Standort-Zugriff";
+
+/* Button to link to settings to enable location permission for Photos app */
+"photosuggestions.cta.photolocation.action" = "Einstellungen öffnen";
+
+/* explanation for why we need to turn on location access for photos */
+"photosuggestions.cta.photolocation.subtitle1" = "Um die Magic-Posts zu verbessern, erlaube in deiner Kamera-App den Zugriff auf deinen Standort. HalloApp verwendet die Standort-Metadaten deiner Fotos, um diese zu sortieren und zu benennen.";
+
+/* instructions for enabling location access for photos app. maintain '*' to indicate bold text. */
+"photosuggestions.cta.photolocation.subtitle2" = "Um den Standortzugriff zu ermöglichen gehe zu: *Einstellungen* > *Datenschutz & Sicherheit* > *Ortungsdienst* > *Kamera*";
+
+/* title for explanation of why we want location access for photos app */
+"photosuggestions.cta.photolocation.title" = "Zugriff auf Standort in Kamera-App erlauben";
+
+/* Button to allow access to photos */
+"photosuggestions.emptystate.photopermission.action" = "Aktivieren";
+
+/* Explanatory text on empty state view */
+"photosuggestions.emptystate.photopermission.title" = "Erlaube den Zugriff auf alle Fotos, um Magic-Posts zu verwenden";
+
+/* explanation for photo suggestions */
+"photosuggestions.explainer.subtitle" = "Wenn du neue Fotos aufnimmst, stellen wir dir die besten Aufnahmen in einem Entwurf zusammen, den du, wenn du Lust hast, ganz einfach teilen kannst.";
+
+/* title for explanation of photo suggestions */
+"photosuggestions.explainer.title" = "Magic-Posts ausprobieren";
+
+/* title for photo suggestions section */
+"photosuggestionsheader.title" = "Vorschläge für neuen Beitrag";
 
 /* Message in media picker when access is denied. */
 "picker.access.denied.message" = "Bitte über die Einstellungen den Zugriff zulassen";
@@ -1686,6 +1845,9 @@
 
 /* Item in Profile > Help screen. */
 "profile.help.tos" = "Nutzungsbedingungen";
+
+/* Indicates a user's social media links where the variable is the user's name. */
+"profile.links.format" = "%@’s Links:";
 
 /* Displays remaining number of characters user is allowed to enter while editing their profile name, as well as maximum allowed name length. */
 "profile.name.length" = "%1$d/%2$d";
@@ -1822,11 +1984,20 @@
 /* Message shown to the user once they have successfully registered. */
 "registration.you.are.in" = "Geschafft!";
 
+/* Title of a button to remove a friend. */
+"remove.friend" = "Freund löschen";
+
+/* Body of an alert that appears when removing a friend. */
+"remove.friend.body" = "%@ und du können die Beiträge des jeweils anderen nicht mehr sehen.";
+
+/* Title of an alert that appears when removing a friend. */
+"remove.friend.title" = "%@ aus Freunden löschen";
+
 /* Text for the action of removing a contact from the user's favorites list (title case). */
 "remove.from.favorites.title" = "Aus Favoriten entfernen";
 
 /* Confirmation when a user was successfully removed from favorites. */
-"removed.user.from.favorites" = "%@ entfernt aus Favoriten";
+"removed.user.from.favorites" = "Aus Favoriten entfernt";
 
 /* Title of the button that both reports and blocks a user. */
 "report.and.block" = "Melden und blockieren";
@@ -1835,7 +2006,7 @@
 "report.post" = "Beitrag melden";
 
 /* Title of the button that both reports a post and removes it. */
-"report.post.and.remove" = "Beitrag melden und entfernen";
+"report.post.and.remove" = "Beitrag melden und löschen";
 
 /* Message that's displayed when reporting a post failed. */
 "report.post.failure" = "Beitrag kann nicht gemeldet werden";
@@ -1850,7 +2021,7 @@
 "report.title" = "Melden";
 
 /* Title of a button that reports a user. */
-"report.user" = "Nutzer melden";
+"report.user" = "User melden";
 
 /* Message that's displayed when reporting a user failed. */
 "report.user.failure" = "%@ kann nicht gemeldet werden";
@@ -1863,6 +2034,12 @@
 
 /* Title of the dialog that appears when reporting a user. */
 "report.user.title" = "%@ melden";
+
+/* Format string to display how many incoming friend requests there are. */
+"requests.received" = "Erhaltene Anfragen (%d)";
+
+/* Indicating the user's friend requests. */
+"requests.title" = "Anfragen";
 
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Um die Sicherheit deiner Verbindung mit %@ zu verifizieren, prüfe bitte, ob die obigen Nummern mit denen auf dem anderen Mobilgerät angezeigten übereinstimmen oder scanne den QR-Code.";
@@ -1885,8 +2062,23 @@
 /* Title that indicates that someone took a screenshot. */
 "screenshot.title" = "Screenshot";
 
+/* Title of a button that displays all results. */
+"see.all" = "Alle anzeigen";
+
+/* Title of a button that shows all friend requests. */
+"see.all.requests" = "Alle Anfragen anzeigen";
+
+/* Title of a button that displays the users friend list. */
+"see.my.network" = "Mein Netzwerk anzeigen";
+
+/* Title of a button that shows sent friend requests. */
+"see.sent.requests" = "Gesendete Anfragen";
+
 /* Message that pops up when user attempts to save an empty contact list */
 "select.at.least.one.contact" = "Bitte wähle mindestens einen Kontakt aus.";
+
+/* Prompts the user to choose their username. */
+"select.username.prompt" = "Namen eingeben und Benutzernamen wählen";
 
 /* Indicates that an item is in the process of being sent. */
 "sending.title" = "Senden";
@@ -2026,6 +2218,9 @@
 /* Instructions for enabling notifications permissions */
 "settings.notifications.disabled.instructions" = "Bitte die Benachrichtigungen in den Einstellungen aktivieren.";
 
+/* Settings > Notifications: label for the toggle that turns new magic post notifications on or off. */
+"settings.notifications.magicposts" = "Magic Posts";
+
 /* Settings > Notifications: label for the toggle that turns new moment notifications on or off. */
 "settings.notifications.moments" = "Momente";
 
@@ -2052,6 +2247,12 @@
 
 /* Text placed on the blurred overlay of someone else's moment. */
 "shared.moment" = "%@’s Moment";
+
+/* title of album suggestion with location */
+"sharedalbums.albumsuggestioncell.titleformat.location" = "%1$d Fotos aufgenommen %2$@";
+
+/* title of album suggestion without location */
+"sharedalbums.albumsuggestioncell.titleformat.nolocation" = "%d gemachte Fotos";
 
 /* Title for sharing to instagram stories */
 "shareprovider.instagramstories.title" = "Instagram Stories";
@@ -2110,6 +2311,9 @@
 /* Default preview text shown for a symmetric contact who just joined Halloapp */
 "thread.list.preview.new.user.default" = "%@ nutzt HalloApp🎉";
 
+/* Refers to the social network TikTok. */
+"tiktok.name" = "TikTok";
+
 /* Camera screen title */
 "title.camera" = "Kamera";
 
@@ -2158,6 +2362,9 @@
 /* Row in Settings screen */
 "title.storage" = "Speicher";
 
+/* Tab for suggestions tab in main interface */
+"title.suggestions" = "Magic Post";
+
 /* Title for the screen with information about who saw your moment. */
 "title.your.moment" = "Gesehen von";
 
@@ -2175,6 +2382,12 @@
 
 /* Instructs user to tap a button (e.g., Tap “Go to Settings” below.) */
 "tutorial.tap.below" = "Tippe unten auf \"%@\".";
+
+/* Refers to the social network formerly known as Twitter. */
+"twitter.name" = "x.com";
+
+/* Title of an alert when unblocking a user */
+"unblock.title" = "%@ entblocken";
 
 /* Text for action label that lets the user accept messages from unknown contacts */
 "unknown.contact.accept.to.message" = "Nachricht annehmen";
@@ -2198,19 +2411,25 @@
 "user.chat.typing" = "%@ schreibt...";
 
 /* Option when user taps more on profile page */
-"user.option.block" = "Auf HalloApp blocken";
+"user.option.block" = "Blocken";
+
+/* Option when User clicks on the username on profile page and this can let the user copy the username */
+"user.option.copy.username" = "Benutzernamen kopieren";
 
 /* Option when user taps more on profile page */
-"user.option.unblock" = "Auf HalloApp entblocken";
+"user.option.unblock" = "Entblocken";
 
 /* Button to confirm unblocking user via profile page */
 "user.unblock" = "Entblocken";
 
 /* Message asking if the user is sure they want to unblock this user */
-"user.unblock.message" = "Bist du dir sicher, dass du %@ auf HalloApp entblocken möchtest? Du kannst dies später jederzeit ändern.";
+"user.unblock.message" = "Bist du dir sicher, dass du auf HalloApp %@ entblocken möchtest? Du kannst dies später jederzeit ändern.";
 
 /* Button to start voice call. Should be translated as verb. */
 "user.voice.call" = "Anrufen";
+
+/* Indicates the user's username. */
+"username.title" = "Benutzername";
 
 /* No comment provided by engineer. */
 "VIDEO" = "VIDEO";
@@ -2220,6 +2439,15 @@
 
 /* Text that indicates a view action. */
 "view.title" = "Ansehen";
+
+/* Body of notification that a user has a new sharing suggestion. '6 photos' */
+"visitTracker.notification.body.nolocation" = "%ld Fotos";
+
+/* Body of notification that a user has a new sharing suggestion. '6 photos from Terun' */
+"visitTracker.notification.body.withlocation" = "%1$ld Fotos von %2$@";
+
+/* Title of notification that a user has a new sharing suggestion */
+"visitTracker.notification.title" = "Neuer Vorschlag zum Teilen";
 
 /* Moment deletion confirmation. Displays as action sheet title. */
 "your.moment.delete.confirmation" = "Diesen Moment löschen? Diese Aktion kann nicht rückgängig gemacht werden.";
@@ -2265,4 +2493,7 @@
 
 /* Text that appears on the splash screen prior to registration. */
 "your.private.social.network" = "Willkommen in deinem privaten sozialen Netzwerk";
+
+/* Refers to the social network YouTube. */
+"youtube.name" = "YouTube";
 

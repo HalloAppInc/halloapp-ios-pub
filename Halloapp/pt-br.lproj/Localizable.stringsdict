@@ -595,9 +595,9 @@
 			<key>many</key>
 			<string>%d Users</string>
 			<key>one</key>
-			<string>%d contato</string>
+			<string>%d usuário</string>
 			<key>other</key>
-			<string>%d contatos</string>
+			<string>%d usuários</string>
 			<key>two</key>
 			<string>%d Users</string>
 			<key>zero</key>
