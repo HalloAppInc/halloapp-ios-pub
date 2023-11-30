@@ -12,6 +12,20 @@ import CoreData
 @objc(AssetMacroCluster)
 class AssetMacroCluster: NSManagedObject {
 
+    enum LocatedClusterStatus: Int16 {
+        case pending = 0
+        case located = 1
+    }
+
+    var locatedClusterStatus: LocatedClusterStatus {
+        get {
+            return LocatedClusterStatus(rawValue: rawLocatedClusterStatus) ?? .pending
+        }
+        set {
+            rawLocatedClusterStatus = newValue.rawValue
+        }
+    }
+
     var assetRecordsAsSet: Set<AssetRecord> {
         return assetRecords as? Set<AssetRecord> ?? []
     }
@@ -20,7 +34,11 @@ class AssetMacroCluster: NSManagedObject {
         return assetRecords?.count ?? 0
     }
 
-    func recomputeDates() {
+    var locatedClustersAsSet: Set<AssetLocatedCluster> {
+        return locatedClusters as? Set<AssetLocatedCluster> ?? []
+    }
+
+    private func recomputeDates() {
         var startDate: Date?
         var endDate: Date?
         assetRecordsAsSet.forEach { asset in

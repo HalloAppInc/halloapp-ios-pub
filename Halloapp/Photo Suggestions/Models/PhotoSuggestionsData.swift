@@ -63,6 +63,8 @@ final class PhotoSuggestionsData: NSObject, Sendable {
 
     func saveOnBackgroundContext<T>(_ block: @escaping @Sendable (NSManagedObjectContext) throws -> T) async throws -> T {
         try await persistentContainer.performBackgroundTask { context in
+            context.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
+
             let result = try block(context)
 
             if context.hasChanges {

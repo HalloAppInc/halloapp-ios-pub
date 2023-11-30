@@ -36,3 +36,9 @@ extension IdentifiableManagedObject {
         return entity
     }
 }
+
+extension IdentifiableManagedObject where ManagedObjectType == Self {
+    public var identifier: String? {
+        self[keyPath: Self.identifierKeyPath]
+    }
+}

@@ -269,6 +269,10 @@ struct DeveloperMenuView: View {
                         Text(MenuTitles.resetPhotoSuggestionsFTUX)
                     }
 
+                    NavigationLink("Photo Suggestions Data") {
+                        PhotoSuggestionsBrowser()
+                    }
+
                     // Log Out
                     Button(action: {
                         self.userData.logout(using: self.userData.viewContext)

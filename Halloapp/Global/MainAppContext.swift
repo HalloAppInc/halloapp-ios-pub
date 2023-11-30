@@ -35,6 +35,8 @@ class MainAppContext: AppContext {
     private(set) var notificationServiceExtensionDataStore: NotificationServiceExtensionDataStore!
     private(set) var geocoder: ServerGeocoder!
     private(set) var photoSuggestionsData: PhotoSuggestionsData!
+    private(set) var photoSuggestionsServices: PhotoSuggestionsServices!
+
     lazy var webClientManager: WebClientManager? = {
         // TODO: Support logout
         guard let keys = userData.credentials?.noiseKeys else { return nil }
@@ -149,6 +151,8 @@ class MainAppContext: AppContext {
         callManager = CallManager(service: service)
         geocoder = ServerGeocoder(service: service)
         photoSuggestionsData = PhotoSuggestionsData()
+
+        photoSuggestionsServices = PhotoSuggestionsServices(photoSuggestionsData: photoSuggestionsData, service: service, userDefaults: userDefaults)
         AudioSessionManager.initialize()
 
         // Add observer to notify us when persistentStore records changes.
@@ -229,8 +233,9 @@ class MainAppContext: AppContext {
             }
             .store(in: &cancellableSet)
 
-        DispatchQueue.main.async {
+        Task {
             self.visitTracker.startVisitTrackingIfAvailable()
+            await self.photoSuggestionsServices.start()
         }
     }
 
