@@ -112,6 +112,7 @@ open class AppContextCommon {
 
         // Print app version in logs
         DDLogInfo("HalloApp \(Self.appVersionForService)")
+        DDLogInfo("hasCompletedFirstUnlock: \(UIDevice.hasCompletedFirstUnlock ? "true" : "false")")
 
         userData = UserData(storeDirectoryURL: Self.sharedDirectoryURL, isAppClip: Self.isAppClip)
         avatarStore = AvatarStore()

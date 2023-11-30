@@ -9,16 +9,16 @@
 import UIKit
 
 extension UIDevice {
-    
+
     public func getModelName() -> String {
-        
+
         var identifierStr = "unknown"
-        
-        #if targetEnvironment(simulator)
+
+#if targetEnvironment(simulator)
         if let simulatorIdentifier = ProcessInfo().environment["SIMULATOR_MODEL_IDENTIFIER"] {
             identifierStr = simulatorIdentifier
         }
-        #else
+#else
         var systemInfo = utsname()
         uname(&systemInfo)
         let machineMirror = Mirror(reflecting: systemInfo.machine)
@@ -26,8 +26,8 @@ extension UIDevice {
             guard let value = element.value as? Int8, value != 0 else { return identifier }
             return identifier + String(UnicodeScalar(UInt8(value)))
         }
-        #endif
-        
+#endif
+
         switch identifierStr {
         case "iPhone8,1":                               return "iPhone 6s"
         case "iPhone8,2":                               return "iPhone 6s Plus"
@@ -54,5 +54,51 @@ extension UIDevice {
         case "iPhone14,5":                              return "iPhone 13"
         default:                                        return identifierStr
         }
+    }
+
+    /*
+     Returns whether the device has completed its first unlock, meaning data protected with default protection levels is available
+     There doesn't seem to be a system API to check for this, so try writing and reading from the keychain
+     */
+    public static var hasCompletedFirstUnlock: Bool {
+        let data = "firstUnlock".data(using: .utf8)!
+        let service = "com.halloapp.tmp.firstUnlockCompleted"
+
+        let addQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrSynchronizable as String: false,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+            kSecValueData as String: data,
+            kSecAttrService as String: service,
+        ]
+
+        var status: OSStatus
+
+        status = SecItemAdd(addQuery as CFDictionary, nil)
+
+        defer {
+            SecItemDelete(addQuery as CFDictionary)
+        }
+
+        guard status == errSecSuccess else {
+            return false
+        }
+
+        let copyMatchingQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecReturnAttributes as String: false,
+            kSecReturnData as String: true,
+            kSecAttrService as String: service,
+        ]
+
+        var item: CFTypeRef?
+        status = SecItemCopyMatching(copyMatchingQuery as CFDictionary, &item)
+        guard status == errSecSuccess,
+              data == item as? Data else {
+            return false
+        }
+
+        return true
     }
 }
