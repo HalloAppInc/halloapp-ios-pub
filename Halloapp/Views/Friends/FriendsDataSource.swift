@@ -18,7 +18,7 @@ extension FriendsDataSource {
     enum Section: Hashable {
         case requests
         case suggestions
-        case initial(String)
+        case friends
         case invites
         case incomingRequests(Int)
         case outgoingRequests
@@ -382,13 +382,13 @@ class CurrentFriendsDataSource: FriendsDataSource, NSFetchedResultsControllerDel
 
     override fileprivate func makeAndApplySnapshot(animated: Bool = true) {
         var snapshot = Snapshot()
+        let friendSection = Section.friends
+        let friendItems = currentFriends
+            .sorted(by: { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending })
+            .map { Item.existing($0) }
 
-        for (initial, friends) in Self.alphabeticalCategorization(of: currentFriends) {
-            let section = Section.initial(initial)
-            let items = friends.map { Item.existing($0) }
-            snapshot.appendSections([section])
-            snapshot.appendItems(items, toSection: section)
-        }
+        snapshot.appendSections([friendSection])
+        snapshot.appendItems(friendItems, toSection: friendSection)
 
         if snapshot.sectionIdentifiers.isEmpty {
             let section = Section.blank(UUID())
@@ -453,11 +453,10 @@ class FriendSearchDataSource: FriendsDataSource {
             }
         }
 
-        for (initial, friends) in Self.alphabeticalCategorization(of: currentFriends) {
-            let section = Section.initial(initial)
-            let items = friends.map { Item.existing($0) }
+        if !currentFriends.isEmpty {
+            let section = Section.friends
             snapshot.appendSections([section])
-            snapshot.appendItems(items, toSection: section)
+            snapshot.appendItems(currentFriends.map { .existing($0) }, toSection: section)
         }
 
         if !others.isEmpty {

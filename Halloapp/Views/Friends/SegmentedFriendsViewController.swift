@@ -48,20 +48,6 @@ class SegmentedFriendsViewController: UIViewController {
         return control
     }()
 
-    private lazy var searchButtonItem: UIBarButtonItem = {
-        UIBarButtonItem(image: UIImage(systemName: "magnifyingglass"),
-                        style: .plain,
-                        target: self,
-                        action: #selector(searchButtonTapped))
-    }()
-
-    private let searchBar: UISearchBar = {
-        let searchBar = UISearchBar()
-        searchBar.showsCancelButton = true
-        searchBar.tintColor = .primaryBlue
-        return searchBar
-    }()
-
     init(initialState: State = .requests) {
         state = initialState
         super.init(nibName: nil, bundle: nil)
@@ -75,7 +61,7 @@ class SegmentedFriendsViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .feedBackground
 
-        for viewController in [friendSearchViewController ,existingFriendsViewController, friendRequestsViewController] {
+        for viewController in [existingFriendsViewController, friendRequestsViewController] {
             addChild(viewController)
 
             view.addSubview(viewController.view)
@@ -107,8 +93,26 @@ class SegmentedFriendsViewController: UIViewController {
         segmentedControl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
         segmentedControl.selectedSegmentIndex = State.segmentedCases.firstIndex(of: state) ?? 0
 
+        let controller = UISearchController(searchResultsController: friendSearchViewController)
+        controller.delegate = self
+        controller.searchBar.delegate = self
+
+        let inviteButtonItem = UIBarButtonItem(title: Localizations.buttonInvite, primaryAction: .init { [weak self] _ in
+            guard let self, ContactStore.contactsAccessAuthorized else {
+                self?.present(UINavigationController(rootViewController: InvitePermissionDeniedViewController()), animated: true)
+                return
+            }
+
+            InviteManager.shared.requestInvitesIfNecessary()
+            let viewController = InviteViewController(manager: InviteManager.shared, dismissAction: { [weak self] in self?.dismiss(animated: true, completion: nil) })
+            self.present(UINavigationController(rootViewController: viewController), animated: true)
+        })
+
+        navigationItem.titleView = segmentedControl
+        navigationItem.searchController = controller
+        navigationItem.hidesSearchBarWhenScrolling = false
         navigationController?.navigationBar.tintColor = .primaryBlue
-        searchBar.delegate = self
+        navigationItem.rightBarButtonItem = inviteButtonItem
 
         stateChanged()
     }
@@ -123,19 +127,9 @@ class SegmentedFriendsViewController: UIViewController {
         state = selectedPage
     }
 
-    @objc
-    private func searchButtonTapped(_ buttonItem: UIBarButtonItem) {
-        state = .search
-        searchBar.becomeFirstResponder()
-    }
-
     private func stateChanged() {
-        var titleView: UIView = segmentedControl
-        var rightButtonItem: UIBarButtonItem? = searchButtonItem
-
         var hideRequests = true
         var hideFriends = true
-        var hideSearch = true
 
         switch state {
         case .requests:
@@ -143,34 +137,34 @@ class SegmentedFriendsViewController: UIViewController {
         case .friends:
             hideFriends = false
         case .search:
-            hideSearch = false
-            titleView = searchBar
-            rightButtonItem = nil
+            break
         }
-
-        navigationItem.titleView = titleView
-        navigationItem.rightBarButtonItem = rightButtonItem
 
         friendRequestsViewController.view.isHidden = hideRequests
         existingFriendsViewController.view.isHidden = hideFriends
-        friendSearchViewController.view.isHidden = hideSearch
     }
 }
 
-// MARK: - UISearchbarDelegate methods
+// MARK: - SegmentedFriendsViewController + UISearchControllerDelegate
 
-extension SegmentedFriendsViewController: UISearchBarDelegate {
+extension SegmentedFriendsViewController: UISearchControllerDelegate, UISearchBarDelegate {
 
-    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+    func willPresentSearchController(_ searchController: UISearchController) {
+        state = .search
+    }
+
+    func willDismissSearchController(_ searchController: UISearchController) {
         guard segmentedControl.selectedSegmentIndex < State.segmentedCases.count else {
             return
         }
 
-        searchBar.text = ""
-        searchBar.delegate?.searchBar?(searchBar, textDidChange: "")
-
         let selectedPage = State.segmentedCases[segmentedControl.selectedSegmentIndex]
         state = selectedPage
+    }
+
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.text = ""
+        searchBar.delegate?.searchBar?(searchBar, textDidChange: "")
     }
 
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {

@@ -143,7 +143,7 @@ class FriendsViewController: UIViewController, UserActionHandler {
         switch dataSource.section(for: IndexPath(row: 0, section: sectionIndex)) {
         case .blank:
             header = nil
-        case .initial, .suggestions, .requests:
+        case .friends, .suggestions, .requests:
             pinHeader = true
             fallthrough
         default:
@@ -297,11 +297,11 @@ class FriendsViewController: UIViewController, UserActionHandler {
                                                                      withReuseIdentifier: DefaultFriendHeaderView.reuseIdentifier,
                                                                      for: indexPath)
             (header as? DefaultFriendHeaderView)?.configure(title: Localizations.friendSuggestions.uppercased())
-        case .initial(let letter):
+        case .friends:
             header = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind,
-                                                                     withReuseIdentifier: FriendInitialHeaderView.reuseIdentifier,
+                                                                     withReuseIdentifier: DefaultFriendHeaderView.reuseIdentifier,
                                                                      for: indexPath)
-            (header as? FriendInitialHeaderView)?.configure(title: letter)
+            (header as? DefaultFriendHeaderView)?.configure(title: Localizations.myFriends.uppercased())
         case .invites:
             header = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind,
                                                                      withReuseIdentifier: FriendInviteHeaderView.reuseIdentifier,
@@ -513,5 +513,11 @@ extension Localizations {
         NSLocalizedString("requests.received",
                           value: "Requests Received (%d)",
                           comment: "Format string to display how many incoming friend requests there are.")
+    }
+
+    static var myFriends: String {
+        NSLocalizedString("my.friends",
+                          value: "My Friends",
+                          comment: "Indicates the user's current friends.")
     }
 }
