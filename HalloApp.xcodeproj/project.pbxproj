@@ -516,6 +516,7 @@
 		F4A273862A993D7600786269 /* ServerGeocoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A273852A993D7600786269 /* ServerGeocoder.swift */; };
 		F4B3FC7C2900A50400D73C9A /* FeedShareCarouselCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B3FC7B2900A50400D73C9A /* FeedShareCarouselCell.swift */; };
 		F4B91DF8278FCEEB00DF70C1 /* CADisplayLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */; };
+		F4BF0CD12B18FE8200487123 /* PhotoSuggestionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4BF0CD02B18FE8200487123 /* PhotoSuggestionsViewController.swift */; };
 		F4BF3DDB2A5E2018005663FD /* PhotoSuggestions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4BF3DDA2A5E2018005663FD /* PhotoSuggestions.swift */; };
 		F4C0F1092B168C2500726E6B /* PhotoSuggestionsFetchedResultsControllerAsyncSequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C0F1082B168C2500726E6B /* PhotoSuggestionsFetchedResultsControllerAsyncSequence.swift */; };
 		F4C29B142838704C00A4FE08 /* UICollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C29B132838704C00A4FE08 /* UICollectionView.swift */; };
@@ -534,6 +535,7 @@
 		F4F157DA276AA39F002FDB9E /* DeleteAccountPhoneNumberTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F157D9276AA39E002FDB9E /* DeleteAccountPhoneNumberTextField.swift */; };
 		F4F157DC276AA5B7002FDB9E /* DeleteAccountTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F157DB276AA5B7002FDB9E /* DeleteAccountTextView.swift */; };
 		F4F39D0F2A9806EF00E8BBDC /* SlideshowViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F39D0E2A9806EF00E8BBDC /* SlideshowViewController.swift */; };
+		F4F4130C2B1FA080001ED8A7 /* PhotoSuggestionsDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F4130B2B1FA080001ED8A7 /* PhotoSuggestionsDataSource.swift */; };
 		F4F547D42A69FB3400A67901 /* AlbumSuggestionLoadIndicatorCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F547D32A69FB3400A67901 /* AlbumSuggestionLoadIndicatorCollectionViewCell.swift */; };
 		F4FA225E2A8C192100654455 /* AppleGeocoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FA225D2A8C192100654455 /* AppleGeocoder.swift */; };
 		F4FF3ADC27FCD25F00CD4998 /* ExternalSharePost.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF3ADB27FCD25F00CD4998 /* ExternalSharePost.swift */; };
@@ -1385,6 +1387,7 @@
 		F4A273852A993D7600786269 /* ServerGeocoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerGeocoder.swift; sourceTree = "<group>"; };
 		F4B3FC7B2900A50400D73C9A /* FeedShareCarouselCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedShareCarouselCell.swift; sourceTree = "<group>"; };
 		F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CADisplayLink.swift; sourceTree = "<group>"; };
+		F4BF0CD02B18FE8200487123 /* PhotoSuggestionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSuggestionsViewController.swift; sourceTree = "<group>"; };
 		F4BF3DDA2A5E2018005663FD /* PhotoSuggestions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSuggestions.swift; sourceTree = "<group>"; };
 		F4C0F1082B168C2500726E6B /* PhotoSuggestionsFetchedResultsControllerAsyncSequence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSuggestionsFetchedResultsControllerAsyncSequence.swift; sourceTree = "<group>"; };
 		F4C29B132838704C00A4FE08 /* UICollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UICollectionView.swift; sourceTree = "<group>"; };
@@ -1403,6 +1406,7 @@
 		F4F157D9276AA39E002FDB9E /* DeleteAccountPhoneNumberTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountPhoneNumberTextField.swift; sourceTree = "<group>"; };
 		F4F157DB276AA5B7002FDB9E /* DeleteAccountTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountTextView.swift; sourceTree = "<group>"; };
 		F4F39D0E2A9806EF00E8BBDC /* SlideshowViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlideshowViewController.swift; sourceTree = "<group>"; };
+		F4F4130B2B1FA080001ED8A7 /* PhotoSuggestionsDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSuggestionsDataSource.swift; sourceTree = "<group>"; };
 		F4F547D32A69FB3400A67901 /* AlbumSuggestionLoadIndicatorCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumSuggestionLoadIndicatorCollectionViewCell.swift; sourceTree = "<group>"; };
 		F4FA225D2A8C192100654455 /* AppleGeocoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleGeocoder.swift; sourceTree = "<group>"; };
 		F4FF3ADB27FCD25F00CD4998 /* ExternalSharePost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalSharePost.swift; sourceTree = "<group>"; };
@@ -2785,9 +2789,19 @@
 			path = Routing;
 			sourceTree = "<group>";
 		};
+		F4BF0CCF2B18FE7000487123 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				F4BF0CD02B18FE8200487123 /* PhotoSuggestionsViewController.swift */,
+				F4F4130B2B1FA080001ED8A7 /* PhotoSuggestionsDataSource.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
 		F4BF3DD72A5E1A8F005663FD /* Photo Suggestions */ = {
 			isa = PBXGroup;
 			children = (
+				F4BF0CCF2B18FE7000487123 /* UI */,
 				F4DE66F22AEADFB6003AC357 /* Browser */,
 				F42258F82AEB464D0039616A /* Geocoders */,
 				F4DE66F52AEAE293003AC357 /* Models */,
@@ -3665,6 +3679,7 @@
 				328447C0282D8B6300F76AB5 /* MessageCellViewEvent.swift in Sources */,
 				76B5B5322501F1700055E712 /* NotificationSettings.swift in Sources */,
 				68F935D3252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift in Sources */,
+				F4BF0CD12B18FE8200487123 /* PhotoSuggestionsViewController.swift in Sources */,
 				A1CD4481291C722100623FF6 /* CameraPostViewController.swift in Sources */,
 				F4622BE42AA159D600DC051C /* PhotoSuggestionsHeaderCollectionViewCell.swift in Sources */,
 				7653F302255DB7FE001CC946 /* FeedPostCollectionViewCell.swift in Sources */,
@@ -3733,6 +3748,7 @@
 				E5CE660226B354EC0093944A /* ArchiveViewController.swift in Sources */,
 				76B5B52C2501EE790055E712 /* NotificationMetadata.swift in Sources */,
 				F88E5C95275A14D500290A89 /* MediaPickerPreview.swift in Sources */,
+				F4F4130C2B1FA080001ED8A7 /* PhotoSuggestionsDataSource.swift in Sources */,
 				683330A028A71DFB0086491E /* ReactionPicker.swift in Sources */,
 				A11272EC2856E47B0009EBD7 /* MomentComposerViewController.swift in Sources */,
 				76DF9FF62412E6E700F49CA4 /* ContactStore.swift in Sources */,

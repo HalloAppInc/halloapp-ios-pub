@@ -127,6 +127,25 @@ class AlbumSuggestionCollectionViewCell: UICollectionViewCell {
         headerLabel.isHidden = headerLabel.text?.isEmpty ?? true
         titleLabel.text = Localizations.albumSuggestionsFormattedTitle(count: photoCluster.assets.count, address: photoCluster.location?.address)
     }
+
+    func configure(locatedCluster: AssetLocatedCluster) {
+        let sortedAssetIDs = locatedCluster.assetRecordsAsSet
+            .sorted { $0.creationDate ?? .distantPast > $1.creationDate ?? .distantPast }
+            .compactMap(\.localIdentifier)
+        let displayedAssetIDs: [String]
+        if sortedAssetIDs.count < 4 {
+            displayedAssetIDs = sortedAssetIDs
+        } else {
+            let count = sortedAssetIDs.count
+            displayedAssetIDs = [sortedAssetIDs[0], sortedAssetIDs[count / 3], sortedAssetIDs[count * 2 / 3], sortedAssetIDs[count - 1]]
+        }
+        photoGridView.configure(assets: PhotoSuggestionsUtilities.assets(with: displayedAssetIDs))
+
+        timestampLabel.text = locatedCluster.startDate?.chatListTimestamp()
+        headerLabel.text = locatedCluster.geocodedLocationName
+        headerLabel.isHidden = headerLabel.text?.isEmpty ?? true
+        titleLabel.text = Localizations.albumSuggestionsFormattedTitle(count: locatedCluster.assetRecordsAsSet.count, address: locatedCluster.geocodedAddress)
+    }
 }
 
 extension AlbumSuggestionCollectionViewCell {
