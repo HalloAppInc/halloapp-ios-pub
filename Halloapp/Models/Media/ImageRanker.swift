@@ -202,6 +202,8 @@ final class ImageRanker {
 
     private let cachingImageManager = PHCachingImageManager()
 
+    private lazy var model = try? AestheticCoreML()
+
     /// Returns media IDs in decreasing order of aesthetic preference (excluding IDs for media items that could not be scored)
     public func rankMedia(_ media: [FeedMedia]) async -> [String]  {
         let scores = try? await withThrowingTaskGroup(
@@ -448,9 +450,8 @@ final class ImageRanker {
         let score: CGFloat
         do {
             guard let multiArray = preprocess(image: image) else { return 0 }
-            let model = try AestheticCoreML()
             let input = AestheticCoreMLInput(input_1: MLShapedArray(multiArray))
-            if let prediction = try model.prediction(input: input).featureValue(for: "Identity")?.multiArrayValue?.float32Array {
+            if let prediction = try model?.prediction(input: input).featureValue(for: "Identity")?.multiArrayValue?.float32Array {
                 score = self.score(from: prediction)
             } else {
                 score = 0
