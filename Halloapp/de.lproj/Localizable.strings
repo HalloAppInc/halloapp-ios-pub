@@ -1718,7 +1718,7 @@
 "photosuggestions.emptystate.photopermission.action" = "Aktivieren";
 
 /* Explanatory text on empty state view */
-"photosuggestions.emptystate.photopermission.title" = "Erlaube den Zugriff auf alle Fotos, um Magic-Posts zu verwenden";
+"photosuggestions.emptystate.photopermission.title" = "Erlaube den vollen Zugriff auf Fotos, um Magic-Posts zu verwenden";
 
 /* explanation for photo suggestions */
 "photosuggestions.explainer.subtitle" = "Wenn du neue Fotos aufnimmst, stellen wir dir die besten Aufnahmen in einem Entwurf zusammen, den du, wenn du Lust hast, ganz einfach teilen kannst.";

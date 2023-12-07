@@ -1464,6 +1464,9 @@
 /* Text shown on the moments stack to indicate that the stack is interactive. Only shown the first time. */
 "moments.swipe.for.more" = "veeg voor meer";
 
+/* Indicates the user's current friends. */
+"my.friends" = "Mijn Vrienden";
+
 /* Message displayed to say when moments will disappear. */
 "mymoment.disappear.time.label" = "Je Moment is gedeeld met je contactenlijst. Momenten verdwijnen na 24 uur.";
 
