@@ -35,6 +35,7 @@ private enum MenuTitles {
     static var disableMultiCamMoments: String { "Disable multi-cam moments" }
     static var disableQueueSerialization: String { "Disable Queue Serialization" }
     static var resetPhotoSuggestionsFTUX: String { "Reset photo suggestions FTUX" }
+    static var useStaticPhotoSuggestions: String { "Use static photo suggetions (Restart app to take effect)" }
     static var logOut: String { "Log Out" }
 }
 
@@ -48,6 +49,7 @@ struct DeveloperMenuView: View {
     @State var isShowingWebClientManager = false
     @State var disableMultiCamMoments = MainAppContext.shared.userDefaults.bool(forKey: "moments.force.single.cam.session")
     @State var disableQueueSerialization = MainAppContext.shared.userDefaults.bool(forKey: "disableQueueSerialization")
+    @State var useStaticPhotoSuggestions = DeveloperSetting.useStaticPhotoSuggestions
 
     // TODO: Temporarily turn off and potentially remove
 //    @ObservedObject var videoSettings = VideoSettings.shared
@@ -268,6 +270,11 @@ struct DeveloperMenuView: View {
                     } label: {
                         Text(MenuTitles.resetPhotoSuggestionsFTUX)
                     }
+
+                    Toggle(MenuTitles.useStaticPhotoSuggestions, isOn: $useStaticPhotoSuggestions)
+                        .onReceive(Just(useStaticPhotoSuggestions)) { value in
+                            DeveloperSetting.useStaticPhotoSuggestions = value
+                        }
 
                     NavigationLink("Photo Suggestions Data") {
                         PhotoSuggestionsBrowser()

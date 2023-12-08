@@ -36,6 +36,7 @@ class MainAppContext: AppContext {
     private(set) var geocoder: ServerGeocoder!
     private(set) var photoSuggestionsData: PhotoSuggestionsData!
     private(set) var photoSuggestionsServices: PhotoSuggestionsServices!
+    private(set) var notificationSettings: NotificationSettings!
 
     lazy var webClientManager: WebClientManager? = {
         // TODO: Support logout
@@ -49,7 +50,7 @@ class MainAppContext: AppContext {
     private lazy var mergeSharedDataQueue = { DispatchQueue(label: "com.halloapp.mergeSharedData", qos: .default) }()
 
     lazy var photoSuggestions = PhotoSuggestions()
-    lazy var visitTracker = VisitTracker(photoSuggestions: photoSuggestions)
+    lazy var visitTracker = VisitTracker(photoSuggestions: photoSuggestions, photoSuggestionsData: photoSuggestionsData, notificationSettings: notificationSettings)
 
     static let MediaUploadDataLastCleanUpTime = "MediaUploadDataLastCleanUpTime"
 
@@ -145,6 +146,7 @@ class MainAppContext: AppContext {
         chatData = ChatData(service: service, contactStore: contactStore, mainDataStore: mainDataStore, userData: userData, coreChatData: coreChatData, userProfileData: userProfileData)
         syncManager = SyncManager(contactStore: contactStore, service: service, userData: userData)
         
+        notificationSettings = NotificationSettings(userDefaults: userDefaults)
         privacySettingsImpl = PrivacySettings(contactStore: contactStore, service: service)
         shareExtensionDataStore = ShareExtensionDataStore()
         notificationServiceExtensionDataStore = NotificationServiceExtensionDataStore()
@@ -233,8 +235,9 @@ class MainAppContext: AppContext {
             }
             .store(in: &cancellableSet)
 
+        // For visits to be delivered, visitTracker must be started by the and of applicationDidFinishLaunching
+        visitTracker.startVisitTrackingIfAvailable()
         Task {
-            self.visitTracker.startVisitTrackingIfAvailable()
             await self.photoSuggestionsServices.start()
         }
     }

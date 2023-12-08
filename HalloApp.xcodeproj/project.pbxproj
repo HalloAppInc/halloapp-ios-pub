@@ -525,6 +525,11 @@
 		F4D88F6B27D9873F00D706DA /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D88F6A27D9873E00D706DA /* Toast.swift */; };
 		F4DE66F12AE891B8003AC357 /* PhotosUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4DE66F02AE891B8003AC357 /* PhotosUI.framework */; };
 		F4DE66F42AEADFE6003AC357 /* PhotoSuggestionsBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4DE66F32AEADFE6003AC357 /* PhotoSuggestionsBrowser.swift */; };
+		F4ED983F2B28D63000FC7BF3 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4ED983E2B28D63000FC7BF3 /* UserNotifications.framework */; };
+		F4ED98412B28D63000FC7BF3 /* UserNotificationsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4ED98402B28D63000FC7BF3 /* UserNotificationsUI.framework */; };
+		F4ED98442B28D63100FC7BF3 /* NotificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4ED98432B28D63100FC7BF3 /* NotificationViewController.swift */; };
+		F4ED984B2B28D63100FC7BF3 /* Notification Content Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F4ED983D2B28D63000FC7BF3 /* Notification Content Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		F4ED98512B28FF1400FC7BF3 /* PhotoSuggestionCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4ED98502B28FF1400FC7BF3 /* PhotoSuggestionCell.swift */; };
 		F4EFF9112AA7D44800F09C54 /* PhotoSuggestionsEmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4EFF9102AA7D44800F09C54 /* PhotoSuggestionsEmptyStateView.swift */; };
 		F4EFF9132AA7F46500F09C54 /* PhotoPermissionsHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4EFF9122AA7F46500F09C54 /* PhotoPermissionsHelper.swift */; };
 		F4EFF9152AA90AC000F09C54 /* AlbumSuggestionCallToActionCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4EFF9142AA90ABF00F09C54 /* AlbumSuggestionCallToActionCollectionViewCell.swift */; };
@@ -665,6 +670,13 @@
 			remoteGlobalIDString = EAF3A1BE2334191E00805FF9;
 			remoteInfo = Halloapp;
 		};
+		F4ED98492B28D63100FC7BF3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EAF3A1B72334191E00805FF9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F4ED983C2B28D63000FC7BF3;
+			remoteInfo = "Notification Content Extension";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -699,6 +711,7 @@
 				E5230B25267AABA60046A2EB /* Intents Extension.appex in Embed Foundation Extensions */,
 				24D743E024B3D199001111BF /* Share Extension.appex in Embed Foundation Extensions */,
 				7681239B2485A240008C5216 /* Notification Service Extension.appex in Embed Foundation Extensions */,
+				F4ED984B2B28D63100FC7BF3 /* Notification Content Extension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1396,6 +1409,12 @@
 		F4D88F6A27D9873E00D706DA /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		F4DE66F02AE891B8003AC357 /* PhotosUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PhotosUI.framework; path = System/Library/Frameworks/PhotosUI.framework; sourceTree = SDKROOT; };
 		F4DE66F32AEADFE6003AC357 /* PhotoSuggestionsBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSuggestionsBrowser.swift; sourceTree = "<group>"; };
+		F4ED983D2B28D63000FC7BF3 /* Notification Content Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Notification Content Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F4ED983E2B28D63000FC7BF3 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
+		F4ED98402B28D63000FC7BF3 /* UserNotificationsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotificationsUI.framework; path = System/Library/Frameworks/UserNotificationsUI.framework; sourceTree = SDKROOT; };
+		F4ED98432B28D63100FC7BF3 /* NotificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationViewController.swift; sourceTree = "<group>"; };
+		F4ED98482B28D63100FC7BF3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F4ED98502B28FF1400FC7BF3 /* PhotoSuggestionCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSuggestionCell.swift; sourceTree = "<group>"; };
 		F4EFF9102AA7D44800F09C54 /* PhotoSuggestionsEmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSuggestionsEmptyStateView.swift; sourceTree = "<group>"; };
 		F4EFF9122AA7F46500F09C54 /* PhotoPermissionsHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoPermissionsHelper.swift; sourceTree = "<group>"; };
 		F4EFF9142AA90ABF00F09C54 /* AlbumSuggestionCallToActionCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumSuggestionCallToActionCollectionViewCell.swift; sourceTree = "<group>"; };
@@ -1528,6 +1547,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F4ED983A2B28D63000FC7BF3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F4ED98412B28D63000FC7BF3 /* UserNotificationsUI.framework in Frameworks */,
+				F4ED983F2B28D63000FC7BF3 /* UserNotifications.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2010,6 +2038,8 @@
 				F404FC372810B135008313FF /* Core.framework */,
 				F404FC382810B135008313FF /* CoreCommon.framework */,
 				E5230B1D267AABA60046A2EB /* Intents.framework */,
+				F4ED983E2B28D63000FC7BF3 /* UserNotifications.framework */,
+				F4ED98402B28D63000FC7BF3 /* UserNotificationsUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -2633,6 +2663,7 @@
 				329E03F9268247BD00C2D250 /* HalloAppClip */,
 				329E0414268247BE00C2D250 /* HalloAppClipTests */,
 				329E041F268247BE00C2D250 /* HalloAppClipUITests */,
+				F4ED98422B28D63100FC7BF3 /* Notification Content Extension */,
 				EAF3A1C02334191E00805FF9 /* Products */,
 				8295BD88471C9D5DC2D30C41 /* Frameworks */,
 			);
@@ -2650,6 +2681,7 @@
 				329E03F8268247BC00C2D250 /* HalloAppClip.app */,
 				329E0411268247BE00C2D250 /* HalloAppClipTests.xctest */,
 				329E041C268247BE00C2D250 /* HalloAppClipUITests.xctest */,
+				F4ED983D2B28D63000FC7BF3 /* Notification Content Extension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2716,6 +2748,7 @@
 		F401FAB92AF2DC2D006BD603 /* Util */ = {
 			isa = PBXGroup;
 			children = (
+				F41919342B06999800C01209 /* PhotoSuggestionsUtilities.swift */,
 				F401FABA2AF2DC4B006BD603 /* PHAssetMediaSubtype.swift */,
 				F4C0F1082B168C2500726E6B /* PhotoSuggestionsFetchedResultsControllerAsyncSequence.swift */,
 			);
@@ -2748,7 +2781,6 @@
 				F49FFA1C2ACF758A00EDFC89 /* AssetLibrarySync.swift */,
 				F44269262B15492B006FC0C9 /* LocatedClusterGeocoder.swift */,
 				F49F05532AF5B957003D5917 /* PhotoSuggestionsServices.swift */,
-				F41919342B06999800C01209 /* PhotoSuggestionsUtilities.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -2831,6 +2863,16 @@
 				F41919302AFD6F3700C01209 /* AssetLocatedCluster.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		F4ED98422B28D63100FC7BF3 /* Notification Content Extension */ = {
+			isa = PBXGroup;
+			children = (
+				F4ED98432B28D63100FC7BF3 /* NotificationViewController.swift */,
+				F4ED98502B28FF1400FC7BF3 /* PhotoSuggestionCell.swift */,
+				F4ED98482B28D63100FC7BF3 /* Info.plist */,
+			);
+			path = "Notification Content Extension";
 			sourceTree = "<group>";
 		};
 		F4F13CBB2A60873B007EFC21 /* Shared Albums */ = {
@@ -3038,6 +3080,7 @@
 				24D743DF24B3D199001111BF /* PBXTargetDependency */,
 				E5230B24267AABA60046A2EB /* PBXTargetDependency */,
 				329E0424268247BE00C2D250 /* PBXTargetDependency */,
+				F4ED984A2B28D63100FC7BF3 /* PBXTargetDependency */,
 			);
 			name = HalloApp;
 			packageProductDependencies = (
@@ -3085,6 +3128,23 @@
 			productReference = EAF3A1E02334192000805FF9 /* HalloAppUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		F4ED983C2B28D63000FC7BF3 /* Notification Content Extension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F4ED984F2B28D63100FC7BF3 /* Build configuration list for PBXNativeTarget "Notification Content Extension" */;
+			buildPhases = (
+				F4ED98392B28D63000FC7BF3 /* Sources */,
+				F4ED983A2B28D63000FC7BF3 /* Frameworks */,
+				F4ED983B2B28D63000FC7BF3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Notification Content Extension";
+			productName = "Notification Content Extension";
+			productReference = F4ED983D2B28D63000FC7BF3 /* Notification Content Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -3092,7 +3152,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastSwiftUpdateCheck = 1250;
+				LastSwiftUpdateCheck = 1510;
 				LastUpgradeCheck = 1500;
 				ORGANIZATIONNAME = "HalloApp, Inc.";
 				TargetAttributes = {
@@ -3126,6 +3186,9 @@
 					EAF3A1DF2334192000805FF9 = {
 						CreatedOnToolsVersion = 11.0;
 						TestTargetID = EAF3A1BE2334191E00805FF9;
+					};
+					F4ED983C2B28D63000FC7BF3 = {
+						CreatedOnToolsVersion = 15.1;
 					};
 				};
 			};
@@ -3170,6 +3233,7 @@
 				329E03F7268247BC00C2D250 /* HalloAppClip */,
 				329E0410268247BE00C2D250 /* HalloAppClipTests */,
 				329E041B268247BE00C2D250 /* HalloAppClipUITests */,
+				F4ED983C2B28D63000FC7BF3 /* Notification Content Extension */,
 			);
 		};
 /* End PBXProject section */
@@ -3303,6 +3367,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		EAF3A1DE2334192000805FF9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F4ED983B2B28D63000FC7BF3 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -3876,6 +3947,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F4ED98392B28D63000FC7BF3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F4ED98512B28FF1400FC7BF3 /* PhotoSuggestionCell.swift in Sources */,
+				F4ED98442B28D63100FC7BF3 /* NotificationViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -3918,6 +3998,11 @@
 			isa = PBXTargetDependency;
 			target = EAF3A1BE2334191E00805FF9 /* HalloApp */;
 			targetProxy = EAF3A1E12334192000805FF9 /* PBXContainerItemProxy */;
+		};
+		F4ED984A2B28D63100FC7BF3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F4ED983C2B28D63000FC7BF3 /* Notification Content Extension */;
+			targetProxy = F4ED98492B28D63100FC7BF3 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -5561,6 +5646,187 @@
 			};
 			name = "Internal Beta";
 		};
+		F4ED984C2B28D63100FC7BF3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Notification Content Extension/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Notification Content Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 HalloApp, Inc. All rights reserved.";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Notification-Content-Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		F4ED984D2B28D63100FC7BF3 /* Internal Beta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Notification Content Extension/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Notification Content Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 HalloApp, Inc. All rights reserved.";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Notification-Content-Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "Internal Beta";
+		};
+		F4ED984E2B28D63100FC7BF3 /* External Beta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Notification Content Extension/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Notification Content Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 HalloApp, Inc. All rights reserved.";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Notification-Content-Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "External Beta";
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -5660,6 +5926,16 @@
 				EAF3A1F02334192000805FF9 /* Debug */,
 				EAF3A1F12334192000805FF9 /* Internal Beta */,
 				761E9AA1246524E900864AE9 /* External Beta */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "External Beta";
+		};
+		F4ED984F2B28D63100FC7BF3 /* Build configuration list for PBXNativeTarget "Notification Content Extension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F4ED984C2B28D63100FC7BF3 /* Debug */,
+				F4ED984D2B28D63100FC7BF3 /* Internal Beta */,
+				F4ED984E2B28D63100FC7BF3 /* External Beta */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = "External Beta";

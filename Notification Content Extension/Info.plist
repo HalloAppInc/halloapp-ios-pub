@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSExtension</key>
+	<dict>
+		<key>NSExtensionPrincipalClass</key>
+		<string>$(PRODUCT_MODULE_NAME).NotificationViewController</string>
+		<key>NSExtensionAttributes</key>
+		<dict>
+			<key>UNNotificationExtensionDefaultContentHidden</key>
+			<false/>
+			<key>UNNotificationExtensionUserInteractionEnabled</key>
+			<true/>
+			<key>UNNotificationExtensionCategory</key>
+			<string>com.halloapp.photosuggestions</string>
+			<key>UNNotificationExtensionInitialContentSizeRatio</key>
+			<real>0.68</real>
+		</dict>
+		<key>NSExtensionPointIdentifier</key>
+		<string>com.apple.usernotifications.content-extension</string>
+	</dict>
+</dict>
+</plist>

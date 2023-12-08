@@ -6,6 +6,7 @@
 //  Copyright © 2023 HalloApp, Inc. All rights reserved.
 //
 
+import Core
 import CoreLocation
 import Photos
 
@@ -43,5 +44,20 @@ class PhotoSuggestionsUtilities {
             assets.append(asset)
         }
         return assets
+    }
+
+    static func newPostState(assetLocalIdentifiers: [String], postText: String?, albumTitle: String) async -> NewPostState {
+        let assets = Self.assets(with: assetLocalIdentifiers)
+        let (scoreSortedAssets, mediaAssetInfo) = await BurstAwareHighlightSelector().selectHighlights(10, from: Array(assets))
+        let selectedMedia = scoreSortedAssets.prefix(ServerProperties.maxPostMediaItems).compactMap { PendingMedia(asset: $0) }
+        let createdAtSortedAssets = assets.sorted { $0.creationDate ?? .distantFuture < $1.creationDate ?? .distantFuture }
+        let highlightedAssetCollection = PHAssetCollection.transientAssetCollection(with: createdAtSortedAssets, title: albumTitle)
+        return NewPostState(pendingMedia: selectedMedia,
+                            mediaSource: .library,
+                            pendingInput: MentionInput(text: postText ?? "", mentions: MentionRangeMap(), selectedRange: NSRange()),
+                            highlightedAssetCollection: highlightedAssetCollection,
+                            mediaAssetInfo: mediaAssetInfo)
+
+
     }
 }

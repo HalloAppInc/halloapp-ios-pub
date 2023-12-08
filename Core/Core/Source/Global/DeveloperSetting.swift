@@ -20,6 +20,9 @@ public struct DeveloperSetting {
 
     @UserDefaultsBackedSetting(key: "shown.photosuggestions.explainer")
     public static var didHidePhotoSuggestionsFirstUse = false
+
+    @UserDefaultsBackedSetting(key: "com.halloapp.use_static_photo_suggestions")
+    public static var useStaticPhotoSuggestions = true
 }
 
 extension DeveloperSetting {

@@ -48,6 +48,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // This is necessary otherwise application(_:didReceiveRemoteNotification:fetchCompletionHandler:) won't be called.
         UIApplication.shared.registerForRemoteNotifications()
 
+        UNUserNotificationCenter.current().setNotificationCategories([
+            UNNotificationCategory(identifier: "com.halloapp.photosuggestions", actions: [], intentIdentifiers: [])
+        ])
+
         // This is necessary to keep our voip push token updated.
         registerForVoipNotifications()
         

@@ -232,6 +232,7 @@ extension PhotoSuggestionsViewController: UICollectionViewDelegate {
         let localIdentifiers = locatedCluster.assetRecordsAsSet.compactMap(\.localIdentifier)
         let postText = locatedCluster.geocodedLocationName
         let albumTitle = locatedCluster.geocodedLocationName ?? locatedCluster.geocodedAddress ?? Localizations.suggestionAlbumTitle
+        /*
         Task {
             let assets = PhotoSuggestionsUtilities.assets(with: localIdentifiers)
             let (scoreSortedAssets, mediaAssetInfo) = await BurstAwareHighlightSelector().selectHighlights(10, from: Array(assets))
@@ -252,6 +253,22 @@ extension PhotoSuggestionsViewController: UICollectionViewDelegate {
                 self.dismiss(animated: true)
             }
             await MainActor.run() {
+                newPostViewController.modalPresentationStyle = .fullScreen
+                present(newPostViewController, animated: true)
+            }
+        }
+ */
+        Task {
+            let newPostState = await PhotoSuggestionsUtilities.newPostState(assetLocalIdentifiers: localIdentifiers, postText: postText, albumTitle: albumTitle)
+
+            await MainActor.run() {
+                let newPostViewController = NewPostViewController(state: newPostState,
+                                                                  destination: .feed(.all),
+                                                                  showDestinationPicker: true) { didPost, _ in
+                    // Reset back to all
+                    MainAppContext.shared.privacySettings.activeType = .all
+                    self.dismiss(animated: true)
+                }
                 newPostViewController.modalPresentationStyle = .fullScreen
                 present(newPostViewController, animated: true)
             }

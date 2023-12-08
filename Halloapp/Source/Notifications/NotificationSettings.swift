@@ -14,28 +14,28 @@ import CoreCommon
 
 class NotificationSettings: ObservableObject {
 
-    // MARK: Singleton
+    private let userDefaults: UserDefaults
 
-    static private let sharedInstance = NotificationSettings()
     static var current: NotificationSettings {
-        sharedInstance
+        return MainAppContext.shared.notificationSettings
     }
 
-    private init() {
-        NotificationSettings.migrateSettings()
-        MainAppContext.shared.userDefaults.register(defaults: [NotificationUserDefaultKeys.postsEnabled: true,
-                                                               NotificationUserDefaultKeys.commentsEnabled: true,
-                                                               NotificationUserDefaultKeys.momentsEnabled: true,
-                                                               NotificationUserDefaultKeys.magicPostsEnabled: true])
+    init(userDefaults: UserDefaults) {
+        Self.migrateSettings(userDefaults: userDefaults)
+        userDefaults.register(defaults: [NotificationUserDefaultKeys.postsEnabled: true,
+                                         NotificationUserDefaultKeys.commentsEnabled: true,
+                                         NotificationUserDefaultKeys.momentsEnabled: true,
+                                         NotificationUserDefaultKeys.magicPostsEnabled: true])
 
-        isPostsEnabled = MainAppContext.shared.userDefaults.bool(forKey: NotificationUserDefaultKeys.postsEnabled)
-        isCommentsEnabled = MainAppContext.shared.userDefaults.bool(forKey: NotificationUserDefaultKeys.commentsEnabled)
-        isMomentsEnabled = MainAppContext.shared.userDefaults.bool(forKey: NotificationUserDefaultKeys.momentsEnabled)
-        isMagicPostsEnabled = MainAppContext.shared.userDefaults.bool(forKey: NotificationUserDefaultKeys.momentsEnabled)
+        self.userDefaults = userDefaults
+        isPostsEnabled = userDefaults.bool(forKey: NotificationUserDefaultKeys.postsEnabled)
+        isCommentsEnabled = userDefaults.bool(forKey: NotificationUserDefaultKeys.commentsEnabled)
+        isMomentsEnabled = userDefaults.bool(forKey: NotificationUserDefaultKeys.momentsEnabled)
+        isMagicPostsEnabled = userDefaults.bool(forKey: NotificationUserDefaultKeys.momentsEnabled)
         DDLogInfo("NotificationSettings/values: \(isPostsEnabled): \(isCommentsEnabled): \(isMomentsEnabled): \(isMagicPostsEnabled)")
     }
 
-    static func migrateSettings() {
+    private static func migrateSettings(userDefaults: UserDefaults) {
         guard UserDefaults.standard.value(forKey: NotificationUserDefaultKeys.postsEnabled) != nil else {
             DDLogInfo("NotificationSettings/migrateSettings/skip")
             return
@@ -45,11 +45,11 @@ class NotificationSettings: ObservableObject {
         let commentsEnabled = UserDefaults.standard.bool(forKey: NotificationUserDefaultKeys.commentsEnabled)
         let isSynchronized = UserDefaults.standard.bool(forKey: NotificationUserDefaultKeys.isSynchronized)
 
-        MainAppContext.shared.userDefaults.register(defaults: [ NotificationUserDefaultKeys.postsEnabled: true, NotificationUserDefaultKeys.commentsEnabled: true ])
+        userDefaults.register(defaults: [ NotificationUserDefaultKeys.postsEnabled: true, NotificationUserDefaultKeys.commentsEnabled: true ])
 
-        MainAppContext.shared.userDefaults.set(postsEnabled, forKey: NotificationUserDefaultKeys.postsEnabled)
-        MainAppContext.shared.userDefaults.set(commentsEnabled, forKey: NotificationUserDefaultKeys.commentsEnabled)
-        MainAppContext.shared.userDefaults.set(isSynchronized, forKey: NotificationUserDefaultKeys.isSynchronized)
+        userDefaults.set(postsEnabled, forKey: NotificationUserDefaultKeys.postsEnabled)
+        userDefaults.set(commentsEnabled, forKey: NotificationUserDefaultKeys.commentsEnabled)
+        userDefaults.set(isSynchronized, forKey: NotificationUserDefaultKeys.isSynchronized)
 
         UserDefaults.standard.removeObject(forKey: NotificationUserDefaultKeys.postsEnabled)
         UserDefaults.standard.removeObject(forKey: NotificationUserDefaultKeys.commentsEnabled)
@@ -62,8 +62,8 @@ class NotificationSettings: ObservableObject {
     var isPostsEnabled: Bool {
         didSet {
             if oldValue != isPostsEnabled {
-                MainAppContext.shared.userDefaults.set(isPostsEnabled, forKey: NotificationUserDefaultKeys.postsEnabled)
-                MainAppContext.shared.userDefaults.set(false, forKey: NotificationUserDefaultKeys.isSynchronized)
+                userDefaults.set(isPostsEnabled, forKey: NotificationUserDefaultKeys.postsEnabled)
+                userDefaults.set(false, forKey: NotificationUserDefaultKeys.isSynchronized)
                 sendConfigIfNecessary(using: MainAppContext.shared.service)
             }
         }
@@ -72,8 +72,8 @@ class NotificationSettings: ObservableObject {
     var isCommentsEnabled: Bool {
         didSet {
             if oldValue != isCommentsEnabled {
-                MainAppContext.shared.userDefaults.set(isCommentsEnabled, forKey: NotificationUserDefaultKeys.commentsEnabled)
-                MainAppContext.shared.userDefaults.set(false, forKey: NotificationUserDefaultKeys.isSynchronized)
+                userDefaults.set(isCommentsEnabled, forKey: NotificationUserDefaultKeys.commentsEnabled)
+                userDefaults.set(false, forKey: NotificationUserDefaultKeys.isSynchronized)
                 sendConfigIfNecessary(using: MainAppContext.shared.service)
             }
         }
@@ -82,7 +82,7 @@ class NotificationSettings: ObservableObject {
     var isMomentsEnabled: Bool {
         didSet {
             if oldValue != isMomentsEnabled {
-                MainAppContext.shared.userDefaults.set(isMomentsEnabled, forKey: NotificationUserDefaultKeys.momentsEnabled)
+                userDefaults.set(isMomentsEnabled, forKey: NotificationUserDefaultKeys.momentsEnabled)
             }
         }
     }
@@ -90,7 +90,7 @@ class NotificationSettings: ObservableObject {
     var isMagicPostsEnabled: Bool {
         didSet {
             if oldValue != isMagicPostsEnabled {
-                MainAppContext.shared.userDefaults.set(isMagicPostsEnabled, forKey: NotificationUserDefaultKeys.magicPostsEnabled)
+                userDefaults.set(isMagicPostsEnabled, forKey: NotificationUserDefaultKeys.magicPostsEnabled)
             }
         }
     }
@@ -118,8 +118,7 @@ class NotificationSettings: ObservableObject {
             return
         }
 
-        guard let userDefaults = MainAppContext.shared.userDefaults,
-              !userDefaults.bool(forKey: NotificationUserDefaultKeys.isSynchronized) else {
+        guard !userDefaults.bool(forKey: NotificationUserDefaultKeys.isSynchronized) else {
             DDLogInfo("NotificationSettings/sync/ Not required")
             return
         }
@@ -141,7 +140,7 @@ class NotificationSettings: ObservableObject {
             case .failure(let error):
                 // Will be retried on connect.
                 DDLogError("NotificationSettings/sync/error [\(error)]]")
-                userDefaults.set(false, forKey: NotificationUserDefaultKeys.isSynchronized)
+                self.userDefaults.set(false, forKey: NotificationUserDefaultKeys.isSynchronized)
             }
         }
     }

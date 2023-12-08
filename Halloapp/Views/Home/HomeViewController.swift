@@ -287,7 +287,7 @@ class HomeViewController: UITabBarController {
 
     private func cameraNavigationController() -> UIViewController {
         if ServerProperties.photoSuggestions {
-            let controller = SharedAlbumViewController()
+            let controller = DeveloperSetting.useStaticPhotoSuggestions ? PhotoSuggestionsViewController() : SharedAlbumViewController()
             controller.title = Localizations.titleSuggestions
 
             let navigationController = UINavigationController(rootViewController: controller)
