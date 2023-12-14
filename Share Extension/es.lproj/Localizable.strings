@@ -89,13 +89,13 @@
 "Delete" = "Eliminar";
 
 /* Describes what 'All Friends' feed privacy setting means. */
-"feed.privacy.descr.all" = "Comparte con todos mis contactos";
+"feed.privacy.descr.all" = "Compartir con todos mis amigos";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.except" = "Comparte con todos mis contactos excepto con gente que yo escoja";
 
 /* Describes what 'Favorites' feed privacy setting means. */
-"feed.privacy.descr.only" = "Compartir solamente con contactos seleccionados";
+"feed.privacy.descr.only" = "Compartir solo con amigos seleccionados";
 
 /* Button to dismiss edit favorites modal */
 "feed.privacy.list.dismiss.edit.favorites" = "Ahora no";
@@ -192,7 +192,7 @@
 
 /* Share on the home feed label with all my friends
    Share to all contacts */
-"share.destination.home" = "Mis contactos";
+"share.destination.home" = "Mis amigos";
 
 /* Alert title when a direct to contact sharing is missing
    Alert title when a direct to group sharing is missing */

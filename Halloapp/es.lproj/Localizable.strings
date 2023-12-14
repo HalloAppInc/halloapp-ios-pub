@@ -68,7 +68,7 @@
 "add.to.favorites.title" = "Agregar a favoritos";
 
 /* Confirmation when a user was successfully added to favorites. */
-"added.user.to.favorites" = "Agregar a %@ a favoritos";
+"added.user.to.favorites" = "Agregar a favoritos";
 
 /* Title for alert shown when there's no internet connectivity */
 "alert.no.internet.title" = "No hay conexión a Internet";
@@ -590,7 +590,7 @@
 "composer.audio.instructions" = "Toca para grabar";
 
 /* Title for audio post composer */
-"composer.audio.title" = "Nueva Publicación de audio";
+"composer.audio.title" = "Nuevo Audio";
 
 /* Title on edit button */
 "composer.button.edit" = "Editar";
@@ -836,13 +836,13 @@
 "feed.posting" = "Publicando...";
 
 /* Describes what 'All Friends' feed privacy setting means. */
-"feed.privacy.descr.all" = "Compartir con todos tus contactos";
+"feed.privacy.descr.all" = "Compartir con todos mis amigos";
 
 /* Describes what 'All Contacts' feed privacy setting means. */
 "feed.privacy.descr.except" = "Compartir con mis contactos, excepto con las personas que escoja";
 
 /* Describes what 'Favorites' feed privacy setting means. */
-"feed.privacy.descr.only" = "Compartir solo con los contactos seleccionados";
+"feed.privacy.descr.only" = "Compartir solo con amigos seleccionados";
 
 /* Header describing what these options are for */
 "feed.privacy.header" = "Quién verá mis publicaciones";
@@ -1300,6 +1300,9 @@
 /* Title to indicate that a fetch operation is in progress. */
 "locating.title" = "Localizando";
 
+/* No comment provided by engineer. */
+"Location" = "Ubicación";
+
 /* Displayed when a location fetch fails. */
 "location.fetch.error" = "Imposible encontrar ubicación";
 
@@ -1464,6 +1467,9 @@
 /* Text shown on the moments stack to indicate that the stack is interactive. Only shown the first time. */
 "moments.swipe.for.more" = "desliza para más";
 
+/* Indicates the user's current friends. */
+"my.friends" = "Mis amigos";
+
 /* Message displayed to say when moments will disappear. */
 "mymoment.disappear.time.label" = "Tu momento fue compartido con tu lista de contactos. Los momentos desaparecen después de 24 horas.";
 
@@ -1533,6 +1539,9 @@
 
 /* Displayed when the user's friends list is empty. */
 "no.friends.message" = "Aún no estás conectado con nadie en HalloApp";
+
+/* No comment provided by engineer. */
+"none" = "Ninguno";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Ya no formas parte de este grupo";
@@ -1694,16 +1703,16 @@
 "photoSuggestions.album.title" = "Sugerido";
 
 /* Button to link to settings to enable location permission for HalloApp */
-"photosuggestions.cta.alwaysonlocation.action" = "Permitir acceso a la ubicación";
+"photosuggestions.cta.alwaysonlocation.action" = "Permitir en Configuración";
 
 /* explanation of why we want always location access */
-"photosuggestions.cta.alwaysonlocation.subtitle" = "HalloApp te notificará de nuevos Magic Posts cuando hagas fotos y dejes una ubicación";
+"photosuggestions.cta.alwaysonlocation.subtitle" = "Cuando haces nuevas fotos, buscamos las mejores y las organizamos en un borrador para que lo tengas listo si te apetece publicarlo.";
 
 /* title for explanation of why we want always location access */
-"photosuggestions.cta.alwaysonlocation.title" = "Permite que HalloApp acceda a la Ubicación para ser notificado de nuevos Magic Posts";
+"photosuggestions.cta.alwaysonlocation.title" = "Para utilizar Magic Posts, permite que HalloApp acceda a la ubicación";
 
 /* Button to link to settings to enable location permission for Photos app */
-"photosuggestions.cta.photolocation.action" = "Permitir en Configuración";
+"photosuggestions.cta.photolocation.action" = "Abrir Configuración";
 
 /* explanation for why we need to turn on location access for photos */
 "photosuggestions.cta.photolocation.subtitle1" = "Permite el acceso a la ubicación para la app de cámara y mejorar Magic Posts. HalloApp usa los metadatos de ubicación de tus fotos para ayudar a ordenarlas y nombrarlas.";
@@ -1712,7 +1721,7 @@
 "photosuggestions.cta.photolocation.subtitle2" = "Para permitir el acceso a la ubicación, ve a: *Configuración* > *Privacidad y seguridad* > *Servicios de localización* > *Cámara*";
 
 /* title for explanation of why we want location access for photos app */
-"photosuggestions.cta.photolocation.title" = "Permitir el acceso a la ubicación para la app Fotos";
+"photosuggestions.cta.photolocation.title" = "Permite el acceso a la ubicación para la cámara";
 
 /* Button to allow access to photos */
 "photosuggestions.emptystate.photopermission.action" = "Activar";
@@ -1997,7 +2006,7 @@
 "remove.from.favorites.title" = "Remover de favoritos";
 
 /* Confirmation when a user was successfully removed from favorites. */
-"removed.user.from.favorites" = "Removiste a %@ de favoritos";
+"removed.user.from.favorites" = "Eliminado de Favoritos";
 
 /* Title of the button that both reports and blocks a user. */
 "report.and.block" = "Reportar y bloquear";
@@ -2040,6 +2049,9 @@
 
 /* Indicating the user's friend requests. */
 "requests.title" = "Solicitudes";
+
+/* No comment provided by engineer. */
+"Reset Photo Suggestions" = "Reiniciar sugerencias de fotos";
 
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Para verificar la seguridad de tu conexión con %@, comprueba que los números anteriores coinciden con los que aparecen en su dispositivo, o escanea el código QR de su teléfono.";
@@ -2363,7 +2375,7 @@
 "title.storage" = "Almacenamiento";
 
 /* Tab for suggestions tab in main interface */
-"title.suggestions" = "Sugerencias";
+"title.suggestions" = "Magic Post";
 
 /* Title for the screen with information about who saw your moment. */
 "title.your.moment" = "Visto por";
@@ -2411,13 +2423,13 @@
 "user.chat.typing" = "%@ está escribiendo...";
 
 /* Option when user taps more on profile page */
-"user.option.block" = "Bloquear en HalloApp";
+"user.option.block" = "Bloquear";
 
 /* Option when User clicks on the username on profile page and this can let the user copy the username */
 "user.option.copy.username" = "Copiar nombre de usuario";
 
 /* Option when user taps more on profile page */
-"user.option.unblock" = "Desbloquear en HalloApp";
+"user.option.unblock" = "Desbloquear";
 
 /* Button to confirm unblocking user via profile page */
 "user.unblock" = "Desbloquear";

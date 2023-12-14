@@ -947,7 +947,7 @@
 "friend.migration.title" = "Neues Freundschaftsmodell auf HalloApp";
 
 /* Indicating friend requests */
-"friend.requests" = "Freundschaftsanfrage";
+"friend.requests" = "Freundschaftsanfragen";
 
 /* Indicating suggested friends. */
 "friend.suggestions" = "Freundesvorschläge";
@@ -1463,6 +1463,9 @@
 
 /* Text shown on the moments stack to indicate that the stack is interactive. Only shown the first time. */
 "moments.swipe.for.more" = "für weitere wischen";
+
+/* Indicates the user's current friends. */
+"my.friends" = "Meine Freunde";
 
 /* Message displayed to say when moments will disappear. */
 "mymoment.disappear.time.label" = "Dein Moment wurde mit deinen Kontakten geteilt. Momente werden für 24 Stunden angezeigt.";
@@ -2237,7 +2240,7 @@
 "settings.share.text" = "Mach mit bei meinem HalloApp-Netzwerk für echte Beziehungen! Kostenlos herunterladen auf halloapp.com/dl";
 
 /* Title for inline external share prompt */
-"share.carousel.title" = "Mit mehr Freunden teilen:";
+"share.carousel.title" = "Mit weiteren Freunden teilen:";
 
 /* Show more groups in the share group selection */
 "share.destination.more" = "Mehr anzeigen...";
@@ -2252,7 +2255,7 @@
 "sharedalbums.albumsuggestioncell.titleformat.location" = "%1$d Fotos aufgenommen %2$@";
 
 /* title of album suggestion without location */
-"sharedalbums.albumsuggestioncell.titleformat.nolocation" = "%d gemachte Fotos";
+"sharedalbums.albumsuggestioncell.titleformat.nolocation" = "%d aufgenommene Fotos";
 
 /* Title for sharing to instagram stories */
 "shareprovider.instagramstories.title" = "Instagram Stories";

@@ -1464,6 +1464,9 @@
 /* Text shown on the moments stack to indicate that the stack is interactive. Only shown the first time. */
 "moments.swipe.for.more" = "deslize para mais";
 
+/* Indicates the user's current friends. */
+"my.friends" = "Meus Amigos";
+
 /* Message displayed to say when moments will disappear. */
 "mymoment.disappear.time.label" = "Seu Momento foi compartilhado com sua lista de contatos. Momentos desaparecem após 24 horas.";
 
