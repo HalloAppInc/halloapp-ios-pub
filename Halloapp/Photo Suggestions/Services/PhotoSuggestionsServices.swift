@@ -7,6 +7,7 @@
 //
 
 import CocoaLumberjackSwift
+import Combine
 import Foundation
 
 protocol PhotoSuggestionsService: Sendable {
@@ -19,7 +20,7 @@ protocol PhotoSuggestionsService: Sendable {
 /*
  Wrapper for photo suggestions sub-services
  */
-final class PhotoSuggestionsServices {
+actor PhotoSuggestionsServices {
 
     private let assetClusterer: PhotoSuggestionsService
     private let assetLibrarySync: PhotoSuggestionsService
@@ -28,6 +29,10 @@ final class PhotoSuggestionsServices {
     private var allServices: [PhotoSuggestionsService] {
         return [assetClusterer, assetLibrarySync, locatedClusterGeocoder]
     }
+
+    private var isStarted = false
+
+    private var photoAuthorizationCancellable: AnyCancellable?
 
     init(photoSuggestionsData: PhotoSuggestionsData, service: HalloService, userDefaults: UserDefaults) {
         assetLibrarySync = AssetLibrarySync.makeService(photoSuggestionsData: photoSuggestionsData, userDefaults: userDefaults)
@@ -39,19 +44,42 @@ final class PhotoSuggestionsServices {
 extension PhotoSuggestionsServices: PhotoSuggestionsService {
 
     func start() async {
-        DDLogInfo("Starting Photo Suggestions Services...")
+        DDLogInfo("PhotoSuggestionsServices/Starting Photo Suggestions Services...")
+        isStarted = true
+
+        guard PhotoPermissionsHelper.authorizationStatus(for: .readWrite).hasAnyAuthorization else {
+            DDLogInfo("PhotoSuggestionsServices/Attempted to start Photo Suggestions Services without photo permission, waiting for permission to be granted")
+            await reset()
+            MainAppContext.shared.photoSuggestionsData.reset()
+            photoAuthorizationCancellable = NotificationCenter.default.publisher(for: PhotoPermissionsHelper.photoAuthorizationDidChange)
+                .sink { [weak self] _ in
+                    guard let self else {
+                        return
+                    }
+                    Task {
+                        if await self.isStarted {
+                            await self.start()
+                        }
+                    }
+                }
+            return
+        }
+
         await forEachService {
             await $0.start()
         }
-        DDLogInfo("Started Photo Suggestions Services")
+        DDLogInfo("PhotoSuggestionsServices/Started Photo Suggestions Services")
     }
 
     func stop() async {
-        DDLogInfo("Stopping Photo Suggestions Services...")
+        DDLogInfo("PhotoSuggestionsServices/Stopping Photo Suggestions Services...")
+        photoAuthorizationCancellable?.cancel()
+        photoAuthorizationCancellable = nil
+        isStarted = false
         await forEachService {
             await $0.stop()
         }
-        DDLogInfo("Stopped Photo Suggestions Services")
+        DDLogInfo("PhotoSuggestionsServices/Stopped Photo Suggestions Services")
     }
 
     func reset() async {

@@ -22,7 +22,7 @@ class PhotoSuggestionsEmptyStateView: UIView {
     init(_ type: EmptyStateType) {
         self.type = type
 
-        super.init(frame: .zero)
+        super.init(frame: CGRect(origin: .zero, size: CGSize(width: 400, height: 800)))
 
         let title: String
         let subtitle: String

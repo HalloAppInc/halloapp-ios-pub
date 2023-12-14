@@ -11,8 +11,9 @@ import Combine
 import Core
 import CoreData
 import UIKit
+import UserNotifications
 
-class PhotoSuggestionsDataSource: NSObject {
+final class PhotoSuggestionsDataSource: NSObject {
 
     enum Section {
         case main
@@ -42,9 +43,11 @@ class PhotoSuggestionsDataSource: NSObject {
                                           cacheName: nil)
     }()
 
+    private var hasNotificationPermission = true
+
     private var cancellables: Set<AnyCancellable> = []
 
-    let photoSuggestionsSnapshotSubject = CurrentValueSubject<NSDiffableDataSourceSnapshot<Section, Item>, Never>(NSDiffableDataSourceSnapshot())
+    private(set) lazy var photoSuggestionsSnapshotSubject = CurrentValueSubject<NSDiffableDataSourceSnapshot<Section, Item>, Never>(makeSnapshot())
 
     override init() {
         super.init()
@@ -52,11 +55,40 @@ class PhotoSuggestionsDataSource: NSObject {
         fetchedResultsController.delegate = self
 
         LocationPermissionsMonitor.shared.authorizationStatus
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self else {
                     return
                 }
-                self.photoSuggestionsSnapshotSubject.send(self.makeSnapshot()) }
+                self.photoSuggestionsSnapshotSubject.send(self.makeSnapshot())
+            }
+            .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: PhotoPermissionsHelper.photoAuthorizationDidChange)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self else {
+                    return
+                }
+                self.photoSuggestionsSnapshotSubject.send(self.makeSnapshot())
+            }
+            .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
+            .prepend(Notification(name: UIApplication.willEnterForegroundNotification))
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                UNUserNotificationCenter.current().getNotificationSettings { [weak self] settings in
+                    let hasPermission = [.authorized, .provisional].contains(settings.authorizationStatus)
+                    guard let self, hasPermission != self.hasNotificationPermission else {
+                        return
+                    }
+                    self.hasNotificationPermission = hasPermission
+                    DispatchQueue.main.async {
+                        self.photoSuggestionsSnapshotSubject.send(self.makeSnapshot())
+                    }
+                }
+            }
             .store(in: &cancellables)
     }
 
@@ -78,7 +110,7 @@ class PhotoSuggestionsDataSource: NSObject {
                     snapshot.appendItems([.callToAction(.enablePhotoLocations)])
                 } else {
                     let hasLocationAuthorization = [.authorizedAlways, .authorizedWhenInUse].contains(LocationPermissionsMonitor.shared.authorizationStatus.value)
-                    if !hasLocationAuthorization {
+                    if !hasLocationAuthorization, hasNotificationPermission {
                         snapshot.appendItems([.callToAction(.enableAlwaysOnLocation)])
                     }
                 }

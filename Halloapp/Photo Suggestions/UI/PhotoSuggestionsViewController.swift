@@ -81,12 +81,12 @@ class PhotoSuggestionsViewController: UIViewController {
 
         dataSource.photoSuggestionsSnapshotSubject
             .sink { [weak self] snapshot in
-                self?.collectionViewDataSource.apply(snapshot, animatingDifferences: true)
+                self?.applySnapshot(snapshot)
             }
             .store(in: &cancellables)
 
         dataSource.performFetch()
-        collectionViewDataSource.apply(dataSource.photoSuggestionsSnapshotSubject.value, animatingDifferences: false)
+        applySnapshot(dataSource.photoSuggestionsSnapshotSubject.value, animated: false)
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -110,6 +110,16 @@ class PhotoSuggestionsViewController: UIViewController {
 
         let triggerButtonFrame = floatingMenu.triggerButton.convert(floatingMenu.triggerButton.bounds, to: view)
         collectionView.contentInset.bottom = view.bounds.maxY - triggerButtonFrame.minY
+    }
+
+    private func applySnapshot(_ snapshot: NSDiffableDataSourceSnapshot<PhotoSuggestionsDataSource.Section, PhotoSuggestionsDataSource.Item>, animated: Bool = true) {
+        if snapshot.numberOfItems == 0 {
+            let hasPhotoPermissions = PhotoPermissionsHelper.authorizationStatus(for: .readWrite) == .authorized
+            collectionView.backgroundView = PhotoSuggestionsEmptyStateView(hasPhotoPermissions ? .magicPostsExplainer : .allowPhotoAccess)
+        } else {
+            collectionView.backgroundView = nil
+        }
+        collectionViewDataSource.apply(snapshot, animatingDifferences: animated)
     }
 
     // MARK: - Floating Post Menu
@@ -232,32 +242,7 @@ extension PhotoSuggestionsViewController: UICollectionViewDelegate {
         let localIdentifiers = locatedCluster.assetRecordsAsSet.compactMap(\.localIdentifier)
         let postText = locatedCluster.geocodedLocationName
         let albumTitle = locatedCluster.geocodedLocationName ?? locatedCluster.geocodedAddress ?? Localizations.suggestionAlbumTitle
-        /*
-        Task {
-            let assets = PhotoSuggestionsUtilities.assets(with: localIdentifiers)
-            let (scoreSortedAssets, mediaAssetInfo) = await BurstAwareHighlightSelector().selectHighlights(10, from: Array(assets))
-            let selectedMedia = scoreSortedAssets.prefix(ServerProperties.maxPostMediaItems).compactMap { PendingMedia(asset: $0) }
-            let createdAtSortedAssets = assets.sorted { $0.creationDate ?? .distantFuture < $1.creationDate ?? .distantFuture }
-            let highlightedAssetCollection = PHAssetCollection.transientAssetCollection(with: createdAtSortedAssets, title: albumTitle)
-            let newPostState = NewPostState(pendingMedia: selectedMedia,
-                                            mediaSource: .library,
-                                            pendingInput: MentionInput(text: postText ?? "", mentions: MentionRangeMap(), selectedRange: NSRange()),
-                                            highlightedAssetCollection: highlightedAssetCollection,
-                                            mediaAssetInfo: mediaAssetInfo)
 
-            let newPostViewController = NewPostViewController(state: newPostState,
-                                                              destination: .feed(.all),
-                                                              showDestinationPicker: true) { didPost, _ in
-                // Reset back to all
-                MainAppContext.shared.privacySettings.activeType = .all
-                self.dismiss(animated: true)
-            }
-            await MainActor.run() {
-                newPostViewController.modalPresentationStyle = .fullScreen
-                present(newPostViewController, animated: true)
-            }
-        }
- */
         Task {
             let newPostState = await PhotoSuggestionsUtilities.newPostState(assetLocalIdentifiers: localIdentifiers, postText: postText, albumTitle: albumTitle)
 
