@@ -11571,6 +11571,10 @@ public struct Server_HalloappUserProfile {
 
   public var links: [Server_Link] = []
 
+  public var mutualFriendUids: [Int64] = []
+
+  public var mutualGids: [String] = []
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -25646,6 +25650,8 @@ extension Server_HalloappUserProfile: SwiftProtobuf.Message, SwiftProtobuf._Mess
     5: .same(proto: "status"),
     6: .same(proto: "blocked"),
     7: .same(proto: "links"),
+    8: .standard(proto: "mutual_friend_uids"),
+    9: .standard(proto: "mutual_gids"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -25661,6 +25667,8 @@ extension Server_HalloappUserProfile: SwiftProtobuf.Message, SwiftProtobuf._Mess
       case 5: try { try decoder.decodeSingularEnumField(value: &self.status) }()
       case 6: try { try decoder.decodeSingularBoolField(value: &self.blocked) }()
       case 7: try { try decoder.decodeRepeatedMessageField(value: &self.links) }()
+      case 8: try { try decoder.decodeRepeatedInt64Field(value: &self.mutualFriendUids) }()
+      case 9: try { try decoder.decodeRepeatedStringField(value: &self.mutualGids) }()
       default: break
       }
     }
@@ -25688,6 +25696,12 @@ extension Server_HalloappUserProfile: SwiftProtobuf.Message, SwiftProtobuf._Mess
     if !self.links.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.links, fieldNumber: 7)
     }
+    if !self.mutualFriendUids.isEmpty {
+      try visitor.visitPackedInt64Field(value: self.mutualFriendUids, fieldNumber: 8)
+    }
+    if !self.mutualGids.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.mutualGids, fieldNumber: 9)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -25699,6 +25713,8 @@ extension Server_HalloappUserProfile: SwiftProtobuf.Message, SwiftProtobuf._Mess
     if lhs.status != rhs.status {return false}
     if lhs.blocked != rhs.blocked {return false}
     if lhs.links != rhs.links {return false}
+    if lhs.mutualFriendUids != rhs.mutualFriendUids {return false}
+    if lhs.mutualGids != rhs.mutualGids {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
