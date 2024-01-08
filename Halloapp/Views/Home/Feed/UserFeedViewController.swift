@@ -20,43 +20,21 @@ class UserFeedViewController: FeedCollectionViewController {
         static let sectionHeaderReuseIdentifier = "header-view"
     }
 
-    override var collectionViewSupplementaryItems: [NSCollectionLayoutBoundarySupplementaryItem] {
-        return headerViewController == nil ? [] : [
-            NSCollectionLayoutBoundarySupplementaryItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
-                                                                                          heightDimension: .estimated(44)),
-                                                        elementKind: UICollectionView.elementKindSectionHeader,
-                                                        alignment: .top)
-        ]
-    }
-
-    override class var collectionViewSectionInsets: NSDirectionalEdgeInsets {
-        return NSDirectionalEdgeInsets(top: 8, leading: 0, bottom: 20, trailing: 0)
-    }
-
     private let dataSource: ProfileDataSource
+    private let showHeader: Bool
 
     init(userId: UserID, showHeader: Bool = true) {
         self.userId = userId
-        self.isUserBlocked = false
         self.dataSource = ProfileDataSource(id: userId)
-
-        if showHeader {
-            let configuration: ProfileHeaderViewController.Configuration = userId == MainAppContext.shared.userData.userId ? .ownProfile : .default
-            headerViewController = ProfileHeaderViewController(configuration: configuration)
-        } else {
-            headerViewController = nil
-        }
+        self.showHeader = showHeader
 
         super.init(title: nil, fetchRequest: FeedDataSource.userFeedRequest(userID: userId))
     }
 
     init(profile: DisplayableProfile) {
-        userId = profile.id
-        isUserBlocked = profile.isBlocked
+        userId = profile.displayable.id
         dataSource = ProfileDataSource(profile: profile)
-
-        let configuration: ProfileHeaderViewController.Configuration = userId == MainAppContext.shared.userData.userId ? .ownProfile : .default
-        headerViewController = ProfileHeaderViewController(configuration: configuration)
+        showHeader = true
 
         super.init(title: nil, fetchRequest: FeedDataSource.userFeedRequest(userID: userId))
     }
@@ -67,18 +45,7 @@ class UserFeedViewController: FeedCollectionViewController {
 
     private let userId: UserID
     private var profile: DisplayableProfile?
-    private let headerViewController: ProfileHeaderViewController?
     private var cancellables = Set<AnyCancellable>()
-    
-    var isUserBlocked: Bool {
-        didSet {
-            guard isUserBlocked != oldValue else { return }
-            DispatchQueue.main.async {
-                // Header may need to change size
-                self.collectionView.reloadData()
-            }
-        }
-    }
 
     // MARK: View Controller
 
@@ -89,22 +56,14 @@ class UserFeedViewController: FeedCollectionViewController {
             title = Localizations.titleMyPosts
         }
 
-        let publisher = dataSource.$profile
-            .compactMap { $0 }
-            .eraseToAnyPublisher()
-        headerViewController?.configure(with: publisher)
-        setupMoreButton()
-
-        dataSource.$profile
-            .dropFirst()
-            .sink { [weak self] in
-                guard let self else {
-                    return
-                }
-                self.profile = $0
-                self.feedDataSource.refresh()
+        dataSource.$mutuals
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.feedDataSource.refresh()
             }
             .store(in: &cancellables)
+
+        setupMoreButton()
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -115,16 +74,6 @@ class UserFeedViewController: FeedCollectionViewController {
 
     override func setupCollectionView() {
         super.setupCollectionView()
-        
-        headerViewController?.delegate = self
-
-        collectionViewDataSource?.supplementaryViewProvider = { [weak self] (collectionView, kind, path) -> UICollectionReusableView? in
-            guard let self = self else {
-                return UICollectionReusableView()
-            }
-            return self.collectionView(collectionView, viewForSupplementaryElementOfKind: kind, at: path)
-        }
-        collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: Constants.sectionHeaderReuseIdentifier)
     }
     
     private func setupMoreButton() {
@@ -151,44 +100,20 @@ class UserFeedViewController: FeedCollectionViewController {
 
     // MARK: Collection View Header
 
-    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        if kind == UICollectionView.elementKindSectionHeader && indexPath.section == 0 {
-            let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: Constants.sectionHeaderReuseIdentifier, for: indexPath)
-            if let superView = headerViewController?.view.superview, superView != headerView {
-                headerViewController?.willMove(toParent: nil)
-                headerViewController?.view.removeFromSuperview()
-                headerViewController?.removeFromParent()
-            }
-            if let header = headerViewController, header.view.superview == nil {
-                addChild(header)
-                headerView.addSubview(header.view)
-                headerView.preservesSuperviewLayoutMargins = true
-                headerViewController?.view.translatesAutoresizingMaskIntoConstraints = false
-                headerViewController?.view.constrain(to: headerView)
-                headerViewController?.didMove(toParent: self)
-            }
-            return headerView
-        }
-        return UICollectionReusableView()
-    }
-    
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
         super.scrollViewDidScroll(scrollView)
-
-        guard
-            let header = headerViewController
-        else {
+        guard let headerCell = collectionView.cellForItem(at: .init(row: 0, section: 0)) as? ProfileHeaderCollectionViewCell else {
             return
         }
-        
+
         let offset = scrollView.contentOffset.y
-        let scrolledLimit:CGFloat = header.view.frame.size.height/3.5
+        let scrolledLimit = headerCell.profileHeader.view.frame.size.height / 3.5
         var titleText = ""
 
         if offset > scrolledLimit {
-            titleText = header.name ?? ""
+            titleText = headerCell.profileHeader.name ?? ""
         }
-        
+
         if title != titleText {
             title = titleText
         }
@@ -196,10 +121,19 @@ class UserFeedViewController: FeedCollectionViewController {
 
     override func modifyItems(_ items: [FeedDisplayItem]) -> [FeedDisplayItem] {
         var items = super.modifyItems(items)
-        if !isOwnFeed, items.isEmpty, let name = profile?.name, let links = profile?.profileLinks, !links.isEmpty {
+
+        if !isOwnFeed, items.isEmpty, let name = profile?.displayable.name, let links = profile?.displayable.profileLinks, !links.isEmpty {
             items.insert(.profileLinks(name: name, links.sorted()), at: 0)
         } else if isOwnFeed, MainAppContext.shared.feedData.validMoment.value == nil {
             items.insert(.momentStack([.prompt]), at: 0)
+        }
+
+        if showHeader, let profile = dataSource.profile {
+            if isOwnFeed {
+                items.insert(.ownProfile(profile), at: 0)
+            } else {
+                items.insert(.profile(profile, dataSource.mutuals.friends, dataSource.mutuals.groups), at: 0)
+            }
         }
 
         return items
@@ -210,8 +144,9 @@ extension UserFeedViewController: CNContactViewControllerDelegate, ProfileHeader
     func contactViewController(_ viewController: CNContactViewController, didCompleteWith contact: CNContact?) {
         navigationController?.popViewController(animated: true)
     }
+
     func profileHeaderDidTapUnblock(_ profileHeader: ProfileHeaderViewController) {
-        isUserBlocked = false
+
     }
 }
 

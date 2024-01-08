@@ -208,6 +208,8 @@ class FeedCollectionViewController: UIViewController, FeedDataSourceDelegate, Sh
         collectionView.register(MomentCollectionViewCell.self, forCellWithReuseIdentifier: MomentCollectionViewCell.reuseIdentifier)
         collectionView.register(StackedMomentCollectionViewCell.self, forCellWithReuseIdentifier: StackedMomentCollectionViewCell.reuseIdentifier)
         collectionView.register(FeedShareCarouselCell.self, forCellWithReuseIdentifier: FeedShareCarouselCell.reuseIdentifier)
+        collectionView.register(OwnProfileHeaderCollectionViewCell.self, forCellWithReuseIdentifier: OwnProfileHeaderCollectionViewCell.reuseIdentifier)
+        collectionView.register(ProfileHeaderCollectionViewCell.self, forCellWithReuseIdentifier: ProfileHeaderCollectionViewCell.reuseIdentifier)
         collectionView.register(ProfileLinksCollectionViewCell.self, forCellWithReuseIdentifier: ProfileLinksCollectionViewCell.reuseIdentifier)
 
         view.addSubview(collectionView)
@@ -906,6 +908,24 @@ extension FeedCollectionViewController {
                         }
                         self.share(postID: feedPostID, mediaIndex: self.postDisplayData[feedPostID]?.currentMediaIndex, with: shareProvider)
                     }
+                }
+                return cell
+            case .ownProfile(let info):
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: OwnProfileHeaderCollectionViewCell.reuseIdentifier, for: indexPath)
+                if let self, let cell = cell as? OwnProfileHeaderCollectionViewCell {
+                    cell.profileHeader.configure(with: info, mutualFriends: [], mutualGroups: [])
+                    cell.profileHeader.willMove(toParent: self)
+                    self.addChild(cell.profileHeader)
+                    cell.profileHeader.didMove(toParent: self)
+                }
+                return cell
+            case .profile(let info, let friends, let groups):
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ProfileHeaderCollectionViewCell.reuseIdentifier, for: indexPath)
+                if let self, let cell = cell as? ProfileHeaderCollectionViewCell {
+                    cell.profileHeader.configure(with: info, mutualFriends: friends, mutualGroups: groups)
+                    cell.profileHeader.willMove(toParent: self)
+                    self.addChild(cell.profileHeader)
+                    cell.profileHeader.didMove(toParent: self)
                 }
                 return cell
             case .profileLinks(let name, let links):

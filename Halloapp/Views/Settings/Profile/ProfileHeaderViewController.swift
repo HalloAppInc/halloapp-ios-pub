@@ -52,7 +52,7 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
     private let configuration: Configuration
     private var cancellableSet: Set<AnyCancellable> = []
 
-    private var profile: DisplayableProfile?
+    private var profile: ProfileInfo?
     private var userID: UserID?
     weak var delegate: ProfileHeaderDelegate?
 
@@ -195,26 +195,21 @@ final class ProfileHeaderViewController: UIViewController, UserActionHandler {
 
     // MARK: Configuring View
 
-    func configure(with profile: AnyPublisher<DisplayableProfile, Never>) {
+    func configure(with profile: ProfileInfo, mutualFriends: [UserID], mutualGroups: [GroupID]) {
         cancellableSet = []
 
-        profile
-            .sink { [weak self] profile in
-                guard let self else {
-                    return
-                }
-                let usernameText = profile.username.isEmpty ? "" : "@\(profile.username)"
-                self.userID = profile.id
-                self.profile = profile
+        let usernameText = profile.username.isEmpty ? "" : "@\(profile.username)"
+        self.userID = profile.id
+        self.profile = profile
 
-                self.headerView.nameLabel.text = profile.name
-                self.headerView.usernameLabel.text = usernameText
-                self.headerView.links = profile.profileLinks
-                self.headerView.friendshipStatus = profile.friendshipStatus
-                self.headerView.isFavorite = profile.isFavorite
-                self.headerView.isBlocked = profile.isBlocked
-            }
-            .store(in: &cancellableSet)
+        self.headerView.nameLabel.text = profile.name
+        self.headerView.usernameLabel.text = usernameText
+        self.headerView.links = profile.profileLinks
+        self.headerView.friendshipStatus = profile.friendshipStatus
+        self.headerView.isFavorite = profile.isFavorite
+        self.headerView.isBlocked = profile.isBlocked
+        self.headerView.mutualFriends = mutualFriends
+        self.headerView.mutualGroups = mutualGroups
 
         if let userID {
             headerView.avatarView.configure(with: userID, using: MainAppContext.shared.avatarStore)
@@ -314,6 +309,7 @@ private final class ProfileHeaderView: UIView {
         let label = UILabel()
         label.textColor = .secondaryLabel
         label.font = .scaledSystemFont(ofSize: 16)
+        label.setContentCompressionResistancePriority(.breakable, for: .vertical)
         return label
     }()
 
@@ -325,6 +321,12 @@ private final class ProfileHeaderView: UIView {
 
     let linksPanel: ProfileLinksPanel = {
         let view = ProfileLinksPanel()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    let mutualsPanel: ProfileMutualsPanel = {
+        let view = ProfileMutualsPanel()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -378,6 +380,14 @@ private final class ProfileHeaderView: UIView {
         didSet { configure() }
     }
 
+    var mutualFriends: [UserID] = [] {
+        didSet { configure() }
+    }
+
+    var mutualGroups: [GroupID] = [] {
+        didSet { configure() }
+    }
+
     var isFavorite: Bool = false {
         didSet { configure() }
     }
@@ -411,6 +421,12 @@ private final class ProfileHeaderView: UIView {
         linksPanel.configure(with: links)
         friendshipToggle.configure(name: nameLabel.text ?? "", status: friendshipStatus, isBlocked: isBlocked)
 
+        let shouldHideMutuals = mutualFriends.isEmpty && mutualGroups.isEmpty
+        mutualsPanel.isHidden = shouldHideMutuals
+        if !shouldHideMutuals {
+            mutualsPanel.configure(with: mutualFriends, groups: mutualGroups)
+        }
+
         setNeedsLayout()
     }
 
@@ -422,7 +438,7 @@ private final class ProfileHeaderView: UIView {
 
         let nameStack = UIStackView(arrangedSubviews: [nameLabel, favoriteButton])
         let buttonStack = UIStackView(arrangedSubviews: [messageButton, audioCallButton, videoCallButton, linksButton])
-        let stack = UIStackView(arrangedSubviews: [avatarView, nameStack, usernameLabel, linksPanel, friendshipToggle, buttonStack])
+        let stack = UIStackView(arrangedSubviews: [avatarView, nameStack, usernameLabel, linksPanel, friendshipToggle, mutualsPanel, buttonStack])
 
         stack.axis = .vertical
         stack.alignment = .center
@@ -432,8 +448,9 @@ private final class ProfileHeaderView: UIView {
 
         stack.setCustomSpacing(10, after: avatarView)
         stack.setCustomSpacing(5, after: nameStack)
-        stack.setCustomSpacing(10, after: usernameLabel)
-        stack.setCustomSpacing(20, after: friendshipToggle)
+        stack.setCustomSpacing(12, after: usernameLabel)
+        stack.setCustomSpacing(15, after: mutualsPanel)
+        stack.setCustomSpacing(15, after: friendshipToggle)
 
         avatarView.translatesAutoresizingMaskIntoConstraints = false
         stack.translatesAutoresizingMaskIntoConstraints = false

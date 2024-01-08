@@ -60,7 +60,7 @@ public final class FeedDataSource: NSObject {
                 return post.id == feedPostID
             case .post(let post):
                 return post.id == feedPostID
-            case .event, .groupWelcome, .inviteCarousel, .suggestionsCarousel, .welcome, .shareCarousel, .profileLinks:
+            case .event, .groupWelcome, .inviteCarousel, .suggestionsCarousel, .welcome, .shareCarousel, .ownProfile, .profile, .profileLinks:
                 return false
             }
         })
@@ -449,7 +449,7 @@ public enum FeedDisplaySection {
     case posts
 }
 
-public enum FeedDisplayItem: Hashable, Equatable {
+public enum FeedDisplayItem: Hashable {
     case post(FeedPost)
     case moment(FeedPost)
     case momentStack([MomentStackItem])
@@ -459,6 +459,8 @@ public enum FeedDisplayItem: Hashable, Equatable {
     case inviteCarousel
     case suggestionsCarousel
     case shareCarousel(FeedPostID)
+    case ownProfile(ProfileInfo)
+    case profile(ProfileInfo, [UserID], [GroupID])
     case profileLinks(name: String, [ProfileLink])
 
     public var post: FeedPost? {
@@ -472,6 +474,8 @@ public enum FeedDisplayItem: Hashable, Equatable {
         case .inviteCarousel: return nil
         case .suggestionsCarousel: return nil
         case .shareCarousel: return nil
+        case .ownProfile: return nil
+        case .profile: return nil
         case .profileLinks: return nil
         }
     }
@@ -487,6 +491,8 @@ public enum FeedDisplayItem: Hashable, Equatable {
         case .inviteCarousel: return nil
         case .suggestionsCarousel: return nil
         case .shareCarousel: return nil
+        case .ownProfile: return nil
+        case .profile: return nil
         case .profileLinks: return nil
         }
     }
@@ -502,6 +508,8 @@ public enum FeedDisplayItem: Hashable, Equatable {
         case .suggestionsCarousel: return nil
         case .momentStack: return nil
         case .shareCarousel: return nil
+        case .ownProfile: return nil
+        case .profile: return nil
         case .profileLinks: return nil
         }
     }
@@ -539,4 +547,29 @@ public enum FeedEvent: Hashable, Equatable {
             return feedPosts.first?.timestamp ?? Date()
         }
     }
+}
+
+public struct ProfileInfo: Hashable {
+    public let id: UserID
+    public let name: String
+    public let username: String
+    public let friendshipStatus: UserProfile.FriendshipStatus
+    public let profileLinks: [ProfileLink]
+    public let isFavorite: Bool
+    public let isBlocked: Bool
+
+    public init(id: UserID, name: String, username: String, friendshipStatus: UserProfile.FriendshipStatus, profileLinks: [ProfileLink], isFavorite: Bool, isBlocked: Bool) {
+        self.id = id
+        self.name = name
+        self.username = username
+        self.friendshipStatus = friendshipStatus
+        self.profileLinks = profileLinks
+        self.isFavorite = isFavorite
+        self.isBlocked = isBlocked
+    }
+}
+
+public protocol ProfileMutualItems {
+    var friends: [UserID] { get }
+    var groups: [GroupID] { get }
 }

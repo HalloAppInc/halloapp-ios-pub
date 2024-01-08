@@ -129,6 +129,8 @@ class ProfileEditorModel: ObservableObject {
 
         await withThrowingTaskGroup(of: Void.self) { [name, username, links] group in
             if updateName {
+                userData.name = name
+                userData.save(using: userData.viewContext)
                 MainAppContext.shared.service.updateUsername(name)
             }
             if updateUsername {

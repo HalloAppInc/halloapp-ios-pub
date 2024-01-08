@@ -703,7 +703,7 @@ public final class WebClientManager {
                 return [post]
             case .momentStack(let stackItems):
                 return stackItems.compactMap { $0.moment }
-            case .event, .groupWelcome, .welcome, .post, .shareCarousel, .inviteCarousel, .suggestionsCarousel, .profileLinks:
+            case .event, .groupWelcome, .welcome, .post, .shareCarousel, .inviteCarousel, .suggestionsCarousel, .ownProfile, .profile, .profileLinks:
                 return []
             }
         }

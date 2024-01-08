@@ -408,5 +408,64 @@
 			<string>%d people left</string>
 		</dict>
 	</dict>
+	<key>profile.mutual.friends.groups</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_friends@ and %#@n_groups@ in common</string>
+		<key>n_friends</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d friend</string>
+			<key>other</key>
+			<string>%d friends</string>
+		</dict>
+		<key>n_groups</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringFormatSpecTypeKey</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d group</string>
+			<key>other</key>
+			<string>%d groups</string>
+		</dict>
+	</dict>
+	<key>profile.n.mutual.friends</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_friends@</string>
+		<key>n_friends</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d friend in common</string>
+			<key>other</key>
+			<string>%d friends in common</string>
+		</dict>
+	</dict>
+	<key>profile.n.mutual.groups</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_groups@</string>
+		<key>n_groups</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d group in common</string>
+			<key>other</key>
+			<string>%d groups in common</string>
+		</dict>
+	</dict>
 </dict>
 </plist>

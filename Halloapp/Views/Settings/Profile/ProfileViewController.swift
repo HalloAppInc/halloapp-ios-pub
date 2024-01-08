@@ -16,6 +16,8 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate {
     private typealias Section = InsetCollectionView.Section
     private typealias Item = InsetCollectionView.Item
 
+    private var cancellables: Set<AnyCancellable> = []
+
     private let dataSource: ProfileDataSource = ProfileDataSource(id: MainAppContext.shared.userData.userId)
     private weak var profileHeader: ProfileHeaderViewController?
 
@@ -67,6 +69,12 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate {
         collectionView.register(CollectionProfileHeader.self,
                                 forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
                                        withReuseIdentifier: CollectionProfileHeader.reuseIdentifier)
+
+        dataSource.$profile
+            .compactMap { $0 }
+            .sink { [weak self] in self?.profileHeader?.configure(with: $0, mutualFriends: [], mutualGroups: []) }
+            .store(in: &cancellables)
+
         buildCollection()
     }
 
@@ -255,8 +263,11 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate {
             let publisher = dataSource.$profile
                 .compactMap { $0 }
                 .eraseToAnyPublisher()
-            
-            header.configure(with: publisher)
+
+            if let profile = dataSource.profile {
+                header.configure(with: profile, mutualFriends: [], mutualGroups: [])
+            }
+
             profileHeader = header
         }
 

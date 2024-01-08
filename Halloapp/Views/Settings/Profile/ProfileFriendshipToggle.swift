@@ -41,6 +41,7 @@ class ProfileFriendshipToggle: UIView {
         let button = UIButton(configuration: configuration)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setContentCompressionResistancePriority(.breakable, for: .horizontal)
+        button.setContentCompressionResistancePriority(.breakable, for: .vertical)
         return button
     }()
 
@@ -52,6 +53,7 @@ class ProfileFriendshipToggle: UIView {
         let button = UIButton(configuration: configuration)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setContentCompressionResistancePriority(.breakable, for: .horizontal)
+        button.setContentCompressionResistancePriority(.breakable, for: .vertical)
         return button
     }()
 
@@ -65,23 +67,25 @@ class ProfileFriendshipToggle: UIView {
         let hStack = UIStackView(arrangedSubviews: [primaryButton, secondaryButton])
         hStack.spacing = 10
         hStack.distribution = .fillEqually
-
-        messageLabel.translatesAutoresizingMaskIntoConstraints = false
-        hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.alignment = .center
 
-        addSubview(messageLabel)
-        addSubview(hStack)
+        let vStack = UIStackView(arrangedSubviews: [messageLabel, hStack])
+        vStack.axis = .vertical
+        vStack.spacing = 7
+        vStack.alignment = .center
+
+        vStack.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(vStack)
+
         NSLayoutConstraint.activate([
             messageLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
             messageLabel.trailingAnchor.constraint(equalTo: trailingAnchor),
             messageLabel.topAnchor.constraint(equalTo: topAnchor),
 
-            hStack.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor),
-            hStack.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor),
-            hStack.centerXAnchor.constraint(equalTo: centerXAnchor),
-            hStack.topAnchor.constraint(equalTo: messageLabel.bottomAnchor, constant: 7),
-            hStack.bottomAnchor.constraint(equalTo: bottomAnchor),
+            vStack.leadingAnchor.constraint(equalTo: leadingAnchor),
+            vStack.trailingAnchor.constraint(equalTo: trailingAnchor),
+            vStack.topAnchor.constraint(equalTo: topAnchor),
+            vStack.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
 
         primaryButton.addTarget(self, action: #selector(primaryButtonPushed), for: .touchUpInside)
@@ -93,7 +97,7 @@ class ProfileFriendshipToggle: UIView {
     }
 
     func configure(name: String, status: UserProfile.FriendshipStatus, isBlocked: Bool) {
-        var messageText = " "
+        var messageText = ""
         var primaryText = ""
         var secondaryText = ""
         var hidePrimary = true
@@ -133,6 +137,7 @@ class ProfileFriendshipToggle: UIView {
         }
 
         messageLabel.text = messageText
+        messageLabel.isHidden = messageText.isEmpty
 
         if primaryButton.isHidden != hidePrimary {
             primaryButton.isHidden = hidePrimary

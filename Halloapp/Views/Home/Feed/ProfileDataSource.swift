@@ -13,20 +13,15 @@ import CoreCommon
 import CocoaLumberjackSwift
 
 protocol DisplayableProfile {
-    var id: UserID { get }
-    var name: String { get }
-    var username: String { get }
-    var friendshipStatus: UserProfile.FriendshipStatus { get }
-    var profileLinks: [ProfileLink] { get }
-    var isFavorite: Bool { get }
-    var isBlocked: Bool { get }
+    var displayable: ProfileInfo { get }
 }
 
 @MainActor
 class ProfileDataSource: NSObject {
 
     private let id: UserID
-    @Published private(set) var profile: DisplayableProfile?
+    @Published private(set) var profile: ProfileInfo?
+    @Published private(set) var mutuals: (friends: [UserID], groups: [GroupID]) = ([], [])
 
     private let resultsController: NSFetchedResultsController<UserProfile> = {
         let request = UserProfile.fetchRequest()
@@ -50,6 +45,7 @@ class ProfileDataSource: NSObject {
     }
 
     init(profile: DisplayableProfile) {
+        let profile = profile.displayable
         self.id = profile.id
         super.init()
 
@@ -83,7 +79,7 @@ class ProfileDataSource: NSObject {
 
     private func update() {
         DDLogInfo("ProfileDataSource/update/[\(id)]")
-        profile = resultsController.fetchedObjects?.first
+        profile = resultsController.fetchedObjects?.first?.displayable
     }
 
     private func updateFromServer() async {
@@ -92,6 +88,8 @@ class ProfileDataSource: NSObject {
             try await MainAppContext.shared.mainDataStore.saveSeriallyOnBackgroundContext { [id] context in
                 UserProfile.findOrCreate(with: id, in: context).update(with: serverProfile)
             }
+            let mutualFriends = serverProfile.mutualFriendUids.map { UserID($0) }
+            mutuals = (mutualFriends, serverProfile.mutualGids)
             DDLogInfo("ProfileDataSource/updateFromServer/success [\(id)]")
         } catch {
             DDLogError("ProfileDataSource/updateFromServer/failed with error \(String(describing: error))")
@@ -130,8 +128,14 @@ extension ProfileDataSource: NSFetchedResultsControllerDelegate {
 
 extension UserProfile: DisplayableProfile {
 
-    var profileLinks: [ProfileLink] {
-        links.sorted()
+    public var displayable: ProfileInfo {
+        ProfileInfo(id: id, 
+                    name: name,
+                    username: username,
+                    friendshipStatus: friendshipStatus,
+                    profileLinks: links.sorted(),
+                    isFavorite: isFavorite,
+                    isBlocked: isBlocked)
     }
 }
 
@@ -139,59 +143,47 @@ extension UserProfile: DisplayableProfile {
 
 extension Server_HalloappUserProfile: DisplayableProfile {
 
-    var id: UserID {
-        UserID(uid)
-    }
-
-    var friendshipStatus: UserProfile.FriendshipStatus {
-        status.userProfileFriendshipStatus
-    }
-
-    var profileLinks: [ProfileLink] {
-        links
+    public var displayable: ProfileInfo {
+        let links = links
             .map { ProfileLink(serverLink: $0) }
             .sorted()
-    }
 
-    var isFavorite: Bool {
-        false
-    }
-
-    var isBlocked: Bool {
-        blocked
+        return ProfileInfo(id: UserID(uid),
+                           name: name,
+                           username: username,
+                           friendshipStatus: status.userProfileFriendshipStatus,
+                           profileLinks: links,
+                           isFavorite: false,
+                           isBlocked: blocked)
     }
 }
 
 // MARK: - FriendsDataSource.Friend + DisplayableProfile
 
 extension FriendsDataSource.Friend: DisplayableProfile {
-    
-    var isFavorite: Bool {
-        false
-    }
-    
-    var isBlocked: Bool {
-        false
-    }
 
-    var profileLinks: [ProfileLink] {
-        []
+    public var displayable: ProfileInfo {
+        ProfileInfo(id: id, 
+                    name: name,
+                    username: username,
+                    friendshipStatus: friendshipStatus,
+                    profileLinks: [],
+                    isFavorite: false,
+                    isBlocked: false)
     }
 }
 
 // MARK: - FriendSuggestionsManager.Suggestion + DisplayableProfile
 
 extension FriendSuggestionsManager.Suggestion: DisplayableProfile {
-    
-    var isFavorite: Bool {
-        false
-    }
-    
-    var isBlocked: Bool {
-        false
-    }
 
-    var profileLinks: [ProfileLink] {
-        []
+    public var displayable: ProfileInfo {
+        ProfileInfo(id: id,
+                    name: name,
+                    username: username,
+                    friendshipStatus: friendshipStatus,
+                    profileLinks: [],
+                    isFavorite: false,
+                    isBlocked: false)
     }
 }
