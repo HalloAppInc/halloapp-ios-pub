@@ -852,7 +852,7 @@ extension GroupFeedHistoryDecryption {
         }
 
         let timeTaken: TimeInterval = {
-            return timeLastUpdated.timeIntervalSince(timeReceived)
+            return max(0, timeLastUpdated.timeIntervalSince(timeReceived))
         }()
 
         return .groupHistoryReport(gid: groupID,
