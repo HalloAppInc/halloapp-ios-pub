@@ -100,7 +100,7 @@ extension ProfileLink {
         case .youtube:
             image = UIImage(named: "YouTubeOutline")
         case .other:
-            image = UIImage(systemName: "link")
+            image = UIImage(systemName: "link")?.withConfiguration(UIImage.SymbolConfiguration(weight: .bold))
         }
 
         return image
