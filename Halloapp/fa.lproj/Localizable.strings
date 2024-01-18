@@ -1,4 +1,10 @@
 /* No comment provided by engineer. */
+"(null)" = "(null)";
+
+/* No comment provided by engineer. */
+"(unknown)" = "(unknown)";
+
+/* No comment provided by engineer. */
 "@" = "@";
 
 /* No comment provided by engineer. */
@@ -12,6 +18,12 @@
 
 /* No comment provided by engineer. */
 "• %@" = "%@";
+
+/* No comment provided by engineer. */
+"<unknown" = "<unknown";
+
+/* No comment provided by engineer. */
+"<unknown>" = "<unknown>";
 
 /* About screen: body text. */
 "about.body.1" = "هالواپ اینجاست! ما آن‌ را برای شما و کسانی که دوستشان دارید ساختیم.\nما برنامه‌های اجتماعی را به اصل خود برگرداندیم و در عین حال یک لایه امنیتی و حریم خصوصی اضافه کردیم که باور داریم همه مردم دنیا باید به آن دسترسی داشته باشند.\nهالواپ هیچ وقت از اطلاعات خصوصی شما استفاده نخواهد کرد و هیچ وقت تبلیغات نشان نخواهد داد.\nبه جای آن، ما قصد داریم با هزینه پایین امکانات مجزایی در اختیار شما قرار دهیم.";
@@ -1297,8 +1309,14 @@
 /* Shown to the user when suggestions are being loaded. */
 "loading.suggestions" = "بارگذاری پیشنهادها";
 
+/* No comment provided by engineer. */
+"LocatedCluster" = "LocatedCluster";
+
 /* Title to indicate that a fetch operation is in progress. */
 "locating.title" = "مکان";
+
+/* No comment provided by engineer. */
+"Location" = "مکان";
 
 /* Displayed when a location fetch fails. */
 "location.fetch.error" = "خطا در مکان‌یابی";
@@ -1344,6 +1362,9 @@
 
 /* Title of a location in location list if it does not have a name. */
 "locationSharing.untitledLocation" = "مکان بدون نام";
+
+/* No comment provided by engineer. */
+"MacroCluster" = "MacroCluster";
 
 /* Refers to albums in Photo Library. */
 "media.albums" = "آلبوم‌ها";
@@ -1464,6 +1485,9 @@
 /* Text shown on the moments stack to indicate that the stack is interactive. Only shown the first time. */
 "moments.swipe.for.more" = "برای اطلاعات بیشتر بکشید";
 
+/* Indicates the user's current friends. */
+"my.friends" = "دوستانم";
+
 /* Message displayed to say when moments will disappear. */
 "mymoment.disappear.time.label" = "لحظه شما با لیست مخاطبینتان به اشتراک گذاشته شد. لحظه‌ها بعد از ۲۴ ساعت ناپدید میشوند.";
 
@@ -1533,6 +1557,9 @@
 
 /* Displayed when the user's friends list is empty. */
 "no.friends.message" = "شما هنوز با کسی در ارتباط نیستید";
+
+/* No comment provided by engineer. */
+"none" = "هیچکس";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "شما دیگر در این گروه نیستید";
@@ -1849,6 +1876,15 @@
 /* Indicates a user's social media links where the variable is the user's name. */
 "profile.links.format" = "لینک‌های @%";
 
+/* Indicates mutual friends and groups with another user. */
+"profile.mutual.friends.groups" = "profile.mutual.friends.groups";
+
+/* Indicates mutual friends with another user. */
+"profile.n.mutual.friends" = "profile.n.mutual.friends";
+
+/* Indicates mutual groups with another user. */
+"profile.n.mutual.groups" = "profile.n.mutual.groups";
+
 /* Displays remaining number of characters user is allowed to enter while editing their profile name, as well as maximum allowed name length. */
 "profile.name.length" = "%1$d/%2$d";
 
@@ -2040,6 +2076,9 @@
 
 /* Indicating the user's friend requests. */
 "requests.title" = "درخواست‌ها";
+
+/* No comment provided by engineer. */
+"Reset Photo Suggestions" = "نوسازی عکس پیشنهادی";
 
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "برای اطمینان از ایمنی ارتباطتان با %@، لطفاً شماره بالا را با شماره‌ای که روی دستگاه ایشان هست مقایسه کنید، یا کد کیوآر را از تلفن ایشان اسکن کنید.";

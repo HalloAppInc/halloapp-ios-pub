@@ -1,4 +1,10 @@
 /* No comment provided by engineer. */
+"(null)" = "(null)";
+
+/* No comment provided by engineer. */
+"(unknown)" = "(desconocido)";
+
+/* No comment provided by engineer. */
 "@" = "@";
 
 /* No comment provided by engineer. */
@@ -12,6 +18,12 @@
 
 /* No comment provided by engineer. */
 "• %@" = "• %@";
+
+/* No comment provided by engineer. */
+"<unknown" = "<desconocido";
+
+/* No comment provided by engineer. */
+"<unknown>" = "<desconocido>";
 
 /* About screen: body text. */
 "about.body.1" = "¡HalloApp ya está aquí! Y la estamos construyendo para ti y tus seres queridos. \n\nHemos hecho que las apps sociales vuelvan a lo esencial, agregando un nivel de seguridad y privacidad que creemos que debe estar a disposición de todos.\n\nHalloApp nunca va a usar tu información personal o mostrarte anuncios.\nEn vez de esto, con el tiempo esperamos poder añadir nuevas funciones por un pequeño costo.";
@@ -1297,6 +1309,9 @@
 /* Shown to the user when suggestions are being loaded. */
 "loading.suggestions" = "Cargando Sugerencias";
 
+/* No comment provided by engineer. */
+"LocatedCluster" = "LocatedCluster";
+
 /* Title to indicate that a fetch operation is in progress. */
 "locating.title" = "Localizando";
 
@@ -1347,6 +1362,9 @@
 
 /* Title of a location in location list if it does not have a name. */
 "locationSharing.untitledLocation" = "Ubicación desconocida";
+
+/* No comment provided by engineer. */
+"MacroCluster" = "MacroCluster";
 
 /* Refers to albums in Photo Library. */
 "media.albums" = "Álbumes";
@@ -1857,6 +1875,15 @@
 
 /* Indicates a user's social media links where the variable is the user's name. */
 "profile.links.format" = "Enlaces de %@:";
+
+/* Indicates mutual friends and groups with another user. */
+"profile.mutual.friends.groups" = "profile.mutual.friends.groups";
+
+/* Indicates mutual friends with another user. */
+"profile.n.mutual.friends" = "profile.n.mutual.friends";
+
+/* Indicates mutual groups with another user. */
+"profile.n.mutual.groups" = "profile.n.mutual.groups";
 
 /* Displays remaining number of characters user is allowed to enter while editing their profile name, as well as maximum allowed name length. */
 "profile.name.length" = "%1$d/%2$d";

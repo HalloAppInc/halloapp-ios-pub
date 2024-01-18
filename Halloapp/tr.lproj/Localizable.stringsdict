@@ -37,7 +37,7 @@
 	<key>feed.collapsed.n.users.added</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@n_users@</string>
+		<string>%#@n_kullanıcılar@</string>
 		<key>n_users</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
@@ -53,7 +53,7 @@
 	<key>feed.collapsed.n.users.joined</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@n_users@</string>
+		<string>%#@n_kullanıcılar@</string>
 		<key>n_users</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
@@ -69,7 +69,7 @@
 	<key>feed.collapsed.n.users.left</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@n_users@</string>
+		<string>%#@n_kullanıcılar@</string>
 		<key>n_users</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
@@ -85,7 +85,7 @@
 	<key>feed.collapsed.n.users.removed</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@n_users@</string>
+		<string>%#@n_kullanıcılar@</string>
 		<key>n_users</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
@@ -406,6 +406,65 @@
 			<string>%d bağlantı</string>
 			<key>zero</key>
 			<string>Yok</string>
+		</dict>
+	</dict>
+	<key>profile.mutual.friends.groups</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>ortak %#@n_arkadaş@ ve %#@n_grup@</string>
+		<key>n_friends</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d arkadaş</string>
+			<key>other</key>
+			<string>%d arkadaş</string>
+		</dict>
+		<key>n_groups</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringFormatSpecTypeKey</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d group</string>
+			<key>other</key>
+			<string>%d groups</string>
+		</dict>
+	</dict>
+	<key>profile.n.mutual.friends</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_arkadaş@</string>
+		<key>n_friends</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d ortak arkadaş</string>
+			<key>other</key>
+			<string>%d ortak arkadaş</string>
+		</dict>
+	</dict>
+	<key>profile.n.mutual.groups</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_grup@</string>
+		<key>n_groups</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d ortak grup</string>
+			<key>other</key>
+			<string>%d ortak grup</string>
 		</dict>
 	</dict>
 </dict>

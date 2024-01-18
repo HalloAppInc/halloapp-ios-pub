@@ -1,4 +1,10 @@
 /* No comment provided by engineer. */
+"(null)" = "(null)";
+
+/* No comment provided by engineer. */
+"(unknown)" = "(unbekannt)";
+
+/* No comment provided by engineer. */
 "@" = "@";
 
 /* No comment provided by engineer. */
@@ -12,6 +18,12 @@
 
 /* No comment provided by engineer. */
 "• %@" = "• %@";
+
+/* No comment provided by engineer. */
+"<unknown" = "<unbekannt";
+
+/* No comment provided by engineer. */
+"<unknown>" = "<unbekannt>";
 
 /* About screen: body text. */
 "about.body.1" = "HalloApp ist da! Und wir entwickeln diese App für dich und deine Liebsten. HalloApp ist eine Social-App, die sich wieder auf das Wesentliche besinnt und dabei gleichzeitig ein hohes Sicherheits- und Datenschutzniveau bietet, zu dem, wie wir meinen, jeder weltweit Zugriff haben sollte.\nHalloApp wird niemals deine persönlichen Daten verwenden oder dir Werbung anzeigen. Stattdessen planen wir, in Zukunft zusätzliche Funktionen zu einem günstigen Preis anzubieten.";
@@ -1297,8 +1309,14 @@
 /* Shown to the user when suggestions are being loaded. */
 "loading.suggestions" = "Vorschläge werden geladen";
 
+/* No comment provided by engineer. */
+"LocatedCluster" = "LocatedCluster";
+
 /* Title to indicate that a fetch operation is in progress. */
 "locating.title" = "Lokalisierung";
+
+/* No comment provided by engineer. */
+"Location" = "Standort";
 
 /* Displayed when a location fetch fails. */
 "location.fetch.error" = "Standort nicht gefunden";
@@ -1344,6 +1362,9 @@
 
 /* Title of a location in location list if it does not have a name. */
 "locationSharing.untitledLocation" = "Unbenannter Standort";
+
+/* No comment provided by engineer. */
+"MacroCluster" = "MacroCluster";
 
 /* Refers to albums in Photo Library. */
 "media.albums" = "Alben";
@@ -1537,6 +1558,9 @@
 /* Displayed when the user's friends list is empty. */
 "no.friends.message" = "Bislang bist du mit niemandem auf HalloApp verbunden";
 
+/* No comment provided by engineer. */
+"none" = "keine";
+
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Du bist nicht mehr in dieser Gruppe";
 
@@ -1721,7 +1745,7 @@
 "photosuggestions.emptystate.photopermission.action" = "Aktivieren";
 
 /* Explanatory text on empty state view */
-"photosuggestions.emptystate.photopermission.title" = "Erlaube den vollen Zugriff auf Fotos, um Magic-Posts zu verwenden";
+"photosuggestions.emptystate.photopermission.title" = "Erlaube den vollen Zugriff auf Fotos, um Magic-Posts zu nutzen";
 
 /* explanation for photo suggestions */
 "photosuggestions.explainer.subtitle" = "Wenn du neue Fotos aufnimmst, stellen wir dir die besten Aufnahmen in einem Entwurf zusammen, den du, wenn du Lust hast, ganz einfach teilen kannst.";
@@ -1851,6 +1875,15 @@
 
 /* Indicates a user's social media links where the variable is the user's name. */
 "profile.links.format" = "%@’s Links:";
+
+/* Indicates mutual friends and groups with another user. */
+"profile.mutual.friends.groups" = "profile.mutual.friends.groups";
+
+/* Indicates mutual friends with another user. */
+"profile.n.mutual.friends" = "profile.n.mutual.friends";
+
+/* Indicates mutual groups with another user. */
+"profile.n.mutual.groups" = "profile.n.mutual.groups";
 
 /* Displays remaining number of characters user is allowed to enter while editing their profile name, as well as maximum allowed name length. */
 "profile.name.length" = "%1$d/%2$d";
@@ -2043,6 +2076,9 @@
 
 /* Indicating the user's friend requests. */
 "requests.title" = "Anfragen";
+
+/* No comment provided by engineer. */
+"Reset Photo Suggestions" = "Fotovorschläge zurücksetzen";
 
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Um die Sicherheit deiner Verbindung mit %@ zu verifizieren, prüfe bitte, ob die obigen Nummern mit denen auf dem anderen Mobilgerät angezeigten übereinstimmen oder scanne den QR-Code.";
@@ -2426,7 +2462,7 @@
 "user.unblock" = "Entblocken";
 
 /* Message asking if the user is sure they want to unblock this user */
-"user.unblock.message" = "Bist du dir sicher, dass du auf HalloApp %@ entblocken möchtest? Du kannst dies später jederzeit ändern.";
+"user.unblock.message" = "Bist du dir sicher, dass du %@ auf HalloApp entblocken möchtest? Du kannst dies später jederzeit ändern.";
 
 /* Button to start voice call. Should be translated as verb. */
 "user.voice.call" = "Anrufen";

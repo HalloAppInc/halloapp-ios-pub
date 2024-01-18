@@ -408,5 +408,64 @@
 			<string>Geen</string>
 		</dict>
 	</dict>
+	<key>profile.mutual.friends.groups</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>Gemeenschappelijke %#@n_friends@ en %#@n_groups@</string>
+		<key>n_friends</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d vriend</string>
+			<key>other</key>
+			<string>%d vrienden</string>
+		</dict>
+		<key>n_groups</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringFormatSpecTypeKey</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d group</string>
+			<key>other</key>
+			<string>%d groups</string>
+		</dict>
+	</dict>
+	<key>profile.n.mutual.friends</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_friends@</string>
+		<key>n_friends</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d gemeenschappelijke vriend</string>
+			<key>other</key>
+			<string>%d gemeenschappelijke vrienden</string>
+		</dict>
+	</dict>
+	<key>profile.n.mutual.groups</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_groups@</string>
+		<key>n_groups</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d gemeenschappelijke groep</string>
+			<key>other</key>
+			<string>%d gemeenschappelijke groepen</string>
+		</dict>
+	</dict>
 </dict>
 </plist>

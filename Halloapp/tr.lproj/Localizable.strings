@@ -49,6 +49,9 @@
 /* Encourages the user to add a link to another social media platform. */
 "add.link" = "ilişim ekle";
 
+/* Displayed when the user has not added any links to their profile. */
+"add.links.prompt" = "@ Sosyal Medya Hesabımı Ekle";
+
 /* Title of a button that allows a location to be added. */
 "add.location.title" = "Konum ekle";
 
@@ -1285,11 +1288,17 @@
 /* Link that when tapped will open App Store so user can update to the latest version of the app. */
 "link.update.your.app" = "Uygulamanı güncelle.";
 
+/* Indicates a user's social media links. */
+"links.title" = "İlişimler";
+
 /* Shown to the user when suggestions are being loaded. */
 "loading.suggestions" = "Öneriler yükleniyor";
 
 /* Title to indicate that a fetch operation is in progress. */
 "locating.title" = "Konum bulunuyor";
+
+/* No comment provided by engineer. */
+"Location" = "Konum";
 
 /* Displayed when a location fetch fails. */
 "location.fetch.error" = "Konum bulunamadı";
@@ -1454,6 +1463,9 @@
 
 /* Text shown on the moments stack to indicate that the stack is interactive. Only shown the first time. */
 "moments.swipe.for.more" = "Daha fazlası için kaydır";
+
+/* Indicates the user's current friends. */
+"my.friends" = "Arkadaşlarım";
 
 /* Message displayed to say when moments will disappear. */
 "mymoment.disappear.time.label" = "Anlığın, kişilerinle paylaşıldı. Anlıklar 24 saat içinde kaybolur.";
@@ -1688,10 +1700,16 @@
 "photosuggestions.cta.alwaysonlocation.action" = "Ayarlardan izin ver";
 
 /* explanation of why we want always location access */
-"photosuggestions.cta.alwaysonlocation.subtitle" = "Yeni fotoğraflar çektiğinde en iyilerini seçip sana bir taslak sunarız. Böylece paylaşmak için hazır bir gönderi bulursun.";
+"photosuggestions.cta.alwaysonlocation.subtitle" = "Yeni fotoğraflar çektiğinde bunların içinden en iyilerini seçip sana bir taslak sunarız. Böylece paylaşmak için hazır bir gönderi bulursun.";
+
+/* title for explanation of why we want always location access */
+"photosuggestions.cta.alwaysonlocation.title" = "Büyülü Gönderileri kullanmak için HalloApp'in konuma erişmesine izin ver";
 
 /* Button to link to settings to enable location permission for Photos app */
 "photosuggestions.cta.photolocation.action" = "Ayarları aç";
+
+/* explanation for why we need to turn on location access for photos */
+"photosuggestions.cta.photolocation.subtitle1" = "Büyülü Gönderileri iyileştirmek için Kamera uygulamasının Konum erişimine izin ver. HalloApp fotoğraflarındaki konum meta verilerini kullanarak fotoğrafları sıralamana ve adlandırmana yardımcı olur.";
 
 /* instructions for enabling location access for photos app. maintain '*' to indicate bold text. */
 "photosuggestions.cta.photolocation.subtitle2" = "Konum erişimine izin vermek için *Ayarlar* > *Gizlilik ve Güvenlik* > *Konum Servisleri* > *Kamera*";
@@ -1702,11 +1720,14 @@
 /* Button to allow access to photos */
 "photosuggestions.emptystate.photopermission.action" = "İzin ver";
 
+/* Explanatory text on empty state view */
+"photosuggestions.emptystate.photopermission.title" = "Büyülü Gönderileri görmek için Fotoğraflara erişime izin ver";
+
 /* explanation for photo suggestions */
-"photosuggestions.explainer.subtitle" = "Yeni fotoğraflar çektiğinde en iyilerini seçip sana bir taslak sunarız. Böylece paylaşmak için hazır bir gönderi bulursun.";
+"photosuggestions.explainer.subtitle" = "Yeni fotoğraflar çektiğinde bunların içinden en iyilerini seçip sana bir taslak sunarız. Böylece paylaşmak için hazır bir gönderi bulursun.";
 
 /* title for explanation of photo suggestions */
-"photosuggestions.explainer.title" = "Sihirli gönderiyi dene";
+"photosuggestions.explainer.title" = "Büyülü gönderiyi dene";
 
 /* title for photo suggestions section */
 "photosuggestionsheader.title" = "Yeni gönderi önerileri";
@@ -2020,6 +2041,9 @@
 /* Indicating the user's friend requests. */
 "requests.title" = "İstekler";
 
+/* No comment provided by engineer. */
+"Reset Photo Suggestions" = "Fotoğraf Önerilerini Sıfırla";
+
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "%@ ile bağlantınızın güvenliğini doğrulamak için yukarıdaki numaraların, onun cihazında gösterilenlerle eşleşip eşleşmediğini kontrol et veya telefonundaki QR kodunu tarat.";
 
@@ -2197,6 +2221,9 @@
 /* Instructions for enabling notifications permissions */
 "settings.notifications.disabled.instructions" = "Lütfen Ayarlar'a git ve bildirimleri aç";
 
+/* Settings > Notifications: label for the toggle that turns new magic post notifications on or off. */
+"settings.notifications.magicposts" = "Büyülü Gönderiler";
+
 /* Settings > Notifications: label for the toggle that turns new moment notifications on or off. */
 "settings.notifications.moments" = "Anlıklar";
 
@@ -2339,7 +2366,7 @@
 "title.storage" = "Depolama";
 
 /* Tab for suggestions tab in main interface */
-"title.suggestions" = "Sihirli gönderi";
+"title.suggestions" = "Büyülü gönderi";
 
 /* Title for the screen with information about who saw your moment. */
 "title.your.moment" = "Görenler";
@@ -2469,4 +2496,7 @@
 
 /* Text that appears on the splash screen prior to registration. */
 "your.private.social.network" = "Özel sosyal ağına hoş geldin!";
+
+/* Refers to the social network YouTube. */
+"youtube.name" = "YouTube";
 

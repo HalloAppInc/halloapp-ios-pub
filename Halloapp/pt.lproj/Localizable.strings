@@ -1,4 +1,10 @@
 /* No comment provided by engineer. */
+"(null)" = "(null)";
+
+/* No comment provided by engineer. */
+"(unknown)" = "(unknown)";
+
+/* No comment provided by engineer. */
 "@" = "@";
 
 /* No comment provided by engineer. */
@@ -12,6 +18,12 @@
 
 /* No comment provided by engineer. */
 "• %@" = "• %@";
+
+/* No comment provided by engineer. */
+"<unknown" = "<unknown";
+
+/* No comment provided by engineer. */
+"<unknown>" = "<unknown>";
 
 /* About screen: body text. */
 "about.body.1" = "O HalloApp chegou! E estamos melhorando-o para si e para os seus entes queridos. Trouxemos os aplicativos sociais de volta ao básico, enquanto adicionamos uma camada de segurança e privacidade à qual achamos que todas as pessoas no mundo deveriam ter acesso. O HalloApp nunca usará suas informações pessoais ou lhe mostrará anúncios. Em vez disso, planejamos eventualmente oferecer recursos adicionais por um pequeno custo.";
@@ -1297,8 +1309,14 @@
 /* Shown to the user when suggestions are being loaded. */
 "loading.suggestions" = "Carregando sugestões";
 
+/* No comment provided by engineer. */
+"LocatedCluster" = "LocatedCluster";
+
 /* Title to indicate that a fetch operation is in progress. */
 "locating.title" = "Localizando";
+
+/* No comment provided by engineer. */
+"Location" = "Localização";
 
 /* Displayed when a location fetch fails. */
 "location.fetch.error" = "Não foi possível encontrar a localização";
@@ -1344,6 +1362,9 @@
 
 /* Title of a location in location list if it does not have a name. */
 "locationSharing.untitledLocation" = "Local sem título";
+
+/* No comment provided by engineer. */
+"MacroCluster" = "MacroCluster";
 
 /* Refers to albums in Photo Library. */
 "media.albums" = "Álbuns";
@@ -1536,6 +1557,9 @@
 
 /* Displayed when the user's friends list is empty. */
 "no.friends.message" = "Ainda não estás ligado a ninguém na HalloApp";
+
+/* No comment provided by engineer. */
+"none" = "Nenhum";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Já não está neste grupo";
@@ -1852,6 +1876,15 @@
 /* Indicates a user's social media links where the variable is the user's name. */
 "profile.links.format" = "Links de %@:";
 
+/* Indicates mutual friends and groups with another user. */
+"profile.mutual.friends.groups" = "profile.mutual.friends.groups";
+
+/* Indicates mutual friends with another user. */
+"profile.n.mutual.friends" = "profile.n.mutual.friends";
+
+/* Indicates mutual groups with another user. */
+"profile.n.mutual.groups" = "profile.n.mutual.groups";
+
 /* Displays remaining number of characters user is allowed to enter while editing their profile name, as well as maximum allowed name length. */
 "profile.name.length" = "%1$d/%2$d";
 
@@ -2043,6 +2076,9 @@
 
 /* Indicating the user's friend requests. */
 "requests.title" = "Pedidos";
+
+/* No comment provided by engineer. */
+"Reset Photo Suggestions" = "Redefinir sugestões de fotos";
 
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Para verificar a segurança da sua ligação com %@, confira se os números acima correspondem aos mostrados no dispositivo da pessoa, ou escaneie o seu código QR no telefone da pessoa.";

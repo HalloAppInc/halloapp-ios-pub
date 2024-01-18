@@ -1300,6 +1300,9 @@
 /* Title to indicate that a fetch operation is in progress. */
 "locating.title" = "Locatie wordt opgehaald";
 
+/* No comment provided by engineer. */
+"Location" = "Locatie";
+
 /* Displayed when a location fetch fails. */
 "location.fetch.error" = "Kan Locatie Niet Vinden";
 
@@ -1536,6 +1539,9 @@
 
 /* Displayed when the user's friends list is empty. */
 "no.friends.message" = "Je bent nog met niemand verbonden op HalloApp";
+
+/* No comment provided by engineer. */
+"none" = "geen";
 
 /* Text shown to indicate user is not in the group anymore */
 "not.in.group.banner.text" = "Je bent geen deelnemer meer van deze groep";
@@ -2043,6 +2049,9 @@
 
 /* Indicating the user's friend requests. */
 "requests.title" = "Verzoeken";
+
+/* No comment provided by engineer. */
+"Reset Photo Suggestions" = "Fotosuggesties resetten";
 
 /* Instructions for how to use the safety number verification UI */
 "safety.number.instructions" = "Om de beveiliging van je verbinding met %@ te verifiëren, controleer of bovenstaande nummers overeenkomen met die op het andere apparaat of scan de QR-code op de andere telefoon.";
