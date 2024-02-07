@@ -546,6 +546,7 @@
 		F4F4130C2B1FA080001ED8A7 /* PhotoSuggestionsDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F4130B2B1FA080001ED8A7 /* PhotoSuggestionsDataSource.swift */; };
 		F4F547D42A69FB3400A67901 /* AlbumSuggestionLoadIndicatorCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F547D32A69FB3400A67901 /* AlbumSuggestionLoadIndicatorCollectionViewCell.swift */; };
 		F4FA225E2A8C192100654455 /* AppleGeocoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FA225D2A8C192100654455 /* AppleGeocoder.swift */; };
+		F4FA70072B7436FC00446879 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = F4FA70052B7436FC00446879 /* InfoPlist.strings */; };
 		F4FF3ADC27FCD25F00CD4998 /* ExternalSharePost.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF3ADB27FCD25F00CD4998 /* ExternalSharePost.swift */; };
 		F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */; };
 		F80A0085288EB50700EAE39C /* TextComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F80A0084288EB50700EAE39C /* TextComposerView.swift */; };
@@ -1369,6 +1370,7 @@
 		F41FAA5127E54F2800FC5090 /* FeedPostMenuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostMenuViewController.swift; sourceTree = "<group>"; };
 		F427FF3728D0FF50000D3EAD /* ComposerTitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerTitleView.swift; sourceTree = "<group>"; };
 		F42962212AD623DD003DF9E2 /* AssetClusterer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetClusterer.swift; sourceTree = "<group>"; };
+		F42B16802B74370300C3A2BD /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		F42F574727C86D7200988E9D /* FeedInviteCarouselCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedInviteCarouselCell.swift; sourceTree = "<group>"; };
 		F43DF0E928F0A685008008B7 /* ShareProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareProvider.swift; sourceTree = "<group>"; };
 		F43DF0EB28F0A94D008008B7 /* WhatsAppShareProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsAppShareProvider.swift; sourceTree = "<group>"; };
@@ -1379,6 +1381,7 @@
 		F43DF0F928F75C98008008B7 /* ExternalSharePreviewImageGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalSharePreviewImageGenerator.swift; sourceTree = "<group>"; };
 		F44269262B15492B006FC0C9 /* LocatedClusterGeocoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocatedClusterGeocoder.swift; sourceTree = "<group>"; };
 		F445A73827FFB8270046D382 /* ShareMenuPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareMenuPresenter.swift; sourceTree = "<group>"; };
+		F44E2C942B74370900F9F3B9 /* fa */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fa; path = fa.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		F44FEEF42A9E94FF002F2D02 /* VisitTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitTracker.swift; sourceTree = "<group>"; };
 		F45123C62AF175F6000E9C43 /* AssetRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetRecord.swift; sourceTree = "<group>"; };
 		F45123C82AF1761A000E9C43 /* AssetMacroCluster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetMacroCluster.swift; sourceTree = "<group>"; };
@@ -1402,6 +1405,7 @@
 		F49FFA182ACF716600EDFC89 /* PhotoSuggestions.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = PhotoSuggestions.xcdatamodel; sourceTree = "<group>"; };
 		F49FFA1A2ACF74C900EDFC89 /* PhotoSuggestionsData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSuggestionsData.swift; sourceTree = "<group>"; };
 		F49FFA1C2ACF758A00EDFC89 /* AssetLibrarySync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetLibrarySync.swift; sourceTree = "<group>"; };
+		F4A1DE7F2B74371400FF7D08 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		F4A273852A993D7600786269 /* ServerGeocoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerGeocoder.swift; sourceTree = "<group>"; };
 		F4B3FC7B2900A50400D73C9A /* FeedShareCarouselCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedShareCarouselCell.swift; sourceTree = "<group>"; };
 		F4B91DF7278FCEEB00DF70C1 /* CADisplayLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CADisplayLink.swift; sourceTree = "<group>"; };
@@ -1410,10 +1414,12 @@
 		F4C0F1082B168C2500726E6B /* PhotoSuggestionsFetchedResultsControllerAsyncSequence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSuggestionsFetchedResultsControllerAsyncSequence.swift; sourceTree = "<group>"; };
 		F4C29B132838704C00A4FE08 /* UICollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UICollectionView.swift; sourceTree = "<group>"; };
 		F4C29B15283D5A4C00A4FE08 /* MediaImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaImageView.swift; sourceTree = "<group>"; };
+		F4C847AF2B74371A007DD298 /* pt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pt; path = pt.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		F4D88F5027D6D8A300D706DA /* InviteContactViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteContactViewController.swift; sourceTree = "<group>"; };
 		F4D88F6A27D9873E00D706DA /* Toast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toast.swift; sourceTree = "<group>"; };
 		F4DE66F02AE891B8003AC357 /* PhotosUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PhotosUI.framework; path = System/Library/Frameworks/PhotosUI.framework; sourceTree = SDKROOT; };
 		F4DE66F32AEADFE6003AC357 /* PhotoSuggestionsBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSuggestionsBrowser.swift; sourceTree = "<group>"; };
+		F4E939A22B74371F0083427C /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-br.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		F4ED983D2B28D63000FC7BF3 /* Notification Content Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Notification Content Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F4ED983E2B28D63000FC7BF3 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		F4ED98402B28D63000FC7BF3 /* UserNotificationsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotificationsUI.framework; path = System/Library/Frameworks/UserNotificationsUI.framework; sourceTree = SDKROOT; };
@@ -1448,6 +1454,7 @@
 		F4F4130B2B1FA080001ED8A7 /* PhotoSuggestionsDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSuggestionsDataSource.swift; sourceTree = "<group>"; };
 		F4F547D32A69FB3400A67901 /* AlbumSuggestionLoadIndicatorCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumSuggestionLoadIndicatorCollectionViewCell.swift; sourceTree = "<group>"; };
 		F4FA225D2A8C192100654455 /* AppleGeocoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleGeocoder.swift; sourceTree = "<group>"; };
+		F4FA70062B7436FC00446879 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		F4FF3ADB27FCD25F00CD4998 /* ExternalSharePost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalSharePost.swift; sourceTree = "<group>"; };
 		F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerViewController.swift; sourceTree = "<group>"; };
 		F80A0084288EB50700EAE39C /* TextComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextComposerView.swift; sourceTree = "<group>"; };
@@ -2893,6 +2900,7 @@
 				F4ED98432B28D63100FC7BF3 /* NotificationViewController.swift */,
 				F4ED98502B28FF1400FC7BF3 /* PhotoSuggestionCell.swift */,
 				F4ED98482B28D63100FC7BF3 /* Info.plist */,
+				F4FA70052B7436FC00446879 /* InfoPlist.strings */,
 				F4EE95222B59ACA900622D1A /* Localizable.strings */,
 			);
 			path = "Notification Content Extension";
@@ -3401,6 +3409,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F4EE95202B59ACA900622D1A /* Localizable.strings in Resources */,
+				F4FA70072B7436FC00446879 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4312,6 +4321,19 @@
 				F4EE95302B59ACBF00622D1A /* ar */,
 			);
 			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		F4FA70052B7436FC00446879 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				F4FA70062B7436FC00446879 /* de */,
+				F42B16802B74370300C3A2BD /* es */,
+				F44E2C942B74370900F9F3B9 /* fa */,
+				F4A1DE7F2B74371400FF7D08 /* nl */,
+				F4C847AF2B74371A007DD298 /* pt */,
+				F4E939A22B74371F0083427C /* pt-BR */,
+			);
+			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */

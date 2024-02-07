@@ -4,3 +4,6 @@
 /* Bundle name */
 "CFBundleName" = "Notification Content Extension";
 
+/* Copyright (human-readable) */
+"NSHumanReadableCopyright" = "Copyright © 2023 HalloApp, Inc. All rights reserved.";
+

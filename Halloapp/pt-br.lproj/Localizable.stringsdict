@@ -630,12 +630,20 @@
 		<key>n_groups</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
-			<string>NSStringFormatSpecTypeKey</string>
+			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
+			<key>few</key>
+			<string>%d groups</string>
+			<key>many</key>
+			<string>%d groups</string>
 			<key>one</key>
 			<string>%d group</string>
 			<key>other</key>
+			<string>%d groups</string>
+			<key>two</key>
+			<string>%d groups</string>
+			<key>zero</key>
 			<string>%d groups</string>
 		</dict>
 	</dict>

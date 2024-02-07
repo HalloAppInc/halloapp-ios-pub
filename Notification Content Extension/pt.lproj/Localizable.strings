@@ -1,7 +1,6 @@
-/* 
-  Localizable.strings
-  HalloApp
+/* Bundle display name */
+"CFBundleDisplayName" = "Extensão do serviço de notificação";
 
-  Created by Chris Leonavicius on 1/18/24.
-  Copyright © 2024 HalloApp, Inc. All rights reserved.
-*/
+/* Bundle name */
+"CFBundleName" = "Extensão do serviço de notificação";
+

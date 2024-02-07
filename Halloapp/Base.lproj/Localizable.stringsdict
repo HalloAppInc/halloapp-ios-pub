@@ -426,7 +426,7 @@
 		<key>n_groups</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
-			<string>NSStringFormatSpecTypeKey</string>
+			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>

@@ -411,7 +411,7 @@
 	<key>profile.mutual.friends.groups</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>ortak %#@n_arkadaş@ ve %#@n_grup@</string>
+		<string>ortak %#@n_friends@ ve %#@n_groups@</string>
 		<key>n_friends</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
@@ -426,7 +426,7 @@
 		<key>n_groups</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
-			<string>NSStringFormatSpecTypeKey</string>
+			<string>NSStringPluralRuleType</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
@@ -438,7 +438,7 @@
 	<key>profile.n.mutual.friends</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@n_arkadaş@</string>
+		<string>%#@n_friends@</string>
 		<key>n_friends</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
@@ -454,7 +454,7 @@
 	<key>profile.n.mutual.groups</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@n_grup@</string>
+		<string>%#@n_groups@</string>
 		<key>n_groups</key>
 		<dict>
 			<key>NSStringFormatSpecTypeKey</key>
