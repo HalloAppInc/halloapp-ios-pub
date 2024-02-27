@@ -76,7 +76,7 @@ struct LocationSharingEnvironment {
         }
     }
     
-    @discardableResult @MainActor @Sendable
+    @discardableResult @MainActor
     func openAppSettings() async -> Bool {
         if let url = URL(string: UIApplication.openSettingsURLString) {
             return await UIApplication.shared.open(url)

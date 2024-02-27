@@ -260,10 +260,6 @@ class ProfileViewController: UIViewController, UICollectionViewDelegate {
             addChild(header)
             header.didMove(toParent: self)
 
-            let publisher = dataSource.$profile
-                .compactMap { $0 }
-                .eraseToAnyPublisher()
-
             if let profile = dataSource.profile {
                 header.configure(with: profile, mutualFriends: [], mutualGroups: [])
             }

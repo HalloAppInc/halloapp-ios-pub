@@ -180,7 +180,9 @@ class LocationSharingViewModel: ObservableObject {
         
         openAppSettings
             .sink { [environment] in
-                Task(operation: environment.openAppSettings)
+                Task {
+                    await environment.openAppSettings()
+                }
             }
             .store(in: &cancelBag)
         
