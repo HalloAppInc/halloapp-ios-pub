@@ -356,12 +356,13 @@ fileprivate class SuggestionsDataSource {
                     }
                 }
 
-                return await group
-                    .compactMap { $0 }
-                    .filter { $0.userID != ownUserID }
-                    .reduce(into: [Suggestion]()) {
-                        $0.append($1)
+                var suggestions: [Suggestion] = []
+                for await suggestion in group {
+                    if let suggestion, suggestion.userID != ownUserID {
+                        suggestions.append(suggestion)
                     }
+                }
+                return suggestions
             }
 
             state = .fetched(suggestions)
