@@ -34,7 +34,10 @@ actor PhotoSuggestionsServices {
 
     private var photoAuthorizationCancellable: AnyCancellable?
 
+    private var photoSuggestionsData: PhotoSuggestionsData
+
     init(photoSuggestionsData: PhotoSuggestionsData, service: HalloService, userDefaults: UserDefaults) {
+        self.photoSuggestionsData = photoSuggestionsData
         assetLibrarySync = AssetLibrarySync.makeService(photoSuggestionsData: photoSuggestionsData, userDefaults: userDefaults)
         assetClusterer = AssetClusterer.makeService(photoSuggestionsData: photoSuggestionsData)
         locatedClusterGeocoder = LocatedClusterGeocoder.makeService(photoSuggestionsData: photoSuggestionsData, service: service)
@@ -50,7 +53,7 @@ extension PhotoSuggestionsServices: PhotoSuggestionsService {
         guard PhotoPermissionsHelper.authorizationStatus(for: .readWrite).hasAnyAuthorization else {
             DDLogInfo("PhotoSuggestionsServices/Attempted to start Photo Suggestions Services without photo permission, waiting for permission to be granted")
             await reset()
-            MainAppContext.shared.photoSuggestionsData.reset()
+            photoSuggestionsData.reset()
             photoAuthorizationCancellable = NotificationCenter.default.publisher(for: PhotoPermissionsHelper.photoAuthorizationDidChange)
                 .sink { [weak self] _ in
                     guard let self else {
