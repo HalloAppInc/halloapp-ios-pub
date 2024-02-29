@@ -284,7 +284,7 @@ private extension DiscreteEvent {
             report.senderVersion = sender.version
             report.senderPlatform = sender.platform.serverPlatform
             report.rerequestCount = UInt32(rerequestCount)
-            report.timeTakenS = UInt32(timeTaken)
+            report.timeTakenS = UInt32(max(0, timeTaken)) // is sometimes reported as negative which throws a runtime error as unrepresentable.
             report.isSilent = isSilent
             switch contentType {
             case .chat:
