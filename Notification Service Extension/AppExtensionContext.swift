@@ -23,7 +23,12 @@ class AppExtensionContext: AppContext {
     required init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type, appTarget: AppTarget) {
         asyncLoggingEnabled = false
         super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass, appTarget: appTarget)
-        setUpReachability()
+
+        // Reachability can send its whenReachable / whenUnreachable blocks immediately, which will access the AppContext
+        // before it is fully initialized.
+        DispatchQueue.main.async {
+            self.setUpReachability()
+        }
     }
 
     // MARK: Reachability
