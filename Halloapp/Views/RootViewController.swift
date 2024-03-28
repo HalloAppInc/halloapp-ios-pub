@@ -17,6 +17,7 @@ enum UserInterfaceState {
     case mainInterface
     case initial
     case migrating
+    case goodbye
 }
 
 protocol RootViewControllerDelegate: AnyObject {
@@ -155,6 +156,9 @@ final class RootViewController: UIViewController {
 
     private func viewController(forUserInterfaceState state: UserInterfaceState) -> UIViewController {
         switch state {
+        case .goodbye:
+            return GoodbyeViewController()
+
         case .initial:
             return UIViewController()
 

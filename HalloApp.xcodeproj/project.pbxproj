@@ -141,6 +141,7 @@
 		68CD603425E463FA0056D13E /* ConnectionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CD603325E463FA0056D13E /* ConnectionBanner.swift */; };
 		68D2915125096F0700AF5061 /* MentionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E9124D33E0F00F40F1F /* MentionPickerView.swift */; };
 		68E4619625C9C93B008B5698 /* ExpiredVersionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E4619525C9C93B008B5698 /* ExpiredVersionViewController.swift */; };
+		68EA8EE92BB4E0DD00E2E815 /* GoodbyeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68EA8EE82BB4E0DD00E2E815 /* GoodbyeViewController.swift */; };
 		68EAABF127F8FC2300619B1A /* CommonMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68EAABF027F8FC2300619B1A /* CommonMedia.swift */; };
 		68F935C5252CD00800FA6E75 /* ChatMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F935C4252CD00800FA6E75 /* ChatMention+CoreDataClass.swift */; };
 		68F935D3252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F935D2252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift */; };
@@ -1026,6 +1027,7 @@
 		68E4619525C9C93B008B5698 /* ExpiredVersionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpiredVersionViewController.swift; sourceTree = "<group>"; };
 		68EA2E5F26CEEDB20056FC55 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		68EA2E6026CEEDB20056FC55 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		68EA8EE82BB4E0DD00E2E815 /* GoodbyeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoodbyeViewController.swift; sourceTree = "<group>"; };
 		68EAABF027F8FC2300619B1A /* CommonMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonMedia.swift; sourceTree = "<group>"; };
 		68F0226D26AB93FD0058088D /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = fr; path = fr.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
 		68F0226E26AB93FD0058088D /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -2591,6 +2593,7 @@
 				A13C928D28D915A00096CE00 /* InAppPermissionsViewController.swift */,
 				A1E526242AB2713F00523D6F /* FriendMigrationInfoViewController.swift */,
 				F408E27A281B0BDE00A49B29 /* MigrationViewController.swift */,
+				68EA8EE82BB4E0DD00E2E815 /* GoodbyeViewController.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -3738,6 +3741,7 @@
 				76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */,
 				EB9E73D2285D12C5009F1B45 /* ReactionViewController.swift in Sources */,
 				EA50FBA426FE82D00097C451 /* HAMarkdown.swift in Sources */,
+				68EA8EE92BB4E0DD00E2E815 /* GoodbyeViewController.swift in Sources */,
 				A163A2522AAF742F00501DE3 /* FriendsViewController.swift in Sources */,
 				68E4619625C9C93B008B5698 /* ExpiredVersionViewController.swift in Sources */,
 				761B3962241D9C4D00858251 /* SyncSession.swift in Sources */,
