@@ -28,7 +28,7 @@ final class GoodbyeViewController: UIViewController {
         label.numberOfLines = 0
         label.textAlignment = .center
         label.text = Localizations.goodbyeMessage
-        label.font = .systemFont(forTextStyle: .subheadline)
+        label.font = .systemFont(forTextStyle: .callout, maximumPointSize: 24)
         label.textColor = .secondaryLabel
         return label
     }()
@@ -39,17 +39,31 @@ final class GoodbyeViewController: UIViewController {
         label.numberOfLines = 0
         label.textAlignment = .center
         label.text = Localizations.goodbyeTitle
-        label.font = .gothamFont(forTextStyle: .title1, weight: .medium)
+        label.font = .systemFont(forTextStyle: .title1, weight: .bold, maximumPointSize: 30)
         return label
     }()
 
     lazy var okButton: UIButton = {
         let button = UIButton(type: .system)
-        button.configuration = .filledCapsule(backgroundColor: .primaryBlue)
+        button.configuration = {
+            var config = UIButton.Configuration.filled()
+            config.baseBackgroundColor = .systemBlue
+            config.baseForegroundColor = .white
+            config.cornerStyle = .large
+            config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
+            return config
+        }()
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setTitle(Localizations.buttonOK, for: .normal)
+        button.addTarget(self, action: #selector(didTapOK), for: .touchUpInside)
         return button
     }()
+
+    @objc
+    private func didTapOK() {
+        MainAppContext.shared.goodbyeLastAppearance = .now
+        MainAppContext.shared.didConfirmGoodbye.send(true)
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -66,9 +80,12 @@ final class GoodbyeViewController: UIViewController {
         stackView.alignment = .center
         stackView.spacing = 20
         stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.setCustomSpacing(40, after: messageView)
         view.addSubview(stackView)
-        stackView.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -40).isActive = true
+        stackView.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -50).isActive = true
         stackView.constrain([.centerX, .centerY], to: view)
+
+        okButton.widthAnchor.constraint(equalTo: stackView.widthAnchor).isActive = true
     }
 }
 

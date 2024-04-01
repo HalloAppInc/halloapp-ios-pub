@@ -55,6 +55,7 @@ class MainAppContext: AppContext {
     static let MediaUploadDataLastCleanUpTime = "MediaUploadDataLastCleanUpTime"
 
     let didTapNotification = PassthroughSubject<NotificationMetadata, Never>()
+    let didConfirmGoodbye = PassthroughSubject<Bool, Never>()
     let didTapIntent = CurrentValueSubject<INIntent?, Never>(nil)
     let activityViewControllerPresentRequest = PassthroughSubject<[Any], Never>()
     let groupFeedFromGroupTabPresentRequest = CurrentValueSubject<GroupID?, Never>(nil)
@@ -65,7 +66,17 @@ class MainAppContext: AppContext {
 
     let didPrivacySettingChange = PassthroughSubject<UserID, Never>()
     let mentionPasteboard = UIPasteboard.withUniqueName()
-    
+
+    private let userDefaultsGoodbyeKey = "goodbyeLastAppearance"
+    var goodbyeLastAppearance: Date {
+        get {
+            return (userDefaults.object(forKey: userDefaultsGoodbyeKey) as? Date) ?? .distantPast
+        }
+        set {
+            userDefaults.set(newValue, forKey: userDefaultsGoodbyeKey)
+        }
+    }
+
     var service: HalloService {
         coreService as! HalloService
     }

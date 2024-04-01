@@ -29,6 +29,12 @@ class SceneDelegate: UIResponder {
             return .migrating
         }
 
+        let oneDay = TimeInterval(86400)
+        if Date.now.timeIntervalSince(MainAppContext.shared.goodbyeLastAppearance) > oneDay {
+            // goodbyeLastAppearance will be updated when user hits "OK"
+            return .goodbye
+        }
+
         if isAppVersionKnownExpired ?? MainAppContext.shared.coreService.isAppVersionKnownExpired.value {
             return .expiredVersion
         }
@@ -122,6 +128,12 @@ extension SceneDelegate: UIWindowSceneDelegate {
             MainAppContext.shared.coreService.isAppVersionKnownExpired.sink { [weak self] isExpired in
                 guard let self = self else { return }
                 self.transition(to: self.state(isAppVersionKnownExpired: isExpired))
+        })
+
+        cancellables.insert(
+            MainAppContext.shared.didConfirmGoodbye.sink { [weak self] _ in
+                guard let self = self else { return }
+                self.transition(to: self.state())
         })
 
         cancellables.insert(
