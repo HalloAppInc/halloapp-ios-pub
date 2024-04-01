@@ -949,6 +949,21 @@
 /* When displaying a generic error message. */
 "generic.error" = "Terjadi Kesalahan";
 
+/* First paragraph on goodbye screen */
+"goodbye.message.1" = "Semua ada akhirnya, bahkan hal-hal baik. Bisa menyediakan layanan HalloApp kepada Anda semua merupakan kehormatan bagi kami.";
+
+/* Second paragraph on goodbye screen */
+"goodbye.message.2" = "Sayangnya, tidak semua hal bersifat abadi. Kami harus menghentikan dukungan HalloApp setelah 15 April 2024.";
+
+/* Third paragraph on goodbye screen */
+"goodbye.message.3" = "Jika ingin, Anda bisa mengunduh media dari postingan di bawah Profil > Postingan Saya.";
+
+/* Fourth paragraph on goodbye screen */
+"goodbye.message.4" = "Harapan terbaik untuk Anda, Tim HalloApp.";
+
+/* Title on goodbye screen */
+"goodbye.title" = "Selamat Tinggal, untuk Kali Ini";
+
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Tambahkan deskripsi grup";
 

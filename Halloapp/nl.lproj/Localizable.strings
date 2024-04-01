@@ -961,6 +961,21 @@
 /* When displaying a generic error message. */
 "generic.error" = "Er is een fout opgetreden";
 
+/* First paragraph on goodbye screen */
+"goodbye.message.1" = "Aan alles komt een eind, zelfs aan de goede dingen. Het was een groot voorrecht om HalloApp aan jullie te mogen aanbieden.";
+
+/* Second paragraph on goodbye screen */
+"goodbye.message.2" = "Helaas kan niet alles voor altijd blijven bestaan. Na 15 april 2024 zullen we de ondersteuning van HalloApp moeten stopzetten.";
+
+/* Third paragraph on goodbye screen */
+"goodbye.message.3" = "Als je wilt, kun je de media van je posts downloaden onder Profiel > Mijn posts.";
+
+/* Fourth paragraph on goodbye screen */
+"goodbye.message.4" = "Het gaat jullie goed, HalloApp-team.";
+
+/* Title on goodbye screen */
+"goodbye.title" = "Dit is vaarwel, voor nu";
+
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Groepsomschrijving toevoegen";
 

@@ -973,6 +973,21 @@
 /* When displaying a generic error message. */
 "generic.error" = "Um erro ocorreu";
 
+/* First paragraph on goodbye screen */
+"goodbye.message.1" = "Todas as coisas chegam ao fim, mesmo as boas. Foi para nós um privilégio absoluto prestar-vos um serviço HalloApp.";
+
+/* Second paragraph on goodbye screen */
+"goodbye.message.2" = "Infelizmente, nem todas as coisas podem durar para sempre. Por isso, teremos de interromper o apoio à HalloApp a partir de 15 de abril.";
+
+/* Third paragraph on goodbye screen */
+"goodbye.message.3" = "Se desejar, pode descarregar os meios de comunicação das suas mensagens em Perfil > As minhas mensagens.";
+
+/* Fourth paragraph on goodbye screen */
+"goodbye.message.4" = "Desejo-vos tudo de bom, equipa HalloApp.";
+
+/* Title on goodbye screen */
+"goodbye.title" = "Isto é adeus, por agora";
+
 /* Placeholder text shown in group description input box when there's no description */
 "group.add.description" = "Adicionar descrição do grupo";
 
