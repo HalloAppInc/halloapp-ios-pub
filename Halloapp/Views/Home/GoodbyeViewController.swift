@@ -68,7 +68,7 @@ final class GoodbyeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = .white
+        view.backgroundColor = .primaryWhiteBlack
 
         let stackView = UIStackView(arrangedSubviews: [
             logo,
